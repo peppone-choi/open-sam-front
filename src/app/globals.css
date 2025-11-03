@@ -1,0 +1,270 @@
+html * {
+    max-height: 1000000px;
+}
+
+html,
+body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic';
+    background-color: black;
+    color: white;
+    line-height: 1.3;
+    font-size: 14px;
+    background-position: center;
+}
+
+input {
+    font-size: 14px;
+}
+
+.center {
+    text-align: center;
+}
+
+table.mimic_flex {
+    border-collapse: collapse;
+    border: none;
+    padding: 0;
+}
+
+.mimic_flex td,
+.mimic_flex th {
+    border: none !important;
+    padding: 0px;
+    word-break: break-all;
+}
+
+table.tb_layout {
+    border-collapse: collapse;
+    padding: 0px;
+    font-size: 14px;
+    word-break: break-all;
+}
+
+.tb_layout td,
+.tb_layout th {
+    border: solid 1px gray;
+    padding: 0px;
+    word-break: break-all;
+}
+
+div.bar_out {
+    position: relative;
+    border-top: solid 1px #888888;
+    border-bottom: solid 1px #333333;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
+div.bar_out div {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+}
+
+div.bar_out div.bar_in {
+    width: 100%;
+}
+
+
+/* */
+
+.ev_warning {
+    color: orangered;
+}
+
+.ev_notice {
+    color: orangered;
+}
+
+.ev_succes {
+    color: lightgreen;
+}
+
+.ev_sell {
+    color: orange;
+}
+
+.ev_failed {
+    color: orangered;
+}
+
+.ev_highlight {
+    color: orangered;
+}
+
+
+/* TODO: 색상값이 아니라 의미에 따라 클래스 지정 */
+
+.o_bullet::before {
+    color: cyan;
+    content: "●";
+}
+
+.o_diamond::before {
+    color: orangered;
+    content: "◆";
+}
+
+.small_war_log {
+    display: inline-block;
+}
+
+.small_war_log .war_type_attack {
+    color: cyan;
+}
+
+.small_war_log .war_type_defense {
+    color: magenta;
+}
+
+.small_war_log .war_type_siege {
+    color: white;
+}
+
+.small_war_log .name_plate {
+    font-size: 0.75em;
+}
+
+.small_war_log .name_plate_cover {
+    color: yellow;
+}
+
+.small_war_log .crew_plate {
+    color: orangered;
+    font-size: 90%;
+}
+
+.t_date {
+    font-size: 0.75em;
+}
+
+.t_red {
+    color: red;
+}
+
+.t_blue {
+    color: blue;
+}
+
+.t_green {
+    color: green;
+}
+
+.t_magenta {
+    color: magenta;
+}
+
+.t_cyan {
+    color: cyan;
+}
+
+.t_limegreen {
+    color: limegreen;
+}
+
+.t_skyblue {
+    color: skyblue;
+}
+
+.t_orangered {
+    color: orangered;
+}
+
+.t_yellow {
+    color: yellow;
+}
+
+.t_white {
+    color: white;
+}
+
+.float_left {
+    float: left;
+}
+
+.tooltip {
+    font-size: 12.5px;
+}
+
+.tooltip_copyable_info .tooltiptext {
+    display: inline;
+    color: rgba(0, 0, 0, 0);
+    font-size: 0;
+}
+
+.tooltiptext {
+    display: none;
+}
+
+.hidden_but_copyable {
+    color: rgba(0, 0, 0, 0);
+    font-size: 0;
+}
+
+.btn-group-xs>.btn,
+.btn-xs {
+    padding: .25rem .4rem;
+    font-size: .875rem;
+    line-height: .5;
+    border-radius: .2rem;
+}
+
+.edit_form.viewer {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.trumbowyg-box {
+    margin: 0;
+    border-left: none;
+    border-right: none;
+}
+
+.edit_form.trumbowyg-editor {
+    margin: 0;
+    padding: 0;
+}
+
+.compensatePositive {
+    color: skyblue;
+}
+
+.compensateNegative {
+    color: orange;
+}
+
+.commandBasic.commandImpossible {
+    background-color: red;
+    color: white;
+}
+
+.select2-selection--single.simple-select2-align-center .select2-selection__rendered {
+    text-align: center;
+}
+
+.select2-dropdown.simple-select2-align-center li.select2-results__option {
+    text-align: center;
+}
+
+.select2-container--bootstrap4 .select2-selection--single.text-secondary .select2-selection__rendered {
+    color: white;
+}
+
+.select2-container--bootstrap4 .text-secondary .select2-results__option[aria-selected=false] {
+    color: white;
+}
+
+.bg0 {
+    background-color: black;
+}
+
+.bg1 {
+    background-color: #333333;
+}
+
+.bg2 {
+    background-color: black;
+}

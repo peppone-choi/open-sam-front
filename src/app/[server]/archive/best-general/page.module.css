@@ -1,0 +1,64 @@
+.container {
+  max-width: 1100px;
+  width: 1100px;
+  margin: 0 auto;
+  padding: 0;
+  background-color: black;
+  color: white;
+  min-height: 100vh;
+}
+
+.filterSection {
+  padding: 1rem;
+  border: 1px solid gray;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.filterForm {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.filterForm button {
+  padding: 0.5rem 1rem;
+  background-color: #333;
+  color: white;
+  border: 1px solid #666;
+  cursor: pointer;
+}
+
+.filterForm button.active {
+  background-color: #0cf;
+  color: #000;
+}
+
+.rankList {
+  padding: 1rem;
+}
+
+.rankItem {
+  display: grid;
+  grid-template-columns: 60px 1fr 200px;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid gray;
+  margin-bottom: 0.5rem;
+}
+
+.rank {
+  font-weight: bold;
+  font-size: 1.2em;
+  color: #0cf;
+}
+
+.generalName {
+  font-weight: bold;
+}
+
+.generalInfo {
+  font-size: 0.9em;
+  color: #aaa;
+}
+

@@ -1,0 +1,97 @@
+.container {
+  max-width: 1100px;
+  width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+  background-color: black;
+  color: white;
+  min-height: 100vh;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: 90px 90px 1fr 180px;
+  gap: 4px;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.closeBtn,
+.reloadBtn {
+  padding: 8px 16px;
+  background-color: #333;
+  color: white;
+  border: 1px solid #666;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  height: 32px;
+}
+
+.closeBtn:hover,
+.reloadBtn:hover {
+  background-color: #444;
+  border-color: #777;
+}
+
+.title {
+  text-align: center;
+  margin: 0 0 1rem 0;
+  font-size: 18pt;
+  color: #0cf;
+}
+
+.typeButtons {
+  display: flex;
+  gap: 4px;
+}
+
+.typeBtn {
+  padding: 8px 16px;
+  background-color: #333;
+  color: white;
+  border: 1px solid #666;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.typeBtn.active {
+  background-color: #0cf;
+  color: #000;
+}
+
+.typeBtn:hover {
+  background-color: #444;
+}
+
+.typeBtn.active:hover {
+  background-color: #0af;
+}
+
+.auctionContent {
+  padding: 1rem;
+}
+
+.resourceAuction,
+.uniqueAuction {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.section {
+  border: 1px solid gray;
+  background-color: black;
+  padding: 1rem;
+}
+
+.sectionTitle {
+  padding: 8px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 1rem;
+  background-color: #333;
+  color: white;
+  border: 1px solid gray;
+}

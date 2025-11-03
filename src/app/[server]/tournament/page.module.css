@@ -1,0 +1,44 @@
+.container {
+  max-width: 1100px;
+  width: 1100px;
+  margin: 0 auto;
+  padding: 0;
+  background-color: black;
+  color: white;
+  min-height: 100vh;
+}
+
+.content {
+  padding: 1rem;
+}
+
+.tournamentInfo {
+  border: 1px solid gray;
+  padding: 2rem;
+  text-align: center;
+}
+
+.tournamentInfo h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+}
+
+.status {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.joinButton {
+  padding: 1rem 2rem;
+  background-color: #333;
+  color: white;
+  border: 1px solid #666;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.joinButton:hover {
+  background-color: #444;
+}
+

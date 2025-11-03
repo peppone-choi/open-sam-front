@@ -1,0 +1,58 @@
+.container {
+  max-width: 1000px;
+  width: 1000px;
+  margin: 0 auto;
+  padding: 0;
+  background-color: black;
+  color: white;
+  min-height: 100vh;
+}
+
+.joinForm {
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 14px;
+}
+
+.input,
+.select {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: black;
+  color: white;
+  border: 1px solid gray;
+  font-size: 14px;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: #0cf;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 1rem;
+  background-color: #333;
+  color: white;
+  border: 1px solid #666;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.submitButton:hover {
+  background-color: #444;
+}
+

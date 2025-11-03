@@ -1,0 +1,20 @@
+.sammoBar {
+    position: relative;
+    border-top: solid 1px #888;
+    border-bottom: solid 1px #333;
+    margin: auto;
+}
+
+.sammoBarBase {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    background-color: #333;
+}
+
+.sammoBarIn {
+    position: absolute;
+    left: 0;
+    background-color: #0cf;
+}
+

@@ -1,0 +1,49 @@
+.controlBar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn {
+    padding: 0.5rem 0.75rem;
+    background-color: #333;
+    color: white;
+    border: 1px solid #666;
+    text-decoration: none;
+    border-radius: 0.2rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    background-color: #444;
+    border-color: #777;
+}
+
+.btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn.highlight {
+    background-color: #0cf;
+    color: #000;
+}
+
+@media (max-width: 500px) {
+    .controlBar {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+@media (min-width: 1000px) {
+    .controlBar {
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+    }
+}

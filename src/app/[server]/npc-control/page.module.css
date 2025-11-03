@@ -1,0 +1,43 @@
+.container {
+  max-width: 1100px;
+  width: 1100px;
+  margin: 0 auto;
+  padding: 0;
+  background-color: black;
+  color: white;
+  min-height: 100vh;
+}
+
+.content {
+  padding: 1rem;
+}
+
+.section {
+  border: 1px solid gray;
+  padding: 1.5rem;
+}
+
+.section h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
+  border-bottom: 1px solid gray;
+  padding-bottom: 0.5rem;
+}
+
+.settingsForm {
+  margin-bottom: 1rem;
+}
+
+.saveButton {
+  padding: 0.75rem 1.5rem;
+  background-color: #333;
+  color: white;
+  border: 1px solid #666;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.saveButton:hover {
+  background-color: #444;
+}
+

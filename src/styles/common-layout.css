@@ -1,0 +1,179 @@
+/* 공통 게임 페이지 레이아웃 스타일 */
+
+:root {
+  --layout-max-width: 1100px;
+  --layout-padding: var(--space-lg);
+}
+
+/* 기본 컨테이너 */
+.commonContainer {
+  width: min(100%, var(--layout-max-width));
+  margin: 0 auto;
+  padding: var(--layout-padding);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-surface) 92%, transparent) 0%, color-mix(in oklab, var(--color-surface-2) 96%, transparent) 100%);
+  border: 1px solid color-mix(in oklab, var(--color-border) 65%, transparent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  color: var(--color-text);
+  min-height: 100vh;
+}
+
+/* 로딩/에러 메시지 */
+.commonLoading,
+.commonError {
+  text-align: center;
+  padding: var(--space-3xl);
+  font-size: var(--font-size-xl);
+  color: var(--color-text);
+}
+
+.commonError {
+  color: var(--color-error);
+}
+
+/* 공통 툴바 (GlobalMenu 포함) */
+.commonToolbar {
+  padding: var(--space-sm) var(--space-lg);
+  border-bottom: 1px solid color-mix(in oklab, var(--color-border) 70%, transparent);
+  background: color-mix(in oklab, var(--color-surface) 85%, transparent);
+  backdrop-filter: blur(var(--blur-sm));
+  -webkit-backdrop-filter: blur(var(--blur-sm));
+  box-shadow: var(--shadow-1);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+/* 패널, 카드 공통 */
+.surfacePanel {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-surface) 94%, transparent) 0%, color-mix(in oklab, var(--color-surface-2) 96%, transparent) 100%);
+  border: 1px solid color-mix(in oklab, var(--color-border) 70%, transparent);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-1);
+}
+
+.glassPanel {
+  background: color-mix(in oklab, var(--color-surface) 70%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border-light) 45%, transparent);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(var(--blur-sm));
+  -webkit-backdrop-filter: blur(var(--blur-sm));
+  box-shadow: var(--shadow-1);
+}
+
+/* 패널 헤더 */
+.commonPanelHeader {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  padding-bottom: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  border-bottom: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+}
+
+/* 패널 본문 */
+.commonPanelBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+/* 구분선 */
+.commonDivider {
+  height: 1px;
+  border: none;
+  background: color-mix(in oklab, var(--color-border) 65%, transparent);
+  margin: var(--space-md) 0;
+}
+
+/* 버튼 스타일 (공통) */
+.commonButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-sm);
+  padding: var(--pad-2) var(--pad-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 22%, var(--color-surface-2)) 0%, color-mix(in oklab, var(--accent) 10%, var(--color-surface-2)) 100%);
+  border: 1px solid color-mix(in oklab, var(--accent) 35%, var(--color-border));
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
+  transition: transform var(--motion-fast) var(--easing-standard),
+    background var(--motion-fast) var(--easing-standard),
+    box-shadow var(--motion-fast) var(--easing-standard),
+    border-color var(--motion-fast) var(--easing-standard);
+}
+
+.commonButton:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 32%, var(--color-surface-3)) 0%, color-mix(in oklab, var(--accent) 18%, var(--color-surface-2)) 100%);
+  border-color: color-mix(in oklab, var(--accent) 48%, var(--color-border));
+}
+
+.commonButton:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-1);
+}
+
+.commonButton:focus-visible {
+  outline: none;
+  box-shadow: var(--ring), var(--shadow-2);
+}
+
+.commonButtonSecondary {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-surface) 95%, transparent) 0%, color-mix(in oklab, var(--color-surface-2) 90%, transparent) 100%);
+  border-color: color-mix(in oklab, var(--color-border) 55%, transparent);
+}
+
+.commonButtonSecondary:hover {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-surface) 98%, transparent) 0%, color-mix(in oklab, var(--color-surface-2) 95%, transparent) 100%);
+}
+
+/* 입력 필드 */
+.commonInput,
+.commonTextarea {
+  width: 100%;
+  color: var(--color-text);
+  background: color-mix(in oklab, var(--color-surface) 88%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border) 65%, transparent);
+  padding: var(--space-sm);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--motion-fast) var(--easing-standard),
+    box-shadow var(--motion-fast) var(--easing-standard);
+}
+
+.commonInput:focus,
+.commonTextarea:focus {
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--color-border));
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent);
+}
+
+.commonTextarea {
+  resize: vertical;
+  min-height: 3em;
+}
+
+/* 반응형 */
+@media (max-width: 1200px) {
+  .commonContainer {
+    width: min(100%, 92vw);
+    padding: var(--space-xl);
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --layout-padding: var(--space-lg);
+  }
+
+  .commonContainer {
+    border-radius: var(--radius-md);
+  }
+}
+
+

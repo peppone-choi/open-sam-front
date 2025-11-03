@@ -1,0 +1,63 @@
+.container {
+  max-width: 1100px;
+  width: 1100px;
+  margin: 0 auto;
+  padding: 0;
+  background-color: black;
+  color: white;
+  min-height: 100vh;
+}
+
+.content {
+  padding: 1rem;
+}
+
+.officerCard {
+  border: 1px solid gray;
+  padding: 2rem;
+}
+
+.officerCard h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  border-bottom: 1px solid gray;
+  padding-bottom: 0.5rem;
+}
+
+.officeName {
+  font-size: 1.2em;
+  margin-bottom: 1rem;
+  color: #0cf;
+}
+
+.statsSection {
+  margin-top: 1.5rem;
+}
+
+.statsSection h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.statItem {
+  padding: 1rem;
+  border: 1px solid gray;
+}
+
+.statLabel {
+  font-size: 0.9em;
+  color: #aaa;
+  margin-bottom: 0.5rem;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #0cf;
+}

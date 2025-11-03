@@ -1,0 +1,92 @@
+.battleMap {
+  position: relative;
+  display: grid;
+  background-color: #1a1a1a;
+  border: 2px solid #444;
+  margin: 20px auto;
+  overflow: visible;
+}
+
+.gridCell {
+  border: 1px solid #333;
+  background-color: #222;
+  cursor: pointer;
+  position: relative;
+}
+
+.gridCell:hover {
+  background-color: #2a2a2a;
+  border-color: #555;
+}
+
+.battleUnit {
+  position: absolute;
+  border: 2px solid;
+  cursor: move;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  transition: all 0.1s ease;
+  z-index: 10;
+}
+
+.battleUnit.attacker {
+  background-color: rgba(200, 50, 50, 0.8);
+  border-color: #ff4444;
+  color: white;
+}
+
+.battleUnit.defender {
+  background-color: rgba(50, 50, 200, 0.8);
+  border-color: #4444ff;
+  color: white;
+}
+
+.battleUnit.selected {
+  border-width: 3px;
+  box-shadow: 0 0 10px rgba(255, 255, 0, 0.8);
+  z-index: 20;
+}
+
+.unitIcon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.unitCrew {
+  font-size: 8px;
+  margin-top: 2px;
+  line-height: 1;
+}
+
+.gridLabels {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.gridLabelX {
+  position: absolute;
+  top: -18px;
+  font-size: 10px;
+  color: #888;
+  text-align: center;
+  width: 15px;
+  transform: translateX(-50%);
+}
+
+.gridLabelY {
+  position: absolute;
+  left: -25px;
+  font-size: 10px;
+  color: #888;
+  text-align: right;
+  width: 20px;
+  line-height: 15px;
+}
+

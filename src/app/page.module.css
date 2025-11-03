@@ -1,0 +1,132 @@
+.container {
+  min-height: 100vh;
+  background-color: black;
+  color: white;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: #333;
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.navbarBrand {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+}
+
+.mainContainer {
+  margin-top: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.loginCard {
+  background-color: black;
+  border: 1px solid gray;
+  max-width: 450px;
+  width: 100%;
+}
+
+.cardHeader {
+  background-color: #333;
+  padding: 1rem;
+  text-align: center;
+  margin: 0;
+  border-bottom: 1px solid gray;
+}
+
+.loginForm {
+  padding: 1.5rem;
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 14px;
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: black;
+  color: white;
+  border: 1px solid gray;
+  font-size: 14px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #0cf;
+}
+
+.error {
+  color: red;
+  margin-bottom: 1rem;
+  font-size: 14px;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 0;
+}
+
+.loginButton {
+  flex: 1;
+  padding: 0.75rem;
+  background-color: #333;
+  color: white;
+  border: 1px solid #666;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.loginButton:hover:not(:disabled) {
+  background-color: #444;
+}
+
+.loginButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dropdownToggle {
+  padding: 0.75rem;
+  background-color: #333;
+  color: white;
+  border: 1px solid #666;
+  border-left: none;
+  cursor: pointer;
+}
+
+.footer {
+  text-align: center;
+  padding: 2rem;
+  margin-top: 2rem;
+  color: #999;
+  font-size: 12px;
+}
+
+.footer a {
+  color: #0cf;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}

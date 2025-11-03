@@ -1,0 +1,37 @@
+.generalCardBasic {
+    display: grid;
+    grid-template-columns: 72px repeat(3, minmax(0, 1fr) minmax(0, 1.6fr));
+    grid-auto-rows: minmax(40px, auto);
+    gap: 1px;
+    text-align: center;
+    font-size: 0.875rem;
+    border: 1px solid gray;
+    background-color: black;
+}
+
+.generalIcon {
+    width: 72px;
+    height: 72px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 1px solid gray;
+    background-color: #333;
+}
+
+.generalName {
+    grid-column: 2 / -1;
+    font-weight: bold;
+    text-align: center;
+    padding: 0.5rem;
+    border: 1px solid gray;
+}
+
+.generalCardBasic > div:not(.generalIcon):not(.generalName) {
+    border: 1px solid gray;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem 0.35rem;
+    min-width: 0;
+}

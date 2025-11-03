@@ -1,0 +1,54 @@
+.container {
+  max-width: 1100px;
+  width: 1100px;
+  margin: 0 auto;
+  padding: 0;
+  background-color: black;
+  color: white;
+  min-height: 100vh;
+}
+
+.filterSection {
+  padding: 1rem;
+  border: 1px solid gray;
+  margin-bottom: 1rem;
+}
+
+.filterForm {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.select {
+  padding: 0.5rem;
+  background-color: black;
+  color: white;
+  border: 1px solid gray;
+}
+
+.content {
+  padding: 1rem;
+}
+
+.cityList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.cityItem {
+  border: 1px solid gray;
+  padding: 1rem;
+}
+
+.cityName {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  font-size: 1.1em;
+}
+
+.cityInfo {
+  font-size: 0.9em;
+  color: #aaa;
+}

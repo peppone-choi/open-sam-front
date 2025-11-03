@@ -1,0 +1,87 @@
+.container {
+  max-width: 1100px;
+  width: 1100px;
+  margin: 0 auto;
+  padding: 0;
+  background-color: black;
+  color: white;
+  min-height: 100vh;
+}
+
+.content {
+  padding: 1rem;
+}
+
+.section {
+  background-color: black;
+  border: 1px solid gray;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
+  border-bottom: 1px solid gray;
+  padding-bottom: 0.5rem;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.infoItem {
+  padding: 0.75rem;
+  border: 1px solid gray;
+}
+
+.infoLabel {
+  font-size: 0.875rem;
+  color: #aaa;
+  margin-bottom: 0.5rem;
+}
+
+.infoValue {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.settingsForm {
+  margin-bottom: 1rem;
+}
+
+.settingItem {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.settingItem label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.numberInput {
+  padding: 0.5rem;
+  background-color: black;
+  color: white;
+  border: 1px solid gray;
+  width: 100px;
+}
+
+.saveButton {
+  padding: 0.75rem 1.5rem;
+  background-color: #333;
+  color: white;
+  border: 1px solid #666;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.saveButton:hover {
+  background-color: #444;
+}

@@ -1,0 +1,44 @@
+.container {
+  max-width: 1100px;
+  width: 1100px;
+  margin: 0 auto;
+  padding: 0;
+  background-color: black;
+  color: white;
+  min-height: 100vh;
+}
+
+.content {
+  padding: 1rem;
+}
+
+.actionSection {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid gray;
+}
+
+.button {
+  padding: 0.5rem 1rem;
+  background-color: #333;
+  color: white;
+  border: 1px solid #666;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: #444;
+}
+
+.memberList {
+  border: 1px solid gray;
+  padding: 1rem;
+}
+
+.memberItem {
+  padding: 0.5rem;
+  border-bottom: 1px solid gray;
+}
+

@@ -1,0 +1,165 @@
+.world_map {
+    width: 700px;
+    background: black;
+    font-size: 14px;
+    color: white;
+    position: relative;
+}
+
+.map_title {
+    width: 700px;
+    height: 20px;
+    text-align: center;
+}
+
+.map_title_tooltiptext .tooltip-inner {
+    max-width: 220px;
+    width: 220px;
+    text-align: left;
+}
+
+.map_title_text {
+    margin: auto;
+    text-align: center;
+    width: 160px;
+    display: block;
+    line-height: 20px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.map_body {
+    width: 700px;
+    height: 500px;
+    position: relative;
+    overflow: hidden;
+}
+
+.map_body .map_bglayer1 {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.map_body .map_bglayer2 {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.map_body .map_bgroad {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.map_body .map_button_stack {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    text-align: right;
+}
+
+.world_map .city_tooltip {
+    position: absolute;
+    z-index: 16;
+    display: none;
+    min-width: 120px;
+    border: 0.02em gray solid;
+    white-space: nowrap;
+}
+
+.world_map .city_name {
+    background-color: rgb(30, 164, 255);
+    z-index: 6;
+    line-height: 15px;
+    height: 15px;
+}
+
+.world_map .nation_name {
+    background-color: rgb(30, 164, 255);
+    z-index: 6;
+    line-height: 15px;
+    height: 15px;
+    border-top: 0.02em gray solid;
+    text-align: right;
+}
+
+.container {
+    background-color: black;
+    color: white;
+    min-height: 100vh;
+    position: relative;
+    padding: 0;
+}
+
+.commonToolbar {
+    width: 100%;
+    padding: 0;
+}
+
+.gameInfo {
+    width: 100%;
+}
+
+.onlineNations {
+    border-top: solid 1px gray;
+    padding: 0.5rem;
+}
+
+.onlineUsers {
+    border-top: solid 1px gray;
+    padding: 0.5rem;
+}
+
+.nationNotice {
+    border-top: solid 1px gray;
+    padding: 0.5rem 0;
+}
+
+.nationNoticeBody {
+    padding: 0.5rem;
+}
+
+.ingameBoard {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.mapView {
+    flex: 0 0 auto;
+}
+
+.reservedCommandZone {
+    flex: 0 0 auto;
+}
+
+.cityInfo {
+    width: 100%;
+}
+
+.nationInfo {
+    width: 100%;
+}
+
+.generalInfo {
+    width: 100%;
+}
+
+.generalCommandToolbar {
+    width: 100%;
+    padding: 1rem 0;
+}
+
+.actionMiniPlate {
+    width: 100%;
+    padding: 0.5rem;
+}

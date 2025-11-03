@@ -1,0 +1,72 @@
+.worldMap {
+    width: 700px;
+    background: black;
+    font-size: 14px;
+    color: white;
+    position: relative;
+}
+
+.mapTitle {
+    width: 700px;
+    height: 20px;
+    text-align: center;
+}
+
+.mapTitleText {
+    margin: auto;
+    text-align: center;
+    width: 160px;
+    display: block;
+    line-height: 20px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.mapBody {
+    width: 700px;
+    height: 500px;
+    position: relative;
+    overflow: hidden;
+}
+
+.mapBglayer1,
+.mapBglayer2,
+.mapBgroad {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.mapButtonStack {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    text-align: right;
+    z-index: 10;
+}
+
+.cityTooltip {
+    position: absolute;
+    z-index: 16;
+    min-width: 120px;
+    border: 0.02em gray solid;
+    white-space: nowrap;
+}
+
+.cityName {
+    background-color: rgb(30, 164, 255);
+    z-index: 6;
+    line-height: 15px;
+    height: 15px;
+}
+
+.nationName {
+    background-color: rgb(30, 164, 255);
+    z-index: 6;
+    line-height: 15px;
+    height: 15px;
+    border-top: 0.02em gray solid;
+    text-align: right;
+}
