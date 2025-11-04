@@ -65,7 +65,6 @@ interface GeneralBasicCardProps {
     name: string;
   };
   turnTerm?: number;
-  lastExecuted?: Date;
   gameConst?: {
     chiefStatMin?: number;
     statGradeLevel?: number;
@@ -114,7 +113,6 @@ export default function GeneralBasicCard({
   nation, 
   troopInfo,
   turnTerm = 60,
-  lastExecuted = new Date(),
   gameConst,
   cityConst 
 }: GeneralBasicCardProps) {
@@ -139,14 +137,33 @@ export default function GeneralBasicCard({
   const age = general.age || 20;
   const ageColor = age < retirementYear * 0.75 ? 'limegreen' : age < retirementYear ? 'yellow' : 'red';
 
-  // 다음 실행 시간 계산
-  let turnTime = typeof general.turntime === 'string' 
-    ? new Date(general.turntime) 
-    : (general.turntime instanceof Date ? general.turntime : new Date());
-  if (turnTime.getTime() < lastExecuted.getTime()) {
-    turnTime = new Date(turnTime.getTime() + turnTerm * 60000);
-  }
-  const nextExecuteMinute = Math.max(0, Math.floor((turnTime.getTime() - lastExecuted.getTime()) / 60000));
+  // 다음 실행 시간 계산 (PHP 버전과 동일한 로직)
+  // 장수의 turntime과 현재 시간을 비교하여 남은 시간 계산
+  // lastExecuted는 세션 전체 기준이므로 장수 개별 턴 시간 계산에는 사용하지 않음
+  const nextExecuteMinute = React.useMemo(() => {
+    if (!general.turntime) {
+      // turntime이 없으면 0 반환
+      return 0;
+    }
+    
+    const turnTime = typeof general.turntime === 'string' 
+      ? new Date(general.turntime) 
+      : (general.turntime instanceof Date ? general.turntime : new Date());
+    
+    // 현재 시간과 비교
+    const now = new Date();
+    const remainingMs = turnTime.getTime() - now.getTime();
+    
+    // turnTime이 과거면 다음 턴 시간으로 계산 (표시용만)
+    if (remainingMs <= 0) {
+      // turnTerm만큼 더한 시간으로 계산
+      const nextTurnTime = new Date(turnTime.getTime() + turnTerm * 60000);
+      const nextRemainingMs = nextTurnTime.getTime() - now.getTime();
+      return Math.max(0, Math.floor(nextRemainingMs / 60000));
+    }
+    
+    return Math.max(0, Math.floor(remainingMs / 60000));
+  }, [general.turntime, turnTerm]);
 
   // 경험치 레벨 계산
   const nextExp = nextExpLevelRemain(general.experience || 0, general.explevel || 0);

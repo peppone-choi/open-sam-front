@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import styles from './GlobalMenu.module.css';
 
 export interface MenuItem {
@@ -26,7 +27,32 @@ interface GlobalMenuProps {
 }
 
 export default function GlobalMenu({ menu, globalInfo, onMenuClick }: GlobalMenuProps) {
+  const params = useParams();
+  const serverID = params?.server as string;
   const [openDropdowns, setOpenDropdowns] = useState<Set<number>>(new Set());
+
+  // URL 정규화: 상대 경로를 현재 서버 경로로 변환
+  const normalizeUrl = (url: string | undefined): string => {
+    if (!url || url === '#') return '#';
+    
+    // 이미 절대 경로이거나 외부 링크인 경우 그대로 반환
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//')) {
+      return url;
+    }
+    
+    // 이미 서버 ID를 포함한 경로인 경우 그대로 반환
+    if (url.startsWith(`/${serverID}/`)) {
+      return url;
+    }
+    
+    // `/`로 시작하는 절대 경로인 경우 서버 ID 추가
+    if (url.startsWith('/')) {
+      return `/${serverID}${url}`;
+    }
+    
+    // 상대 경로인 경우 서버 ID와 함께 절대 경로로 변환
+    return `/${serverID}/${url}`;
+  };
 
   const toggleDropdown = (index: number) => {
     const newOpen = new Set(openDropdowns);
@@ -101,7 +127,7 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick }: GlobalMenu
         }
 
         if (item.type === 'item' || (!item.type && item.url)) {
-          const href = item.url || '#';
+          const href = normalizeUrl(item.url);
           const content = (
             <Link
               href={href}
@@ -131,7 +157,7 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick }: GlobalMenu
                     if (subItem.type === 'line') {
                       return <hr key={subIdx} className={styles.menuDivider} />;
                     }
-                    const href = subItem.url || '#';
+                    const href = normalizeUrl(subItem.url);
                     return (
                       <Link
                         key={subIdx}
@@ -152,7 +178,7 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick }: GlobalMenu
 
         if (item.type === 'split' && item.main && item.subMenu) {
           const isOpen = openDropdowns.has(idx);
-          const mainHref = item.main.url || '#';
+          const mainHref = normalizeUrl(item.main.url);
           return (
             <div key={idx} className={styles.menuItem}>
               <div className={styles.splitButton}>
@@ -177,7 +203,7 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick }: GlobalMenu
                     if (subItem.type === 'line') {
                       return <hr key={subIdx} className={styles.menuDivider} />;
                     }
-                    const href = subItem.url || '#';
+                    const href = normalizeUrl(subItem.url);
                     return (
                       <Link
                         key={subIdx}
@@ -201,6 +227,7 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick }: GlobalMenu
     </div>
   );
 }
+
 
 
 

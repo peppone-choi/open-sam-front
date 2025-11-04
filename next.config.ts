@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     const backend = process.env.BACKEND_URL || 'http://localhost:8080';
     return [
       { source: '/api/:path*', destination: `${backend}/api/:path*` },
-      { source: '/api-docs:slug*', destination: `${backend}/api-docs:slug*` },
+      { source: '/api-docs/:path*', destination: `${backend}/api-docs/:path*` },
     ];
   },
 };

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SammoAPI, type GetFrontInfoResponse, type GetMapResponse } from '@/lib/api/sammo';
@@ -27,14 +27,21 @@ export default function GamePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Socket.IO 연결
-  const { socket, isConnected, onGameEvent, onGeneralEvent, onTurnComplete } = useSocket({
-    sessionId: serverID,
-    autoConnect: true
-  });
+  // Socket.IO 연결 (옵션 메모이제이션)
+  const socketOptions = React.useMemo(
+    () => ({ sessionId: serverID, autoConnect: !!serverID }),
+    [serverID]
+  );
+  const { socket, isConnected, onGameEvent, onGeneralEvent, onTurnComplete } = useSocket(socketOptions);
+
+  // 로딩 중복 방지 Ref
+  const loadingRef = React.useRef(false);
 
   // 데이터 로드 함수
   const loadData = useCallback(async () => {
+    if (loadingRef.current) return; // 중복 호출 방지
+    loadingRef.current = true;
+    
     try {
       setLoading(true);
       setError(null);
@@ -69,57 +76,120 @@ export default function GamePage() {
       const errorMessage = err instanceof Error ? err.message : '데이터를 불러오는 중 오류가 발생했습니다.';
       setError(errorMessage);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   }, [serverID]);
 
   // 초기 데이터 로드
   useEffect(() => {
+    if (!serverID) return;
     loadData();
-  }, [loadData]);
+  }, [serverID, loadData]);
 
-  // Socket.IO 이벤트 리스너
+  // Ref로 최신 값 추적 (useEffect 의존성 최적화)
+  const generalIdRef = React.useRef<number | null>(null);
+  const loadDataRef = React.useRef(loadData);
+  const frontInfoRef = React.useRef<GetFrontInfoResponse | null>(null);
+
+  useEffect(() => {
+    generalIdRef.current = frontInfo?.general?.no ?? null;
+    frontInfoRef.current = frontInfo;
+  }, [frontInfo?.general?.no, frontInfo]);
+
+  // Socket.IO 이벤트 리스너 (의존성 최소화)
   useEffect(() => {
     if (!socket || !isConnected) return;
 
-    // 턴 완료 이벤트
-    const cleanupTurnComplete = onTurnComplete((data) => {
-      console.log('턴 완료:', data);
-      // 게임 상태 새로고침
-      loadData();
+    // 턴 완료 이벤트 (디바운스 적용, 더 긴 시간으로 깜빡임 방지)
+    let turnCompleteTimeout: NodeJS.Timeout | null = null;
+    const cleanupTurnComplete = onTurnComplete(() => {
+      console.log('[Socket] 턴 완료');
+      if (turnCompleteTimeout) clearTimeout(turnCompleteTimeout);
+      turnCompleteTimeout = setTimeout(() => {
+        loadDataRef.current?.();
+      }, 2000); // 2초 디바운스로 깜빡임 방지
     });
 
-    // 월 변경 이벤트
+    // 월 변경 이벤트 (디바운스 적용, 더 긴 시간으로 깜빡임 방지)
+    let monthChangedTimeout: NodeJS.Timeout | null = null;
     const cleanupMonthChanged = onGameEvent('month:changed', (data) => {
-      console.log('월 변경:', data);
-      // 게임 상태 새로고침
-      loadData();
+      console.log('[Socket] 월 변경', data);
+      // 년/월만 부분 업데이트 (전체 로드 방지)
+      if (data.year !== undefined && data.month !== undefined) {
+        setFrontInfo(prev => {
+          if (!prev) return prev;
+          // 값이 동일하면 업데이트하지 않음
+          if (prev.global.year === data.year && prev.global.month === data.month) {
+            return prev;
+          }
+          return {
+            ...prev,
+            global: {
+              ...prev.global,
+              year: data.year,
+              month: data.month
+            }
+          };
+        });
+      }
+      // 전체 데이터는 더 긴 디바운스 후 로드
+      if (monthChangedTimeout) clearTimeout(monthChangedTimeout);
+      monthChangedTimeout = setTimeout(() => {
+        loadDataRef.current?.();
+      }, 3000); // 3초 디바운스로 깜빡임 방지
     });
 
-    // 장수 업데이트 이벤트
+    // 장수 업데이트 이벤트 (부분 업데이트만, 년/월 업데이트 포함)
+    let generalUpdateTimeout: NodeJS.Timeout | null = null;
     const cleanupGeneralUpdate = onGeneralEvent('updated', (data) => {
-      console.log('장수 업데이트:', data);
-      // 현재 장수 정보가 업데이트된 장수인 경우에만 새로고침
-      if (frontInfo?.general?.no === data.generalId) {
-        loadData();
+      console.log('[Socket] 장수 업데이트:', data.generalId);
+      if (generalIdRef.current === data.generalId) {
+        // 부분 업데이트만 수행 (전체 로드 대신)
+        if (data.updates && frontInfoRef.current) {
+          setFrontInfo(prev => {
+            if (!prev || !prev.general) return prev;
+            return {
+              ...prev,
+              general: {
+                ...prev.general,
+                ...data.updates
+              }
+            };
+          });
+        } else {
+          // 업데이트 데이터가 없으면 디바운스 후 전체 로드
+          if (generalUpdateTimeout) clearTimeout(generalUpdateTimeout);
+          generalUpdateTimeout = setTimeout(() => {
+            loadDataRef.current?.();
+          }, 2000); // 2초 디바운스로 깜빡임 방지
+        }
       }
     });
-
-    // 게임 상태 업데이트 이벤트
+    
+    // 게임 상태 업데이트 이벤트 (전역 년/월은 유지, 장수별 년/월은 general 업데이트로 처리)
+    // lastExecuted는 턴 실행 시점이므로 고정되어야 함 (Socket 이벤트로 업데이트하지 않음)
     const cleanupGameStatus = onGameEvent('status', (data) => {
-      console.log('게임 상태 업데이트:', data);
-      // 게임 정보만 업데이트
-      if (frontInfo) {
-        setFrontInfo(prev => prev ? {
+      console.log('[Socket] 게임 상태:', data);
+      setFrontInfo(prev => {
+        if (!prev) return prev;
+        // 값이 동일하면 업데이트하지 않음 (무한 루프 방지)
+        if (
+          prev.global.year === data.year &&
+          prev.global.month === data.month
+        ) {
+          return prev;
+        }
+        return {
           ...prev,
           global: {
             ...prev.global,
             year: data.year,
-            month: data.month,
-            lastExecuted: data.lastExecuted
+            month: data.month
+            // lastExecuted는 업데이트하지 않음 (고정된 턴 실행 시점)
           }
-        } : null);
-      }
+        };
+      });
     });
 
     return () => {
@@ -127,8 +197,56 @@ export default function GamePage() {
       cleanupMonthChanged();
       cleanupGeneralUpdate();
       cleanupGameStatus();
+      // 타임아웃 클리어
+      if (turnCompleteTimeout) clearTimeout(turnCompleteTimeout);
+      if (monthChangedTimeout) clearTimeout(monthChangedTimeout);
+      if (generalUpdateTimeout) clearTimeout(generalUpdateTimeout);
     };
-  }, [socket, isConnected, onTurnComplete, onGameEvent, onGeneralEvent, frontInfo, loadData]);
+    }, [socket, isConnected, onTurnComplete, onGameEvent, onGeneralEvent]);
+
+  // 메모이제이션으로 불필요한 재계산 방지 (조건부 렌더링 전에 호출해야 함)
+  const showSecret = useMemo(() => {
+    if (!frontInfo?.general) return false;
+    return frontInfo.general.permission >= 1 || frontInfo.general.officerLevel >= 2;
+  }, [frontInfo?.general?.permission, frontInfo?.general?.officerLevel]);
+
+  const lastExecutedDate = useMemo(() => {
+    if (!frontInfo?.global?.lastExecuted) return new Date();
+    return new Date(frontInfo.global.lastExecuted);
+  }, [frontInfo?.global?.lastExecuted]);
+
+  const gameInfoPanelProps = useMemo(() => {
+    if (!frontInfo) return null;
+    // 세션 이름이 있으면 사용, 없으면 serverID 사용
+    const displayServerName = frontInfo.global.serverName || serverID;
+    return {
+      frontInfo,
+      serverName: displayServerName,
+      serverLocked: frontInfo.global.isLocked,
+      lastExecuted: lastExecutedDate
+    };
+  }, [frontInfo, serverID, lastExecutedDate]);
+
+  const mainControlBarProps = useMemo(() => {
+    if (!frontInfo?.general || !frontInfo?.nation) return null;
+    return {
+      permission: frontInfo.general.permission,
+      showSecret,
+      myLevel: frontInfo.general.officerLevel,
+      nationLevel: frontInfo.nation.level,
+      nationId: frontInfo.nation.id,
+      isTournamentApplicationOpen: frontInfo.global.isTournamentApplicationOpen,
+      isBettingActive: frontInfo.global.isBettingActive
+    };
+  }, [
+    frontInfo?.general?.permission,
+    showSecret,
+    frontInfo?.general?.officerLevel,
+    frontInfo?.nation?.level,
+    frontInfo?.nation?.id,
+    frontInfo?.global?.isTournamentApplicationOpen,
+    frontInfo?.global?.isBettingActive
+  ]);
 
   function handleCityClick() {
     // 도시 클릭 시 데이터 갱신
@@ -175,8 +293,6 @@ export default function GamePage() {
     );
   }
 
-  const showSecret = frontInfo.general.permission >= 1 || frontInfo.general.officerLevel >= 2;
-
   return (
     <div className={styles.container}>
       {/* 헤더 패널 */}
@@ -189,12 +305,31 @@ export default function GamePage() {
             />
           )}
         </div>
-        <GameInfoPanel
-          frontInfo={frontInfo}
-          serverName={serverID}
-          serverLocked={frontInfo.global.isLocked}
-          lastExecuted={new Date(frontInfo.global.lastExecuted)}
-        />
+        {gameInfoPanelProps && <GameInfoPanel {...gameInfoPanelProps} />}
+        
+        {/* 접속 중인 국가 및 접속자 정보 */}
+        {frontInfo.global.onlineNations && (
+          <div className={styles.onlineNations} style={{ borderTop: '1px solid #333', padding: '0.5rem 1rem' }}>
+            접속중인 국가: {frontInfo.global.onlineNations}
+          </div>
+        )}
+        {frontInfo.nation && (
+          <div className={styles.onlineUsers} style={{ borderTop: '1px solid #333', padding: '0.5rem 1rem' }}>
+            【 접속자 】 {frontInfo.nation.onlineGen || 0}
+          </div>
+        )}
+        
+        {/* 국가방침 */}
+        {frontInfo.nation && frontInfo.nation.notice && (
+          <div className={styles.nationNotice} style={{ borderTop: '1px solid #333', padding: '0.5rem 0' }}>
+            <div style={{ padding: '0 1rem' }}>【 국가방침 】</div>
+            <div 
+              className={styles.nationNoticeBody}
+              style={{ padding: '0.5rem 1rem' }}
+              dangerouslySetInnerHTML={{ __html: frontInfo.nation.notice.msg || '' }}
+            />
+          </div>
+        )}
       </div>
 
       {/* 메인 게임 보드 */}
@@ -228,6 +363,24 @@ export default function GamePage() {
               </div>
             </div>
           )}
+          
+          {/* 액션 미니 플레이트 (갱신, 로비로 버튼) - 턴테이블 내부 */}
+          <div id="actionMiniPlate" className={styles.actionMiniPlate}>
+            <button 
+              type="button" 
+              className={styles.actionButton}
+              onClick={() => loadData()}
+            >
+              갱 신
+            </button>
+            <button 
+              type="button" 
+              className={styles.actionButton}
+              onClick={() => router.push('/')}
+            >
+              로비로
+            </button>
+          </div>
         </div>
 
         {frontInfo.city && (
@@ -248,21 +401,16 @@ export default function GamePage() {
               general={frontInfo.general}
               nation={frontInfo.nation}
               troopInfo={frontInfo.general.reservedCommand ? undefined : undefined}
+              turnTerm={frontInfo.global.turnterm}
+              gameConst={frontInfo.global.gameConst}
+              cityConst={frontInfo.global.cityConst}
             />
           </div>
         )}
 
         <div className={styles.generalCommandToolbar}>
-          {frontInfo.general && frontInfo.nation && (
-            <MainControlBar
-              permission={frontInfo.general.permission}
-              showSecret={showSecret}
-              myLevel={frontInfo.general.officerLevel}
-              nationLevel={frontInfo.nation.level}
-              nationId={frontInfo.nation.id}
-              isTournamentApplicationOpen={frontInfo.global.isTournamentApplicationOpen}
-              isBettingActive={frontInfo.global.isBettingActive}
-            />
+          {frontInfo.general && frontInfo.nation && mainControlBarProps && (
+            <MainControlBar {...mainControlBarProps} />
           )}
         </div>
         </div>

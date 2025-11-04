@@ -37,7 +37,7 @@ interface CityBasicCardProps {
   };
 }
 
-export default function CityBasicCard({ city, cityConstMap }: CityBasicCardProps) {
+function CityBasicCard({ city, cityConstMap }: CityBasicCardProps) {
   const nationColor = city.nationInfo.color;
   const textColor = isBrightColor(nationColor) ? 'black' : 'white';
   
@@ -157,3 +157,18 @@ export default function CityBasicCard({ city, cityConstMap }: CityBasicCardProps
     </div>
   );
 }
+
+export default React.memo(CityBasicCard, (prevProps, nextProps) => {
+  // 깊은 비교로 불필요한 리렌더링 방지
+  return (
+    prevProps.city.id === nextProps.city.id &&
+    prevProps.city.name === nextProps.city.name &&
+    prevProps.city.level === nextProps.city.level &&
+    prevProps.city.trust === nextProps.city.trust &&
+    prevProps.city.pop[0] === nextProps.city.pop[0] &&
+    prevProps.city.pop[1] === nextProps.city.pop[1] &&
+    prevProps.city.nationInfo.id === nextProps.city.nationInfo.id &&
+    prevProps.city.nationInfo.name === nextProps.city.nationInfo.name &&
+    prevProps.city.nationInfo.color === nextProps.city.nationInfo.color
+  );
+});

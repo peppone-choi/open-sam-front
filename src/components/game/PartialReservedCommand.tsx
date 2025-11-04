@@ -68,20 +68,38 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
       // MAX_TURN(30)까지 모든 턴을 채우기 (빈 턴도 포함)
       const commands: ReservedCommand[] = [];
       const year = reservedResponse.year || 180;
-      let month = reservedResponse.month || 1;
-      const turnTerm = reservedResponse.turnTerm || 3600; // 초 단위
+      const month = reservedResponse.month || 1;
+      const turnTerm = reservedResponse.turnTerm || 60; // 분 단위 (PHP 버전과 동일)
+      
+      // baseTime은 UTC ISO 문자열이므로 Date 객체로 파싱
+      // 백엔드에서 반환하는 turnTime은 UTC 시간
       const baseTime = new Date(reservedResponse.turnTime || Date.now());
+      
+      // 한국 시간대 포맷터 (한 번만 생성)
+      const kstFormatter = new Intl.DateTimeFormat('ko-KR', {
+        timeZone: 'Asia/Seoul',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+
+      // PHP 버전처럼 yearMonth를 사용하여 계산
+      // yearMonth = year * 12 + month - 1 (0부터 시작)
+      let yearMonth = year * 12 + month - 1;
 
       for (let idx = 0; idx < MAX_TURN; idx++) {
-        let currentMonth = month + idx;
-        while (currentMonth > 12) {
-          currentMonth -= 12;
-        }
+        // yearMonth로부터 년/월 계산
+        const currentYear = Math.floor(yearMonth / 12);
+        const currentMonth = (yearMonth % 12) + 1;
 
-        // 시간 계산
-        const turnTime = new Date(baseTime.getTime() + idx * turnTerm * 1000);
-        const hours = String(turnTime.getHours()).padStart(2, '0');
-        const minutes = String(turnTime.getMinutes()).padStart(2, '0');
+        // 시간 계산 (PHP 버전처럼 addMinutes 사용)
+        // turnTerm은 분 단위이므로 분을 더해서 계산
+        // baseTime (UTC)에 turnTerm * idx 분을 더함
+        const turnTime = new Date(baseTime.getTime() + idx * turnTerm * 60 * 1000);
+        
+        // 한국 시간대(Asia/Seoul, UTC+9)로 변환하여 표시
+        const timeStr = kstFormatter.format(turnTime);
+        const [hours, minutes] = timeStr.split(':').map(s => s.padStart(2, '0'));
 
         // 해당 턴의 명령이 있으면 사용, 없으면 빈 턴(휴식)
         const cmd = (reservedResponse.success && reservedResponse.turn && reservedResponse.turn[idx]) 
@@ -97,10 +115,13 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
 
         commands.push({
           ...cmd,
-          year,
+          year: currentYear,
           month: currentMonth,
           time: `${hours}:${minutes}`,
         });
+
+        // 다음 턴으로 (yearMonth 증가)
+        yearMonth += 1;
       }
 
       setReservedCommands(commands);

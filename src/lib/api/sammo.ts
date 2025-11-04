@@ -1,9 +1,13 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
+// 클라이언트 사이드에서는 환경 변수 또는 기본 백엔드 URL 사용
+// 서버 사이드에서는 rewrites를 사용하므로 상대 경로 가능
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' ? 'http://localhost:8080' : '');
 
 export interface GetFrontInfoResponse {
   success: boolean;
   result: boolean;
   global: {
+    serverName?: string; // 세션 표시 이름
     scenarioText: string;
     extendedGeneral: 0 | 1;
     isFiction: 0 | 1;

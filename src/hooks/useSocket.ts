@@ -8,6 +8,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 
+// 전역 소켓 인스턴스 (HMR 중에도 유지)
+let globalSocket: Socket | null = null;
+let globalSocketToken: string | null = null;
+let globalSocketSessionId: string | null = null;
+
 interface UseSocketOptions {
   token?: string | null;
   sessionId?: string;
@@ -19,6 +24,8 @@ export function useSocket(options: UseSocketOptions = {}) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
+  const connectingRef = useRef(false);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 토큰 가져오기 헬퍼 함수
   const getToken = useCallback((): string | null => {
@@ -52,6 +59,37 @@ export function useSocket(options: UseSocketOptions = {}) {
       return;
     }
 
+    // 전역 소켓이 있고 토큰/세션이 같으면 재사용
+    if (globalSocket && 
+        globalSocketToken === authToken && 
+        globalSocketSessionId === sessionId &&
+        globalSocket.connected) {
+      setSocket(globalSocket);
+      socketRef.current = globalSocket;
+      setIsConnected(true);
+      return;
+    }
+
+    // 이미 연결 중이면 스킵 (HMR 중복 연결 방지)
+    if (connectingRef.current || socketRef.current?.connected) {
+      return;
+    }
+
+    // 기존 전역 소켓이 있으면 정리
+    if (globalSocket && (globalSocketToken !== authToken || globalSocketSessionId !== sessionId)) {
+      globalSocket.disconnect();
+      globalSocket = null;
+    }
+
+    // 기존 소켓이 있으면 재사용
+    if (socketRef.current && !socketRef.current.connected) {
+      connectingRef.current = true;
+      socketRef.current.connect();
+      return;
+    }
+
+    connectingRef.current = true;
+
     // Socket.IO 클라이언트 생성
     const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
     const newSocket = io(socketUrl, {
@@ -61,13 +99,30 @@ export function useSocket(options: UseSocketOptions = {}) {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: Infinity, // 무한 재연결
+      timeout: 20000,
+      forceNew: false, // 기존 연결 재사용
+      upgrade: true,
+      rememberUpgrade: true
     });
+
+    // 전역 소켓에 저장
+    globalSocket = newSocket;
+    globalSocketToken = authToken;
+    globalSocketSessionId = sessionId || null;
 
     // 연결 이벤트
     newSocket.on('connect', () => {
       console.log('✅ Socket.IO 연결 성공:', newSocket.id);
       setIsConnected(true);
+      connectingRef.current = false;
+      
+      // 재연결 타임아웃 클리어
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
       
       // 세션 구독
       if (sessionId) {
@@ -79,12 +134,32 @@ export function useSocket(options: UseSocketOptions = {}) {
     newSocket.on('disconnect', (reason) => {
       console.log('❌ Socket.IO 연결 해제:', reason);
       setIsConnected(false);
+      connectingRef.current = false;
+      
+      // HMR이나 클라이언트 disconnect가 아닌 경우에만 재연결 시도
+      if (reason !== 'io client disconnect' && reason !== 'transport close') {
+        // 짧은 딜레이 후 재연결 시도
+        if (!reconnectTimeoutRef.current) {
+          reconnectTimeoutRef.current = setTimeout(() => {
+            reconnectTimeoutRef.current = null;
+            if (socketRef.current && !socketRef.current.connected) {
+              socketRef.current.connect();
+            }
+          }, 2000);
+        }
+      }
     });
 
     // 에러 이벤트
     newSocket.on('connect_error', (error) => {
       console.error('Socket.IO 연결 오류:', error);
       setIsConnected(false);
+      connectingRef.current = false;
+      
+      // transport error는 무시 (재연결 시도됨)
+      if (error.message && error.message.includes('transport')) {
+        return;
+      }
     });
 
     // 연결 성공 메시지
@@ -97,12 +172,30 @@ export function useSocket(options: UseSocketOptions = {}) {
 
     // 정리 함수
     return () => {
-      if (socketRef.current) {
-        socketRef.current?.disconnect();
-        socketRef.current = null;
+      // 재연결 타임아웃 클리어
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
       }
-      setSocket(null);
-      setIsConnected(false);
+      
+      // 개발 모드에서는 HMR 중에도 연결 유지 (전역 인스턴스 사용)
+      // 프로덕션에서는 완전히 정리
+      if (process.env.NODE_ENV === 'production') {
+        if (socketRef.current) {
+          socketRef.current.disconnect();
+          socketRef.current = null;
+          setSocket(null);
+          setIsConnected(false);
+        }
+        if (globalSocket) {
+          globalSocket.disconnect();
+          globalSocket = null;
+          globalSocketToken = null;
+          globalSocketSessionId = null;
+        }
+      }
+      
+      connectingRef.current = false;
     };
   }, [autoConnect, sessionId, getToken]);
 
