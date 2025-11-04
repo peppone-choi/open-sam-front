@@ -27,14 +27,18 @@ export default function AuctionPage() {
       setLoading(true);
       
       if (auctionType === 'unique') {
-        const result = await SammoAPI.AuctionGetUniqueItemAuctionList();
-        if (result.result) {
-          setAuctionData(result.auctions);
+        const result = await SammoAPI.AuctionGetUniqueItemAuctionList({ serverID });
+        if (result.success && result.list) {
+          setAuctionData(result.list);
+        } else {
+          setAuctionData([]);
         }
       } else {
-        const result = await SammoAPI.GetActiveResourceAuctionList();
-        if (result.result) {
-          setAuctionData(result.auctions);
+        const result = await SammoAPI.GetActiveResourceAuctionList({ serverID });
+        if (result.success && result.buyRiceList && result.sellRiceList) {
+          setAuctionData([...result.buyRiceList, ...result.sellRiceList]);
+        } else {
+          setAuctionData([]);
         }
       }
     } catch (err) {
@@ -78,11 +82,81 @@ export default function AuctionPage() {
         <div className={styles.auctionContent}>
           {auctionType === 'resource' ? (
             <div className={styles.resourceAuction}>
-              {/* 금/쌀 경매장 내용 */}
+              {auctionData && Array.isArray(auctionData) && auctionData.length > 0 ? (
+                <div className={styles.auctionList}>
+                  {auctionData.map((auction: any) => (
+                    <div key={auction.id} className={styles.auctionItem}>
+                      <div className={styles.auctionHeader}>
+                        <div className={styles.auctionType}>{auction.type === 'BuyRice' ? '쌀 구매 경매' : '쌀 판매 경매'}</div>
+                        <div className={styles.auctionHost}>{auction.hostName}</div>
+                      </div>
+                      <div className={styles.auctionInfo}>
+                        <div>수량: {auction.amount.toLocaleString()}</div>
+                        <div>시작가: {auction.startBidAmount.toLocaleString()}</div>
+                        {auction.highestBid && (
+                          <div>최고입찰: {auction.highestBid.amount.toLocaleString()} ({auction.highestBid.generalName})</div>
+                        )}
+                        <div>종료: {new Date(auction.closeDate).toLocaleString('ko-KR')}</div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const amount = prompt('입찰 금액을 입력하세요:');
+                          if (amount) {
+                            // TODO: 입찰 API 호출
+                            alert('입찰 기능은 향후 구현 예정입니다.');
+                          }
+                        }}
+                        className={styles.bidBtn}
+                      >
+                        입찰
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="center" style={{ padding: '2rem' }}>진행 중인 경매가 없습니다.</div>
+              )}
             </div>
           ) : (
             <div className={styles.uniqueAuction}>
-              {/* 유니크 경매장 내용 */}
+              {auctionData && Array.isArray(auctionData) && auctionData.length > 0 ? (
+                <div className={styles.auctionList}>
+                  {auctionData.map((auction: any) => (
+                    <div key={auction.id} className={styles.auctionItem}>
+                      <div className={styles.auctionHeader}>
+                        <div className={styles.auctionTitle}>{auction.title}</div>
+                        <div className={styles.auctionHost}>{auction.hostName}</div>
+                      </div>
+                      <div className={styles.auctionInfo}>
+                        <div>대상: {auction.target}</div>
+                        {auction.highestBid && (
+                          <div>
+                            최고입찰: {auction.highestBid.amount.toLocaleString()} ({auction.highestBid.generalName})
+                          </div>
+                        )}
+                        <div>종료: {new Date(auction.closeDate).toLocaleString('ko-KR')}</div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const amount = prompt('입찰 금액을 입력하세요:');
+                          if (amount) {
+                            // TODO: 입찰 API 호출
+                            alert('입찰 기능은 향후 구현 예정입니다.');
+                          }
+                        }}
+                        className={styles.bidBtn}
+                        disabled={auction.finished}
+                      >
+                        {auction.finished ? '종료' : '입찰'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="center" style={{ padding: '2rem' }}>진행 중인 경매가 없습니다.</div>
+              )}
             </div>
           )}
         </div>

@@ -110,11 +110,15 @@ export default function BoardPage() {
             <div className={`${styles.label} bg1 center`}>내용</div>
             <div className={styles.input}>
               <textarea
-                placeholder="내용"
+                placeholder="내용 (HTML 지원)"
                 value={newArticle.text}
                 onChange={(e) => setNewArticle({ ...newArticle, text: e.target.value })}
                 className={styles.contentInput}
+                rows={10}
               />
+              <div className={styles.helpText}>
+                HTML 태그 사용 가능 (TipTap 에디터는 향후 추가 예정)
+              </div>
             </div>
           </div>
           <div className={styles.submitRow}>
@@ -140,9 +144,20 @@ export default function BoardPage() {
               </div>
               <div className={styles.articleContent}>
                 <div className={styles.authorIcon}>
-                  <img src={article.author_icon} alt={article.author} width="64" height="64" />
+                  <img src={article.author_icon || '/images/default-avatar.png'} alt={article.author} width="64" height="64" />
                 </div>
-                <div className={styles.text}>{article.text}</div>
+                <div className={styles.text} dangerouslySetInnerHTML={{ __html: article.text }} />
+                {article.comment && article.comment.length > 0 && (
+                  <div className={styles.comments}>
+                    {article.comment.map((comment: BoardComment) => (
+                      <div key={comment.no} className={styles.commentItem}>
+                        <div className={styles.commentAuthor}>{comment.author}</div>
+                        <div className={styles.commentText}>{comment.text}</div>
+                        <div className={styles.commentDate}>{comment.date.slice(5, 16)}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))

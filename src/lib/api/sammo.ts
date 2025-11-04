@@ -534,12 +534,19 @@ export class SammoAPI {
   }
 
   // Auction API
-  static async AuctionGetUniqueItemAuctionList(): Promise<{
+  static async AuctionGetUniqueItemAuctionList(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    success: boolean;
     result: boolean;
-    auctions: any[];
+    list?: any[];
+    obfuscatedName?: string;
+    message?: string;
   }> {
     return this.request('/api/auction/get-unique-list', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
@@ -1340,12 +1347,18 @@ export class SammoAPI {
   }
 
   // Battle Center API
-  static async GetBattleCenter(): Promise<{
+  static async GetBattleCenter(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    success: boolean;
     result: boolean;
-    battles: any[];
+    battles?: any[];
+    message?: string;
   }> {
     return this.request('/api/battle/center', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 

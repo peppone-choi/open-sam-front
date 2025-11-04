@@ -37,13 +37,16 @@ export default function DiplomacyPage() {
   async function loadLetters() {
     try {
       setLoading(true);
-      const result = await SammoAPI.GetDiplomacyLetter();
-      if (result.result) {
+      const result = await SammoAPI.GetDiplomacyLetter({ serverID });
+      if (result.success && result.letters) {
         setLetters(result.letters);
+      } else {
+        setLetters([]);
       }
     } catch (err) {
       console.error(err);
       alert('외교문서를 불러오는데 실패했습니다.');
+      setLetters([]);
     } finally {
       setLoading(false);
     }
@@ -57,6 +60,7 @@ export default function DiplomacyPage() {
 
     try {
       const result = await SammoAPI.SendDiplomacyLetter({
+        serverID,
         prevNo: newLetter.prevNo ? Number(newLetter.prevNo) : undefined,
         destNationID: Number(newLetter.destNation),
         brief: newLetter.brief,
@@ -96,6 +100,7 @@ export default function DiplomacyPage() {
               className={styles.select}
             >
               <option value="">선택하세요</option>
+              {/* TODO: 국가 목록 API로 채우기 */}
             </select>
           </div>
           <div className={styles.formGroup}>
@@ -137,6 +142,59 @@ export default function DiplomacyPage() {
                 <div className={styles.date}>{letter.date}</div>
               </div>
               <div className={styles.letterMessage}>{letter.brief}</div>
+              {letter.status && (
+                <div className={styles.letterStatus}>
+                  상태: {letter.status}
+                  {letter.status === 'pending' && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const result = await SammoAPI.DiplomacyProcess({
+                            letterNo: letter.no,
+                            action: 'accept',
+                          });
+                          if (result.result) {
+                            await loadLetters();
+                          } else {
+                            alert(result.reason || '처리에 실패했습니다.');
+                          }
+                        } catch (err) {
+                          console.error(err);
+                          alert('처리에 실패했습니다.');
+                        }
+                      }}
+                      className={styles.acceptBtn}
+                    >
+                      수락
+                    </button>
+                  )}
+                  {letter.status === 'pending' && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const result = await SammoAPI.DiplomacyProcess({
+                            letterNo: letter.no,
+                            action: 'reject',
+                          });
+                          if (result.result) {
+                            await loadLetters();
+                          } else {
+                            alert(result.reason || '처리에 실패했습니다.');
+                          }
+                        } catch (err) {
+                          console.error(err);
+                          alert('처리에 실패했습니다.');
+                        }
+                      }}
+                      className={styles.rejectBtn}
+                    >
+                      거절
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>

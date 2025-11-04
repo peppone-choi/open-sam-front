@@ -18,6 +18,63 @@
   gap: 1rem;
 }
 
+.battleItem {
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  background-color: #fff;
+}
+
+.battleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.battleId {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.battleStatus {
+  padding: 0.25rem 0.5rem;
+  background-color: #007bff;
+  color: white;
+  border-radius: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.battleInfo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.joinBtn {
+  padding: 0.5rem 1rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.joinBtn:hover {
+  background-color: #218838;
+}
+
+.battleList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 
 
 
