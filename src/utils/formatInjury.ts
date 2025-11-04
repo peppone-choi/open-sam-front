@@ -15,3 +15,4 @@ export function formatInjury(injury: number): [string, string] {
 }
 
 
+

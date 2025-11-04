@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SammoAPI, type GetFrontInfoResponse, type GetMapResponse } from '@/lib/api/sammo';
@@ -13,6 +13,7 @@ import PartialReservedCommand from '@/components/game/PartialReservedCommand';
 import GameInfoPanel from '@/components/game/GameInfoPanel';
 import MessagePanel from '@/components/game/MessagePanel';
 import GlobalMenu from '@/components/game/GlobalMenu';
+import { useSocket } from '@/hooks/useSocket';
 import styles from './page.module.css';
 
 export default function GamePage() {
@@ -26,8 +27,14 @@ export default function GamePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadData() {
+  // Socket.IO 연결
+  const { socket, isConnected, onGameEvent, onGeneralEvent, onTurnComplete } = useSocket({
+    sessionId: serverID,
+    autoConnect: true
+  });
+
+  // 데이터 로드 함수
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -64,9 +71,64 @@ export default function GamePage() {
     } finally {
       setLoading(false);
     }
-    }
+  }, [serverID]);
+
+  // 초기 데이터 로드
+  useEffect(() => {
     loadData();
-  }, [serverID, router]);
+  }, [loadData]);
+
+  // Socket.IO 이벤트 리스너
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    // 턴 완료 이벤트
+    const cleanupTurnComplete = onTurnComplete((data) => {
+      console.log('턴 완료:', data);
+      // 게임 상태 새로고침
+      loadData();
+    });
+
+    // 월 변경 이벤트
+    const cleanupMonthChanged = onGameEvent('month:changed', (data) => {
+      console.log('월 변경:', data);
+      // 게임 상태 새로고침
+      loadData();
+    });
+
+    // 장수 업데이트 이벤트
+    const cleanupGeneralUpdate = onGeneralEvent('updated', (data) => {
+      console.log('장수 업데이트:', data);
+      // 현재 장수 정보가 업데이트된 장수인 경우에만 새로고침
+      if (frontInfo?.general?.no === data.generalId) {
+        loadData();
+      }
+    });
+
+    // 게임 상태 업데이트 이벤트
+    const cleanupGameStatus = onGameEvent('status', (data) => {
+      console.log('게임 상태 업데이트:', data);
+      // 게임 정보만 업데이트
+      if (frontInfo) {
+        setFrontInfo(prev => prev ? {
+          ...prev,
+          global: {
+            ...prev.global,
+            year: data.year,
+            month: data.month,
+            lastExecuted: data.lastExecuted
+          }
+        } : null);
+      }
+    });
+
+    return () => {
+      cleanupTurnComplete();
+      cleanupMonthChanged();
+      cleanupGeneralUpdate();
+      cleanupGameStatus();
+    };
+  }, [socket, isConnected, onTurnComplete, onGameEvent, onGeneralEvent, frontInfo, loadData]);
 
   function handleCityClick() {
     // 도시 클릭 시 데이터 갱신

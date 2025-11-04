@@ -24,7 +24,7 @@ export default function MyBossInfoPage() {
       setLoading(true);
       
       const [bossResult, frontInfoResult] = await Promise.all([
-        SammoAPI.GetMyBossInfo().catch(() => null),
+        SammoAPI.GetMyBossInfo({ session_id: serverID }).catch(() => null),
         SammoAPI.GeneralGetFrontInfo({
           serverID: serverID || '',
           lastNationNoticeDate: new Date().toISOString().slice(0, 19).replace('T', ' '),

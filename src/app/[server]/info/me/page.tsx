@@ -30,7 +30,7 @@ export default function MyPage() {
       
       // 병렬로 기본 정보와 프론트 정보 로드
       const [basicInfoResult, frontInfoResult] = await Promise.all([
-        SammoAPI.GetBasicInfo().catch(() => null),
+        SammoAPI.GetBasicInfo({ session_id: serverID }).catch(() => null),
         SammoAPI.GeneralGetFrontInfo({
           serverID: serverID || '',
           lastNationNoticeDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -63,9 +63,10 @@ export default function MyPage() {
     try {
       setSaving(true);
       const result = await SammoAPI.SetMySetting({
+        session_id: serverID,
         use_treatment: settings.use_treatment,
         use_auto_nation_turn: settings.use_auto_nation_turn,
-        defence_train: settings.defence_train,
+        defence_train: settings.defence_train ? 999 : 80,
       });
 
       if (result.result) {

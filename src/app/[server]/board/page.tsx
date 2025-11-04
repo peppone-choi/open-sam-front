@@ -45,7 +45,11 @@ export default function BoardPage() {
       setLoading(true);
       const result = await SammoAPI.GetBoardArticles({ isSecret });
       if (result.result) {
-        setArticles(result.articles);
+        // articles가 객체일 수도 있고 배열일 수도 있음
+        const articlesArray = Array.isArray(result.articles) 
+          ? result.articles 
+          : Object.values(result.articles || {});
+        setArticles(articlesArray);
       }
     } catch (err) {
       console.error(err);

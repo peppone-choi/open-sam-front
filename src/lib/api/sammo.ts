@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 export interface GetFrontInfoResponse {
   success: boolean;
@@ -158,7 +158,7 @@ export class SammoAPI {
       
       // 401 에러는 특별 처리 (인증 실패는 정상적인 경우일 수 있음)
       if (response.status === 401) {
-        const error = new Error(errorData.message || errorData.reason || '인증이 필요합니다');
+        const error = new Error(errorData.message || errorData.reason || errorData.error || '인증이 필요합니다');
         (error as any).status = 401;
         throw error;
       }
@@ -219,24 +219,36 @@ export class SammoAPI {
     userId?: string;
     message?: string;
   }> {
-    const result = await this.request<{
-      message: string;
-      token: string;
-      userId: string;
-    }>('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    });
-    
-    // 백엔드 응답 형식에 맞게 변환
-    return {
-      result: !!result.token,
-      reqOTP: false,
-      reason: result.message || '로그인 성공',
-      token: result.token,
-      userId: result.userId,
-      message: result.message,
-    };
+    try {
+      const result = await this.request<{
+        message: string;
+        token: string;
+        userId: string;
+      }>('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(params),
+      });
+      
+      // 백엔드 응답 형식에 맞게 변환
+      return {
+        result: !!result.token,
+        reqOTP: false,
+        reason: result.message || '로그인 성공',
+        token: result.token,
+        userId: result.userId,
+        message: result.message,
+      };
+    } catch (error: any) {
+      // 에러를 result 형식으로 변환
+      return {
+        result: false,
+        reqOTP: false,
+        reason: error.message || '로그인에 실패했습니다',
+        token: undefined,
+        userId: undefined,
+        message: error.message,
+      };
+    }
   }
 
   static async LoginByToken(params: {
@@ -659,7 +671,9 @@ export class SammoAPI {
   }
 
   // Game API (hwe/j_*.php)
-  static async GetBasicInfo(): Promise<{
+  static async GetBasicInfo(params?: {
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     generalID: number;
     myNationID: number;
@@ -669,10 +683,12 @@ export class SammoAPI {
   }> {
     return this.request('/api/game/basic-info', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
   static async GetMap(params: {
+    session_id?: string;
     year?: number | null;
     month?: number | null;
     aux?: any;
@@ -681,28 +697,45 @@ export class SammoAPI {
   }): Promise<GetMapResponse> {
     return this.request('/api/game/map', {
       method: 'POST',
-      body: JSON.stringify({ data: params }),
+      body: JSON.stringify({ 
+        session_id: params.session_id,
+        data: {
+          year: params.year,
+          month: params.month,
+          aux: params.aux,
+          neutralView: params.neutralView,
+          showMe: params.showMe
+        }
+      }),
     });
   }
 
-  static async GetCityList(): Promise<{
+  static async GetCityList(params?: {
+    session_id?: string;
+  }): Promise<{
     result: boolean;
-    cityList: any[];
+    cityList?: any[];
+    cities?: any[];
+    nations?: any;
+    cityArgsList?: string[];
   }> {
     return this.request('/api/game/city-list', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
-  static async GetGeneralList(params: {
+  static async GetGeneralList(params?: {
+    session_id?: string;
     token?: string;
   }): Promise<{
     result: boolean;
-    generalList: any[];
+    generals?: any[];
+    generalList?: any[];
   }> {
     return this.request('/api/game/general-list', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(params || {}),
     });
   }
 
@@ -740,9 +773,11 @@ export class SammoAPI {
   }
 
   static async SetMySetting(params: {
+    session_id?: string;
     use_treatment?: number;
     use_auto_nation_turn?: number;
-    defence_train?: boolean;
+    defence_train?: number;
+    tnmt?: number;
   }): Promise<{
     result: boolean;
     reason?: string;
@@ -762,13 +797,65 @@ export class SammoAPI {
     });
   }
 
-  static async Vacation(params: {
-    isVacation: boolean;
+  static async Vacation(params?: {
+    session_id?: string;
   }): Promise<{
     result: boolean;
     reason?: string;
   }> {
     return this.request('/api/game/vacation', {
+      method: 'POST',
+      body: JSON.stringify(params || {}),
+    });
+  }
+
+  /**
+   * 서버 기본 정보 조회
+   */
+  static async GetServerBasicInfo(params?: {
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    game?: any;
+    me?: any;
+    reason?: string;
+  }> {
+    return this.request('/api/game/server-basic-info', {
+      method: 'POST',
+      body: JSON.stringify(params || {}),
+    });
+  }
+
+  /**
+   * 장수 권한 설정 (군주 전용)
+   */
+  static async SetGeneralPermission(params: {
+    session_id?: string;
+    isAmbassador: boolean;
+    genlist?: number[];
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/game/set-general-permission', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * 이벤트 트리거 (관리자 전용)
+   */
+  static async RaiseEvent(params: {
+    session_id?: string;
+    event: string;
+    arg?: any;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    info?: any;
+  }> {
+    return this.request('/api/game/raise-event', {
       method: 'POST',
       body: JSON.stringify(params),
     });
@@ -988,17 +1075,12 @@ export class SammoAPI {
     });
   }
 
-  static async GetMyBossInfo(): Promise<{
-    result: boolean;
-    bossInfo: any;
-  }> {
-    return this.request('/api/general/get-boss-info', {
-      method: 'GET',
-    });
-  }
+  // GetMyBossInfo는 위에 이미 정의됨 (중복 제거)
 
   // Archive API
-  static async GetBestGeneralList(params: {
+  static async GetBestGeneralList(params?: {
+    session_id?: string;
+    type?: string;
     btn?: string; // '유저 보기' | 'NPC 보기'
   }): Promise<{
     result: boolean;
@@ -1006,7 +1088,7 @@ export class SammoAPI {
   }> {
     return this.request('/api/archive/best-general', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(params || {}),
     });
   }
 
@@ -1032,21 +1114,24 @@ export class SammoAPI {
     });
   }
 
-  static async GetHallOfFame(params: {
+  static async GetHallOfFame(params?: {
     seasonIdx?: number;
     scenarioIdx?: number;
   }): Promise<{
     result: boolean;
-    scenarioList: any[];
-    hallOfFame: any;
+    scenarioList?: any;
+    hallOfFame?: any;
+    searchSeason?: number;
+    searchScenario?: number;
   }> {
     return this.request('/api/archive/hall-of-fame', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(params || {}),
     });
   }
 
-  static async GetGenList(params: {
+  static async GetGenList(params?: {
+    session_id?: string;
     type?: number;
   }): Promise<{
     result: boolean;
@@ -1054,34 +1139,43 @@ export class SammoAPI {
   }> {
     return this.request('/api/archive/gen-list', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(params || {}),
     });
   }
 
-  static async GetKingdomList(): Promise<{
+  static async GetKingdomList(params?: {
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     kingdomList: any[];
   }> {
     return this.request('/api/archive/kingdom-list', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
-  static async GetNPCList(): Promise<{
+  static async GetNPCList(params?: {
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     npcList: any[];
   }> {
     return this.request('/api/archive/npc-list', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
-  static async GetTraffic(): Promise<{
+  static async GetTraffic(params?: {
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     traffic: any;
   }> {
     return this.request('/api/archive/traffic', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
@@ -1525,50 +1619,92 @@ export class SammoAPI {
     });
   }
 
-  static async GetTournamentInfo(): Promise<{
+  static async GetTournamentInfo(params?: {
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     tournament: any;
   }> {
     return this.request('/api/info/tournament', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
-  // Tournament API
-  static async GetTournament(): Promise<{
+  // Tournament API (별도 엔드포인트)
+
+  static async GetTournament(params?: {
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     tournament: any;
   }> {
-    return this.request('/api/tournament/get', {
+    return this.request('/api/tournament/info', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
-  static async JoinTournament(): Promise<{
+  static async JoinTournament(params?: {
+    session_id?: string;
+    generalNo?: number;
+  }): Promise<{
     result: boolean;
     reason?: string;
   }> {
-    return this.request('/api/tournament/join', {
+    return this.request('/api/tournament/apply', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
-  static async GetTournamentCenter(): Promise<{
+  static async CancelTournament(params?: {
+    session_id?: string;
+    generalNo?: number;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/tournament/cancel', {
+      method: 'POST',
+      body: JSON.stringify(params || {}),
+    });
+  }
+
+  static async GetTournamentBracket(params?: {
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    bracket?: any;
+  }> {
+    return this.request('/api/tournament/bracket', {
+      method: 'POST',
+      body: JSON.stringify(params || {}),
+    });
+  }
+
+  static async GetTournamentCenter(params?: {
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     tournament: any;
   }> {
-    return this.request('/api/tournament/center', {
+    return this.request('/api/tournament/info', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
   // World API
-  static async GetWorldInfo(): Promise<{
+  static async GetWorldInfo(params?: {
+    session_id?: string;
+  }): Promise<{
     result: boolean;
-    world: any;
+    world?: any;
   }> {
     return this.request('/api/world/info', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 

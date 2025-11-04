@@ -138,7 +138,7 @@ export default function DiplomacyPage() {
               </div>
               <div className={styles.letterMessage}>{letter.brief}</div>
             </div>
-          )))}
+          ))}
         </div>
       )}
     </div>
