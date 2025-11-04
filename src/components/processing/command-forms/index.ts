@@ -16,4 +16,7 @@ export { default as ChangeNationFlagCommandForm } from './ChangeNationFlagComman
 export { default as ChangeNationNameCommandForm } from './ChangeNationNameCommandForm';
 export { default as MaterialAidCommandForm } from './MaterialAidCommandForm';
 export { default as AppointGeneralCommandForm } from './AppointGeneralCommandForm';
+export { default as NoAggressionProposalCommandForm } from './NoAggressionProposalCommandForm';
+export { default as PiJangPaJangCommandForm } from './PiJangPaJangCommandForm';
+export { default as MovePopulationCommandForm } from './MovePopulationCommandForm';
 

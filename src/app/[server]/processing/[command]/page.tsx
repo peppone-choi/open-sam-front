@@ -20,7 +20,10 @@ import {
   ChangeNationFlagCommandForm,
   ChangeNationNameCommandForm,
   MaterialAidCommandForm,
-  AppointGeneralCommandForm
+  AppointGeneralCommandForm,
+  NoAggressionProposalCommandForm,
+  PiJangPaJangCommandForm,
+  MovePopulationCommandForm
 } from '@/components/processing/command-forms';
 import type { ProcGeneralItem, ProcNationItem } from '@/components/processing/SelectGeneral';
 import styles from './page.module.css';
@@ -429,6 +432,59 @@ export default function CommandProcessingPage() {
           cities={commandData.cities || []}
           troops={commandData.troops || {}}
           currentCity={commandData.currentCity}
+          mapData={commandData.mapData}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
+      );
+    }
+
+    // 불가침제의 커맨드 (Nation)
+    if (commandType === '불가침제의' || commandType === 'che_불가침제의' || commandType === 'noAggressionProposal') {
+      return (
+        <NoAggressionProposalCommandForm
+          commandName={commandName}
+          serverID={serverID}
+          nations={commandData.nations || []}
+          startYear={commandData.startYear ?? 180}
+          minYear={commandData.minYear ?? 180}
+          maxYear={commandData.maxYear ?? 200}
+          month={commandData.month ?? 1}
+          mapData={commandData.mapData}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
+      );
+    }
+
+    // 피장파장 커맨드 (Nation)
+    if (commandType === '피장파장' || commandType === 'che_피장파장' || commandType === 'piJangPaJang') {
+      return (
+        <PiJangPaJangCommandForm
+          commandName={commandName}
+          serverID={serverID}
+          nations={commandData.nations || []}
+          delayCnt={commandData.delayCnt ?? 0}
+          postReqTurn={commandData.postReqTurn ?? 0}
+          availableCommandTypeList={commandData.availableCommandTypeList || {}}
+          mapData={commandData.mapData}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
+      );
+    }
+
+    // 인구이동 커맨드 (Nation)
+    if (commandType === '인구이동' || commandType === 'cr_인구이동' || commandType === 'movePopulation') {
+      return (
+        <MovePopulationCommandForm
+          commandName={commandName}
+          serverID={serverID}
+          cities={commandData.cities || []}
+          currentCity={commandData.currentCity}
+          minAmount={commandData.minAmount ?? 100}
+          maxAmount={commandData.maxAmount ?? 100000}
+          amountGuide={commandData.amountGuide || [5000, 10000, 20000, 30000, 50000, 100000]}
           mapData={commandData.mapData}
           onSubmit={handleSubmit}
           onCancel={handleCancel}

@@ -36,7 +36,7 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick }: Ma
   } | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const mapBodyRef = useRef<HTMLDivElement>(null);
-  const isFullWidth = true; // TODO: 실제 값으로 변경
+  const isFullWidth = true; // 맵은 항상 전체 너비 사용
 
   // 도시 데이터 파싱
   const parsedCities = useMemo(() => {
