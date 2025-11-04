@@ -23,7 +23,7 @@ export default function AdminForceRehallPage() {
       setLoading(true);
       // 일반 장수 목록 가져오기
       const result = await SammoAPI.GetGeneralList({});
-      if (result.result) {
+      if (result.result && result.generalList) {
         setGeneralList(result.generalList);
       }
     } catch (err) {

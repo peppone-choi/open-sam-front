@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
@@ -46,11 +46,7 @@ export default function JoinPage() {
     city: 0, // 0이면 랜덤
   });
 
-  useEffect(() => {
-    loadNations();
-  }, [serverID]);
-
-  async function loadNations() {
+  const loadNations = useCallback(async () => {
     if (!serverID) return;
     
     try {
@@ -83,7 +79,11 @@ export default function JoinPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [serverID]);
+
+  useEffect(() => {
+    loadNations();
+  }, [loadNations]);
 
   function calculateTotalStats() {
     return formData.leadership + formData.strength + formData.intel;
@@ -239,9 +239,12 @@ export default function JoinPage() {
       } else {
         alert(result.reason || '장수 생성에 실패했습니다.');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('장수 생성 에러:', err);
-      const errorMessage = err.message || err.data?.reason || err.data?.message || '장수 생성에 실패했습니다.';
+      const errorMessage = 
+        (err instanceof Error && err.message) ||
+        (typeof err === 'object' && err !== null && 'data' in err && typeof err.data === 'object' && err.data !== null && ('reason' in err.data ? String(err.data.reason) : 'message' in err.data ? String(err.data.message) : '')) ||
+        '장수 생성에 실패했습니다.';
       alert(errorMessage);
     }
   }
