@@ -104,8 +104,12 @@ function getItemName(item: string | undefined): string {
 // 아이콘 경로 가져오기
 function getIconPath(imgsvr: number, picture: string): string {
   if (!picture) return '';
-  // TODO: 실제 이미지 서버 경로 구성
-  return `/images/general/${picture}.png`;
+  // 실제 이미지 서버 경로 구성
+  // imgsvr이 있으면 해당 서버 사용, 없으면 기본 경로
+  if (imgsvr && imgsvr > 0) {
+    return `/api/general/icon/${imgsvr}/${picture}`;
+  }
+  return `/image/general/${picture}.png`;
 }
 
 export default function GeneralBasicCard({ 

@@ -23,19 +23,22 @@ interface SelectCityProps {
   cities: Map<number, CityItem>;
   searchable?: boolean;
   onChange: (value: number) => void;
+  notAvailableCities?: Set<number>; // 사용 불가능한 도시 ID 목록
 }
 
 export default function SelectCity({
   value,
   cities,
   searchable = true,
-  onChange
+  onChange,
+  notAvailableCities
 }: SelectCityProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
   const options = useMemo(() => {
     const list: SelectedCity[] = [];
+    const notAvailableSet = notAvailableCities || new Set<number>();
     
     for (const [cityID, city] of cities.entries()) {
       list.push({
@@ -44,12 +47,12 @@ export default function SelectCity({
         simpleName: city.name,
         info: city.info,
         searchText: convertSearch초성(city.name).join('|'),
-        notAvailable: false // TODO: 실제 사용 불가능 여부 확인
+        notAvailable: notAvailableSet.has(cityID)
       });
     }
     
     return list;
-  }, [cities]);
+  }, [cities, notAvailableCities]);
 
   const filteredOptions = useMemo(() => {
     if (!searchTerm) return options;

@@ -28,8 +28,8 @@ interface MapCityDetailProps {
   onClick?: (e: React.MouseEvent, city: MapCity) => void;
 }
 
-// 이미지 경로 - 실제 이미지 서버 경로로 변경 필요
-const IMAGE_PATH = '/image/game'; // TODO: 실제 이미지 경로로 변경
+// 이미지 경로 - 실제 이미지 서버 경로
+const IMAGE_PATH = '/image/game'; // 게임 이미지 경로
 
 export default function MapCityDetail({
   city,

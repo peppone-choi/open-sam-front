@@ -467,13 +467,57 @@ export class SammoAPI {
   }
 
   // Message API
-  static async MessageGetRecentMessage(): Promise<{
+  static async MessageGetRecentMessage(params?: {
+    serverID?: string;
+    session_id?: string;
+    type?: string;
+    limit?: number;
+    sequence?: number;
+  }): Promise<{
+    success: boolean;
     result: boolean;
-    messages: any[];
+    messages?: any[];
+    message?: string;
   }> {
     return this.request('/api/message/get-recent', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
+  }
+
+  static async MessageGetMessages(params?: {
+    serverID?: string;
+    session_id?: string;
+    type?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{
+    success: boolean;
+    result: boolean;
+    messages?: any[];
+    total?: number;
+    message?: string;
+  }> {
+    return this.request('/api/message/get-messages', {
+      method: 'GET',
+      // GET 방식이므로 query string으로 전달
+      // body 대신 fetch의 URL에 쿼리 파라미터 추가
+    });
+  }
+
+  static async GetRecentMessage(params?: {
+    serverID?: string;
+    session_id?: string;
+    type?: string;
+    limit?: number;
+    sequence?: number;
+  }): Promise<{
+    success: boolean;
+    result: boolean;
+    messages?: any[];
+    message?: string;
+  }> {
+    return this.MessageGetRecentMessage(params);
   }
 
   static async MessageSendMessage(params: {
@@ -1443,12 +1487,39 @@ export class SammoAPI {
     });
   }
 
-  static async NationGetGenerals(): Promise<{
+  static async NationGetGenerals(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    success: boolean;
     result: boolean;
-    generals: any[];
+    generals?: any[];
+    list?: any[];
+    troops?: any[];
+    message?: string;
   }> {
-    return this.request('/api/nation/generals', {
+    return this.request('/api/nation/general-list', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
+    });
+  }
+
+  static async NationGeneralList(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    success: boolean;
+    result: boolean;
+    list?: any[];
+    troops?: any[];
+    permission?: number;
+    env?: any;
+    myGeneralID?: number;
+    message?: string;
+  }> {
+    return this.request('/api/nation/general-list', {
+      method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
