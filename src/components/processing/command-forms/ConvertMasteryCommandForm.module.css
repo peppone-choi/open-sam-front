@@ -1,0 +1,51 @@
+.dexChangeInfo {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 0.25rem;
+}
+
+.dexChangeRow {
+  display: grid;
+  grid-template-columns: 8ch 1ch auto 1ch 3ch 1ch auto;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.dexChangeRow:last-child {
+  margin-bottom: 0;
+}
+
+.dexChangeLabel {
+  font-weight: 600;
+}
+
+.dexChangeValue {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.dexAmount {
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+}
+
+.dexChangeArrow {
+  text-align: center;
+  font-weight: bold;
+  color: #007bff;
+}
+
+@media (max-width: 768px) {
+  .dexChangeRow {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .dexChangeArrow {
+    text-align: left;
+  }
+}
+

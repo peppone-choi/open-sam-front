@@ -41,3 +41,5 @@ export default function SammoBar({ height, width, percent, altText }: SammoBarPr
 }
 
 
+
+

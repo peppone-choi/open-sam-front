@@ -1720,6 +1720,7 @@ export class SammoAPI {
   }): Promise<{
     result: boolean;
     commandData: any;
+    reason?: string;
   }> {
     return this.request('/api/processing/command', {
       method: 'POST',

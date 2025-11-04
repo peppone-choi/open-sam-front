@@ -1,0 +1,188 @@
+.armTypeList {
+  margin-bottom: 2rem;
+}
+
+.armTypeGroup {
+  margin-bottom: 2rem;
+}
+
+.armTypeTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #495057;
+}
+
+.crewTypeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.crewTypeItem {
+  background-color: #2a2a2a;
+  border: 2px solid #495057;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.crewTypeItem:hover {
+  border-color: #007bff;
+  background-color: #333;
+}
+
+.crewTypeItem.selected {
+  border-color: #007bff;
+  background-color: #1a3550;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+}
+
+.crewTypeItem.notAvailable {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.crewTypeItem.notAvailable:hover {
+  border-color: #dc3545;
+}
+
+.crewTypeImg {
+  width: 100%;
+  height: 80px;
+  background: #222 no-repeat center;
+  background-size: 64px;
+  outline: solid 1px #666;
+  border-radius: 0.25rem;
+}
+
+.crewTypeName {
+  padding: 0.5rem;
+  text-align: center;
+  font-weight: 500;
+  color: #fff;
+  border-radius: 0.25rem;
+}
+
+.crewTypeStats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #adb5bd;
+}
+
+.crewTypeStats div {
+  text-align: center;
+}
+
+.crewTypeCost {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #adb5bd;
+  padding-top: 0.5rem;
+  border-top: 1px solid #495057;
+}
+
+.crewTypeDetail {
+  background-color: #2a2a2a;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.crewTypeInfo {
+  margin-bottom: 1.5rem;
+}
+
+.crewTypeInfo h4 {
+  color: #fff;
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+}
+
+.infoText {
+  color: #adb5bd;
+  line-height: 1.6;
+  font-size: 0.875rem;
+}
+
+.amountControls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.amountButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.amountButton {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  background-color: #495057;
+  border: 1px solid #6c757d;
+  border-radius: 0.25rem;
+  color: #fff;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.amountButton:hover {
+  background-color: #5a6268;
+  border-color: #007bff;
+}
+
+.amountInput {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.amountInput label {
+  font-weight: 500;
+  color: #adb5bd;
+  min-width: 60px;
+}
+
+.amountInput input {
+  flex: 1;
+  max-width: 200px;
+}
+
+.amountInput span {
+  color: #adb5bd;
+  font-size: 0.875rem;
+}
+
+.costDisplay {
+  display: flex;
+  gap: 2rem;
+  padding: 1rem;
+  background-color: #1a1a1a;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.costDisplay strong {
+  color: #ffc107;
+  font-size: 1rem;
+}
+
+.submitSection {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+
+

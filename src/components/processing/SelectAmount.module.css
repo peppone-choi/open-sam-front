@@ -1,0 +1,58 @@
+.amountContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.amountInput {
+  flex: 1;
+  min-width: 100px;
+  padding: 0.5rem;
+  background-color: #495057;
+  border: 1px solid #6c757d;
+  border-radius: 0.25rem;
+  color: #fff;
+  font-size: 0.875rem;
+}
+
+.amountInput:focus {
+  outline: none;
+  border-color: #007bff;
+  background-color: #5a6268;
+}
+
+.guideButtons {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.guideButton {
+  padding: 0.25rem 0.5rem;
+  background-color: #6c757d;
+  border: 1px solid #6c757d;
+  border-radius: 0.25rem;
+  color: #fff;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.guideButton:hover {
+  background-color: #5a6268;
+}
+
+.maxButton {
+  padding: 0.25rem 0.5rem;
+  background-color: #007bff;
+  border: 1px solid #007bff;
+  border-radius: 0.25rem;
+  color: #fff;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.maxButton:hover {
+  background-color: #0056b3;
+}
+

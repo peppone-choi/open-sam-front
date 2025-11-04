@@ -1,0 +1,97 @@
+.selectContainer {
+  position: relative;
+  width: 100%;
+}
+
+.selectInput {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  background-color: #495057;
+  border: 1px solid #6c757d;
+  border-radius: 0.25rem;
+  color: #fff;
+  cursor: pointer;
+  min-height: 2.5rem;
+}
+
+.selectInput:hover {
+  background-color: #5a6268;
+}
+
+.placeholder {
+  color: #adb5bd;
+}
+
+.notAvailable {
+  color: #ff6b6b;
+}
+
+.arrow {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: #adb5bd;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: #495057;
+  border: 1px solid #6c757d;
+  border-radius: 0.25rem;
+  margin-top: 0.25rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: #343a40;
+  border: none;
+  border-bottom: 1px solid #6c757d;
+  color: #fff;
+  font-size: 0.875rem;
+}
+
+.searchInput:focus {
+  outline: none;
+  background-color: #3e444a;
+}
+
+.options {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.option {
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #fff;
+  border-bottom: 1px solid #6c757d;
+}
+
+.option:hover {
+  background-color: #5a6268;
+}
+
+.option.selected {
+  background-color: #007bff;
+}
+
+.option.selected:hover {
+  background-color: #0056b3;
+}
+
+.option.notAvailable {
+  color: #ff6b6b;
+}
+
+.info {
+  color: #adb5bd;
+  font-size: 0.875rem;
+}
+

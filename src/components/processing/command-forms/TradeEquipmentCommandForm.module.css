@@ -1,0 +1,24 @@
+.itemSelect {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.itemInfo {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 0.25rem;
+}
+
+.itemName {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.itemDetails {
+  line-height: 1.6;
+}
+
