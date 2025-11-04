@@ -1,0 +1,477 @@
+/* city_base - 전역 클래스로 사용 (PHP 원본과 동일) */
+:global(.city_base) {
+    position: absolute;
+    /* z-index 없음 - stacking context를 자연스럽게 사용 */
+}
+
+/* city_bg - 국가 색상 배경 (CSS로 처리) */
+:global(.city_base .city_bg) {
+    position: absolute;
+    z-index: 1;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* map_detail 레벨별 city_bg 크기 및 위치 */
+:global(.map_detail .city_base.city_level_1 .city_bg) {
+    width: 48px;
+    height: 45px;
+    left: -4px;
+    top: -7.5px;
+}
+
+:global(.map_detail .city_base.city_level_2 .city_bg) {
+    width: 60px;
+    height: 42px;
+    left: -10px;
+    top: -6px;
+}
+
+:global(.map_detail .city_base.city_level_3 .city_bg) {
+    width: 42px;
+    height: 42px;
+    left: -1px;
+    top: -6px;
+}
+
+:global(.map_detail .city_base.city_level_4 .city_bg) {
+    width: 60px;
+    height: 45px;
+    left: -10px;
+    top: -7.5px;
+}
+
+:global(.map_detail .city_base.city_level_5 .city_bg) {
+    width: 72px;
+    height: 48px;
+    left: -16px;
+    top: -9px;
+}
+
+:global(.map_detail .city_base.city_level_6 .city_bg) {
+    width: 78px;
+    height: 54px;
+    left: -19px;
+    top: -12px;
+}
+
+:global(.map_detail .city_base.city_level_7 .city_bg) {
+    width: 84px;
+    height: 60px;
+    left: -22px;
+    top: -15px;
+}
+
+:global(.map_detail .city_base.city_level_8 .city_bg) {
+    width: 96px;
+    height: 72px;
+    left: -28px;
+    top: -21px;
+}
+
+/* city_link */
+:global(.city_base .city_link) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+}
+
+/* city_img - 성 이미지 컨테이너 (CSS로 대체) */
+:global(.city_base .city_img) {
+    position: absolute;
+    z-index: 2;
+    background-color: #8b4513 !important;
+    border: 2px solid #654321 !important;
+    box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* 레벨별 도시 아이콘 크기 및 스타일 - 기본값 */
+:global(.map_detail .city_base .city_img) {
+    width: 32px;
+    height: 24px;
+    left: 4px;
+    top: 3px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+    position: absolute;
+}
+
+/* 레벨별 도시 아이콘 크기 및 스타일 */
+:global(.map_detail .city_base.city_level_1 .city_img) {
+    width: 16px;
+    height: 15px;
+    left: 12px;
+    top: 7.5px;
+    border-radius: 3px;
+    background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+}
+
+:global(.map_detail .city_base.city_level_2 .city_img) {
+    width: 20px;
+    height: 14px;
+    left: 10px;
+    top: 8px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+}
+
+:global(.map_detail .city_base.city_level_3 .city_img) {
+    width: 14px;
+    height: 14px;
+    left: 13px;
+    top: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+}
+
+:global(.map_detail .city_base.city_level_4 .city_img) {
+    width: 20px;
+    height: 15px;
+    left: 10px;
+    top: 7.5px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+    position: relative;
+}
+
+:global(.map_detail .city_base.city_level_4 .city_img)::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background: #654321;
+    border-radius: 2px;
+}
+
+:global(.map_detail .city_base.city_level_5 .city_img) {
+    width: 24px;
+    height: 16px;
+    left: 8px;
+    top: 7px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+    position: relative;
+}
+
+:global(.map_detail .city_base.city_level_5 .city_img)::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 8px;
+    background: #654321;
+    border-radius: 2px;
+}
+
+:global(.map_detail .city_base.city_level_6 .city_img) {
+    width: 26px;
+    height: 18px;
+    left: 7px;
+    top: 6px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+    position: relative;
+}
+
+:global(.map_detail .city_base.city_level_6 .city_img)::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    background: #654321;
+    border-radius: 2px;
+}
+
+:global(.map_detail .city_base.city_level_7 .city_img) {
+    width: 28px;
+    height: 20px;
+    left: 6px;
+    top: 5px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+    position: relative;
+}
+
+:global(.map_detail .city_base.city_level_7 .city_img)::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: #654321;
+    border-radius: 2px;
+}
+
+:global(.map_detail .city_base.city_level_8 .city_img) {
+    width: 32px;
+    height: 24px;
+    left: 4px;
+    top: 3px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+    position: relative;
+}
+
+:global(.map_detail .city_base.city_level_8 .city_img)::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    height: 14px;
+    background: #654321;
+    border-radius: 2px;
+}
+
+:global(.map_detail .city_base.city_level_8 .city_img)::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    background: #4a2c1a;
+    border-radius: 2px;
+}
+
+/* level 9 이상 - level 8과 동일하게 처리 */
+:global(.map_detail .city_base.city_level_9 .city_img),
+:global(.map_detail .city_base.city_level_10 .city_img) {
+    width: 32px;
+    height: 24px;
+    left: 4px;
+    top: 3px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+    position: relative;
+}
+
+:global(.map_detail .city_base.city_level_9 .city_img)::before,
+:global(.map_detail .city_base.city_level_10 .city_img)::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    height: 14px;
+    background: #654321;
+    border-radius: 2px;
+}
+
+:global(.map_detail .city_base.city_level_9 .city_img)::after,
+:global(.map_detail .city_base.city_level_10 .city_img)::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    background: #4a2c1a;
+    border-radius: 2px;
+}
+
+/* city_filler */
+:global(.city_base .city_filler) {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background: transparent;
+    z-index: 3;
+}
+
+/* my_city - 내 도시 표시 */
+:global(.city_base .my_city) {
+    animation: blink-my-city-d1 2s infinite;
+}
+
+@keyframes blink-my-city-d1 {
+    0% {
+        outline: solid 4px transparent;
+    }
+    50% {
+        outline: solid 4px rgba(255, 0, 0, 1);
+    }
+    100% {
+        outline: solid 4px transparent;
+    }
+}
+
+/* city_flag - CSS로 깃발 그리기 */
+:global(.city_base .city_flag) {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    z-index: 4;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+/* 보급 있는 깃발 (실선 테두리) */
+:global(.city_base .city_flag.city_flag_supply) {
+    border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+/* 보급 없는 깃발 (점선 테두리) */
+:global(.city_base .city_flag.city_flag_no_supply) {
+    border: 1px dashed rgba(255, 255, 255, 0.6);
+}
+
+/* city_capital - 수도 표시 (CSS로 처리) */
+:global(.city_base .city_flag .city_capital) {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: -2px;
+    right: -2px;
+    z-index: 5;
+    color: #FFD700;
+    font-size: 10px;
+    line-height: 10px;
+    text-align: center;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+    font-weight: bold;
+}
+
+/* city_detail_name - PHP 원본과 동일 */
+:global(.city_base .city_detail_name) {
+    background-color: rgba(0, 0, 0, 0.5);
+    font-size: 10px;
+    position: absolute;
+    white-space: nowrap;
+    left: 70%;
+    bottom: -10px;
+    color: white;
+    z-index: 6;
+    pointer-events: none;
+}
+
+/* 도시명 숨기기 (hide_cityname 클래스가 있을 때) - PHP 원본과 동일 */
+:global(.world_map.hide_cityname .city_detail_name) {
+    display: none !important;
+}
+
+/* city_base div의 z-index - PHP 원본과 동일 */
+:global(.city_base div) {
+    z-index: 2;
+}
+
+/* city_state - CSS로 상태 표시 */
+:global(.city_base .city_state) {
+    position: absolute;
+    top: 5px;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    z-index: 3;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+/* 전쟁 상태 (빨간색) */
+:global(.city_base .city_state.city_state_war) {
+    background-color: #ff0000;
+    box-shadow: 0 0 4px rgba(255, 0, 0, 0.8);
+}
+
+/* 나쁜 상태 (주황색) - 공성전 등 */
+:global(.city_base .city_state.city_state_bad) {
+    background-color: #ff6347;
+    box-shadow: 0 0 4px rgba(255, 99, 71, 0.8);
+}
+
+/* 좋은 상태 (파란색) - 호황 등 */
+:global(.city_base .city_state.city_state_good) {
+    background-color: #4169e1;
+    box-shadow: 0 0 4px rgba(65, 105, 225, 0.8);
+}
+
+/* 기본 상태 */
+:global(.city_base .city_state.city_state_default) {
+    background-color: #888888;
+    box-shadow: 0 0 4px rgba(136, 136, 136, 0.8);
+}
+
+/* 레벨별 city_base 크기 - 모든 레벨 동일하게 40x30 */
+:global(.city_base) {
+    width: 40px;
+    height: 30px;
+}
+
+/* 레벨별 city_base 크기 (명시적으로) */
+:global(.city_base.city_level_1),
+:global(.city_base.city_level_2),
+:global(.city_base.city_level_3),
+:global(.city_base.city_level_4),
+:global(.city_base.city_level_5),
+:global(.city_base.city_level_6),
+:global(.city_base.city_level_7),
+:global(.city_base.city_level_8),
+:global(.city_base.city_level_9),
+:global(.city_base.city_level_10) {
+    width: 40px;
+    height: 30px;
+}
+
+
+/* map_detail 레벨별 city_flag 위치 */
+:global(.map_detail .city_base.city_level_1 .city_flag) {
+    right: -8px;
+    top: -4px;
+}
+
+:global(.map_detail .city_base.city_level_2 .city_flag) {
+    right: -8px;
+    top: -4px;
+}
+
+:global(.map_detail .city_base.city_level_3 .city_flag) {
+    right: -8px;
+    top: -4px;
+}
+
+:global(.map_detail .city_base.city_level_4 .city_flag) {
+    right: -6px;
+    top: -3px;
+}
+
+:global(.map_detail .city_base.city_level_5 .city_flag) {
+    right: -6px;
+    top: -4px;
+}
+
+:global(.map_detail .city_base.city_level_6 .city_flag) {
+    right: -6px;
+    top: -4px;
+}
+
+:global(.map_detail .city_base.city_level_7 .city_flag) {
+    right: -6px;
+    top: -4px;
+}
+
+:global(.map_detail .city_base.city_level_8 .city_flag) {
+    right: -6px;
+    top: -3px;
+}

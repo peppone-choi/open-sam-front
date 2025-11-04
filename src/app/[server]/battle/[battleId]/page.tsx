@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import BattleMap, { BattleUnit } from '@/components/battle/BattleMap';
 import styles from './page.module.css';
@@ -21,34 +22,30 @@ export default function BattleDetailPage() {
   }, [serverID, battleId]);
 
   async function loadBattleData() {
+    if (!battleId) return;
+
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      // 임시 데이터
-      setBattleData({
-        id: battleId,
-        name: '전투 #' + battleId,
+      const result = await SammoAPI.GetBattleDetail({
+        battleID: Number(battleId),
       });
-      setUnits([
-        {
-          id: 'attacker-1',
-          x: 5,
-          y: 10,
-          name: '공격자 1',
-          type: 'attacker',
-          crew: 5000,
-        },
-        {
-          id: 'defender-1',
-          x: 35,
-          y: 10,
-          name: '수비자 1',
-          type: 'defender',
-          crew: 3000,
-        },
-      ]);
+
+      if (result.result && result.battle) {
+        setBattleData(result.battle);
+        // 전투 유닛 데이터 변환
+        const battleUnits: BattleUnit[] = (result.battle.units || []).map((unit: any) => ({
+          id: unit.id || `unit-${unit.no}`,
+          x: unit.x || 0,
+          y: unit.y || 0,
+          name: unit.name || '유닛',
+          type: unit.type === 'attacker' ? 'attacker' : 'defender',
+          crew: unit.crew || 0,
+        }));
+        setUnits(battleUnits);
+      }
     } catch (err) {
       console.error(err);
+      alert('전투 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

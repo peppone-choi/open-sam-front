@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -15,20 +16,33 @@ export default function AdminUserListPage() {
   async function loadUserList() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setUserList([]);
+      const result = await SammoAPI.AdminGetUserList();
+      if (result.result) {
+        setUserList(result.users);
+      }
     } catch (err) {
       console.error(err);
+      alert('사용자 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
   }
 
   async function handleUserAction(action: string, userID?: number) {
+    if (!userID) return;
+
     try {
-      // API 호출 로직 필요
-      alert('처리되었습니다.');
-      await loadUserList();
+      const result = await SammoAPI.AdminUpdateUser({
+        userID,
+        action,
+      });
+
+      if (result.result) {
+        alert('처리되었습니다.');
+        await loadUserList();
+      } else {
+        alert(result.reason || '처리에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('처리에 실패했습니다.');

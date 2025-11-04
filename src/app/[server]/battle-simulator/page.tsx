@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import BattleMap, { BattleUnit } from '@/components/battle/BattleMap';
 import styles from './page.module.css';
@@ -70,8 +71,20 @@ export default function BattleSimulatorPage() {
 
   async function handleSimulate() {
     try {
-      // API 호출 로직 필요
-      alert('시뮬레이션이 완료되었습니다.');
+      const result = await SammoAPI.SimulateBattle({
+        year: battleConfig.year || 200,
+        month: battleConfig.month || 1,
+        seed: battleConfig.seed || undefined,
+        repeatCount: battleConfig.repeatCount || 1,
+        units: units,
+      });
+
+      if (result.result) {
+        setSimulatorData(result.simulation);
+        alert('시뮬레이션이 완료되었습니다.');
+      } else {
+        alert(result.reason || '시뮬레이션에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('시뮬레이션에 실패했습니다.');

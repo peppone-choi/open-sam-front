@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -21,10 +22,13 @@ export default function GenListPage() {
   async function loadGeneralList() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setGeneralList([]);
+      const result = await SammoAPI.GetGenList({ type });
+      if (result.result) {
+        setGeneralList(result.generalList);
+      }
     } catch (err) {
       console.error(err);
+      alert('장수 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

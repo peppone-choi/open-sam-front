@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -19,10 +20,16 @@ export default function ErrorLogPage() {
   async function loadErrorLogs() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setErrorLogs([]);
+      const result = await SammoAPI.AdminGetErrorLog({
+        from,
+        limit: 100,
+      });
+      if (result.result) {
+        setErrorLogs(result.errorLogs);
+      }
     } catch (err) {
       console.error(err);
+      alert('에러 로그를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

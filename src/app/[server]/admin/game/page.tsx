@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -20,11 +21,14 @@ export default function AdminGamePage() {
   async function loadAdminData() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setAdminData(null);
-      setFormData({});
+      const result = await SammoAPI.AdminGetGameInfo();
+      if (result.result) {
+        setAdminData(result.gameInfo);
+        setFormData(result.gameInfo || {});
+      }
     } catch (err) {
       console.error(err);
+      alert('게임 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -32,9 +36,17 @@ export default function AdminGamePage() {
 
   async function handleSubmit(action: string) {
     try {
-      // API 호출 로직 필요
-      alert('변경되었습니다.');
-      await loadAdminData();
+      const result = await SammoAPI.AdminUpdateGame({
+        action,
+        data: formData,
+      });
+
+      if (result.result) {
+        alert('변경되었습니다.');
+        await loadAdminData();
+      } else {
+        alert(result.reason || '변경에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('변경에 실패했습니다.');

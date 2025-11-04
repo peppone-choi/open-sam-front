@@ -1,15 +1,19 @@
 .world_map {
-    width: 700px;
+    width: 100%;
+    max-width: 700px;
     background: black;
     font-size: 14px;
     color: white;
     position: relative;
+    box-sizing: border-box;
 }
 
 .map_title {
-    width: 700px;
+    width: 100%;
+    max-width: 700px;
     height: 20px;
     text-align: center;
+    box-sizing: border-box;
 }
 
 .map_title_tooltiptext .tooltip-inner {
@@ -29,10 +33,12 @@
 }
 
 .map_body {
-    width: 700px;
+    width: 100%;
+    max-width: 700px;
     height: 500px;
     position: relative;
     overflow: hidden;
+    box-sizing: border-box;
 }
 
 .map_body .map_bglayer1 {
@@ -97,6 +103,71 @@
     min-height: 100vh;
     position: relative;
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.contentWrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+@media (min-width: 1000px) {
+    .contentWrapper {
+        width: 1000px;
+    }
+}
+
+.headerPanel {
+    width: 100%;
+    border-bottom: solid 1px gray;
+    flex-shrink: 0;
+    max-width: 1000px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+@media (min-width: 1000px) {
+    .headerPanel {
+        width: 1000px;
+    }
+}
+
+.messagePanelZone {
+    width: 100%;
+    border-top: solid 1px gray;
+    margin-top: auto;
+    flex-shrink: 0;
+    max-width: 1000px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+@media (min-width: 1000px) {
+    .messagePanelZone {
+        width: 1000px;
+    }
+}
+
+.ingameBoardWrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .commonToolbar {
@@ -128,35 +199,125 @@
 }
 
 .ingameBoard {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 1rem;
-    padding: 1rem;
+    padding: 0;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .mapView {
-    flex: 0 0 auto;
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
 }
 
 .reservedCommandZone {
-    flex: 0 0 auto;
+    grid-column: 1 / -1;
+    display: block;
+    width: 100%;
+    min-height: 200px;
+}
+
+.commandPadPlaceholder {
+    background-color: black;
+    border: 1px solid gray;
+    padding: 0.5rem;
+    color: white;
+    font-size: 0.875rem;
+}
+
+.commandPadPlaceholder .header {
+    background-color: #333;
+    padding: 0.5rem;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.commandPadPlaceholder .header h4 {
+    margin: 0;
+    color: white;
+    font-size: 1rem;
+}
+
+.commandPadPlaceholder .content {
+    color: white;
+    padding: 0.5rem;
+    text-align: center;
 }
 
 .cityInfo {
-    width: 100%;
+    grid-column: 1 / -1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 100%;
+    box-sizing: border-box;
 }
 
 .nationInfo {
-    width: 100%;
+    grid-column: 1 / -1;
 }
 
 .generalInfo {
+    grid-column: 1 / -1;
     width: 100%;
 }
 
 .generalCommandToolbar {
+    grid-column: 1 / -1;
     width: 100%;
     padding: 1rem 0;
+}
+
+/* 1000px 이상: 3열 레이아웃 (맵 500px + 200px, 카드 300px) */
+@media (min-width: 1000px) {
+    .ingameBoard {
+        grid-template-columns: 500px 200px 300px;
+        max-width: 1000px;
+        width: 1000px;
+        margin: 0 auto;
+        padding: 0;
+        gap: 0;
+        box-sizing: border-box;
+    }
+    
+    .mapView {
+        grid-column: 1 / 3;
+        grid-row: 1;
+    }
+    
+    .reservedCommandZone {
+        grid-column: 3;
+        grid-row: 1 / 3;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    .cityInfo {
+        grid-column: 1 / 3;
+        grid-row: 2;
+    }
+    
+    .nationInfo {
+        grid-column: 1;
+        grid-row: 3;
+    }
+    
+    .generalInfo {
+        grid-column: 2 / 4;
+        grid-row: 3;
+        width: auto;
+    }
+    
+    .generalCommandToolbar {
+        grid-column: 1 / 4;
+        grid-row: 4;
+    }
 }
 
 .actionMiniPlate {

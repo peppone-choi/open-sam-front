@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -20,10 +21,14 @@ export default function AdminForceRehallPage() {
   async function loadGeneralList() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setGeneralList([]);
+      // 일반 장수 목록 가져오기
+      const result = await SammoAPI.GetGeneralList({});
+      if (result.result) {
+        setGeneralList(result.generalList);
+      }
     } catch (err) {
       console.error(err);
+      alert('장수 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -38,9 +43,17 @@ export default function AdminForceRehallPage() {
       return;
     }
     try {
-      // API 호출 로직 필요
-      alert('강제 재할당이 완료되었습니다.');
-      await loadGeneralList();
+      const result = await SammoAPI.AdminForceRehall({
+        generalID: selectedGeneral,
+      });
+      
+      if (result.result) {
+        alert('강제 재할당이 완료되었습니다.');
+        setSelectedGeneral(null);
+        await loadGeneralList();
+      } else {
+        alert(result.reason || '강제 재할당에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('강제 재할당에 실패했습니다.');

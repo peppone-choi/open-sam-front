@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import styles from './page.module.css';
 
 export default function FileInstallPage() {
@@ -16,10 +17,25 @@ export default function FileInstallPage() {
   });
 
   async function handleDBSubmit() {
+    if (!formData.db_name || !formData.db_user) {
+      alert('DB 이름과 사용자를 입력해주세요.');
+      return;
+    }
+
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setInstallStep('config');
+      const result = await SammoAPI.InstallFileInstall({
+        db_host: formData.db_host,
+        db_name: formData.db_name,
+        db_user: formData.db_user,
+        db_password: formData.db_password,
+      });
+
+      if (result.result) {
+        setInstallStep('config');
+      } else {
+        alert(result.reason || 'DB 설정에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('DB 설정에 실패했습니다.');
@@ -31,8 +47,20 @@ export default function FileInstallPage() {
   async function handleConfigSubmit() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setInstallStep('complete');
+      // 추가 설정이 필요한 경우 여기에 추가
+      const result = await SammoAPI.InstallFileInstall({
+        db_host: formData.db_host,
+        db_name: formData.db_name,
+        db_user: formData.db_user,
+        db_password: formData.db_password,
+        config: {}, // 추가 설정
+      });
+
+      if (result.result) {
+        setInstallStep('complete');
+      } else {
+        alert(result.reason || '설정에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('설정에 실패했습니다.');
@@ -57,7 +85,7 @@ export default function FileInstallPage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>삼국지 모의전투 HiDCHe 설치</h1>
+      <h1 className={styles.title}>OpenSAM 설치</h1>
       {installStep === 'db' ? (
         <div className={styles.installCard}>
           <h3 className={styles.cardHeader}>DB 설정</h3>

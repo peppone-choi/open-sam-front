@@ -1,0 +1,82 @@
+.gameInfoPanel {
+    width: 100%;
+    background-color: black;
+    color: white;
+    border-bottom: solid 1px gray;
+    flex-shrink: 0;
+}
+
+.scenarioName {
+    text-align: center;
+    padding: 0.5rem;
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.avoidWrap {
+    white-space: nowrap;
+}
+
+.gameInfo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    text-align: center;
+    font-size: 0.875rem;
+}
+
+.infoRow {
+    border-top: solid 1px gray;
+    padding: 0.5rem;
+}
+
+.subScenarioName {
+    grid-column: span 2;
+}
+
+.subNPCType {
+    grid-column: span 1;
+}
+
+.subNPCMode {
+    grid-column: span 1;
+}
+
+.subYearMonth {
+    grid-column: span 2;
+}
+
+.subOnlineUserCnt {
+    grid-column: span 1;
+}
+
+.subAPILimit {
+    grid-column: span 1;
+}
+
+.subLastExecuted {
+    grid-column: span 1;
+}
+
+.subTournamentState {
+    grid-column: span 1;
+}
+
+.onlineNations {
+    border-top: solid 1px gray;
+    padding: 0.5rem;
+}
+
+.onlineUsers {
+    border-top: solid 1px gray;
+    padding: 0.5rem;
+}
+
+.nationNotice {
+    border-top: solid 1px gray;
+    padding: 0.5rem 0;
+}
+
+.nationNoticeBody {
+    padding: 0.5rem;
+}
+

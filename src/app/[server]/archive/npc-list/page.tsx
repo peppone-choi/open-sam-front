@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -21,10 +22,13 @@ export default function NPCListPage() {
   async function loadNPCList() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setNpcList([]);
+      const result = await SammoAPI.GetNPCList();
+      if (result.result) {
+        setNpcList(result.npcList);
+      }
     } catch (err) {
       console.error(err);
+      alert('빙의 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

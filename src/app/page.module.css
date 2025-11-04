@@ -130,3 +130,24 @@
 .footer a:hover {
   text-decoration: underline;
 }
+
+.registerLink {
+  padding: 1rem 1.5rem;
+  text-align: center;
+  border-top: 1px solid gray;
+}
+
+.registerButton {
+  display: inline-block;
+  padding: 0.5rem 1.5rem;
+  background-color: #ff6b00;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.registerButton:hover {
+  background-color: #ff8533;
+}

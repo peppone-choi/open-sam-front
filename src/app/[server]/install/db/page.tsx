@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -22,11 +23,29 @@ export default function InstallDBPage() {
     setLoading(false);
   }, []);
 
+  const router = useRouter();
+
   async function handleSubmit() {
+    if (!formData.db_name || !formData.db_user) {
+      alert('DB 이름과 사용자를 입력해주세요.');
+      return;
+    }
+
     try {
-      // API 호출 로직 필요
-      alert('DB 설정이 완료되었습니다.');
-      window.location.href = `/${serverID}/install`;
+      const result = await SammoAPI.InstallDB({
+        db_host: formData.db_host,
+        db_name: formData.db_name,
+        db_user: formData.db_user,
+        db_password: formData.db_password,
+        full_reset: formData.full_reset,
+      });
+
+      if (result.result) {
+        alert('DB 설정이 완료되었습니다.');
+        router.push(`/${serverID}/install`);
+      } else {
+        alert(result.reason || 'DB 설정에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('DB 설정에 실패했습니다.');

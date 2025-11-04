@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -19,10 +20,13 @@ export default function SecretBoardPage() {
   async function loadArticles() {
     try {
       setLoading(true);
-      // API 호출 로직 필요 - isSecret=true로
-      setArticles([]);
+      const result = await SammoAPI.GetBoardArticles({ isSecret: true });
+      if (result.result) {
+        setArticles(result.articles);
+      }
     } catch (err) {
       console.error(err);
+      alert('기밀 게시물을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

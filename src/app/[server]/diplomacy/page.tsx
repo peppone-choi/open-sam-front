@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -36,21 +37,39 @@ export default function DiplomacyPage() {
   async function loadLetters() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setLetters([]);
+      const result = await SammoAPI.GetDiplomacyLetter();
+      if (result.result) {
+        setLetters(result.letters);
+      }
     } catch (err) {
       console.error(err);
+      alert('외교문서를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
   }
 
   async function sendLetter() {
+    if (!newLetter.destNation || !newLetter.brief) {
+      alert('대상 국가와 내용을 입력해주세요.');
+      return;
+    }
+
     try {
-      // API 호출 로직 필요
-      setShowNewLetter(false);
-      setNewLetter({ prevNo: '', destNation: '', brief: '', detail: '' });
-      await loadLetters();
+      const result = await SammoAPI.SendDiplomacyLetter({
+        prevNo: newLetter.prevNo ? Number(newLetter.prevNo) : undefined,
+        destNationID: Number(newLetter.destNation),
+        brief: newLetter.brief,
+        detail: newLetter.detail,
+      });
+
+      if (result.result) {
+        setShowNewLetter(false);
+        setNewLetter({ prevNo: '', destNation: '', brief: '', detail: '' });
+        await loadLetters();
+      } else {
+        alert(result.reason || '외교문서 전송에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('외교문서 전송에 실패했습니다.');

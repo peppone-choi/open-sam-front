@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -38,30 +39,76 @@ export default function TroopPage() {
   async function loadTroops() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
+      // TODO: 부대 목록 API 필요
+      // const result = await SammoAPI.TroopGetTroopList();
+      // if (result.result) {
+      //   setTroopList(result.troops);
+      // }
       setTroopList([]);
     } catch (err) {
       console.error(err);
+      alert('부대 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
   }
 
   async function makeTroop() {
-    if (!newTroopName.trim()) return;
-    // API 호출 로직 필요
-    setNewTroopName('');
-    await loadTroops();
+    if (!newTroopName.trim()) {
+      alert('부대명을 입력해주세요.');
+      return;
+    }
+
+    try {
+      const result = await SammoAPI.TroopNewTroop({
+        name: newTroopName,
+      });
+
+      if (result.result) {
+        setNewTroopName('');
+        await loadTroops();
+      } else {
+        alert(result.reason || '부대 창설에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('부대 창설에 실패했습니다.');
+    }
   }
 
   async function joinTroop(troopID: number) {
-    // API 호출 로직 필요
-    await loadTroops();
+    try {
+      const result = await SammoAPI.TroopJoinTroop({
+        troopID: troopID,
+      });
+
+      if (result.result) {
+        await loadTroops();
+      } else {
+        alert(result.reason || '부대 탑승에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('부대 탑승에 실패했습니다.');
+    }
   }
 
   async function exitTroop() {
-    // API 호출 로직 필요
-    await loadTroops();
+    if (!confirm('정말로 부대를 탈퇴하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      const result = await SammoAPI.TroopExitTroop();
+      if (result.result) {
+        await loadTroops();
+      } else {
+        alert(result.reason || '부대 탈퇴에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('부대 탈퇴에 실패했습니다.');
+    }
   }
 
   return (

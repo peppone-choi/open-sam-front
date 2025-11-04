@@ -56,4 +56,18 @@
   background-color: #444;
 }
 
+.statBtn {
+  padding: 0.5rem 1rem;
+  background-color: #333;
+  color: white;
+  border: 1px solid #666;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.statBtn:hover {
+  background-color: #444;
+}
+
 

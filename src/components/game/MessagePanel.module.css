@@ -1,0 +1,54 @@
+.messagePanel {
+    width: 100%;
+    background-color: black;
+    color: white;
+    border-top: solid 1px gray;
+    height: auto;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.messagePanelHeader {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: solid 1px gray;
+}
+
+.boardHeader {
+    padding: 0.5rem;
+    text-align: center;
+    border-right: solid 1px gray;
+    background-color: #333;
+    cursor: pointer;
+}
+
+.boardHeader:last-child {
+    border-right: none;
+}
+
+.boardHeader:hover {
+    background-color: #444;
+}
+
+.messagePanelBody {
+    padding: 1rem;
+    height: auto;
+}
+
+.messagePlaceholder {
+    text-align: center;
+    color: #888;
+    padding: 2rem;
+}
+
+@media (min-width: 1000px) {
+    .messagePanel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .messagePanelHeader {
+        grid-column: 1 / 3;
+    }
+}
+

@@ -1,52 +1,78 @@
 .nationCardBasic {
+    width: 100%;
+    max-width: 500px;
+    height: 193px;
     display: grid;
-    grid-template-columns: 1.2fr 1.8fr 1.2fr 1.8fr;
-    grid-auto-rows: minmax(36px, auto);
-    border: 1px solid gray;
-    background-color: black;
+    grid-template-columns: 7fr 18fr 7fr 18fr;
+    grid-template-rows: repeat(10, calc(192px / 10));
+    border-bottom: solid 1px gray;
+    border-right: solid 1px gray;
+    box-sizing: border-box;
 }
 
 .name {
-    grid-column: 1 / -1;
+    grid-column: 1 / span 4;
+}
+
+.typeBody {
+    grid-column: 2 / span 3;
+}
+
+.tbTitle {
     text-align: center;
-    padding: 0.75rem;
-    font-size: 1.2rem;
+    padding: 0px;
+    line-height: calc(193px / 10);
+    border-left: solid 1px gray;
+    border-top: solid 1px gray;
 }
 
 .tbHead {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 0.35rem;
-    border: 1px solid gray;
+    border-left: solid 1px gray;
+    border-top: solid 1px gray;
+    text-align: center;
+    padding: 0px;
+    line-height: calc(193px / 10);
 }
 
 .tbBody {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    padding: 0.45rem 0.35rem;
-    font-size: 0.875rem;
-    border: 1px solid gray;
-    min-width: 0;
+    border-top: solid 1px gray;
+    padding: 0px;
+    line-height: calc(193px / 10);
+    text-align: center;
 }
 
 .typeHead { grid-column: 1; grid-row: 2; }
-.typeBody { grid-column: 2; grid-row: 2; }
-.c12Head { grid-column: 3; grid-row: 2; }
-.c12Body { grid-column: 4; grid-row: 2; }
-.c11Head { grid-column: 1; grid-row: 3; }
-.c11Body { grid-column: 2; grid-row: 3; }
-.popHead { grid-column: 3; grid-row: 3; }
-.popBody { grid-column: 4; grid-row: 3; }
-.crewHead { grid-column: 1; grid-row: 4; }
-.crewBody { grid-column: 2; grid-row: 4; }
-.goldHead { grid-column: 3; grid-row: 4; }
-.goldBody { grid-column: 4; grid-row: 4; }
-.riceHead { grid-column: 1; grid-row: 5; }
-.riceBody { grid-column: 2; grid-row: 5; }
+.typeBody { grid-column: 2 / span 3; grid-row: 2; }
+/* c12와 c11은 row 2가 아니라 row 3로 이동해야 함 (성향이 4칸을 차지하므로) */
+.c12Head { grid-column: 1; grid-row: 3; }
+.c12Body { grid-column: 2; grid-row: 3; }
+.c11Head { grid-column: 3; grid-row: 3; }
+.c11Body { grid-column: 4; grid-row: 3; }
+.popHead { grid-column: 1; grid-row: 4; }
+.popBody { grid-column: 2; grid-row: 4; }
+.crewHead { grid-column: 3; grid-row: 4; }
+.crewBody { grid-column: 4; grid-row: 4; }
+.goldHead { grid-column: 1; grid-row: 5; }
+.goldBody { grid-column: 2; grid-row: 5; }
+.riceHead { grid-column: 3; grid-row: 5; }
+.riceBody { grid-column: 4; grid-row: 5; }
+.billHead { grid-column: 1; grid-row: 6; }
+.billBody { grid-column: 2; grid-row: 6; }
+.taxRateHead { grid-column: 3; grid-row: 6; }
+.taxRateBody { grid-column: 4; grid-row: 6; }
+.cityCntHead { grid-column: 1; grid-row: 7; }
+.cityCntBody { grid-column: 2; grid-row: 7; }
+.genCntHead { grid-column: 3; grid-row: 7; }
+.genCntBody { grid-column: 4; grid-row: 7; }
+.powerHead { grid-column: 1; grid-row: 8; }
+.powerBody { grid-column: 2; grid-row: 8; }
+.techHead { grid-column: 3; grid-row: 8; }
+.techBody { grid-column: 4; grid-row: 8; }
+.strategicClgHead { grid-column: 1; grid-row: 9; }
+.strategicClgBody { grid-column: 2; grid-row: 9; }
+.diplomaticClgHead { grid-column: 3; grid-row: 9; }
+.diplomaticClgBody { grid-column: 4; grid-row: 9; }
+.prohibitScoutHead { grid-column: 1; grid-row: 10; }
+.prohibitScoutBody { grid-column: 2; grid-row: 10; }
+.prohibitWarHead { grid-column: 3; grid-row: 10; }
+.prohibitWarBody { grid-column: 4; grid-row: 10; }

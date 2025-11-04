@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -23,11 +24,18 @@ export default function HallOfFamePage() {
   async function loadData() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setScenarioList([]);
-      setHallOfFameData(null);
+      const result = await SammoAPI.GetHallOfFame({
+        seasonIdx: seasonIdx || undefined,
+        scenarioIdx: scenarioIdx || undefined,
+      });
+      
+      if (result.result) {
+        setScenarioList(result.scenarioList || []);
+        setHallOfFameData(result.hallOfFame || null);
+      }
     } catch (err) {
       console.error(err);
+      alert('명예의 전당 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -21,10 +22,13 @@ export default function AdminTimeControlPage() {
   async function loadTimeData() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setTimeData(null);
+      const result = await SammoAPI.AdminGetTimeControl();
+      if (result.result) {
+        setTimeData(result.timeControl);
+      }
     } catch (err) {
       console.error(err);
+      alert('시간 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -32,9 +36,35 @@ export default function AdminTimeControlPage() {
 
   async function handleTimeControl(action: string) {
     try {
-      // API 호출 로직 필요
-      alert('처리되었습니다.');
-      await loadTimeData();
+      const data: any = {};
+      
+      if (action === 'forward' || action === 'backward') {
+        if (!minute) {
+          alert('분을 입력해주세요.');
+          return;
+        }
+        data.minute = Number(minute);
+      } else if (action === 'tnmt_forward' || action === 'tnmt_backward') {
+        if (!minute2) {
+          alert('분을 입력해주세요.');
+          return;
+        }
+        data.minute = Number(minute2);
+      }
+
+      const result = await SammoAPI.AdminUpdateTimeControl({
+        action,
+        data,
+      });
+
+      if (result.result) {
+        alert('처리되었습니다.');
+        setMinute('');
+        setMinute2('');
+        await loadTimeData();
+      } else {
+        alert(result.reason || '처리에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('처리에 실패했습니다.');

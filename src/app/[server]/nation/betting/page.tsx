@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -19,10 +20,13 @@ export default function NationBettingPage() {
   async function loadBettingData() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setBettingData(null);
+      const result = await SammoAPI.NationGetBetting();
+      if (result.result) {
+        setBettingData({ bettings: result.bettings });
+      }
     } catch (err) {
       console.error(err);
+      alert('국가 베팅 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

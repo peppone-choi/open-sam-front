@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
 export default function ProcessingPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const serverID = params?.server as string;
   const commandType = searchParams?.get('command') || '';
   const turnList = searchParams?.get('turnList')?.split('_').map(Number) || [];
@@ -15,6 +17,7 @@ export default function ProcessingPage() {
 
   const [loading, setLoading] = useState(true);
   const [commandData, setCommandData] = useState<any>(null);
+  const [formData, setFormData] = useState<any>({});
 
   useEffect(() => {
     if (commandType && turnList.length > 0) {
@@ -25,10 +28,22 @@ export default function ProcessingPage() {
   async function loadCommandData() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setCommandData(null);
+      const result = await SammoAPI.GetCommandTable({
+        command: commandType,
+        turnList: turnList,
+        isChief: isChiefTurn,
+      });
+
+      if (result.result) {
+        setCommandData(result.commandTable);
+        // 폼 데이터 초기화
+        setFormData({});
+      } else {
+        alert(result.reason || '명령 정보를 불러오는데 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
+      alert('명령 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -36,8 +51,17 @@ export default function ProcessingPage() {
 
   async function handleSubmit() {
     try {
-      // API 호출 로직 필요
-      window.location.href = `/${serverID}/game`;
+      const result = await SammoAPI.CommandReserveCommand({
+        command: commandType,
+        args: formData,
+        turnList: turnList,
+      });
+
+      if (result.result) {
+        router.push(`/${serverID}/game`);
+      } else {
+        alert(result.reason || '명령 등록에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('명령 등록에 실패했습니다.');

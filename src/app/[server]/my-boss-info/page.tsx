@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import GeneralBasicCard from '@/components/cards/GeneralBasicCard';
 import styles from './page.module.css';
@@ -21,11 +22,27 @@ export default function MyBossInfoPage() {
   async function loadBossData() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setBossData(null);
-      setNationData(null);
+      
+      const [bossResult, frontInfoResult] = await Promise.all([
+        SammoAPI.GetMyBossInfo().catch(() => null),
+        SammoAPI.GeneralGetFrontInfo({
+          serverID: serverID || '',
+          lastNationNoticeDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
+          lastGeneralRecordID: 0,
+          lastWorldHistoryID: 0,
+        }).catch(() => null),
+      ]);
+
+      if (bossResult?.result) {
+        setBossData(bossResult.bossInfo);
+      }
+
+      if (frontInfoResult?.result && frontInfoResult.nation) {
+        setNationData(frontInfoResult.nation);
+      }
     } catch (err) {
       console.error(err);
+      alert('상관 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

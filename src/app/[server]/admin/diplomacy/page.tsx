@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -19,10 +20,13 @@ export default function AdminDiplomacyPage() {
   async function loadDiplomacyList() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setDiplomacyList([]);
+      const result = await SammoAPI.AdminGetDiplomacy();
+      if (result.result) {
+        setDiplomacyList(result.diplomacyList);
+      }
     } catch (err) {
       console.error(err);
+      alert('외교 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

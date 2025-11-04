@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import CityBasicCard from '@/components/cards/CityBasicCard';
 import styles from './page.module.css';
@@ -20,10 +21,13 @@ export default function CurrentCityPage() {
   async function loadCityData() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setCityData(null);
+      const result = await SammoAPI.GetCurrentCity();
+      if (result.result) {
+        setCityData(result.city);
+      }
     } catch (err) {
       console.error(err);
+      alert('도시 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

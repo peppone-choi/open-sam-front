@@ -1,0 +1,94 @@
+.globalMenu {
+    display: grid;
+    gap: 0.1rem;
+    white-space: nowrap;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 0.5rem;
+}
+
+.menuItem {
+    position: relative;
+}
+
+.menuButton {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: #333;
+    color: white;
+    border: 1px solid gray;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+    font-size: 0.875rem;
+}
+
+.menuButton:hover {
+    background-color: #444;
+}
+
+.splitButton {
+    display: flex;
+    width: 100%;
+}
+
+.splitToggle {
+    padding: 0.5rem;
+    background-color: #333;
+    color: white;
+    border: 1px solid gray;
+    border-left: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.splitToggle:hover {
+    background-color: #444;
+}
+
+.dropdownMenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #222;
+    border: 1px solid gray;
+    min-width: 150px;
+    z-index: 1000;
+    margin-top: 0.1rem;
+}
+
+.dropdownItem {
+    display: block;
+    padding: 0.5rem;
+    color: white;
+    text-decoration: none;
+    border-bottom: 1px solid gray;
+}
+
+.dropdownItem:hover {
+    background-color: #333;
+}
+
+.dropdownItem:last-child {
+    border-bottom: none;
+}
+
+.menuDivider {
+    margin: 0.25rem 0;
+    border: none;
+    border-top: 1px solid gray;
+}
+
+@media (min-width: 1000px) {
+    .globalMenu {
+        grid-template-columns: repeat(8, 1fr);
+    }
+}
+
+@media (max-width: 500px) {
+    .globalMenu {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+

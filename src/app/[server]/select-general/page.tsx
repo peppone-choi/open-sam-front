@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -17,24 +18,40 @@ export default function SelectGeneralPage() {
     loadGeneralList();
   }, [serverID]);
 
+  const router = useRouter();
+
   async function loadGeneralList() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setGeneralList([]);
+      const result = await SammoAPI.GetSelectPool();
+      if (result.result) {
+        setGeneralList(result.pool || []);
+      }
     } catch (err) {
       console.error(err);
+      alert('장수 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
   }
 
   async function handleSelect() {
-    if (!selectedGeneral) return;
+    if (!selectedGeneral) {
+      alert('장수를 선택해주세요.');
+      return;
+    }
+    
     try {
-      // API 호출 로직 필요
-      alert('장수 선택이 완료되었습니다.');
-      window.location.href = `/${serverID}/game`;
+      const result = await SammoAPI.SelectPickedGeneral({
+        generalID: selectedGeneral,
+      });
+
+      if (result.result) {
+        alert('장수 선택이 완료되었습니다.');
+        router.push(`/${serverID}/game`);
+      } else {
+        alert(result.reason || '장수 선택에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('장수 선택에 실패했습니다.');

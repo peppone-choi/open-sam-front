@@ -2,6 +2,13 @@
     background-color: black;
     border: 1px solid gray;
     padding: 0.5rem;
+    color: white;
+    font-size: 0.875rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .header {
@@ -17,7 +24,204 @@
     font-size: 1rem;
 }
 
+.toolbar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+
+.toolbarButton {
+    padding: 0.25rem 0.5rem;
+    background-color: #444;
+    color: white;
+    border: 1px solid #666;
+    border-radius: 0.2rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.toolbarButton:hover {
+    background-color: #555;
+}
+
+.clock {
+    flex: 1;
+    text-align: center;
+    padding: 0.25rem;
+    background-color: #0066cc;
+    color: white;
+    border-radius: 0.2rem;
+    font-size: 0.875rem;
+}
+
+.commandTableWrapper {
+    border: 1px solid gray;
+    margin-bottom: 0.5rem;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.commandTable {
+    display: grid;
+    grid-template-columns: minmax(30px, 1fr) minmax(75px, 2.5fr) minmax(40px, 1fr) 5fr;
+    gap: 0;
+    width: 100%;
+    flex: 0 0 auto;
+}
+
+.commandTable.isEditMode {
+    grid-template-columns: minmax(30px, 1fr) minmax(75px, 2.5fr) minmax(40px, 1fr) 5fr;
+}
+
+.commandTable:not(.isEditMode) {
+    grid-template-columns: minmax(20px, 0.8fr) minmax(75px, 2.4fr) minmax(40px, 0.9fr) 4.8fr minmax(28px, 0.8fr);
+}
+
+.commandTable.isEditMode {
+    grid-template-columns: minmax(30px, 1fr) minmax(75px, 2.5fr) minmax(40px, 1fr) 5fr;
+}
+
+.commandTable:not(.isEditMode) {
+    grid-template-columns: minmax(20px, 0.8fr) minmax(75px, 2.4fr) minmax(40px, 0.9fr) 4.8fr minmax(28px, 0.8fr);
+}
+
+.turnNumberColumn,
+.yearMonthColumn,
+.timeColumn,
+.commandColumn,
+.actionColumn {
+    display: flex;
+    flex-direction: column;
+}
+
+.turnCell,
+.yearMonthCell,
+.timeCell,
+.commandCell,
+.actionCell {
+    border-top: 1px solid gray;
+    border-left: 1px solid gray;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 29px;
+    position: relative;
+    z-index: 1;
+}
+
+.turnCell {
+    background-color: #0066cc;
+    cursor: pointer;
+    user-select: none;
+}
+
+.turnCellEditable:hover {
+    background-color: #0088ff;
+}
+
+.turnCell.selected {
+    background-color: #00ccff;
+    color: black;
+}
+
+.yearMonthCell {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.75rem;
+}
+
+.timeCell {
+    background-color: black;
+    white-space: nowrap;
+    overflow: hidden;
+    font-size: 0.75rem;
+}
+
+.commandCell {
+    background-color: #1a1a1a;
+    text-align: left;
+    padding-left: 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.commandCell:nth-child(even) {
+    background-color: #141414;
+}
+
+.editButton {
+    width: 100%;
+    height: 100%;
+    padding: 0.25rem;
+    background-color: #444;
+    color: white;
+    border: 1px solid #666;
+    border-radius: 0.2rem;
+    cursor: pointer;
+    font-size: 1rem;
+    position: relative;
+    z-index: 2;
+    min-width: 28px;
+    min-height: 28px;
+}
+
+.editButton:hover:not(:disabled) {
+    background-color: #555;
+}
+
+.editButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.footer {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.footerButton {
+    flex: 1;
+    padding: 0.5rem;
+    background-color: #444;
+    color: white;
+    border: 1px solid #666;
+    border-radius: 0.2rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.footerButton:hover:not(:disabled) {
+    background-color: #555;
+}
+
+.footerButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .content {
     color: white;
     padding: 0.5rem;
+    text-align: center;
+}
+
+.dialogWrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    height: 100%;
+    border: 1px solid gray;
+    margin-bottom: 0.5rem;
 }

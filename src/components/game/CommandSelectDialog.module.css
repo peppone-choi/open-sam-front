@@ -1,0 +1,201 @@
+.overlay {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #000;
+}
+
+.dialog {
+  background-color: #1a1a1a;
+  border: 2px solid #666;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  color: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #666;
+  padding-bottom: 0.5rem;
+  flex-shrink: 0;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: white;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.closeButton:hover {
+  color: #ccc;
+}
+
+.categoryButtons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.categoryButton {
+  padding: 0.5rem 1rem;
+  background-color: #333;
+  color: white;
+  border: 1px solid #666;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.categoryButton:hover {
+  background-color: #444;
+}
+
+.categoryButton.active {
+  background-color: #0066cc;
+  border-color: #0088ff;
+}
+
+.commandList {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 4em;
+  align-content: start;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border: 1px solid #666;
+  border-radius: 0.25rem;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.commandItem {
+  border: 1px solid #666;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+  height: 4em;
+  min-height: 4em;
+  max-height: 4em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #2a2a2a;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.commandItem:hover:not(.disabled) {
+  background-color: #3a3a3a;
+  border-color: #888;
+}
+
+.commandItem.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #1a1a1a;
+}
+
+.commandBody {
+  text-align: center;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.commandName {
+  font-size: 0.875rem;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.commandItem.disabled .commandName {
+  color: #999;
+}
+
+.commandTitle {
+  font-size: 0.7rem;
+  color: #aaa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.compensatePositive {
+  color: #00ffff;
+  margin-left: 0.25rem;
+}
+
+.compensateNegative {
+  color: #ff6666;
+  margin-left: 0.25rem;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #666;
+  padding-top: 0.5rem;
+  flex-shrink: 0;
+}
+
+.closeFooterButton {
+  padding: 0.5rem 1.5rem;
+  background-color: #333;
+  color: white;
+  border: 1px solid #666;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.closeFooterButton:hover {
+  background-color: #444;
+}
+
+

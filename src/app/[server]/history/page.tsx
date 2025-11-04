@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -20,10 +21,30 @@ export default function HistoryPage() {
   async function loadHistory() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setHistoryData(null);
+      
+      let year: number | undefined;
+      let month: number | undefined;
+      
+      if (yearMonth) {
+        // "202401" 형식 파싱
+        const match = yearMonth.match(/^(\d{4})(\d{2})$/);
+        if (match) {
+          year = parseInt(match[1]);
+          month = parseInt(match[2]);
+        }
+      }
+
+      const result = await SammoAPI.GetHistory({
+        year,
+        month,
+      });
+
+      if (result.result) {
+        setHistoryData(result.history);
+      }
     } catch (err) {
       console.error(err);
+      alert('연감 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

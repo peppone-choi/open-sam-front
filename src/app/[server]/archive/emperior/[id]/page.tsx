@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -20,12 +21,17 @@ export default function EmperiorDetailPage() {
   }, [id]);
 
   async function loadEmperiorDetail() {
+    if (!id) return;
+    
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setEmperiorDetail(null);
+      const result = await SammoAPI.GetEmperiorDetail({ id: Number(id) });
+      if (result.result) {
+        setEmperiorDetail(result.emperior);
+      }
     } catch (err) {
       console.error(err);
+      alert('왕조 상세 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

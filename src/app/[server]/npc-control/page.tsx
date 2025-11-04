@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -19,10 +20,13 @@ export default function NPCControlPage() {
   async function loadNPCData() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setNpcData(null);
+      const result = await SammoAPI.GetNPCControl();
+      if (result.result) {
+        setNpcData(result.npcControl);
+      }
     } catch (err) {
       console.error(err);
+      alert('NPC 정책 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -30,8 +34,15 @@ export default function NPCControlPage() {
 
   async function handleSave() {
     try {
-      // API 호출 로직 필요
-      alert('NPC 정책이 저장되었습니다.');
+      const result = await SammoAPI.SetNPCControl({
+        settings: npcData,
+      });
+
+      if (result.result) {
+        alert('NPC 정책이 저장되었습니다.');
+      } else {
+        alert(result.reason || '저장에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('저장에 실패했습니다.');

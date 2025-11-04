@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -21,28 +22,51 @@ export default function CommandProcessingPage() {
     loadCommandData();
   }, [serverID, command, turnList, isChief]);
 
+  const router = useRouter();
+
   async function loadCommandData() {
+    if (!command) return;
+
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setCommandData({
-        name: command,
+      const result = await SammoAPI.GetCommandData({
+        command,
         turnList,
         isChief,
       });
-      setFormData({});
+
+      if (result.result) {
+        setCommandData(result.commandData);
+        setFormData(result.commandData.defaultFormData || {});
+      }
     } catch (err) {
       console.error(err);
+      alert('명령 데이터를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
   }
 
   async function handleSubmit() {
+    if (!command) {
+      alert('명령이 지정되지 않았습니다.');
+      return;
+    }
+
     try {
-      // API 호출 로직 필요
-      alert('명령이 등록되었습니다.');
-      window.location.href = `/${serverID}/${isChief ? 'chief' : 'game'}`;
+      const result = await SammoAPI.SubmitCommand({
+        command,
+        turnList,
+        isChief,
+        data: formData,
+      });
+
+      if (result.result) {
+        alert('명령이 등록되었습니다.');
+        router.push(`/${serverID}/${isChief ? 'chief' : 'game'}`);
+      } else {
+        alert(result.reason || '명령 등록에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('명령 등록에 실패했습니다.');

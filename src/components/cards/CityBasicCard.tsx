@@ -2,12 +2,15 @@
 
 import React from 'react';
 import SammoBar from '../game/SammoBar';
+import { getNPCColor } from '@/utils/getNPCColor';
+import { isBrightColor } from '@/utils/isBrightColor';
 import styles from './CityBasicCard.module.css';
 
 interface CityBasicCardProps {
   city: {
     id: number;
     name: string;
+    region?: number | string;
     nationInfo: {
       id: number;
       name: string;
@@ -28,21 +31,20 @@ interface CityBasicCardProps {
       npc: number;
     } | null>;
   };
+  cityConstMap?: {
+    region?: Record<number | string, string>;
+    level?: Record<number, string>;
+  };
 }
 
-function isBrightColor(color: string): boolean {
-  const hex = color.replace('#', '');
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return brightness > 128;
-}
-
-export default function CityBasicCard({ city }: CityBasicCardProps) {
+export default function CityBasicCard({ city, cityConstMap }: CityBasicCardProps) {
   const nationColor = city.nationInfo.color;
   const textColor = isBrightColor(nationColor) ? 'black' : 'white';
-  const cityLevelText = ['', '수', '진', '관', '이', '소', '중', '대', '특'][city.level] || '';
+  
+  // 지역명 가져오기
+  const cityRegionText = cityConstMap?.region?.[city.region ?? 0] || '지역';
+  const cityLevelText = cityConstMap?.level?.[city.level] || ['', '수', '진', '관', '이', '소', '중', '대', '특'][city.level] || '';
+  
   const tradeAltText = city.trade ? `${city.trade}%` : '상인 없음';
   const tradeBarPercent = city.trade ? (city.trade - 95) * 10 : 0;
 
@@ -55,7 +57,7 @@ export default function CityBasicCard({ city }: CityBasicCardProps) {
           backgroundColor: nationColor,
         }}
       >
-        <div>【 지역 | {cityLevelText} 】 {city.name}</div>
+        <div>【 {cityRegionText} | {cityLevelText} 】 {city.name}</div>
       </div>
       <div
         className={styles.nationNamePanel}
@@ -136,19 +138,19 @@ export default function CityBasicCard({ city }: CityBasicCardProps) {
       </div>
       <div className={`${styles.gPanel} ${styles.officer4Panel}`}>
         <div className={`${styles.gHead} bg1`}>태수</div>
-        <div className={`${styles.gBody} ${styles.cellTextOnly}`}>
+        <div className={`${styles.gBody} ${styles.cellTextOnly}`} style={{ color: getNPCColor(city.officerList[4]?.npc ?? 0) }}>
           {city.officerList[4]?.name || '-'}
         </div>
       </div>
       <div className={`${styles.gPanel} ${styles.officer3Panel}`}>
         <div className={`${styles.gHead} bg1`}>군사</div>
-        <div className={`${styles.gBody} ${styles.cellTextOnly}`}>
+        <div className={`${styles.gBody} ${styles.cellTextOnly}`} style={{ color: getNPCColor(city.officerList[3]?.npc ?? 0) }}>
           {city.officerList[3]?.name || '-'}
         </div>
       </div>
       <div className={`${styles.gPanel} ${styles.officer2Panel}`}>
         <div className={`${styles.gHead} bg1`}>종사</div>
-        <div className={`${styles.gBody} ${styles.cellTextOnly}`}>
+        <div className={`${styles.gBody} ${styles.cellTextOnly}`} style={{ color: getNPCColor(city.officerList[2]?.npc ?? 0) }}>
           {city.officerList[2]?.name || '-'}
         </div>
       </div>

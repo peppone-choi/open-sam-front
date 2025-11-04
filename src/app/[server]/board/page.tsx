@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -42,22 +43,37 @@ export default function BoardPage() {
   async function loadArticles() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setArticles([]);
+      const result = await SammoAPI.GetBoardArticles({ isSecret });
+      if (result.result) {
+        setArticles(result.articles);
+      }
     } catch (err) {
       console.error(err);
+      alert('게시물을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
   }
 
   async function submitArticle() {
-    if (!newArticle.title && !newArticle.text) return;
+    if (!newArticle.title || !newArticle.text) {
+      alert('제목과 내용을 입력해주세요.');
+      return;
+    }
 
     try {
-      // API 호출 로직 필요
-      setNewArticle({ title: '', text: '' });
-      await loadArticles();
+      const result = await SammoAPI.PostBoardArticle({
+        isSecret,
+        title: newArticle.title,
+        text: newArticle.text,
+      });
+
+      if (result.result) {
+        setNewArticle({ title: '', text: '' });
+        await loadArticles();
+      } else {
+        alert(result.reason || '게시물 등록에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('게시물 등록에 실패했습니다.');

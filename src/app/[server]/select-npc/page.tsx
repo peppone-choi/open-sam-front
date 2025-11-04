@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -17,24 +18,42 @@ export default function SelectNPCPage() {
     loadNPCList();
   }, [serverID]);
 
+  const router = useRouter();
+
   async function loadNPCList() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setNpcList([]);
+      // NPC 목록은 일반 장수 목록에서 필터링하거나 별도 API 필요
+      const result = await SammoAPI.GetSelectPool();
+      if (result.result) {
+        // NPC만 필터링 (실제로는 별도 API가 필요할 수 있음)
+        setNpcList(result.pool?.filter((g: any) => g.isNPC) || []);
+      }
     } catch (err) {
       console.error(err);
+      alert('NPC 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
   }
 
   async function handleSelect() {
-    if (!selectedNPC) return;
+    if (!selectedNPC) {
+      alert('NPC를 선택해주세요.');
+      return;
+    }
+    
     try {
-      // API 호출 로직 필요
-      alert('NPC 선택이 완료되었습니다.');
-      window.location.href = `/${serverID}/game`;
+      const result = await SammoAPI.SelectNPC({
+        npcID: selectedNPC,
+      });
+
+      if (result.result) {
+        alert('NPC 선택이 완료되었습니다.');
+        router.push(`/${serverID}/game`);
+      } else {
+        alert(result.reason || 'NPC 선택에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('NPC 선택에 실패했습니다.');

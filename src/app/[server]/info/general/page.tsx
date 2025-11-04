@@ -1,29 +1,35 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import GeneralBasicCard from '@/components/cards/GeneralBasicCard';
 import styles from './page.module.css';
 
 export default function GeneralInfoPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const serverID = params?.server as string;
+  const generalID = searchParams?.get('generalID') ? Number(searchParams.get('generalID')) : undefined;
 
   const [loading, setLoading] = useState(true);
   const [generalData, setGeneralData] = useState<any>(null);
 
   useEffect(() => {
     loadGeneralData();
-  }, [serverID]);
+  }, [serverID, generalID]);
 
   async function loadGeneralData() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setGeneralData(null);
+      const result = await SammoAPI.GetGeneralInfo({ generalID });
+      if (result.result) {
+        setGeneralData(result.general);
+      }
     } catch (err) {
       console.error(err);
+      alert('장수 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

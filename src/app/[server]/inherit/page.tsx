@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -19,10 +20,16 @@ export default function InheritPage() {
   async function loadInheritData() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setInheritData(null);
+      const result = await SammoAPI.GetInheritPoint();
+      if (result.result) {
+        setInheritData({
+          totalPoint: result.totalPoint,
+          inheritList: result.inheritList,
+        });
+      }
     } catch (err) {
       console.error(err);
+      alert('유산 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

@@ -1,11 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import styles from './page.module.css';
 
 export default function KakaoJoinPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const oauthCode = searchParams?.get('code');
+  
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -15,15 +19,42 @@ export default function KakaoJoinPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    
+    if (!formData.username || !formData.password) {
+      alert('계정명과 비밀번호를 입력해주세요.');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       alert('비밀번호가 일치하지 않습니다.');
       return;
     }
+
+    if (formData.password.length < 6) {
+      alert('비밀번호는 최소 6자 이상이어야 합니다.');
+      return;
+    }
+
+    if (!oauthCode) {
+      alert('OAuth 코드가 없습니다.');
+      router.push('/oauth/fail');
+      return;
+    }
+
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      alert('회원가입이 완료되었습니다.');
-      router.push('/');
+      const result = await SammoAPI.OAuthKakaoJoin({
+        username: formData.username,
+        password: formData.password,
+        oauthID: oauthCode,
+      });
+
+      if (result.result) {
+        alert('회원가입이 완료되었습니다.');
+        router.push('/');
+      } else {
+        alert(result.reason || '회원가입에 실패했습니다.');
+      }
     } catch (err) {
       console.error(err);
       alert('회원가입에 실패했습니다.');
@@ -34,7 +65,7 @@ export default function KakaoJoinPage() {
 
   return (
     <div className={styles.container}>
-      <h1>삼국지 모의전투 HiDCHe</h1>
+      <h1>OpenSAM</h1>
       <div className={styles.joinCard}>
         <h3 className={styles.cardHeader}>회원가입</h3>
         <form onSubmit={handleSubmit} className={styles.joinForm}>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
@@ -24,10 +25,21 @@ export default function AuctionPage() {
   async function loadAuctionData() {
     try {
       setLoading(true);
-      // API 호출 로직 필요
-      setAuctionData(null);
+      
+      if (auctionType === 'unique') {
+        const result = await SammoAPI.AuctionGetUniqueItemAuctionList();
+        if (result.result) {
+          setAuctionData(result.auctions);
+        }
+      } else {
+        const result = await SammoAPI.GetActiveResourceAuctionList();
+        if (result.result) {
+          setAuctionData(result.auctions);
+        }
+      }
     } catch (err) {
       console.error(err);
+      alert('경매 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
