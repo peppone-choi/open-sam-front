@@ -12,4 +12,8 @@ export { default as FollowGeneralJoinNationCommandForm } from './FollowGeneralJo
 export { default as RandomFoundNationCommandForm } from './RandomFoundNationCommandForm';
 export { default as ConvertMasteryCommandForm } from './ConvertMasteryCommandForm';
 export { default as TradeEquipmentCommandForm } from './TradeEquipmentCommandForm';
+export { default as ChangeNationFlagCommandForm } from './ChangeNationFlagCommandForm';
+export { default as ChangeNationNameCommandForm } from './ChangeNationNameCommandForm';
+export { default as MaterialAidCommandForm } from './MaterialAidCommandForm';
+export { default as AppointGeneralCommandForm } from './AppointGeneralCommandForm';
 

@@ -16,7 +16,11 @@ import {
   FollowGeneralJoinNationCommandForm,
   RandomFoundNationCommandForm,
   ConvertMasteryCommandForm,
-  TradeEquipmentCommandForm
+  TradeEquipmentCommandForm,
+  ChangeNationFlagCommandForm,
+  ChangeNationNameCommandForm,
+  MaterialAidCommandForm,
+  AppointGeneralCommandForm
 } from '@/components/processing/command-forms';
 import type { ProcGeneralItem, ProcNationItem } from '@/components/processing/SelectGeneral';
 import styles from './page.module.css';
@@ -367,6 +371,65 @@ export default function CommandProcessingPage() {
           gold={commandData.gold ?? 0}
           itemList={commandData.itemList || {}}
           ownItem={commandData.ownItem || {}}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
+      );
+    }
+
+    // 국기변경 커맨드 (Nation)
+    if (commandType === '국기변경' || commandType === 'che_국기변경' || commandType === 'changeNationFlag') {
+      return (
+        <ChangeNationFlagCommandForm
+          commandName={commandName}
+          colors={commandData.colors || []}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
+      );
+    }
+
+    // 국호변경 커맨드 (Nation)
+    if (commandType === '국호변경' || commandType === 'che_국호변경' || commandType === 'changeNationName') {
+      return (
+        <ChangeNationNameCommandForm
+          commandName={commandName}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
+      );
+    }
+
+    // 물자원조 커맨드 (Nation)
+    if (commandType === '물자원조' || commandType === 'che_물자원조' || commandType === 'materialAid') {
+      return (
+        <MaterialAidCommandForm
+          commandName={commandName}
+          serverID={serverID}
+          nations={commandData.nations || []}
+          currentNationLevel={commandData.currentNationLevel ?? 0}
+          levelInfo={commandData.levelInfo || {}}
+          minAmount={commandData.minAmount ?? 0}
+          maxAmount={commandData.maxAmount ?? 0}
+          amountGuide={commandData.amountGuide || []}
+          mapData={commandData.mapData}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
+      );
+    }
+
+    // 발령 커맨드 (Nation)
+    if (commandType === '발령' || commandType === 'che_발령' || commandType === 'appointGeneral') {
+      return (
+        <AppointGeneralCommandForm
+          commandName={commandName}
+          serverID={serverID}
+          generals={commandData.generals || []}
+          cities={commandData.cities || []}
+          troops={commandData.troops || {}}
+          currentCity={commandData.currentCity}
+          mapData={commandData.mapData}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
         />
