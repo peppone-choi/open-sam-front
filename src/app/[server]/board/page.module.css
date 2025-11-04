@@ -111,4 +111,40 @@
 .text {
   padding: 0.5rem;
   white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.helpText {
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 0.25rem;
+}
+
+.comments {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #333;
+}
+
+.commentItem {
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  background-color: #1a1a1a;
+  border-left: 3px solid #007bff;
+}
+
+.commentAuthor {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.commentText {
+  margin-bottom: 0.25rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.commentDate {
+  font-size: 0.75rem;
+  color: #999;
 }

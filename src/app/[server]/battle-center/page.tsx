@@ -51,24 +51,28 @@ export default function BattleCenterPage() {
                     <div className={styles.battleStatus}>{battle.status}</div>
                   </div>
                   <div className={styles.battleInfo}>
-                    <div>공격국: {battle.attackerNationId}</div>
-                    <div>방어국: {battle.defenderNationId}</div>
-                    <div>도시: {battle.targetCityId}</div>
-                    {battle.currentPhase && <div>단계: {battle.currentPhase}</div>}
-                    {battle.currentTurn && <div>턴: {battle.currentTurn}/{battle.maxTurns}</div>}
+                    {battle.type === 'general' && (
+                      <>
+                        <div>장수: {battle.generalId}</div>
+                        <div>국가: {battle.nationId}</div>
+                      </>
+                    )}
+                    {battle.type === 'world' && (
+                      <div>국가: {battle.nationId}</div>
+                    )}
+                    <div>내용: {battle.text}</div>
+                    <div>날짜: {new Date(battle.date).toLocaleString('ko-KR')}</div>
                   </div>
-                  {battle.status === 'ongoing' && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        // TODO: 전투 상세 페이지로 이동
-                        alert('전투 상세 페이지는 향후 구현 예정입니다.');
-                      }}
-                      className={styles.joinBtn}
-                    >
-                      참가
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // TODO: 전투 상세 페이지로 이동
+                      alert('전투 상세 페이지는 향후 구현 예정입니다.');
+                    }}
+                    className={styles.joinBtn}
+                  >
+                    상세보기
+                  </button>
                 </div>
               ))}
             </div>

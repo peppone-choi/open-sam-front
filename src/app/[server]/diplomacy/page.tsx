@@ -67,12 +67,12 @@ export default function DiplomacyPage() {
         detail: newLetter.detail,
       });
 
-      if (result.result) {
+      if (result.success && result.result) {
         setShowNewLetter(false);
         setNewLetter({ prevNo: '', destNation: '', brief: '', detail: '' });
         await loadLetters();
       } else {
-        alert(result.reason || '외교문서 전송에 실패했습니다.');
+        alert(result.reason || result.message || '외교문서 전송에 실패했습니다.');
       }
     } catch (err) {
       console.error(err);
@@ -151,13 +151,14 @@ export default function DiplomacyPage() {
                       onClick={async () => {
                         try {
                           const result = await SammoAPI.DiplomacyProcess({
+                            serverID,
                             letterNo: letter.no,
                             action: 'accept',
                           });
-                          if (result.result) {
+                          if (result.success && result.result) {
                             await loadLetters();
                           } else {
-                            alert(result.reason || '처리에 실패했습니다.');
+                            alert(result.reason || result.message || '처리에 실패했습니다.');
                           }
                         } catch (err) {
                           console.error(err);
@@ -175,13 +176,14 @@ export default function DiplomacyPage() {
                       onClick={async () => {
                         try {
                           const result = await SammoAPI.DiplomacyProcess({
+                            serverID,
                             letterNo: letter.no,
                             action: 'reject',
                           });
-                          if (result.result) {
+                          if (result.success && result.result) {
                             await loadLetters();
                           } else {
-                            alert(result.reason || '처리에 실패했습니다.');
+                            alert(result.reason || result.message || '처리에 실패했습니다.');
                           }
                         } catch (err) {
                           console.error(err);

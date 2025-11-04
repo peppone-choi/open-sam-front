@@ -917,9 +917,13 @@ export class SammoAPI {
   }
 
   // Diplomacy API
-  static async GetDiplomacyLetter(): Promise<{
+  static async GetDiplomacyLetter(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    success: boolean;
     result: boolean;
-    letters: Array<{
+    letters?: Array<{
       no: number;
       fromNation: string;
       toNation: string;
@@ -928,20 +932,26 @@ export class SammoAPI {
       date: string;
       status: string;
     }>;
+    message?: string;
   }> {
     return this.request('/api/diplomacy/get-letter', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
   static async SendDiplomacyLetter(params: {
+    serverID?: string;
+    session_id?: string;
     prevNo?: number;
     destNationID: number;
     brief: string;
     detail: string;
   }): Promise<{
+    success: boolean;
     result: boolean;
     reason?: string;
+    message?: string;
   }> {
     return this.request('/api/diplomacy/send-letter', {
       method: 'POST',
@@ -963,19 +973,21 @@ export class SammoAPI {
   }
 
   // Auction API (추가)
-  static async GetActiveResourceAuctionList(): Promise<{
+  static async GetActiveResourceAuctionList(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    success: boolean;
     result: boolean;
-    auctions: Array<{
-      id: number;
-      type: 'buy' | 'sell';
-      resourceType: 'gold' | 'rice';
-      amount: number;
-      price: number;
-      currentBid?: number;
-    }>;
+    buyRiceList?: any[];
+    sellRiceList?: any[];
+    recentLogs?: any[];
+    generalID?: number;
+    message?: string;
   }> {
     return this.request('/api/auction/get-active-resource-list', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
@@ -1650,12 +1662,16 @@ export class SammoAPI {
 
   // Diplomacy Process API
   static async DiplomacyProcess(params: {
+    serverID?: string;
+    session_id?: string;
     letterNo: number;
     action: string;
     data?: any;
   }): Promise<{
+    success: boolean;
     result: boolean;
     reason?: string;
+    message?: string;
   }> {
     return this.request('/api/diplomacy/process', {
       method: 'POST',
