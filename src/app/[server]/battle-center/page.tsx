@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
 export default function BattleCenterPage() {
   const params = useParams();
+  const router = useRouter();
   const serverID = params?.server as string;
 
   const [loading, setLoading] = useState(true);
@@ -66,8 +67,7 @@ export default function BattleCenterPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      // TODO: 전투 상세 페이지로 이동
-                      alert('전투 상세 페이지는 향후 구현 예정입니다.');
+                      router.push(`/${serverID}/battle/${battle.id}`);
                     }}
                     className={styles.joinBtn}
                   >

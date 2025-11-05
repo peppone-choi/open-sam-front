@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './PartialReservedCommand.module.css';
 import { SammoAPI } from '@/lib/api/sammo';
 import CommandSelectDialog from './CommandSelectDialog';
+import { JosaUtil } from '@/lib/utils/josaUtil';
 
 interface PartialReservedCommandProps {
   generalID: number;
@@ -34,10 +36,11 @@ interface CommandTableCategory {
 }
 
 export default function PartialReservedCommand({ generalID, serverID }: PartialReservedCommandProps) {
+  const router = useRouter();
   const [reservedCommands, setReservedCommands] = useState<ReservedCommand[]>([]);
   const [commandTable, setCommandTable] = useState<CommandTableCategory[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [viewMaxTurn, setViewMaxTurn] = useState(14);
+  const [viewMaxTurn, setViewMaxTurn] = useState(23);
   const [loading, setLoading] = useState(true);
   const [selectedTurnIndices, setSelectedTurnIndices] = useState<Set<number>>(new Set());
   const [serverTime, setServerTime] = useState<Date>(new Date());
@@ -45,7 +48,7 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
   const [editingTurnIndex, setEditingTurnIndex] = useState<number | null>(null);
 
   const MAX_TURN = 30;
-  const FLIPPED_MAX_TURN = 14;
+  const FLIPPED_MAX_TURN = 23;
 
   useEffect(() => {
     loadData();
@@ -54,7 +57,7 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
   const loadData = async () => {
     try {
       setLoading(true);
-      const [reservedResponse, commandTableResponse] = await Promise.all([
+      const [reservedResponse, commandTableResponse, mapResponse] = await Promise.all([
         SammoAPI.CommandGetReservedCommand({ serverID, general_id: generalID }).catch((err) => {
           console.error('명령 목록 API 에러:', err);
           return { success: false, turn: [] };
@@ -63,13 +66,29 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
           console.error('명령 테이블 API 에러:', err);
           return { success: false, commandTable: [], reason: err.message };
         }),
+        SammoAPI.GlobalGetMap({ serverID, neutralView: 0, showMe: 1 }).catch((err) => {
+          console.error('맵 데이터 API 에러:', err);
+          return { result: false, cityList: [] };
+        }),
       ]);
 
       // MAX_TURN(30)까지 모든 턴을 채우기 (빈 턴도 포함)
       const commands: ReservedCommand[] = [];
-      const year = reservedResponse.year || 180;
-      const month = reservedResponse.month || 1;
+      
+      // 세션의 현재 년/월을 사용 (없으면 장수 년/월 사용)
+      const sessionYear = reservedResponse.sessionYear || reservedResponse.year || 180;
+      const sessionMonth = reservedResponse.sessionMonth || reservedResponse.month || 1;
       const turnTerm = reservedResponse.turnTerm || 60; // 분 단위 (PHP 버전과 동일)
+      
+      console.log('[PartialReservedCommand] API 응답:', {
+        sessionYear,
+        sessionMonth,
+        generalYear: reservedResponse.year,
+        generalMonth: reservedResponse.month,
+        turnTerm,
+        turnTime: reservedResponse.turnTime,
+        success: reservedResponse.success
+      });
       
       // baseTime은 UTC ISO 문자열이므로 Date 객체로 파싱
       // 백엔드에서 반환하는 turnTime은 UTC 시간
@@ -83,9 +102,9 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
         hour12: false
       });
 
-      // PHP 버전처럼 yearMonth를 사용하여 계산
+      // 세션의 현재 년/월부터 시작 (다음 턴부터 예약이므로 +1)
       // yearMonth = year * 12 + month - 1 (0부터 시작)
-      let yearMonth = year * 12 + month - 1;
+      let yearMonth = sessionYear * 12 + sessionMonth; // 다음 턴이므로 -1 하지 않음
 
       for (let idx = 0; idx < MAX_TURN; idx++) {
         // yearMonth로부터 년/월 계산
@@ -102,16 +121,81 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
         const [hours, minutes] = timeStr.split(':').map(s => s.padStart(2, '0'));
 
         // 해당 턴의 명령이 있으면 사용, 없으면 빈 턴(휴식)
-        const cmd = (reservedResponse.success && reservedResponse.turn && reservedResponse.turn[idx]) 
-          ? {
-              ...reservedResponse.turn[idx],
-              brief: reservedResponse.turn[idx].brief || reservedResponse.turn[idx].action || '휴식' // brief가 없으면 action 사용
-            }
+        let cmd = (reservedResponse.success && reservedResponse.turn && reservedResponse.turn[idx]) 
+          ? reservedResponse.turn[idx]
           : {
               action: '휴식',
               brief: '휴식',
               arg: {}
             };
+
+        // brief가 없으면 arg를 보고 생성
+        if (cmd.action !== '휴식' && !cmd.brief) {
+          const action = cmd.action || '';
+          const arg = cmd.arg || {};
+          
+          // 이동 계열 명령 (도시 선택)
+          if (arg.destCityID && !arg.amount) {
+            const cityName = mapResponse.result && mapResponse.cityList 
+              ? mapResponse.cityList.find((c: any) => c.city === arg.destCityID)?.name 
+              : null;
+            if (cityName) {
+              cmd.brief = `${JosaUtil.attachJosa(cityName, '으로')} ${action}`;
+            } else {
+              cmd.brief = `${JosaUtil.attachJosa('도시' + arg.destCityID, '으로')} ${action}`;
+            }
+          }
+          // 물자원조, 발령, 인구이동 등 (도시 + 금액/인구)
+          else if (arg.destCityID && arg.amount) {
+            const cityName = mapResponse.result && mapResponse.cityList 
+              ? mapResponse.cityList.find((c: any) => c.city === arg.destCityID)?.name 
+              : null;
+            const amountStr = arg.amount.toLocaleString();
+            if (cityName) {
+              cmd.brief = `${JosaUtil.attachJosa(cityName, '으로')} ${JosaUtil.attachJosa(amountStr, '을')} ${action}`;
+            } else {
+              cmd.brief = `${'도시' + arg.destCityID}${JosaUtil.pickJosa('도시', '으로')} ${JosaUtil.attachJosa(amountStr, '을')} ${action}`;
+            }
+          }
+          // 장수대상임관 (장수 + 국가)
+          else if ((arg.destGeneralID || arg.targetGeneralID) && arg.nationID) {
+            const generalID = arg.destGeneralID || arg.targetGeneralID;
+            cmd.brief = `${'장수' + generalID}${JosaUtil.pickJosa('장수', '을')} ${'국가' + arg.nationID}${JosaUtil.pickJosa('국가', '에')} ${action}`;
+          }
+          // 등용, 선양 등 (장수 선택)
+          else if (arg.destGeneralID || arg.targetGeneralID) {
+            const generalID = arg.destGeneralID || arg.targetGeneralID;
+            cmd.brief = `${JosaUtil.attachJosa('장수' + generalID, '을')} ${action}`;
+          }
+          // 몰수, 포상, 증여 등 (장수 + 금액)
+          else if (arg.generalID && arg.amount) {
+            const amountStr = arg.amount.toLocaleString();
+            cmd.brief = `${'장수' + arg.generalID}${JosaUtil.pickJosa('장수', '에게')} ${JosaUtil.attachJosa(amountStr, '을')} ${action}`;
+          }
+          // 임관 (국가 선택)
+          else if (arg.nationID) {
+            cmd.brief = `${JosaUtil.attachJosa('국가' + arg.nationID, '에')} ${action}`;
+          }
+          // 건국, 무작위건국 (국가 이름)
+          else if (arg.nationName) {
+            cmd.brief = `${JosaUtil.attachJosa(arg.nationName, '을')} ${action}`;
+          }
+          // 국호변경
+          else if (arg.newName) {
+            cmd.brief = `${JosaUtil.attachJosa(arg.newName, '으로')} ${action}`;
+          }
+          // 군량매매, 헌납 등 (금액만)
+          else if (arg.amount) {
+            const amountStr = arg.amount.toLocaleString();
+            cmd.brief = `${JosaUtil.attachJosa(amountStr, '을')} ${action}`;
+          }
+          // 기본값
+          else {
+            cmd.brief = action;
+          }
+        } else if (!cmd.brief) {
+          cmd.brief = cmd.action || '휴식';
+        }
 
         commands.push({
           ...cmd,
@@ -239,17 +323,7 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
 
   return (
     <div className={styles.commandPad}>
-      <div className={styles.header}>
-        <h4>명령 목록</h4>
-      </div>
-
       <div className={styles.toolbar}>
-        <button
-          className={styles.toolbarButton}
-          onClick={toggleEditMode}
-        >
-          {isEditMode ? '일반 모드로' : '고급 모드로'}
-        </button>
         <div className={styles.clock}>
           {serverTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
         </div>
@@ -259,10 +333,16 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
         >
           {viewMaxTurn === FLIPPED_MAX_TURN ? '펼치기' : '접기'}
         </button>
+        <button className={styles.toolbarButton} disabled={!isEditMode} title="당기기">
+          당기기
+        </button>
+        <button className={styles.toolbarButton} disabled={!isEditMode} title="미루기">
+          미루기
+        </button>
       </div>
 
       {!isDialogOpen && (
-        <div className={styles.commandTableWrapper}>
+        <div className={`${styles.commandTableWrapper} ${viewMaxTurn === MAX_TURN ? styles.scrollable : styles.noScroll}`}>
           <div className={`${styles.commandTable} ${isEditMode ? styles.isEditMode : ''}`}>
             {/* 턴 번호 */}
             <div className={styles.turnNumberColumn}>
@@ -341,12 +421,35 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
           <CommandSelectDialog
             commandTable={commandTable}
             isOpen={isDialogOpen}
+            turnIndex={editingTurnIndex}
+            turnYear={editingTurnIndex !== null ? displayCommands[editingTurnIndex]?.year : undefined}
+            turnMonth={editingTurnIndex !== null ? displayCommands[editingTurnIndex]?.month : undefined}
+            turnTime={editingTurnIndex !== null ? displayCommands[editingTurnIndex]?.time : undefined}
             onClose={() => {
               setIsDialogOpen(false);
               setEditingTurnIndex(null);
             }}
             onSelectCommand={async (command) => {
               if (editingTurnIndex !== null) {
+                // reqArg > 0인 경우 파라미터 입력 페이지로 이동
+                if (command.reqArg > 0) {
+                  console.log('파라미터 입력 페이지로 이동:', {
+                    command: command.value,
+                    turnIndex: editingTurnIndex,
+                    reqArg: command.reqArg,
+                    generalID,
+                  });
+                  
+                  // Close dialog first
+                  setIsDialogOpen(false);
+                  setEditingTurnIndex(null);
+                  
+                  // Navigate to parameter input page with generalID and turnIndex
+                  router.push(`/${serverID}/processing/${command.value}?turnList=${editingTurnIndex}&is_chief=false&general_id=${generalID}`);
+                  return;
+                }
+
+                // reqArg === 0인 경우 바로 명령 예약
                 try {
                   // generalID 확인 및 숫자 변환
                   const numGeneralID = Number(generalID);
@@ -355,7 +458,7 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
                     return;
                   }
                   
-                  console.log('명령 예약 요청:', {
+                  console.log('명령 예약 요청 (파라미터 없음):', {
                     serverID,
                     general_id: numGeneralID,
                     general_id_type: typeof numGeneralID,
@@ -396,11 +499,19 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
 
       {!isDialogOpen && (
         <div className={styles.footer}>
-          <button className={styles.footerButton} disabled={!isEditMode}>
-            당기기
+          <button
+            className={styles.footerButton}
+            onClick={() => loadData()}
+            title="갱신"
+          >
+            갱신
           </button>
-          <button className={styles.footerButton} disabled={!isEditMode}>
-            미루기
+          <button
+            className={styles.footerButton}
+            onClick={() => window.location.href = '/'}
+            title="로비로"
+          >
+            로비로
           </button>
         </div>
       )}

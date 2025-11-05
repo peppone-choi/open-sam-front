@@ -1,7 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import { SammoAPI } from '@/lib/api/sammo';
+import type { GetMapResponse } from '@/lib/api/sammo';
 import SelectCity from '../SelectCity';
+import MapViewer from '@/components/game/MapViewer';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './CommandForm.module.css';
 
@@ -47,7 +51,7 @@ export default function MoveCommandForm({
   async function loadMapData() {
     try {
       setLoadingMap(true);
-      const result = await SammoAPI.GetMap({ serverID });
+      const result = await SammoAPI.GlobalGetMap({ serverID, neutralView: 0, showMe: 1 });
       if (result.result && result.cityList) {
         setMapDataState(result);
       }

@@ -100,11 +100,29 @@ export default function AuctionPage() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
                           const amount = prompt('입찰 금액을 입력하세요:');
                           if (amount) {
-                            // TODO: 입찰 API 호출
-                            alert('입찰 기능은 향후 구현 예정입니다.');
+                            const bidAmount = parseInt(amount, 10);
+                            if (isNaN(bidAmount) || bidAmount <= 0) {
+                              alert('올바른 금액을 입력해주세요.');
+                              return;
+                            }
+                            try {
+                              const result = await SammoAPI.AuctionBidUniqueAuction({
+                                auctionID: auction.id,
+                                bidAmount,
+                                serverID,
+                              });
+                              if (result.result) {
+                                alert('입찰이 완료되었습니다.');
+                                loadAuctionData();
+                              } else {
+                                alert(result.reason || '입찰에 실패했습니다.');
+                              }
+                            } catch (err: any) {
+                              alert(err.message || '입찰 중 오류가 발생했습니다.');
+                            }
                           }
                         }}
                         className={styles.bidBtn}
@@ -139,11 +157,29 @@ export default function AuctionPage() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
                           const amount = prompt('입찰 금액을 입력하세요:');
                           if (amount) {
-                            // TODO: 입찰 API 호출
-                            alert('입찰 기능은 향후 구현 예정입니다.');
+                            const bidAmount = parseInt(amount, 10);
+                            if (isNaN(bidAmount) || bidAmount <= 0) {
+                              alert('올바른 금액을 입력해주세요.');
+                              return;
+                            }
+                            try {
+                              const result = await SammoAPI.AuctionBidUniqueAuction({
+                                auctionID: auction.id,
+                                bidAmount,
+                                serverID,
+                              });
+                              if (result.result) {
+                                alert('입찰이 완료되었습니다.');
+                                loadAuctionData();
+                              } else {
+                                alert(result.reason || '입찰에 실패했습니다.');
+                              }
+                            } catch (err: any) {
+                              alert(err.message || '입찰 중 오류가 발생했습니다.');
+                            }
                           }
                         }}
                         className={styles.bidBtn}

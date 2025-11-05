@@ -19,6 +19,13 @@ function GameInfoPanel({
 }: GameInfoPanelProps) {
   const global = frontInfo.global;
   const nation = frontInfo.nation;
+  
+  // 디버깅: 년월 확인
+  console.log('[GameInfoPanel] 현재 년월:', {
+    year: global.year,
+    month: global.month,
+    turnterm: global.turnterm
+  });
 
   // 다음 턴까지 남은 시간 계산
   const [timeUntilNextTurn, setTimeUntilNextTurn] = useState<string>('계산 중...');

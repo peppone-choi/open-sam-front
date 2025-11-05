@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './CommandSelectDialog.module.css';
 
 interface CommandItem {
@@ -22,6 +22,10 @@ interface CommandSelectDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectCommand: (command: CommandItem) => void;
+  turnIndex?: number | null;
+  turnYear?: number;
+  turnMonth?: number;
+  turnTime?: string;
 }
 
 export default function CommandSelectDialog({
@@ -29,14 +33,26 @@ export default function CommandSelectDialog({
   isOpen,
   onClose,
   onSelectCommand,
+  turnIndex = null,
+  turnYear,
+  turnMonth,
+  turnTime,
 }: CommandSelectDialogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen && commandTable.length > 0) {
       setSelectedCategory(commandTable[0].category);
     }
   }, [isOpen, commandTable]);
+
+  // Auto-focus dialog when opened
+  useEffect(() => {
+    if (isOpen && dialogRef.current) {
+      dialogRef.current.focus();
+    }
+  }, [isOpen]);
 
   if (!isOpen) {
     return null;
@@ -71,9 +87,16 @@ export default function CommandSelectDialog({
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+      <div ref={dialogRef} tabIndex={-1} className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h3>명령 선택</h3>
+          <h3>
+            명령 선택
+            {turnIndex !== null && (
+              <span style={{ fontSize: '0.85em', fontWeight: 'normal', marginLeft: '0.5rem', color: '#999' }}>
+                - {turnIndex + 1}턴{turnYear && turnMonth ? ` (${turnYear}年 ${turnMonth}月${turnTime ? ` ${turnTime}` : ''})` : ''}
+              </span>
+            )}
+          </h3>
           <button className={styles.closeButton} onClick={onClose}>×</button>
         </div>
 

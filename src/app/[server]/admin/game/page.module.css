@@ -44,6 +44,46 @@
   background-color: #444;
 }
 
+.section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #444;
+}
+
+.section h2 {
+  color: #ffa500;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.statusInfo {
+  background-color: #111;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #333;
+  border-radius: 4px;
+}
+
+.statusInfo div {
+  margin-bottom: 0.5rem;
+  color: #ccc;
+}
+
+.statusInfo div:last-child {
+  margin-bottom: 0;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.buttonGroup .button {
+  flex: 0 0 auto;
+}
+
 
 
 

@@ -454,15 +454,73 @@ export class SammoAPI {
     });
   }
 
-  static async NationSetNotice(params: {
-    notice: string;
-  }): Promise<{
+  static async NationSetNotice(msg: string): Promise<{
     result: boolean;
     reason?: string;
   }> {
     return this.request('/api/nation/set-notice', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify({ msg }),
+    });
+  }
+
+  static async NationSetScoutMsg(msg: string): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/nation/set-scout-msg', {
+      method: 'POST',
+      body: JSON.stringify({ msg }),
+    });
+  }
+
+  static async NationSetRate(amount: number): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/nation/set-rate', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
+  }
+
+  static async NationSetBill(amount: number): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/nation/set-bill', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
+  }
+
+  static async NationSetSecretLimit(amount: number): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/nation/set-secret-limit', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
+  }
+
+  static async NationSetBlockWar(value: boolean): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/nation/set-block-war', {
+      method: 'POST',
+      body: JSON.stringify({ value }),
+    });
+  }
+
+  static async NationSetBlockScout(value: boolean): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/nation/set-block-scout', {
+      method: 'POST',
+      body: JSON.stringify({ value }),
     });
   }
 
@@ -1657,6 +1715,58 @@ export class SammoAPI {
     return this.request('/api/admin/force-rehall', {
       method: 'POST',
       body: JSON.stringify(params || {}),
+    });
+  }
+
+  static async AdminGetSystemStatus(): Promise<{
+    result: boolean;
+    status: {
+      turntime: string | null;
+      starttime: string | null;
+      tnmt_time: string | null;
+      plock: number;
+      turnterm: number;
+    };
+  }> {
+    return this.request('/api/admin/system-status', {
+      method: 'GET',
+    });
+  }
+
+  static async AdminAdjustTime(params: {
+    type: 'turn_advance' | 'turn_delay' | 'tournament_advance' | 'tournament_delay';
+    minutes: number;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/admin/adjust-time', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  static async AdminToggleLock(params: {
+    lock: boolean;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/admin/toggle-lock', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  static async AdminPaySalary(params: {
+    type: 'gold' | 'rice';
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/admin/pay-salary', {
+      method: 'POST',
+      body: JSON.stringify(params),
     });
   }
 

@@ -1,15 +1,169 @@
+/* CSS Reset - 전체 리셋 적용 */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 html * {
     max-height: 1000000px;
 }
 
-html,
+html {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
 body {
+    margin: 0;
+    padding: 0;
     font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic';
     background-color: black;
     color: white;
     line-height: 1.3;
     font-size: 14px;
     background-position: center;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 링크 리셋 */
+a,
+a:link,
+a:visited,
+a:hover,
+a:active,
+a:focus {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: none;
+    text-decoration-line: none;
+    text-decoration-color: transparent;
+    outline: none;
+    background-color: transparent;
+}
+
+/* 링크 내부 모든 요소 리셋 */
+a *,
+a img,
+a div,
+a span {
+    text-decoration: none !important;
+    border-bottom: none !important;
+    text-decoration-line: none !important;
+    text-decoration-color: transparent !important;
+}
+
+/* 도시명 배경색 예외 처리 - city_detail_name은 배경색 유지 */
+a .city_detail_name,
+.city_base .city_detail_name,
+.world_map .city_detail_name {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* city_base 컨테이너 크기 고정 - 전역 max-height 오버라이드 */
+.city_base {
+    max-height: 30px !important;
+    height: 30px !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    min-height: 30px !important;
+}
+
+/* 도시명 숨기기 (hide_cityname 클래스가 있을 때) */
+.world_map.hide_cityname .city_detail_name,
+.world_map.hide_cityname .city_base .city_detail_name,
+.world_map.hide_cityname .city_base > .city_detail_name,
+.hide_cityname .city_detail_name,
+.hide_cityname .city_base .city_detail_name,
+.hide_cityname .city_base > .city_detail_name {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* 이미지 리셋 */
+img {
+    border-style: none;
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* 리스트 리셋 */
+ul,
+ol {
+    list-style: none;
+}
+
+/* 버튼 리셋 */
+button {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    outline: none;
+}
+
+/* 입력 필드 리셋 */
+input,
+textarea,
+select {
+    font: inherit;
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+}
+
+/* 테이블 리셋 */
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/* 제목 리셋 */
+h1, h2, h3, h4, h5, h6 {
+    font-size: inherit;
+    font-weight: inherit;
+    margin: 0;
+}
+
+/* 단락 리셋 */
+p {
+    margin: 0;
+}
+
+/* 인용 리셋 */
+blockquote,
+q {
+    quotes: none;
+}
+
+blockquote::before,
+blockquote::after,
+q::before,
+q::after {
+    content: '';
+    content: none;
+}
+
+/* 미디어 요소 리셋 */
+audio,
+video {
+    display: block;
+}
+
+/* SVG 리셋 */
+svg {
+    display: block;
+    vertical-align: middle;
 }
 
 input {

@@ -21,6 +21,7 @@ export default function DiplomacyPage() {
   const serverID = params?.server as string;
 
   const [letters, setLetters] = useState<Letter[]>([]);
+  const [nations, setNations] = useState<Array<[number, string, string, number]>>([]);
   const [loading, setLoading] = useState(true);
   const [showNewLetter, setShowNewLetter] = useState(false);
   const [newLetter, setNewLetter] = useState({
@@ -32,7 +33,19 @@ export default function DiplomacyPage() {
 
   useEffect(() => {
     loadLetters();
+    loadNations();
   }, [serverID]);
+
+  async function loadNations() {
+    try {
+      const result = await SammoAPI.GlobalGetNationList();
+      if (result.result && result.nationList) {
+        setNations(result.nationList);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   async function loadLetters() {
     try {
@@ -100,7 +113,11 @@ export default function DiplomacyPage() {
               className={styles.select}
             >
               <option value="">선택하세요</option>
-              {/* TODO: 국가 목록 API로 채우기 */}
+              {nations.map(([nationNo, nationName]) => (
+                <option key={nationNo} value={nationNo}>
+                  {nationName}
+                </option>
+              ))}
             </select>
           </div>
           <div className={styles.formGroup}>

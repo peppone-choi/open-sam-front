@@ -43,7 +43,7 @@ function CityBasicCard({ city, cityConstMap }: CityBasicCardProps) {
   
   // 지역명 가져오기
   const cityRegionText = cityConstMap?.region?.[city.region ?? 0] || '지역';
-  const cityLevelText = cityConstMap?.level?.[city.level] || ['', '수', '진', '관', '이', '소', '중', '대', '특'][city.level] || '';
+  const cityLevelText = cityConstMap?.level?.[city.level] || ['무', '향', '수', '진', '관', '이', '소', '중', '대', '특', '경'][city.level] || '';
   
   const tradeAltText = city.trade ? `${city.trade}%` : '상인 없음';
   const tradeBarPercent = city.trade ? (city.trade - 95) * 10 : 0;

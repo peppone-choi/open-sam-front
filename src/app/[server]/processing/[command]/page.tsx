@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
+import TopBackBar from '@/components/common/TopBackBar';
+import { JosaUtil } from '@/lib/utils/josaUtil';
 import { 
   RecruitCommandForm, 
   MoveCommandForm, 
@@ -81,16 +83,18 @@ export default function CommandProcessingPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const serverID = params?.server as string;
-  const command = params?.command as string;
-  const turnList = searchParams?.get('turnList')?.split('_').map(Number) || [0];
+  const rawCommand = params?.command as string;
+  const command = rawCommand ? decodeURIComponent(rawCommand) : '';
+  const turnListParam = searchParams?.get('turnList');
   const isChief = searchParams?.get('is_chief') === 'true';
+  const generalID = searchParams?.get('general_id') ? Number(searchParams.get('general_id')) : undefined;
 
   const [loading, setLoading] = useState(true);
   const [commandData, setCommandData] = useState<CommandData | null>(null);
 
   useEffect(() => {
     loadCommandData();
-  }, [serverID, command, turnList, isChief]);
+  }, [serverID, command, turnListParam, isChief]);
 
   const router = useRouter();
 
@@ -99,6 +103,7 @@ export default function CommandProcessingPage() {
 
     try {
       setLoading(true);
+      const turnList = turnListParam?.split('_').map(Number) || [0];
       const result = await SammoAPI.GetCommandData({
         command,
         turnList,
@@ -127,17 +132,99 @@ export default function CommandProcessingPage() {
     }
 
     try {
-      const result = await SammoAPI.CommandReserveCommand({
+      const turnList = turnListParam?.split('_').map(Number) || [0];
+      
+      // brief 생성
+      let brief = command;
+      if (commandData) {
+        // 이동 계열 명령 (도시 선택)
+        if (args.destCityID && commandData.cities) {
+          const citiesArray = commandData.cities || [];
+          const cityName = citiesArray.find(([id]: [number, string]) => id === args.destCityID)?.[1];
+          if (cityName) {
+            brief = `${JosaUtil.attachJosa(cityName, '으로')} ${command}`;
+          }
+        }
+        // 등용, 선양 등 (장수 선택) - destGeneralID 또는 targetGeneralID
+        else if ((args.destGeneralID || args.targetGeneralID) && commandData.generals) {
+          const generalID = args.destGeneralID || args.targetGeneralID;
+          const general = commandData.generals.find((g: any) => g.no === generalID || g.id === generalID);
+          if (general) {
+            brief = `${JosaUtil.attachJosa(general.name, '을')} ${command}`;
+          }
+        }
+        // 몰수, 포상, 증여 등 (장수 + 금액)
+        else if (args.generalID && args.amount && commandData.generals) {
+          const general = commandData.generals.find((g: any) => g.id === args.generalID);
+          const amountStr = args.amount.toLocaleString();
+          if (general) {
+            brief = `${JosaUtil.attachJosa(general.name, '에게')} ${JosaUtil.attachJosa(amountStr, '을')} ${command}`;
+          }
+        }
+        // 장수대상임관 (장수 + 국가)
+        else if (args.targetGeneralID && args.nationID && commandData.generals && commandData.nations) {
+          const general = commandData.generals.find((g: any) => g.id === args.targetGeneralID);
+          const nation = commandData.nations.find((n: any) => n.id === args.nationID);
+          if (general && nation) {
+            brief = `${JosaUtil.attachJosa(general.name, '을')} ${JosaUtil.attachJosa(nation.name, '에')} ${command}`;
+          }
+        }
+        // 임관 (국가 선택)
+        else if (args.nationID && commandData.nations) {
+          const nation = commandData.nations.find((n: any) => n.id === args.nationID);
+          if (nation) {
+            brief = `${JosaUtil.attachJosa(nation.name, '에')} ${command}`;
+          }
+        }
+        // 건국 (국가 이름 + 타입)
+        else if (args.nationName && (args.colorType !== undefined || args.nationType)) {
+          brief = `${JosaUtil.attachJosa(args.nationName, '을')} ${command}`;
+        }
+        // 국호변경
+        else if (args.newName) {
+          brief = `${JosaUtil.attachJosa(args.newName, '으로')} ${command}`;
+        }
+        // 물자원조, 발령, 인구이동 등 (도시 + 금액/인구)
+        else if (args.destCityID && args.amount) {
+          const citiesArray = commandData.cities || [];
+          const cityName = citiesArray.find(([id]: [number, string]) => id === args.destCityID)?.[1];
+          const amountStr = args.amount.toLocaleString();
+          if (cityName) {
+            brief = `${JosaUtil.attachJosa(cityName, '으로')} ${JosaUtil.attachJosa(amountStr, '을')} ${command}`;
+          }
+        }
+        // 군량매매, 헌납 등 (금액만)
+        else if (args.amount) {
+          const amountStr = args.amount.toLocaleString();
+          brief = `${JosaUtil.attachJosa(amountStr, '을')} ${command}`;
+        }
+      }
+      
+      console.log('명령 제출:', {
+        serverID,
+        general_id: generalID,
+        turn_idx: turnList.length > 0 ? turnList[0] : undefined,
         action: command,
-        turnList,
         arg: args,
+        brief,
       });
+      
+      const result = await SammoAPI.CommandReserveCommand({
+        serverID,
+        general_id: generalID,
+        turn_idx: turnList.length > 0 ? turnList[0] : undefined,
+        action: command,
+        arg: args,
+        brief,
+      });
+
+      console.log('명령 제출 결과:', result);
 
       if (result.result) {
         alert('명령이 등록되었습니다.');
         router.push(`/${serverID}/${isChief ? 'chief' : 'game'}`);
       } else {
-        alert(result.reason || '명령 등록에 실패했습니다.');
+        alert(result.reason || result.message || '명령 등록에 실패했습니다.');
       }
     } catch (err: any) {
       console.error(err);
@@ -493,6 +580,7 @@ export default function CommandProcessingPage() {
     }
 
     // 기본 폼 (아직 구현되지 않은 커맨드)
+    const turnList = turnListParam?.split('_').map(Number) || [0];
     return (
       <div className={styles.container}>
         <TopBackBar title={commandName} onBack={handleCancel} />

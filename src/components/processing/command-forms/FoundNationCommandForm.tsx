@@ -47,6 +47,17 @@ export default function FoundNationCommandForm({
       alert('색상을 선택해주세요.');
       return;
     }
+    if (!selectedNationType) {
+      alert('국가 성향을 선택해주세요.');
+      return;
+    }
+    
+    console.log('건국 명령 제출:', {
+      nationName: nationName.trim(),
+      nationType: selectedNationType,
+      colorType: selectedColorID
+    });
+    
     onSubmit({
       nationName: nationName.trim(),
       nationType: selectedNationType,

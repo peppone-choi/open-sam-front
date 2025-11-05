@@ -22,6 +22,7 @@ interface ParsedCity {
   color?: string;
   isCapital: boolean;
   supply: boolean;
+  region: number;
   x: number;
   y: number;
   clickable: boolean;
@@ -33,6 +34,8 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick }: Ma
     id: number;
     text: string;
     nation: string;
+    region: number;
+    level: number;
   } | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const mapBodyRef = useRef<HTMLDivElement>(null);
@@ -57,15 +60,16 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick }: Ma
       return {
         id,
         name: name || `도시 ${id}`,
-        level: level || 1,
-        state: state || 0,
+        level: level !== undefined ? level : 1, // level이 0일 수 있으므로 !== undefined 사용
+        state: state !== undefined ? state : 0,
         nationID: nationID > 0 ? nationID : undefined,
         nation: nation?.name,
         color: nation?.color,
         isCapital: nation?.capital === id,
         supply: supply !== 0,
-        x: x || 0,
-        y: y || 0,
+        region: region !== undefined ? region : 0,
+        x: x !== undefined ? x : 0,
+        y: y !== undefined ? y : 0,
         clickable: true,
       };
     });
@@ -78,6 +82,39 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick }: Ma
     }
   }
 
+  // 레벨을 텍스트로 변환
+  const getLevelText = (level: number): string => {
+    const levelMap: Record<number, string> = {
+      0: '무',
+      1: '향',
+      2: '수',
+      3: '진',
+      4: '관',
+      5: '이',
+      6: '소',
+      7: '중',
+      8: '대',
+      9: '특',
+      10: '경',
+    };
+    return levelMap[level] || '무';
+  };
+
+  // 지역 ID를 지역 이름으로 변환
+  const getRegionText = (region: number): string => {
+    const regionMap: Record<number, string> = {
+      1: '하북',
+      2: '중원',
+      3: '서북',
+      4: '서촉',
+      5: '남중',
+      6: '초',
+      7: '오월',
+      8: '동이',
+    };
+    return regionMap[region] || `지역${region}`;
+  };
+
   function handleCityMouseEnter(e: React.MouseEvent, city: ParsedCity) {
     if (mapBodyRef.current) {
       const rect = mapBodyRef.current.getBoundingClientRect();
@@ -87,6 +124,8 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick }: Ma
       id: city.id,
       text: city.name,
       nation: city.nation || '무소속',
+      region: city.region,
+      level: city.level,
     });
   }
 
@@ -106,7 +145,7 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick }: Ma
   const seasonClass = getSeasonClass();
 
   return (
-    <div className={`world_map map_detail ${seasonClass} ${hideCityName ? 'hide_cityname' : ''} ${styles.worldMap}`}>
+    <div className={`world_map map_detail full_width_map ${seasonClass} ${hideCityName ? 'hide_cityname' : ''} ${styles.worldMap}`}>
       <div className={styles.mapTitle}>
         <span className={styles.mapTitleText}>
           {mapData.year}年 {mapData.month}月
@@ -129,6 +168,7 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick }: Ma
               onMouseEnter={handleCityMouseEnter}
               onMouseLeave={handleCityMouseLeave}
               onClick={handleCityClick}
+              onToggleCityName={() => setHideCityName(!hideCityName)}
             />
           ))
         ) : (
@@ -161,7 +201,9 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick }: Ma
             zIndex: 16,
           }}
         >
-          <div className={styles.cityName}>{activatedCity.text}</div>
+          <div className={styles.cityName}>
+            [{getRegionText(activatedCity.region)}|{getLevelText(activatedCity.level)}] {activatedCity.text}
+          </div>
           <div className={styles.nationName}>{activatedCity.nation}</div>
         </div>
       )}

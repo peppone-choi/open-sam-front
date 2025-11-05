@@ -1,19 +1,15 @@
 .worldMap {
-    width: 100%;
-    max-width: 700px;
+    width: 740px;
     background: black;
     font-size: 14px;
     color: white;
     position: relative;
-    box-sizing: border-box;
 }
 
 .mapTitle {
-    width: 100%;
-    max-width: 700px;
+    width: 740px;
     height: 20px;
     text-align: center;
-    box-sizing: border-box;
 }
 
 .mapTitleText {
@@ -27,58 +23,52 @@
 }
 
 .mapBody {
-    width: 100%;
-    max-width: 700px;
-    height: 550px;
+    width: 740px;
+    height: 500px;
     position: relative;
     overflow: hidden;
-    box-sizing: border-box;
 }
 
 .mapBglayer1,
 .mapBglayer2,
 .mapBgroad {
-    width: 100%;
+    width: 740px;
     height: 100%;
     position: absolute;
     left: 0;
     top: 0;
-    background-size: cover;
-    background-position: center;
-    /* z-index 없음 - PHP 원본과 동일하게 DOM 순서 사용 */
 }
 
-/* 계절별 배경 이미지 - 전역 클래스 */
+/* 계절별 배경 이미지 - 전체 너비에 맞춤 */
 :global(.map_spring) .mapBglayer1 {
     background-image: url('/bg_spring.jpg');
-    background-size: 700px 550px;
+    background-size: 740px 500px;
     background-repeat: no-repeat;
 }
 
 :global(.map_summer) .mapBglayer1 {
     background-image: url('/bg_summer.jpg');
-    background-size: 700px 550px;
+    background-size: 740px 500px;
     background-repeat: no-repeat;
 }
 
 :global(.map_fall) .mapBglayer1 {
     background-image: url('/bg_fall.jpg');
-    background-size: 700px 550px;
+    background-size: 740px 500px;
     background-repeat: no-repeat;
 }
 
 :global(.map_winter) .mapBglayer1 {
     background-image: url('/bg_winter.jpg');
-    background-size: 700px 550px;
+    background-size: 740px 500px;
     background-repeat: no-repeat;
 }
 
-/* 도로 이미지 */
+/* 도로 이미지 - 전체 너비에 맞춤 */
 .mapBgroad {
     background-image: url('/che_road.png');
-    background-size: 700px 550px;
+    background-size: 740px 500px;
     background-repeat: no-repeat;
-    background-position: top left;
 }
 
 .mapButtonStack {

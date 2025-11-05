@@ -26,6 +26,7 @@ interface MapCityDetailProps {
   onMouseEnter?: (e: React.MouseEvent, city: MapCity) => void;
   onMouseLeave?: (e: React.MouseEvent) => void;
   onClick?: (e: React.MouseEvent, city: MapCity) => void;
+  onToggleCityName?: () => void;
 }
 
 // 이미지 경로 - 실제 이미지 서버 경로
@@ -39,11 +40,16 @@ export default function MapCityDetail({
   onMouseEnter,
   onMouseLeave,
   onClick,
+  onToggleCityName,
 }: MapCityDetailProps) {
-  // 위치 계산 (PHP 원본과 동일: city.x - 20, city.y - 15)
+  // 위치 계산 - 도시 아이콘 중심 맞추기
+  // 지도 크기: 700px → 740px (비율: 740/700 = 1.057)
+  // 돈황(x=10)이 맵 왼쪽에 보이도록 오프셋 조정
+  const LEFT_OFFSET = 10; // 돈황이 보이도록 조정
+  const SCALE_X = 740 / 700; // 가로 스케일 비율
   const cityPos = isFullWidth
-    ? { left: `${city.x - 20}px`, top: `${city.y - 15}px` }
-    : { left: `${(city.x - 20) * 0.714}px`, top: `${(city.y - 15) * 0.714}px` };
+    ? { left: `${(city.x - LEFT_OFFSET) * SCALE_X}px`, top: `${city.y - 15}px` }
+    : { left: `${(city.x - LEFT_OFFSET) * 0.714}px`, top: `${(city.y - 15) * 0.714}px` };
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -65,31 +71,101 @@ export default function MapCityDetail({
     }
   };
 
-  // 상태 번호를 CSS 클래스로 변환
-  const getStateClass = (state: number): string => {
-    // 3: 전쟁/공격, 41: 호황, 43: 공성전
-    if (state === 3) return 'war';
-    if (state === 41) return 'good';
-    if (state === 43) return 'bad';
-    // 기타 상태는 기본값
-    return 'default';
-  };
-
-  // 도시 아이콘 크기 및 위치 반환
-  const getCityImgSize = (level: number): { width: string; height: string; left: string; top: string } => {
-    const sizes: Record<number, { width: string; height: string; left: string; top: string }> = {
-      1: { width: '16px', height: '15px', left: '12px', top: '7.5px' },
-      2: { width: '20px', height: '14px', left: '10px', top: '8px' },
-      3: { width: '14px', height: '14px', left: '13px', top: '8px' },
-      4: { width: '20px', height: '15px', left: '10px', top: '7.5px' },
-      5: { width: '24px', height: '16px', left: '8px', top: '7px' },
-      6: { width: '26px', height: '18px', left: '7px', top: '6px' },
-      7: { width: '28px', height: '20px', left: '6px', top: '5px' },
-      8: { width: '32px', height: '24px', left: '4px', top: '3px' },
+  // 도시 아이콘 이미지 크기 반환 (실제 이미지 크기)
+  const getCityIconImgSize = (level: number): { width: string; height: string } => {
+    const sizes: Record<number, { width: string; height: string }> = {
+      0: { width: '28px', height: '16px' }, // 무 - 00.png
+      1: { width: '28px', height: '16px' }, // 향 - 00_hyang.png
+      2: { width: '28px', height: '16px' }, // 수 - 00_su.png
+      3: { width: '28px', height: '16px' }, // 진 - 00_jin.png
+      4: { width: '28px', height: '16px' }, // 관 - 00_gwan.png
+      5: { width: '28px', height: '16px' }, // 이 - 00_i.png
+      6: { width: '28px', height: '16px' }, // 소 - 01.png
+      7: { width: '29px', height: '17px' }, // 중 - 02.png
+      8: { width: '27px', height: '18px' }, // 대 - 03.png
+      9: { width: '36px', height: '21px' }, // 특 - 04.png
+      10: { width: '41px', height: '25px' }, // 특 - 05.png
     };
     return sizes[level] || sizes[8];
   };
 
+  // 도시 아이콘 위치 반환 (CSS와 동일하게 중앙 정렬)
+  const getCityIconPosition = (level: number): { left: string; top: string } => {
+    const positions: Record<number, { left: string; top: string }> = {
+      0: { left: 'calc((40px - 28px) / 2)', top: 'calc((30px - 16px) / 2)' },
+      1: { left: 'calc((40px - 28px) / 2)', top: 'calc((30px - 16px) / 2)' },
+      2: { left: 'calc((40px - 28px) / 2)', top: 'calc((30px - 16px) / 2)' },
+      3: { left: 'calc((40px - 28px) / 2)', top: 'calc((30px - 16px) / 2)' },
+      4: { left: 'calc((40px - 28px) / 2)', top: 'calc((30px - 16px) / 2)' },
+      5: { left: 'calc((40px - 28px) / 2)', top: 'calc((30px - 16px) / 2)' },
+      6: { left: 'calc((40px - 28px) / 2)', top: 'calc((30px - 16px) / 2)' },
+      7: { left: 'calc((40px - 29px) / 2)', top: 'calc((30px - 17px) / 2)' },
+      8: { left: 'calc((40px - 27px) / 2)', top: 'calc((30px - 18px) / 2)' },
+      9: { left: 'calc((40px - 36px) / 2)', top: 'calc((30px - 21px) / 2)' },
+      10: { left: 'calc((40px - 41px) / 2)', top: 'calc((30px - 25px) / 2)' },
+    };
+    return positions[level] || positions[8];
+  };
+
+  // 도시 레벨에 따른 아이콘 경로 반환
+  const getCityIconPath = (level: number): string => {
+    const iconMap: Record<number, string> = {
+      0: '/sam_icon/00.png',      // 무
+      1: '/sam_icon/00_hyang.png', // 향
+      2: '/sam_icon/00_su.png',    // 수
+      3: '/sam_icon/00_jin.png',   // 진
+      4: '/sam_icon/00_gwan.png',  // 관
+      5: '/sam_icon/00_i.png',     // 이
+      6: '/sam_icon/01.png',       // 소
+      7: '/sam_icon/02.png',       // 중
+      8: '/sam_icon/03.png',       // 대
+    };
+    // 레벨 9 이상은 03.png 또는 04.png, 05.png 사용 가능
+    if (level >= 9) {
+      return level === 9 ? '/sam_icon/04.png' : '/sam_icon/05.png';
+    }
+    return iconMap[level] || '/sam_icon/00.png';
+  };
+
+  // 도시 레벨 이름 반환
+  const getCityLevelName = (level: number): string => {
+    const levelNames: Record<number, string> = {
+      0: '무',
+      1: '향',
+      2: '수',
+      3: '진',
+      4: '관',
+      5: '이', // 이민족
+      6: '소',
+      7: '중',
+      8: '대',
+      9: '특',
+      10: '경',
+    };
+    return levelNames[level] || '대';
+  };
+
+  // 색상을 파일명 형식으로 변환 (#FF0000 -> FF0000)
+  const getColorValue = (color?: string): string => {
+    if (!color) return '';
+    return color.substring(1).toUpperCase();
+  };
+
+  // 헥스 색상을 RGB로 변환 (오라 효과용)
+  const hexToRgb = (hex: string): string | null => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
+      : null;
+  };
+
+  const colorValue = city.color ? getColorValue(city.color) : '';
+  const rgbColor = city.color ? hexToRgb(city.color) : null;
+
+  // 오른쪽 끝 도시는 도시명을 왼쪽에 표시 (X 좌표 650 이상)
+  const isRightEdge = city.x >= 650;
+  // 계림은 중앙 아래에 표시
+  const isCenterCity = city.name === '계림';
 
   return (
     <div
@@ -99,12 +175,48 @@ export default function MapCityDetail({
         position: 'absolute',
       }}
     >
-      {city.color && (
+      {/* 도시명을 DOM 첫번째에 배치 - z-index보다 DOM 순서 우선 */}
+      <span 
+        className="city_detail_name"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (onToggleCityName) {
+            onToggleCityName();
+          }
+        }}
+        style={{ 
+          cursor: onToggleCityName ? 'pointer' : 'default',
+          zIndex: 10,
+          position: 'absolute',
+          ...(isCenterCity
+            ? { left: '50%', top: '30px', transform: 'translateX(-50%)' }  // 계림은 중앙 아래
+            : isRightEdge 
+              ? { right: '32px', top: '18px' }  // 오른쪽 끝 도시는 왼쪽에 표시
+              : { left: '32px', top: '18px' }   // 일반 도시는 오른쪽에 표시
+          ),
+          fontSize: '10px',
+          whiteSpace: 'nowrap',
+          display: 'inline-block',
+        }}
+      >
+        {city.name}
+      </span>
+      {/* city_bg 제거 - 아이콘 이미지에 오라 효과 적용 */}
+      {/* 배경 레이어 - city_link 밖에 배치 (PHP 원본과 동일) */}
+      {city.nationID && city.nationID > 0 && (
         <div
           className="city_bg"
           style={{
-            backgroundColor: city.color,
-            opacity: 0.2,
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            width: '35px',
+            height: '35px',
+            background: 'radial-gradient(circle, rgba(255, 0, 0, 0.9) 0%, rgba(255, 0, 0, 0.7) 30%, rgba(255, 0, 0, 0.4) 60%, transparent 100%)',
+            filter: 'blur(4px)',
+            borderRadius: '50%',
+            pointerEvents: 'none',
+            transform: 'translate(-50%, -50%)',
           }}
         />
       )}
@@ -121,35 +233,44 @@ export default function MapCityDetail({
           cursor: city.clickable ? 'pointer' : 'default',
         }}
       >
-        <div 
-          className="city_img" 
-          style={{ 
-            backgroundColor: '#8b4513', 
-            border: '2px solid #654321',
-            position: 'absolute',
-            width: city.level <= 8 ? getCityImgSize(city.level).width : '32px',
-            height: city.level <= 8 ? getCityImgSize(city.level).height : '24px',
-            left: city.level <= 8 ? getCityImgSize(city.level).left : '4px',
-            top: city.level <= 8 ? getCityImgSize(city.level).top : '3px',
-          }}
-        >
+        <div className="city_img">
+          {/* 도시 아이콘 이미지 */}
+          <img 
+            src={getCityIconPath(city.level)}
+            alt={`${getCityLevelName(city.level)}도시`}
+            style={{
+              position: 'absolute',
+              ...getCityIconImgSize(city.level),
+              ...getCityIconPosition(city.level),
+              objectFit: 'contain',
+              display: 'block',
+            }}
+          />
           <div className={`city_filler ${isMyCity ? 'my_city' : ''}`} />
           {city.nationID && city.nationID > 0 && city.color && (
-            <div 
-              className={`city_flag ${city.supply ? 'city_flag_supply' : 'city_flag_no_supply'}`}
-              style={{
-                backgroundColor: city.color,
-              }}
-            >
+            <div className="city_flag">
+              <img 
+                src={`${IMAGE_PATH}/${city.supply ? 'f' : 'd'}${colorValue}.gif`}
+                alt="깃발"
+              />
               {city.isCapital && (
-                <div className="city_capital">★</div>
+                <div className="city_capital">
+                  <img 
+                    src={`${IMAGE_PATH}/event51.gif`}
+                    alt="수도"
+                  />
+                </div>
               )}
             </div>
           )}
-          {!hideCityName && <span className="city_detail_name">{city.name}</span>}
         </div>
         {city.state > 0 && (
-          <div className={`city_state city_state_${getStateClass(city.state)}`} />
+          <div className="city_state">
+            <img 
+              src={`${IMAGE_PATH}/event${city.state}.gif`}
+              alt={`도시 상태 ${city.state}`}
+            />
+          </div>
         )}
       </a>
     </div>

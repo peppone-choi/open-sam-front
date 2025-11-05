@@ -363,24 +363,6 @@ export default function GamePage() {
               </div>
             </div>
           )}
-          
-          {/* 액션 미니 플레이트 (갱신, 로비로 버튼) - 턴테이블 내부 */}
-          <div id="actionMiniPlate" className={styles.actionMiniPlate}>
-            <button 
-              type="button" 
-              className={styles.actionButton}
-              onClick={() => loadData()}
-            >
-              갱 신
-            </button>
-            <button 
-              type="button" 
-              className={styles.actionButton}
-              onClick={() => router.push('/')}
-            >
-              로비로
-            </button>
-          </div>
         </div>
 
         {frontInfo.city && (

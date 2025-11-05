@@ -115,7 +115,7 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-width: 1000px;
+    max-width: 1040px;
     margin: 0 auto;
     overflow-y: auto;
     overflow-x: hidden;
@@ -124,9 +124,9 @@
     padding: 0;
 }
 
-@media (min-width: 1000px) {
+@media (min-width: 1040px) {
     .contentWrapper {
-        width: 1000px;
+        width: 1040px;
     }
 }
 
@@ -134,14 +134,14 @@
     width: 100%;
     border-bottom: solid 1px gray;
     flex-shrink: 0;
-    max-width: 1000px;
+    max-width: 1040px;
     margin: 0 auto;
     box-sizing: border-box;
 }
 
-@media (min-width: 1000px) {
+@media (min-width: 1040px) {
     .headerPanel {
-        width: 1000px;
+        width: 1040px;
     }
 }
 
@@ -150,14 +150,14 @@
     border-top: solid 1px gray;
     margin-top: auto;
     flex-shrink: 0;
-    max-width: 1000px;
+    max-width: 1040px;
     margin: 0 auto;
     box-sizing: border-box;
 }
 
-@media (min-width: 1000px) {
+@media (min-width: 1040px) {
     .messagePanelZone {
-        width: 1000px;
+        width: 1040px;
     }
 }
 
@@ -168,6 +168,12 @@
     min-height: 0;
     width: 100%;
     box-sizing: border-box;
+}
+
+@media (min-width: 1040px) {
+    .ingameBoardWrapper {
+        overflow-y: hidden;
+    }
 }
 
 .commonToolbar {
@@ -272,12 +278,12 @@
     padding: 1rem 0;
 }
 
-/* 1000px 이상: 3열 레이아웃 (맵 500px + 200px, 카드 300px) */
-@media (min-width: 1000px) {
+/* 1040px 이상: 2열 레이아웃 (맵 740px, 명령 300px) */
+@media (min-width: 1040px) {
     .ingameBoard {
-        grid-template-columns: 500px 200px 300px;
-        max-width: 1000px;
-        width: 1000px;
+        grid-template-columns: 370px 370px 300px;
+        max-width: 1040px;
+        width: 1040px;
         margin: 0 auto;
         padding: 0;
         gap: 0;
@@ -291,31 +297,12 @@
     
     .reservedCommandZone {
         grid-column: 3;
-        grid-row: 1 / 3;
+        grid-row: 1 / 4;
         height: 100%;
         position: relative;
         display: flex;
         flex-direction: column;
         overflow: hidden;
-    }
-    
-    .actionMiniPlate {
-        position: absolute;
-        right: 0;
-        bottom: 3.5rem;
-        width: calc(100% - 1rem);
-        padding: 0.5rem;
-        display: flex;
-        gap: 0.5rem;
-        z-index: 10;
-    }
-    
-    .actionMiniPlate button {
-        flex: 1;
-    }
-    
-    .actionMiniPlate button:first-child {
-        flex: 2;
     }
     
     .cityInfo {
@@ -329,7 +316,7 @@
     }
     
     .generalInfo {
-        grid-column: 2 / 4;
+        grid-column: 2;
         grid-row: 3;
         width: auto;
     }
