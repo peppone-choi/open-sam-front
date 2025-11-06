@@ -13,9 +13,105 @@
 }
 
 .bettingList {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.bettingItem {
+  border: 1px solid #444;
+  padding: 1rem;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.bettingItem:hover {
+  background-color: #2a2a2a;
+  border-color: #666;
+}
+
+.bettingItem.selected {
+  border-color: #007bff;
+  background-color: #2a2a2a;
+}
+
+.bettingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.bettingTitle {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.bettingStatus {
+  padding: 0.25rem 0.5rem;
+  background-color: #333;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.bettingDescription {
+  margin-bottom: 0.5rem;
+  color: #aaa;
+  font-size: 0.9em;
+}
+
+.bettingInfo {
+  margin-top: 0.5rem;
+  font-size: 0.875em;
+  color: #ccc;
+}
+
+.bettingInfo > div {
+  margin-bottom: 0.25rem;
+}
+
+.candidates {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #333;
+}
+
+.candidatesLabel {
+  font-size: 0.875em;
+  color: #aaa;
+  margin-bottom: 0.5rem;
+}
+
+.candidatesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.candidateItem {
+  padding: 0.25rem 0.5rem;
+  background-color: #333;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.bettingDetail {
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px solid #444;
+  background-color: #1a1a1a;
+}
+
+.bettingDetail h3 {
+  margin: 0 0 1rem 0;
+  border-bottom: 1px solid #444;
+  padding-bottom: 0.5rem;
+}
+
+.detailContent {
+  color: #ccc;
 }
 
 

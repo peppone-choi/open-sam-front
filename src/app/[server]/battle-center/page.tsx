@@ -64,15 +64,28 @@ export default function BattleCenterPage() {
                     <div>내용: {battle.text}</div>
                     <div>날짜: {new Date(battle.date).toLocaleString('ko-KR')}</div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      router.push(`/${serverID}/battle/${battle.id}`);
-                    }}
-                    className={styles.joinBtn}
-                  >
-                    상세보기
-                  </button>
+                  <div className={styles.buttonGroup}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        router.push(`/${serverID}/battle/${battle.battleId || battle.id}`);
+                      }}
+                      className={styles.joinBtn}
+                    >
+                      상세보기
+                    </button>
+                    {battle.type === 'active' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          router.push(`/${serverID}/battle-simulator?battleId=${battle.battleId}`);
+                        }}
+                        className={styles.simulateBtn}
+                      >
+                        시뮬레이터
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

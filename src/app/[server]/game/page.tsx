@@ -248,10 +248,11 @@ export default function GamePage() {
     frontInfo?.global?.isBettingActive
   ]);
 
-  function handleCityClick() {
-    // 도시 클릭 시 데이터 갱신
-    if (serverID) {
-      window.location.reload();
+  function handleCityClick(cityId: number) {
+    // 도시 클릭 시 도시 정보 페이지로 이동
+    if (serverID && cityId > 0) {
+      const url = `/${serverID}/info/current-city?cityId=${cityId}`;
+      router.push(url);
     }
   }
 
@@ -295,6 +296,28 @@ export default function GamePage() {
 
   return (
     <div className={styles.container}>
+      {/* 페이지 상단 컨트롤 바 */}
+      <div className={styles.pageControls}>
+        <div className={styles.pageControlsLeft}>
+          <button
+            type="button"
+            onClick={loadData}
+            className={styles.refreshBtn}
+            disabled={loading}
+          >
+            {loading ? '갱신 중...' : '갱신'}
+          </button>
+        </div>
+        <div className={styles.pageControlsRight}>
+          <Link
+            href="/entrance"
+            className={styles.lobbyBtn}
+          >
+            로비
+          </Link>
+        </div>
+      </div>
+
       {/* 헤더 패널 */}
       <div className={styles.headerPanel}>
         <div className={styles.commonToolbar}>
@@ -347,7 +370,7 @@ export default function GamePage() {
           )}
         </div>
 
-        <div className={styles.reservedCommandZone}>
+        <div id="reservedCommandPanel" className={styles.reservedCommandZone}>
           {frontInfo.general ? (
             <PartialReservedCommand
               generalID={frontInfo.general.no}
@@ -363,6 +386,27 @@ export default function GamePage() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* actionMiniPlate: 갱신/로비 버튼 */}
+        <div id="actionMiniPlate" className={styles.actionMiniPlate}>
+          <div className={styles.actionMiniPlateRow}>
+            <button
+              type="button"
+              onClick={loadData}
+              className={`${styles.actionBtn} ${styles.refreshBtn}`}
+              disabled={loading}
+            >
+              {loading ? '갱신 중...' : '갱 신'}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/entrance')}
+              className={`${styles.actionBtn} ${styles.lobbyBtn}`}
+            >
+              로비로
+            </button>
+          </div>
         </div>
 
         {frontInfo.city && (
@@ -395,8 +439,51 @@ export default function GamePage() {
             <MainControlBar {...mainControlBarProps} />
           )}
         </div>
+
+        {/* actionMiniPlateSub: 명령으로/갱신/로비 버튼 */}
+        <div id="actionMiniPlateSub" className={styles.actionMiniPlateSub}>
+          <div className={styles.actionMiniPlateSubRow}>
+            <button
+              type="button"
+              onClick={() => {
+                const element = document.getElementById('reservedCommandPanel');
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              className={`${styles.actionBtn} ${styles.commandBtn}`}
+            >
+              명령으로
+            </button>
+            <button
+              type="button"
+              onClick={loadData}
+              className={`${styles.actionBtn} ${styles.refreshBtn}`}
+              disabled={loading}
+            >
+              {loading ? '갱신 중...' : '갱 신'}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/entrance')}
+              className={`${styles.actionBtn} ${styles.lobbyBtn}`}
+            >
+              로비로
+            </button>
+          </div>
+        </div>
         </div>
       </div>
+      </div>
+
+      {/* 메시지 패널 전 commonToolbar */}
+      <div className={styles.commonToolbar}>
+        {globalMenu.length > 0 && (
+          <GlobalMenu
+            menu={globalMenu}
+            globalInfo={frontInfo.global}
+          />
+        )}
       </div>
 
       {/* 메시지 패널 */}
@@ -407,6 +494,16 @@ export default function GamePage() {
           nationID={frontInfo.nation?.id || 0}
           permissionLevel={frontInfo.general.permission}
         />
+      </div>
+
+      {/* 메시지 패널 후 commonToolbar */}
+      <div className={styles.commonToolbar}>
+        {globalMenu.length > 0 && (
+          <GlobalMenu
+            menu={globalMenu}
+            globalInfo={frontInfo.global}
+          />
+        )}
       </div>
     </div>
   );

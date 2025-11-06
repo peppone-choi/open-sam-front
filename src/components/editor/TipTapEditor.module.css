@@ -1,0 +1,122 @@
+.editorContainer {
+  width: 100%;
+  border: 1px solid gray;
+  background-color: black;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid gray;
+  background-color: #1a1a1a;
+  flex-wrap: wrap;
+}
+
+.toolbarButton {
+  padding: 0.25rem 0.5rem;
+  background-color: #333;
+  border: 1px solid #555;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  min-width: 32px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toolbarButton:hover:not(:disabled) {
+  background-color: #444;
+}
+
+.toolbarButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toolbarButton.active {
+  background-color: #555;
+  border-color: #777;
+}
+
+.toolbarDivider {
+  width: 1px;
+  height: 20px;
+  background-color: #555;
+  margin: 0 0.25rem;
+}
+
+.editorWrapper {
+  padding: 0.5rem;
+  min-height: 300px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.editorContent {
+  outline: none;
+  color: white;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.editorContent p {
+  margin: 0.5rem 0;
+}
+
+.editorContent h1,
+.editorContent h2,
+.editorContent h3 {
+  margin: 1rem 0 0.5rem;
+  color: white;
+  font-weight: bold;
+}
+
+.editorContent h1 {
+  font-size: 1.5rem;
+}
+
+.editorContent h2 {
+  font-size: 1.25rem;
+}
+
+.editorContent h3 {
+  font-size: 1.1rem;
+}
+
+.editorContent ul,
+.editorContent ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.editorContent li {
+  margin: 0.25rem 0;
+}
+
+.editorContent blockquote {
+  border-left: 3px solid #555;
+  padding-left: 1rem;
+  margin: 0.5rem 0;
+  color: #ccc;
+}
+
+.editorContent hr {
+  border: none;
+  border-top: 1px solid #555;
+  margin: 1rem 0;
+}
+
+.editorContent img {
+  max-width: 100%;
+  height: auto;
+  margin: 0.5rem 0;
+}
+
+.editorContent::placeholder {
+  color: #666;
+}
+

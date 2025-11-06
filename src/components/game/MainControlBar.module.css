@@ -34,6 +34,83 @@
     color: #000;
 }
 
+.btnGroup {
+    position: relative;
+    display: flex;
+}
+
+.btnSplit {
+    padding: 0.5rem 0.5rem;
+    background-color: #333;
+    color: white;
+    border: 1px solid #666;
+    border-left: none;
+    border-radius: 0 0.2rem 0.2rem 0;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btnGroup .btn {
+    border-radius: 0.2rem 0 0 0.2rem;
+}
+
+.btnSplit:hover {
+    background-color: #444;
+    border-color: #777;
+}
+
+.visuallyHidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+.btnSplit::after {
+    content: '▼';
+    font-size: 0.7rem;
+    margin-left: 0.25rem;
+}
+
+.dropdownMenu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #222;
+    border: 1px solid #666;
+    border-radius: 0.2rem;
+    min-width: 150px;
+    z-index: 1000;
+    margin-top: 0.1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dropdownItem {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    color: white;
+    text-decoration: none;
+    border-bottom: 1px solid #444;
+    font-size: 0.875rem;
+}
+
+.dropdownItem:hover {
+    background-color: #333;
+}
+
+.dropdownItem:last-child {
+    border-bottom: none;
+}
+
 @media (max-width: 500px) {
     .controlBar {
         display: grid;

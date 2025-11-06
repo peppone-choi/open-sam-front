@@ -29,6 +29,13 @@ interface Message {
 
 type MessageType = 'public' | 'national' | 'private' | 'diplomacy';
 
+interface Contact {
+  mailbox: number;
+  name: string;
+  color: number;
+  general: Array<[number, string, number]>;
+}
+
 export default function MessagePanel({
   generalID,
   generalName,
@@ -40,10 +47,20 @@ export default function MessagePanel({
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSendForm, setShowSendForm] = useState(false);
+  const [sendText, setSendText] = useState('');
+  const [sendLoading, setSendLoading] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [selectedMailbox, setSelectedMailbox] = useState<number>(0);
+  const [selectedGeneralId, setSelectedGeneralId] = useState<number>(0);
 
   useEffect(() => {
     loadMessages();
-  }, [activeTab, generalID, serverID]);
+    if (showSendForm) {
+      loadContacts();
+    }
+  }, [activeTab, generalID, serverID, showSendForm]);
 
   async function loadMessages() {
     try {
@@ -71,6 +88,74 @@ export default function MessagePanel({
     }
   }
 
+  async function loadContacts() {
+    try {
+      const result = await SammoAPI.GetContactList({ serverID });
+      if (result.success && result.nation) {
+        setContacts(result.nation);
+      }
+    } catch (err: any) {
+      console.error('Failed to load contacts:', err);
+    }
+  }
+
+  async function handleSendMessage() {
+    if (!sendText.trim()) {
+      setSendError('메시지 내용을 입력하세요.');
+      return;
+    }
+
+    try {
+      setSendLoading(true);
+      setSendError(null);
+
+      let mailbox = 0;
+      
+      if (activeTab === 'public') {
+        mailbox = 0;
+      } else if (activeTab === 'national') {
+        mailbox = 1000000 + nationID;
+      } else if (activeTab === 'diplomacy') {
+        if (selectedMailbox < 1000000) {
+          setSendError('대상 국가를 선택하세요.');
+          setSendLoading(false);
+          return;
+        }
+        mailbox = selectedMailbox;
+      } else if (activeTab === 'private') {
+        if (selectedGeneralId <= 0) {
+          setSendError('대상 장수를 선택하세요.');
+          setSendLoading(false);
+          return;
+        }
+        mailbox = selectedGeneralId;
+      }
+
+      const result = await SammoAPI.MessageSendMessage({
+        serverID,
+        mailbox,
+        to_general_id: activeTab === 'private' ? selectedGeneralId : undefined,
+        text: sendText,
+        type: activeTab,
+      });
+
+      if (result.success && result.result) {
+        setSendText('');
+        setShowSendForm(false);
+        setSelectedMailbox(0);
+        setSelectedGeneralId(0);
+        await loadMessages();
+      } else {
+        setSendError(result.reason || result.message || '메시지 전송에 실패했습니다.');
+      }
+    } catch (err: any) {
+      console.error('Failed to send message:', err);
+      setSendError('메시지 전송에 실패했습니다.');
+    } finally {
+      setSendLoading(false);
+    }
+  }
+
   const formatMessageText = (msg: Message): string => {
     let sender = '';
     if (msg.src_general_name) {
@@ -92,51 +177,150 @@ export default function MessagePanel({
       <div className={styles.messagePanelHeader}>
         <div
           className={`${styles.boardHeader} ${activeTab === 'public' ? styles.active : ''}`}
-          onClick={() => setActiveTab('public')}
+          onClick={() => {
+            setActiveTab('public');
+            setShowSendForm(false);
+          }}
         >
           전체
         </div>
         <div
           className={`${styles.boardHeader} ${activeTab === 'national' ? styles.active : ''}`}
-          onClick={() => setActiveTab('national')}
+          onClick={() => {
+            setActiveTab('national');
+            setShowSendForm(false);
+          }}
         >
           국가
         </div>
         <div
           className={`${styles.boardHeader} ${activeTab === 'private' ? styles.active : ''}`}
-          onClick={() => setActiveTab('private')}
+          onClick={() => {
+            setActiveTab('private');
+            setShowSendForm(false);
+          }}
         >
           개인
         </div>
         {permissionLevel >= 1 && (
           <div
             className={`${styles.boardHeader} ${activeTab === 'diplomacy' ? styles.active : ''}`}
-            onClick={() => setActiveTab('diplomacy')}
+            onClick={() => {
+              setActiveTab('diplomacy');
+              setShowSendForm(false);
+            }}
           >
             외교
           </div>
         )}
       </div>
       <div className={styles.messagePanelBody}>
-        {loading ? (
-          <div className={styles.messagePlaceholder}>로딩 중...</div>
-        ) : error ? (
-          <div className={styles.messagePlaceholder} style={{ color: 'red' }}>
-            {error}
-          </div>
-        ) : messages.length === 0 ? (
-          <div className={styles.messagePlaceholder}>메시지가 없습니다.</div>
-        ) : (
-          <div className={styles.messageList}>
-            {messages.map((msg) => (
-              <div key={msg.id} className={styles.messageItem}>
-                <div className={styles.messageDate}>
-                  {msg.date ? new Date(msg.date).toLocaleString('ko-KR') : ''}
-                </div>
-                <div className={styles.messageText}>{formatMessageText(msg)}</div>
+        {showSendForm ? (
+          <div className={styles.sendForm}>
+            <div className={styles.sendFormHeader}>
+              <button
+                className={styles.closeButton}
+                onClick={() => {
+                  setShowSendForm(false);
+                  setSendText('');
+                  setSendError(null);
+                  setSelectedMailbox(0);
+                  setSelectedGeneralId(0);
+                }}
+              >
+                ✕
+              </button>
+              <h3>메시지 전송</h3>
+            </div>
+            {(activeTab === 'diplomacy' || activeTab === 'private') && (
+              <div className={styles.sendFormSelect}>
+                {activeTab === 'diplomacy' ? (
+                  <select
+                    value={selectedMailbox}
+                    onChange={(e) => setSelectedMailbox(Number(e.target.value))}
+                    className={styles.selectBox}
+                  >
+                    <option value={0}>대상 국가 선택</option>
+                    {contacts
+                      .filter((c) => c.mailbox >= 1000000 && c.mailbox - 1000000 !== nationID)
+                      .map((contact) => (
+                        <option key={contact.mailbox} value={contact.mailbox}>
+                          {contact.name}
+                        </option>
+                      ))}
+                  </select>
+                ) : (
+                  <select
+                    value={selectedGeneralId}
+                    onChange={(e) => setSelectedGeneralId(Number(e.target.value))}
+                    className={styles.selectBox}
+                  >
+                    <option value={0}>대상 장수 선택</option>
+                    {contacts.map((contact) =>
+                      contact.general
+                        .filter(([genId]) => genId !== generalID)
+                        .map(([genId, genName]) => (
+                          <option key={genId} value={genId}>
+                            {contact.name !== '재야' ? `${contact.name} - ` : ''}
+                            {genName}
+                          </option>
+                        ))
+                    )}
+                  </select>
+                )}
               </div>
-            ))}
+            )}
+            <textarea
+              value={sendText}
+              onChange={(e) => setSendText(e.target.value)}
+              placeholder="메시지 내용을 입력하세요..."
+              className={styles.sendTextarea}
+              rows={5}
+            />
+            {sendError && (
+              <div className={styles.sendError}>{sendError}</div>
+            )}
+            <div className={styles.sendFormActions}>
+              <button
+                onClick={handleSendMessage}
+                disabled={sendLoading}
+                className={styles.sendButton}
+              >
+                {sendLoading ? '전송 중...' : '전송'}
+              </button>
+            </div>
           </div>
+        ) : (
+          <>
+            <div className={styles.messageListHeader}>
+              <button
+                className={styles.sendMessageButton}
+                onClick={() => setShowSendForm(true)}
+              >
+                메시지 작성
+              </button>
+            </div>
+            {loading ? (
+              <div className={styles.messagePlaceholder}>로딩 중...</div>
+            ) : error ? (
+              <div className={styles.messagePlaceholder} style={{ color: 'red' }}>
+                {error}
+              </div>
+            ) : messages.length === 0 ? (
+              <div className={styles.messagePlaceholder}>메시지가 없습니다.</div>
+            ) : (
+              <div className={styles.messageList}>
+                {messages.map((msg) => (
+                  <div key={msg.id} className={styles.messageItem}>
+                    <div className={styles.messageDate}>
+                      {msg.date ? new Date(msg.date).toLocaleString('ko-KR') : ''}
+                    </div>
+                    <div className={styles.messageText}>{formatMessageText(msg)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

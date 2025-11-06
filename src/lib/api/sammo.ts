@@ -579,15 +579,40 @@ export class SammoAPI {
   }
 
   static async MessageSendMessage(params: {
-    targetGeneralID: number;
+    serverID?: string;
+    session_id?: string;
+    mailbox?: number;
+    to_general_id?: number;
     text: string;
+    type?: string;
   }): Promise<{
+    success: boolean;
     result: boolean;
     reason?: string;
+    message?: string;
   }> {
-    return this.request('/api/message/send', {
+    return this.request('/api/message/send-message', {
       method: 'POST',
       body: JSON.stringify(params),
+    });
+  }
+
+  static async GetContactList(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    success: boolean;
+    result: boolean;
+    nation?: Array<{
+      mailbox: number;
+      name: string;
+      color: number;
+      general: Array<[number, string, number]>;
+    }>;
+    message?: string;
+  }> {
+    return this.request('/api/message/get-contact-list', {
+      method: 'GET',
     });
   }
 
@@ -609,15 +634,27 @@ export class SammoAPI {
   }
 
   static async AuctionBidUniqueAuction(params: {
-    auctionID: number;
-    bidPrice: number;
+    auctionID?: number;
+    auction_id?: number;
+    bidAmount?: number;
+    bidPrice?: number;
+    serverID?: string;
+    session_id?: string;
   }): Promise<{
     result: boolean;
     reason?: string;
   }> {
-    return this.request('/api/auction/bid-unique', {
+    const auctionID = params.auctionID || params.auction_id;
+    const bidAmount = params.bidAmount || params.bidPrice;
+    return this.request('/api/auction/bid-unique-auction', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify({
+        auctionID: auctionID,
+        auction_id: auctionID,
+        amount: bidAmount,
+        bid_price: bidAmount,
+        session_id: params.serverID || params.session_id,
+      }),
     });
   }
 
@@ -628,6 +665,20 @@ export class SammoAPI {
   }> {
     return this.request('/api/betting/get-list', {
       method: 'POST',
+    });
+  }
+
+  static async GetBettingDetail(params: {
+    betting_id: number;
+  }): Promise<{
+    success: boolean;
+    result: boolean;
+    bettingDetail?: any;
+    myBetting?: any;
+    reason?: string;
+  }> {
+    return this.request(`/api/betting/get-betting-detail?betting_id=${params.betting_id}`, {
+      method: 'GET',
     });
   }
 
@@ -1050,28 +1101,52 @@ export class SammoAPI {
   }
 
   static async BidBuyRiceAuction(params: {
-    auctionID: number;
-    bidPrice: number;
+    auctionID?: number;
+    auction_id?: number;
+    bidAmount?: number;
+    bidPrice?: number;
+    serverID?: string;
+    session_id?: string;
   }): Promise<{
     result: boolean;
     reason?: string;
   }> {
-    return this.request('/api/auction/bid-buy-rice', {
+    const auctionID = params.auctionID || params.auction_id;
+    const bidAmount = params.bidAmount || params.bidPrice;
+    return this.request('/api/auction/bid-buy-rice-auction', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify({
+        auctionID: auctionID,
+        auction_id: auctionID,
+        amount: bidAmount,
+        bid_price: bidAmount,
+        session_id: params.serverID || params.session_id,
+      }),
     });
   }
 
   static async BidSellRiceAuction(params: {
-    auctionID: number;
-    bidPrice: number;
+    auctionID?: number;
+    auction_id?: number;
+    bidAmount?: number;
+    bidPrice?: number;
+    serverID?: string;
+    session_id?: string;
   }): Promise<{
     result: boolean;
     reason?: string;
   }> {
-    return this.request('/api/auction/bid-sell-rice', {
+    const auctionID = params.auctionID || params.auction_id;
+    const bidAmount = params.bidAmount || params.bidPrice;
+    return this.request('/api/auction/bid-sell-rice-auction', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify({
+        auctionID: auctionID,
+        auction_id: auctionID,
+        amount: bidAmount,
+        bid_price: bidAmount,
+        session_id: params.serverID || params.session_id,
+      }),
     });
   }
 
@@ -1132,6 +1207,54 @@ export class SammoAPI {
     reason?: string;
   }> {
     return this.request('/api/command/repeat', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  static async PushCommand(params: {
+    serverID?: string;
+    session_id?: string;
+    general_id?: number;
+    turn_cnt: number;
+  }): Promise<{
+    success: boolean;
+    result: boolean;
+    message?: string;
+  }> {
+    return this.request('/api/command/push-command', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  static async PullCommand(params: {
+    serverID?: string;
+    session_id?: string;
+    general_id?: number;
+    turn_cnt: number;
+  }): Promise<{
+    success: boolean;
+    result: boolean;
+    message?: string;
+  }> {
+    return this.request('/api/command/pull-command', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  static async DeleteCommand(params: {
+    serverID?: string;
+    session_id?: string;
+    general_id?: number;
+    turn_list: number[];
+  }): Promise<{
+    success: boolean;
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/command/delete-command', {
       method: 'POST',
       body: JSON.stringify(params),
     });

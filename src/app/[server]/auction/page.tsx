@@ -109,11 +109,26 @@ export default function AuctionPage() {
                               return;
                             }
                             try {
-                              const result = await SammoAPI.AuctionBidUniqueAuction({
-                                auctionID: auction.id,
-                                bidAmount,
-                                serverID,
-                              });
+                              let result;
+                              if (auction.type === 'BuyRice') {
+                                // 쌀 구매 경매
+                                result = await SammoAPI.BidBuyRiceAuction({
+                                  auctionID: auction.id,
+                                  bidAmount,
+                                  serverID,
+                                });
+                              } else if (auction.type === 'SellRice') {
+                                // 쌀 판매 경매
+                                result = await SammoAPI.BidSellRiceAuction({
+                                  auctionID: auction.id,
+                                  bidAmount,
+                                  serverID,
+                                });
+                              } else {
+                                alert('알 수 없는 경매 유형입니다.');
+                                return;
+                              }
+                              
                               if (result.result) {
                                 alert('입찰이 완료되었습니다.');
                                 loadAuctionData();
@@ -126,8 +141,9 @@ export default function AuctionPage() {
                           }
                         }}
                         className={styles.bidBtn}
+                        disabled={auction.finished}
                       >
-                        입찰
+                        {auction.finished ? '종료' : '입찰'}
                       </button>
                     </div>
                   ))}

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import TipTapEditor from '@/components/editor/TipTapEditor';
 import styles from './page.module.css';
 
 interface BoardArticle {
@@ -109,16 +110,12 @@ export default function BoardPage() {
           <div className={`${styles.formRow} row`}>
             <div className={`${styles.label} bg1 center`}>내용</div>
             <div className={styles.input}>
-              <textarea
-                placeholder="내용 (HTML 지원)"
-                value={newArticle.text}
-                onChange={(e) => setNewArticle({ ...newArticle, text: e.target.value })}
-                className={styles.contentInput}
-                rows={10}
+              <TipTapEditor
+                content={newArticle.text}
+                onChange={(content) => setNewArticle({ ...newArticle, text: content })}
+                placeholder="내용을 입력하세요..."
+                serverID={serverID}
               />
-              <div className={styles.helpText}>
-                HTML 태그 사용 가능 (TipTap 에디터는 향후 추가 예정)
-              </div>
             </div>
           </div>
           <div className={styles.submitRow}>

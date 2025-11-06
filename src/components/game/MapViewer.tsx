@@ -10,6 +10,7 @@ interface MapViewerProps {
   mapData: GetMapResponse;
   myCity?: number;
   onCityClick?: (cityId: number) => void;
+  isFullWidth?: boolean; // 전체 너비 사용 여부
 }
 
 interface ParsedCity {
@@ -28,7 +29,8 @@ interface ParsedCity {
   clickable: boolean;
 }
 
-export default function MapViewer({ serverID, mapData, myCity, onCityClick }: MapViewerProps) {
+export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFullWidth = true }: MapViewerProps) {
+  // serverID는 이미 props에 포함되어 있음
   const [hideCityName, setHideCityName] = useState(false);
   const [activatedCity, setActivatedCity] = useState<{
     id: number;
@@ -39,7 +41,6 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick }: Ma
   } | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const mapBodyRef = useRef<HTMLDivElement>(null);
-  const isFullWidth = true; // 맵은 항상 전체 너비 사용
 
   // 도시 데이터 파싱
   const parsedCities = useMemo(() => {
@@ -77,6 +78,20 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick }: Ma
 
   function handleCityClick(e: React.MouseEvent, city: ParsedCity) {
     e.preventDefault();
+    
+    // 도시 ID가 0이거나 클릭 불가능한 경우 무시
+    if (city.id === 0 || !city.clickable) {
+      return;
+    }
+    
+    // Ctrl+클릭 또는 Cmd+클릭 시 새 탭에서 열기
+    if (e.ctrlKey || e.metaKey) {
+      const url = `/${serverID}/info/current-city?cityId=${city.id}`;
+      window.open(url, '_blank');
+      return;
+    }
+    
+    // 일반 클릭 시 콜백 호출
     if (onCityClick) {
       onCityClick(city.id);
     }
