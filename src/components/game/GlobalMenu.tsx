@@ -107,7 +107,7 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick }: GlobalMenu
   const handleMenuClick = (e: React.MouseEvent, item: MenuItem) => {
     if (item.funcCall && onMenuClick) {
       e.preventDefault();
-      onMenuClick(item.url || '');
+      onMenuClick(item.funcCall);
       return;
     }
     if (!item.url) {

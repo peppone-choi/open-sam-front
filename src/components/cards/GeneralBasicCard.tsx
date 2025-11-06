@@ -50,7 +50,7 @@ interface GeneralBasicCardProps {
     imgsvr?: number;
     [key: string]: any;
   };
-  nation: {
+  nation?: {
     id: number;
     name: string;
     color: string;
@@ -191,7 +191,13 @@ export default function GeneralBasicCard({
           backgroundColor: nation.color,
         }}
       >
-        {general.name} 【
+        <span 
+          className={styles.clickable}
+          onClick={() => window.location.href = `/general/${general.no}`}
+          title="장수 상세 정보"
+        >
+          {general.name}
+        </span> 【
         {general.officer_city && cityName && (
           <>{cityName} </>
         )}
@@ -337,9 +343,20 @@ export default function GeneralBasicCard({
           {troopInfo.leader.reservedCommand && troopInfo.leader.reservedCommand[0]?.action !== 'che_집합' ? (
             <s style={{ color: 'gray' }}>{troopInfo.name}</s>
           ) : troopInfo.leader.city === general.city ? (
-            <span>{troopInfo.name}</span>
+            <span 
+              className={styles.clickable}
+              onClick={() => window.location.href = '/troop'}
+              title="부대 정보"
+            >
+              {troopInfo.name}
+            </span>
           ) : (
-            <span style={{ color: 'orange' }}>
+            <span 
+              className={styles.clickable}
+              style={{ color: 'orange' }}
+              onClick={() => window.location.href = '/troop'}
+              title="부대 정보"
+            >
               {troopInfo.name}({cityConst?.[troopInfo.leader.city]?.name || troopInfo.leader.city})
             </span>
           )}

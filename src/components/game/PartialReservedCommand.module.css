@@ -40,6 +40,11 @@
     cursor: not-allowed;
 }
 
+.toolbarButton.active {
+    background-color: #0066cc;
+    border-color: #0088ff;
+}
+
 .clock {
     flex: 1;
     text-align: center;

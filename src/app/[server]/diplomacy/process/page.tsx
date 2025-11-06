@@ -31,7 +31,7 @@ export default function DiplomacyProcessPage() {
       setLoading(true);
       // 외교 데이터는 GetDiplomacyLetter에서 가져올 수 있음
       const result = await SammoAPI.GetDiplomacyLetter();
-      if (result.result) {
+      if (result.result && result.letters) {
         const letter = result.letters.find((l: any) => l.no === letterNo);
         setDiplomacyData(letter || null);
       }

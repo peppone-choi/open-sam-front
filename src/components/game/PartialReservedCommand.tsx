@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/contexts/ToastContext';
 import styles from './PartialReservedCommand.module.css';
 import { SammoAPI } from '@/lib/api/sammo';
 import CommandSelectDialog from './CommandSelectDialog';
@@ -37,6 +38,7 @@ interface CommandTableCategory {
 
 export default function PartialReservedCommand({ generalID, serverID }: PartialReservedCommandProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [reservedCommands, setReservedCommands] = useState<ReservedCommand[]>([]);
   const [commandTable, setCommandTable] = useState<CommandTableCategory[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -46,6 +48,12 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
   const [serverTime, setServerTime] = useState<Date>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTurnIndex, setEditingTurnIndex] = useState<number | null>(null);
+  const [isBatchMode, setIsBatchMode] = useState(false);
+  const [batchCommand, setBatchCommand] = useState<{
+    action: string;
+    arg: any;
+    brief: string;
+  } | null>(null);
 
   const MAX_TURN = 30;
   const FLIPPED_MAX_TURN = 23;
@@ -262,14 +270,126 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
   const toggleEditMode = () => {
     setIsEditMode(!isEditMode);
     setSelectedTurnIndices(new Set());
+    setIsBatchMode(false);
+    setBatchCommand(null);
+  };
+
+  const toggleBatchMode = () => {
+    setIsBatchMode(!isBatchMode);
+    setSelectedTurnIndices(new Set());
   };
 
   const toggleViewMaxTurn = () => {
     setViewMaxTurn(viewMaxTurn === FLIPPED_MAX_TURN ? MAX_TURN : FLIPPED_MAX_TURN);
   };
 
+  const handlePullCommand = async () => {
+    if (selectedTurnIndices.size === 0) {
+      alert('당길 턴을 선택해주세요.');
+      return;
+    }
+
+    try {
+      const numGeneralID = Number(generalID);
+      if (!numGeneralID || numGeneralID === 0 || isNaN(numGeneralID)) {
+        alert(`명령 당기기 실패: 장수 ID가 유효하지 않습니다 (generalID: ${generalID})`);
+        return;
+      }
+
+      const response = await SammoAPI.PullCommand({
+        serverID,
+        general_id: numGeneralID,
+        turn_cnt: 1, // 1턴 당기기
+      });
+
+      if (response.success) {
+        await loadData();
+        setSelectedTurnIndices(new Set());
+        showToast('명령을 당겼습니다.', 'success');
+      } else {
+        const errorMsg = response.message || '알 수 없는 오류';
+        showToast(`명령 당기기 실패: ${errorMsg}`, 'error');
+      }
+    } catch (error: any) {
+      console.error('명령 당기기 실패:', error);
+      showToast(`명령 당기기 실패: ${error.message || '알 수 없는 오류'}`, 'error');
+    }
+  };
+
+  const handlePushCommand = async () => {
+    if (selectedTurnIndices.size === 0) {
+      alert('미룰 턴을 선택해주세요.');
+      return;
+    }
+
+    try {
+      const numGeneralID = Number(generalID);
+      if (!numGeneralID || numGeneralID === 0 || isNaN(numGeneralID)) {
+        alert(`명령 미루기 실패: 장수 ID가 유효하지 않습니다 (generalID: ${generalID})`);
+        return;
+      }
+
+      const response = await SammoAPI.PushCommand({
+        serverID,
+        general_id: numGeneralID,
+        turn_cnt: 1, // 1턴 미루기
+      });
+
+      if (response.success) {
+        await loadData();
+        setSelectedTurnIndices(new Set());
+        showToast('명령을 미뤘습니다.', 'success');
+      } else {
+        const errorMsg = response.message || '알 수 없는 오류';
+        showToast(`명령 미루기 실패: ${errorMsg}`, 'error');
+      }
+    } catch (error: any) {
+      console.error('명령 미루기 실패:', error);
+      showToast(`명령 미루기 실패: ${error.message || '알 수 없는 오류'}`, 'error');
+    }
+  };
+
+  const handleDeleteCommand = async () => {
+    if (selectedTurnIndices.size === 0) {
+      alert('삭제할 턴을 선택해주세요.');
+      return;
+    }
+
+    const confirmMsg = `선택한 ${selectedTurnIndices.size}개 턴의 명령을 삭제(휴식으로 변경)하시겠습니까?`;
+    if (!confirm(confirmMsg)) {
+      return;
+    }
+
+    try {
+      const numGeneralID = Number(generalID);
+      if (!numGeneralID || numGeneralID === 0 || isNaN(numGeneralID)) {
+        alert(`명령 삭제 실패: 장수 ID가 유효하지 않습니다 (generalID: ${generalID})`);
+        return;
+      }
+
+      const turnList = Array.from(selectedTurnIndices);
+      const response = await SammoAPI.DeleteCommand({
+        serverID,
+        general_id: numGeneralID,
+        turn_list: turnList,
+      });
+
+      if (response.success) {
+        await loadData();
+        setSelectedTurnIndices(new Set());
+        showToast('명령을 삭제했습니다.', 'success');
+      } else {
+        const errorMsg = response.reason || '알 수 없는 오류';
+        showToast(`명령 삭제 실패: ${errorMsg}`, 'error');
+      }
+    } catch (error: any) {
+      console.error('명령 삭제 실패:', error);
+      showToast(`명령 삭제 실패: ${error.message || '알 수 없는 오류'}`, 'error');
+    }
+  };
+
   const handleTurnClick = (turnIdx: number, e: React.MouseEvent) => {
-    if (!isEditMode) return;
+    if (!isEditMode && !isBatchMode) return;
 
     const newSelected = new Set(selectedTurnIndices);
     if (e.shiftKey && selectedTurnIndices.size > 0) {
@@ -287,12 +407,65 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
         newSelected.add(turnIdx);
       }
     } else {
-      // 일반 클릭: 단일 선택
-      newSelected.clear();
-      newSelected.add(turnIdx);
+      // 일반 클릭: 토글
+      if (newSelected.has(turnIdx)) {
+        newSelected.delete(turnIdx);
+      } else {
+        newSelected.add(turnIdx);
+      }
     }
 
     setSelectedTurnIndices(newSelected);
+  };
+
+  const handleApplyBatchCommand = async () => {
+    if (selectedTurnIndices.size === 0) {
+      alert('적용할 턴을 선택해주세요.');
+      return;
+    }
+
+    if (!batchCommand) {
+      alert('적용할 명령을 먼저 선택해주세요.');
+      return;
+    }
+
+    const confirmMsg = `선택한 ${selectedTurnIndices.size}개 턴에 "${batchCommand.brief}" 명령을 일괄 적용하시겠습니까?`;
+    if (!confirm(confirmMsg)) {
+      return;
+    }
+
+    try {
+      const numGeneralID = Number(generalID);
+      if (!numGeneralID || numGeneralID === 0 || isNaN(numGeneralID)) {
+        alert(`명령 일괄 적용 실패: 장수 ID가 유효하지 않습니다 (generalID: ${generalID})`);
+        return;
+      }
+
+      const turnList = Array.from(selectedTurnIndices);
+      
+      const response = await SammoAPI.CommandReserveBulkCommand({
+        serverID,
+        general_id: numGeneralID,
+        commands: [{
+          turnList,
+          action: batchCommand.action,
+          arg: batchCommand.arg,
+        }],
+      });
+
+      if (response.success) {
+        await loadData();
+        setSelectedTurnIndices(new Set());
+        setBatchCommand(null);
+        showToast(`${selectedTurnIndices.size}개 턴에 명령이 일괄 적용되었습니다.`, 'success');
+      } else {
+        const errorMsg = response.reason || '알 수 없는 오류';
+        showToast(`명령 일괄 적용 실패: ${errorMsg}`, 'error');
+      }
+    } catch (error: any) {
+      console.error('명령 일괄 적용 실패:', error);
+      showToast(`명령 일괄 적용 실패: ${error.message || '알 수 없는 오류'}`, 'error');
+    }
   };
 
   // MAX_TURN까지 모든 턴을 표시 (빈 턴도 포함)
@@ -333,23 +506,77 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
         >
           {viewMaxTurn === FLIPPED_MAX_TURN ? '펼치기' : '접기'}
         </button>
-        <button className={styles.toolbarButton} disabled={!isEditMode} title="당기기">
+        <button
+          className={`${styles.toolbarButton} ${isEditMode ? styles.active : ''}`}
+          onClick={toggleEditMode}
+          title="편집 모드 (턴 선택 가능)"
+        >
+          {isEditMode ? '편집 완료' : '편집'}
+        </button>
+        <button 
+          className={styles.toolbarButton} 
+          disabled={!isEditMode || selectedTurnIndices.size === 0} 
+          title="당기기 (선택한 명령을 1턴 앞으로)"
+          onClick={handlePullCommand}
+        >
           당기기
         </button>
-        <button className={styles.toolbarButton} disabled={!isEditMode} title="미루기">
+        <button 
+          className={styles.toolbarButton} 
+          disabled={!isEditMode || selectedTurnIndices.size === 0} 
+          title="미루기 (선택한 명령을 1턴 뒤로)"
+          onClick={handlePushCommand}
+        >
           미루기
         </button>
+        <button 
+          className={styles.toolbarButton} 
+          disabled={!isEditMode || selectedTurnIndices.size === 0} 
+          title="삭제 (선택한 명령을 휴식으로 변경)"
+          onClick={handleDeleteCommand}
+        >
+          삭제
+        </button>
+        <button
+          className={`${styles.toolbarButton} ${isBatchMode ? styles.active : ''}`}
+          onClick={toggleBatchMode}
+          title="일괄 적용 모드 (여러 턴에 동일 명령 적용)"
+        >
+          {isBatchMode ? '일괄 완료' : '일괄 적용'}
+        </button>
+        {isBatchMode && (
+          <>
+            <button 
+              className={styles.toolbarButton} 
+              onClick={() => {
+                setIsDialogOpen(true);
+                setEditingTurnIndex(null);
+              }}
+              title="일괄 적용할 명령 선택"
+            >
+              {batchCommand ? `명령: ${batchCommand.brief}` : '명령 선택'}
+            </button>
+            <button 
+              className={styles.toolbarButton} 
+              disabled={selectedTurnIndices.size === 0 || !batchCommand} 
+              title={batchCommand ? `선택한 턴에 "${batchCommand.brief}" 적용` : '명령을 먼저 선택하세요'}
+              onClick={handleApplyBatchCommand}
+            >
+              적용 ({selectedTurnIndices.size}턴)
+            </button>
+          </>
+        )}
       </div>
 
       {!isDialogOpen && (
         <div className={`${styles.commandTableWrapper} ${viewMaxTurn === MAX_TURN ? styles.scrollable : styles.noScroll}`}>
-          <div className={`${styles.commandTable} ${isEditMode ? styles.isEditMode : ''}`}>
+          <div className={`${styles.commandTable} ${isEditMode || isBatchMode ? styles.isEditMode : ''}`}>
             {/* 턴 번호 */}
             <div className={styles.turnNumberColumn}>
               {displayCommands.map((_, idx) => (
                 <div
                   key={idx}
-                  className={`${styles.turnCell} ${isEditMode ? styles.turnCellEditable : ''} ${selectedTurnIndices.has(idx) ? styles.selected : ''}`}
+                  className={`${styles.turnCell} ${isEditMode || isBatchMode ? styles.turnCellEditable : ''} ${selectedTurnIndices.has(idx) ? styles.selected : ''}`}
                   onClick={(e) => handleTurnClick(idx, e)}
                 >
                   {idx + 1}
@@ -389,7 +616,7 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
             </div>
 
             {/* 수정 버튼 (일반 모드) */}
-            {!isEditMode && (
+            {!isEditMode && !isBatchMode && (
               <div className={styles.actionColumn}>
                 {displayCommands.map((_, idx) => (
                   <div key={idx} className={styles.actionCell}>
@@ -430,6 +657,27 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
               setEditingTurnIndex(null);
             }}
             onSelectCommand={async (command) => {
+              // 일괄 적용 모드인 경우
+              if (isBatchMode) {
+                if (command.reqArg > 0) {
+                  alert('일괄 적용 모드에서는 파라미터가 필요한 명령을 사용할 수 없습니다.');
+                  setIsDialogOpen(false);
+                  setEditingTurnIndex(null);
+                  return;
+                }
+
+                setBatchCommand({
+                  action: command.value,
+                  arg: {},
+                  brief: command.simpleName,
+                });
+                setIsDialogOpen(false);
+                setEditingTurnIndex(null);
+                alert(`"${command.simpleName}" 명령이 선택되었습니다. 적용할 턴을 선택한 후 "적용" 버튼을 눌러주세요.`);
+                return;
+              }
+
+              // 기존 단일 턴 수정 모드
               if (editingTurnIndex !== null) {
                 // reqArg > 0인 경우 파라미터 입력 페이지로 이동
                 if (command.reqArg > 0) {

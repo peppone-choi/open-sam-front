@@ -75,7 +75,11 @@ export default function SelectNPCPage() {
                 onClick={() => setSelectedNPC(npc.no)}
               >
                 <div className={styles.npcIcon}>
-                  <img src={`/images/gen_icon/${npc.imgsvr}/${npc.picture}.jpg`} alt={npc.name} />
+                  <img 
+                    src={`/images/gen_icon/${npc.imgsvr}/${npc.picture}.jpg`} 
+                    alt={npc.name}
+                    style={{ aspectRatio: '26 / 35', width: '78px', height: '105px', objectFit: 'cover' }}
+                  />
                 </div>
                 <div className={styles.npcName}>{npc.name}</div>
                 <div className={styles.npcStats}>

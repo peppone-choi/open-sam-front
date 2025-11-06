@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SammoAPI } from '@/lib/api/sammo';
+import { useToast } from '@/contexts/ToastContext';
 import styles from './MessagePanel.module.css';
 
 interface MessagePanelProps {
@@ -43,6 +44,7 @@ export default function MessagePanel({
   permissionLevel,
   serverID,
 }: MessagePanelProps) {
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<MessageType>('public');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -54,39 +56,85 @@ export default function MessagePanel({
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedMailbox, setSelectedMailbox] = useState<number>(0);
   const [selectedGeneralId, setSelectedGeneralId] = useState<number>(0);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const messageListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadMessages();
+    setMessages([]);
+    setOffset(0);
+    setHasMore(true);
+    loadMessages(true);
+  }, [activeTab, generalID, serverID]);
+
+  useEffect(() => {
     if (showSendForm) {
       loadContacts();
     }
-  }, [activeTab, generalID, serverID, showSendForm]);
+  }, [showSendForm]);
 
-  async function loadMessages() {
+  async function loadMessages(reset: boolean = false) {
     try {
-      setLoading(true);
+      if (reset) {
+        setLoading(true);
+        setOffset(0);
+      } else {
+        setLoadingMore(true);
+      }
       setError(null);
 
-      // GetRecentMessage API 호출
-      const result = await SammoAPI.GetRecentMessage({
+      const currentOffset = reset ? 0 : offset;
+      const limit = 15;
+
+      const result = await SammoAPI.MessageGetMessages({
         serverID,
         type: activeTab,
-        limit: 15,
+        limit,
+        offset: currentOffset,
       });
 
       if (result.success && result.messages) {
-        setMessages(result.messages);
+        if (reset) {
+          setMessages(result.messages);
+        } else {
+          setMessages(prev => [...prev, ...result.messages]);
+        }
+        
+        setHasMore(result.hasMore ?? result.messages.length >= limit);
+        setOffset(currentOffset + result.messages.length);
       } else {
         setError(result.message || '메시지를 불러오는데 실패했습니다.');
       }
     } catch (err: any) {
       console.error('Failed to load messages:', err);
       setError('메시지를 불러오는데 실패했습니다.');
-      setMessages([]);
+      if (reset) {
+        setMessages([]);
+      }
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }
+
+  const handleLoadMore = useCallback(() => {
+    if (!loadingMore && hasMore) {
+      loadMessages(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingMore, hasMore]);
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const element = e.currentTarget;
+    const scrollTop = element.scrollTop;
+    const scrollHeight = element.scrollHeight;
+    const clientHeight = element.clientHeight;
+
+    if (scrollHeight - scrollTop <= clientHeight + 50) {
+      handleLoadMore();
+    }
+  }, [handleLoadMore]);
 
   async function loadContacts() {
     try {
@@ -144,13 +192,17 @@ export default function MessagePanel({
         setShowSendForm(false);
         setSelectedMailbox(0);
         setSelectedGeneralId(0);
-        await loadMessages();
+        showToast('메시지를 전송했습니다.', 'success');
+        await loadMessages(true);
       } else {
-        setSendError(result.reason || result.message || '메시지 전송에 실패했습니다.');
+        const errorMsg = result.reason || result.message || '메시지 전송에 실패했습니다.';
+        setSendError(errorMsg);
+        showToast(errorMsg, 'error');
       }
     } catch (err: any) {
       console.error('Failed to send message:', err);
       setSendError('메시지 전송에 실패했습니다.');
+      showToast('메시지 전송에 실패했습니다.', 'error');
     } finally {
       setSendLoading(false);
     }
@@ -309,7 +361,11 @@ export default function MessagePanel({
             ) : messages.length === 0 ? (
               <div className={styles.messagePlaceholder}>메시지가 없습니다.</div>
             ) : (
-              <div className={styles.messageList}>
+              <div 
+                className={styles.messageList} 
+                ref={messageListRef}
+                onScroll={handleScroll}
+              >
                 {messages.map((msg) => (
                   <div key={msg.id} className={styles.messageItem}>
                     <div className={styles.messageDate}>
@@ -318,6 +374,17 @@ export default function MessagePanel({
                     <div className={styles.messageText}>{formatMessageText(msg)}</div>
                   </div>
                 ))}
+                {hasMore && (
+                  <div className={styles.loadMoreContainer}>
+                    <button
+                      className={styles.loadMoreButton}
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                    >
+                      {loadingMore ? '로딩 중...' : '더보기'}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </>

@@ -79,7 +79,13 @@ export default function NationBasicCard({ nation, global }: NationBasicCardProps
           fontWeight: 'bold',
         }}
       >
-        {nation.name}
+        <span 
+          className={styles.clickable}
+          onClick={() => window.location.href = `/nation/${nation.id}`}
+          title="국가 상세 정보"
+        >
+          {nation.name}
+        </span>
       </div>
       <div className={`${styles.typeHead} ${styles.tbHead} bg1`}>성향</div>
       <div className={`${styles.typeBody} ${styles.tbBody}`}>
@@ -94,13 +100,33 @@ export default function NationBasicCard({ nation, global }: NationBasicCardProps
         {hasNation ? formatOfficerLevelText(12, nation.level) : '-'}
       </div>
       <div className={`${styles.c12Body} ${styles.tbBody}`} style={{ color: getNPCColor(nation.topChiefs?.[12]?.npc ?? 1) }}>
-        {hasNation ? (nation.topChiefs?.[12]?.name ?? '-') : '-'}
+        {hasNation ? (
+          nation.topChiefs?.[12] ? (
+            <span 
+              className={styles.clickable}
+              onClick={() => window.location.href = `/general/${nation.topChiefs?.[12]?.no || 0}`}
+              title="장수 상세 정보"
+            >
+              {nation.topChiefs[12].name}
+            </span>
+          ) : '-'
+        ) : '-'}
       </div>
       <div className={`${styles.c11Head} ${styles.tbHead} bg1`}>
         {hasNation ? formatOfficerLevelText(11, nation.level) : '-'}
       </div>
       <div className={`${styles.c11Body} ${styles.tbBody}`} style={{ color: getNPCColor(nation.topChiefs?.[11]?.npc ?? 1) }}>
-        {hasNation ? (nation.topChiefs?.[11]?.name ?? '-') : '-'}
+        {hasNation ? (
+          nation.topChiefs?.[11] ? (
+            <span 
+              className={styles.clickable}
+              onClick={() => window.location.href = `/general/${nation.topChiefs?.[11]?.no || 0}`}
+              title="장수 상세 정보"
+            >
+              {nation.topChiefs[11].name}
+            </span>
+          ) : '-'
+        ) : '-'}
       </div>
       <div className={`${styles.popHead} ${styles.tbHead} bg1`}>총 주민</div>
       <div className={`${styles.popBody} ${styles.tbBody}`}>

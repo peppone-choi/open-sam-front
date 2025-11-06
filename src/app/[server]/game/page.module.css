@@ -110,6 +110,13 @@
     overflow-x: hidden;
 }
 
+/* 모바일에서 하단 바 공간 확보 */
+@media (max-width: 768px) {
+    .container {
+        padding-bottom: 60px;
+    }
+}
+
 .pageControls {
     display: flex;
     justify-content: space-between;
@@ -349,6 +356,25 @@
     grid-column: 1 / -1;
     width: 100%;
     padding: 1rem 0;
+}
+
+/* 모바일에서 메뉴 토글 */
+@media (max-width: 768px) {
+    .generalCommandToolbar {
+        overflow: hidden;
+        transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    }
+
+    .generalCommandToolbar.menuClosed {
+        max-height: 0;
+        opacity: 0;
+        padding: 0;
+    }
+
+    .generalCommandToolbar.menuOpen {
+        max-height: 2000px;
+        opacity: 1;
+    }
 }
 
 .actionMiniPlate {

@@ -13,6 +13,8 @@ import PartialReservedCommand from '@/components/game/PartialReservedCommand';
 import GameInfoPanel from '@/components/game/GameInfoPanel';
 import MessagePanel from '@/components/game/MessagePanel';
 import GlobalMenu from '@/components/game/GlobalMenu';
+import GameBottomBar from '@/components/game/GameBottomBar';
+import VersionModal from '@/components/game/VersionModal';
 import { useSocket } from '@/hooks/useSocket';
 import styles from './page.module.css';
 
@@ -24,8 +26,11 @@ export default function GamePage() {
   const [frontInfo, setFrontInfo] = useState<GetFrontInfoResponse | null>(null);
   const [mapData, setMapData] = useState<GetMapResponse | null>(null);
   const [globalMenu, setGlobalMenu] = useState<any[]>([]);
+  const [gameConst, setGameConst] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
 
   // Socket.IO 연결 (옵션 메모이제이션)
   const socketOptions = React.useMemo(
@@ -46,7 +51,7 @@ export default function GamePage() {
       setLoading(true);
       setError(null);
 
-      const [frontInfoData, mapDataResponse, menuData] = await Promise.all([
+      const [frontInfoData, mapDataResponse, menuData, constData] = await Promise.all([
         SammoAPI.GeneralGetFrontInfo({
           serverID,
           lastNationNoticeDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -59,6 +64,7 @@ export default function GamePage() {
           showMe: 1,
         }),
         SammoAPI.GlobalGetMenu({ serverID }).catch(() => ({ success: true, menu: [] })),
+        SammoAPI.GlobalGetConst().catch(() => ({ result: false, data: null })),
       ]);
 
       // 캐릭터가 없으면 에러 메시지 표시
@@ -71,6 +77,9 @@ export default function GamePage() {
       setMapData(mapDataResponse);
       if (menuData && menuData.success) {
         setGlobalMenu(menuData.menu || []);
+      }
+      if (constData && constData.result && constData.data) {
+        setGameConst(constData.data.gameConst || constData.data.gameSettings);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '데이터를 불러오는 중 오류가 발생했습니다.';
@@ -249,12 +258,21 @@ export default function GamePage() {
   ]);
 
   function handleCityClick(cityId: number) {
-    // 도시 클릭 시 도시 정보 페이지로 이동
     if (serverID && cityId > 0) {
       const url = `/${serverID}/info/current-city?cityId=${cityId}`;
       router.push(url);
     }
   }
+
+  const handleToggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleMenuClick = (funcCall: string) => {
+    if (funcCall === 'showVersion') {
+      setIsVersionModalOpen(true);
+    }
+  };
 
   if (loading) {
     return (
@@ -325,6 +343,7 @@ export default function GamePage() {
             <GlobalMenu
               menu={globalMenu}
               globalInfo={frontInfo.global}
+              onMenuClick={handleMenuClick}
             />
           )}
         </div>
@@ -366,6 +385,7 @@ export default function GamePage() {
               mapData={mapData}
               myCity={frontInfo.general.city}
               onCityClick={handleCityClick}
+              gameConst={gameConst}
             />
           )}
         </div>
@@ -428,13 +448,11 @@ export default function GamePage() {
               nation={frontInfo.nation}
               troopInfo={frontInfo.general.reservedCommand ? undefined : undefined}
               turnTerm={frontInfo.global.turnterm}
-              gameConst={frontInfo.global.gameConst}
-              cityConst={frontInfo.global.cityConst}
             />
           </div>
         )}
 
-        <div className={styles.generalCommandToolbar}>
+        <div className={`${styles.generalCommandToolbar} ${isMenuOpen ? styles.menuOpen : styles.menuClosed}`}>
           {frontInfo.general && frontInfo.nation && mainControlBarProps && (
             <MainControlBar {...mainControlBarProps} />
           )}
@@ -482,6 +500,7 @@ export default function GamePage() {
           <GlobalMenu
             menu={globalMenu}
             globalInfo={frontInfo.global}
+            onMenuClick={handleMenuClick}
           />
         )}
       </div>
@@ -502,9 +521,25 @@ export default function GamePage() {
           <GlobalMenu
             menu={globalMenu}
             globalInfo={frontInfo.global}
+            onMenuClick={handleMenuClick}
           />
         )}
       </div>
+
+      {/* 모바일 전용 하단 바 */}
+      <GameBottomBar
+        onRefresh={loadData}
+        onToggleMenu={handleToggleMenu}
+        isLoading={loading}
+      />
+
+      {/* 버전 모달 */}
+      <VersionModal
+        isOpen={isVersionModalOpen}
+        onClose={() => setIsVersionModalOpen(false)}
+        gameConst={gameConst}
+        version="0.1.0"
+      />
     </div>
   );
 }

@@ -1,0 +1,124 @@
+.container {
+  min-height: 100vh;
+  background: #1a1a2e;
+}
+
+.content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  color: white;
+}
+
+.content h2 {
+  color: #d4af37;
+  margin-bottom: 1rem;
+}
+
+.content p {
+  color: #ccc;
+  margin-bottom: 2rem;
+}
+
+.controls {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #ccc;
+}
+
+.select,
+.input {
+  width: 100%;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: white;
+  font-size: 1rem;
+}
+
+.select:focus,
+.input:focus {
+  outline: none;
+  border-color: #d4af37;
+}
+
+.startButton {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(to bottom, #d4af37, #b8941e);
+  border: none;
+  border-radius: 6px;
+  color: #1a1a2e;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 1rem;
+}
+
+.startButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+}
+
+.startButton:active {
+  transform: translateY(0);
+}
+
+.info,
+.preview {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.info h3,
+.preview h3 {
+  color: #d4af37;
+  margin-bottom: 1rem;
+}
+
+.info ul,
+.preview ol {
+  color: #ccc;
+  line-height: 1.8;
+}
+
+.info ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.info li::before {
+  content: "• ";
+  color: #d4af37;
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+.preview ol {
+  padding-left: 1.5rem;
+}
+
+.preview li {
+  margin-bottom: 0.5rem;
+}
+
+.preview strong {
+  color: #d4af37;
+}

@@ -33,17 +33,61 @@ export default function BattleSimulatorPage() {
           id: 'attacker-1',
           x: 10,
           y: 20,
-          name: '공격 장수 1',
+          name: '조조',
           type: 'attacker',
           crew: 5000,
+          crewtype: 1403,
+          leadership: 95,
+          force: 72,
+          intellect: 98,
         },
         {
           id: 'defender-1',
           x: 30,
           y: 20,
-          name: '수비 장수 1',
+          name: '여포',
           type: 'defender',
           crew: 3000,
+          crewtype: 1200,
+          leadership: 24,
+          force: 100,
+          intellect: 18,
+        },
+        {
+          id: 'attacker-2',
+          x: 15,
+          y: 25,
+          name: '관우',
+          type: 'attacker',
+          crew: 4000,
+          crewtype: 1100,
+          leadership: 90,
+          force: 98,
+          intellect: 75,
+        },
+        {
+          id: 'defender-2',
+          x: 25,
+          y: 15,
+          name: '장합',
+          type: 'defender',
+          crew: 3500,
+          crewtype: 1300,
+          leadership: 80,
+          force: 70,
+          intellect: 65,
+        },
+        {
+          id: 'attacker-3',
+          x: 8,
+          y: 18,
+          name: '제갈량',
+          type: 'attacker',
+          crew: 1000,
+          crewtype: 1701,
+          leadership: 100,
+          force: 20,
+          intellect: 100,
         },
       ]);
     } catch (err) {
@@ -69,6 +113,32 @@ export default function BattleSimulatorPage() {
     console.log('Cell clicked:', x, y);
   }
 
+  function handleCombat(attackerId: string, defenderId: string) {
+    const { calculateCombat, updateUnitsAfterCombat } = require('@/utils/battleUtils');
+    
+    const attacker = units.find(u => u.id === attackerId);
+    const defender = units.find(u => u.id === defenderId);
+    
+    if (!attacker || !defender) return;
+    
+    const result = calculateCombat(attacker, defender);
+    
+    setTimeout(() => {
+      const updatedUnits = updateUnitsAfterCombat(units, attackerId, defenderId, result);
+      setUnits(updatedUnits);
+      
+      if (result.defenderDied) {
+        console.log(`${defender.name} 전멸!`);
+      }
+      if (result.isCritical) {
+        console.log('크리티컬 히트!');
+      }
+      if (result.isEvaded) {
+        console.log('회피 성공!');
+      }
+    }, 2800);
+  }
+
   async function handleSimulate() {
     try {
       const result = await SammoAPI.SimulateBattle({
@@ -76,7 +146,7 @@ export default function BattleSimulatorPage() {
         month: battleConfig.month || 1,
         seed: battleConfig.seed || undefined,
         repeatCount: battleConfig.repeatCount || 1,
-        units: units,
+        units: units.map(u => ({ ...u, crew: u.crew || 0 })),
       });
 
       if (result.result) {
@@ -133,8 +203,10 @@ export default function BattleSimulatorPage() {
                 onUnitClick={handleUnitClick}
                 onUnitMove={handleUnitMove}
                 onCellClick={handleCellClick}
+                onCombat={handleCombat}
                 selectedUnitId={selectedUnitId}
                 editable={true}
+                showCutscenes={true}
               />
             </div>
           </div>

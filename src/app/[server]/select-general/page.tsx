@@ -73,7 +73,11 @@ export default function SelectGeneralPage() {
                 onClick={() => setSelectedGeneral(general.no)}
               >
                 <div className={styles.generalIcon}>
-                  <img src={`/images/gen_icon/${general.imgsvr}/${general.picture}.jpg`} alt={general.name} />
+                  <img 
+                    src={`/images/gen_icon/${general.imgsvr}/${general.picture}.jpg`} 
+                    alt={general.name}
+                    style={{ aspectRatio: '26 / 35', width: '78px', height: '105px', objectFit: 'cover' }}
+                  />
                 </div>
                 <div className={styles.generalName}>{general.name}</div>
                 <div className={styles.generalStats}>

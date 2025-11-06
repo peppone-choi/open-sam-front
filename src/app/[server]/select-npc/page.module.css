@@ -36,8 +36,10 @@
 }
 
 .npcIcon img {
-  width: 64px;
-  height: 64px;
+  width: 78px;
+  height: 105px;
+  aspect-ratio: 26 / 35;
+  object-fit: cover;
   border-radius: 4px;
 }
 

@@ -77,6 +77,7 @@ export interface GetFrontInfoResponse {
     trade: number | null;
     officerList: Record<2 | 3 | 4, {
       officer_level: 2 | 3 | 4;
+      no: number;
       name: string;
       npc: number;
     } | null>;
@@ -96,6 +97,7 @@ export interface GetMapResponse {
   myCity: number | null;
   myNation: number | null;
   spyList: Record<number, number>;
+  shownByGeneralList: number[];
   startYear: number;
   year: number;
   month: number;
@@ -554,12 +556,16 @@ export class SammoAPI {
     result: boolean;
     messages?: any[];
     total?: number;
+    hasMore?: boolean;
     message?: string;
   }> {
-    return this.request('/api/message/get-messages', {
+    const queryParams = new URLSearchParams();
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.offset) queryParams.append('offset', params.offset.toString());
+
+    return this.request(`/api/message/get-messages?${queryParams.toString()}`, {
       method: 'GET',
-      // GET 방식이므로 query string으로 전달
-      // body 대신 fetch의 URL에 쿼리 파라미터 추가
     });
   }
 
@@ -1199,6 +1205,37 @@ export class SammoAPI {
     });
   }
 
+  static async CommandReserveBulkCommand(params: {
+    serverID?: string;
+    general_id: number;
+    commands: Array<{
+      turnList: number[];
+      action: string;
+      arg: any;
+    }>;
+  }): Promise<{
+    success: boolean;
+    result: boolean;
+    briefList?: any;
+    reason?: string;
+  }> {
+    const body: any = {
+      commands: params.commands,
+    };
+
+    if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    if (params.general_id) {
+      body.general_id = params.general_id;
+    }
+
+    return this.request('/api/command/reserve-bulk-command', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
   static async RepeatCommand(params: {
     commandID: number;
     repeatCount: number;
@@ -1288,6 +1325,23 @@ export class SammoAPI {
   }> {
     return this.request('/api/game/current-city', {
       method: 'POST',
+    });
+  }
+
+  static async InfoGetCity(params: {
+    serverID: string;
+    cityID: number;
+  }): Promise<{
+    result: boolean;
+    city: any;
+    error?: string;
+  }> {
+    return this.request('/api/info/city', {
+      method: 'POST',
+      body: JSON.stringify({
+        session_id: params.serverID,
+        cityID: params.cityID
+      }),
     });
   }
 

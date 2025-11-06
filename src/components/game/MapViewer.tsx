@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { type GetMapResponse } from '@/lib/api/sammo';
 import MapCityDetail from './MapCityDetail';
+import { getMaxRelativeTechLevel, getBeginGameLimitInfo } from '@/utils/techLevel';
 import styles from './MapViewer.module.css';
 
 interface MapViewerProps {
@@ -10,7 +11,12 @@ interface MapViewerProps {
   mapData: GetMapResponse;
   myCity?: number;
   onCityClick?: (cityId: number) => void;
-  isFullWidth?: boolean; // 전체 너비 사용 여부
+  isFullWidth?: boolean;
+  gameConst?: {
+    maxTechLevel?: number;
+    initialAllowedTechLevel?: number;
+    techLevelIncYear?: number;
+  };
 }
 
 interface ParsedCity {
@@ -26,12 +32,13 @@ interface ParsedCity {
   region: number;
   x: number;
   y: number;
-  clickable: boolean;
+  clickable: number;
 }
 
-export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFullWidth = true }: MapViewerProps) {
-  // serverID는 이미 props에 포함되어 있음
+export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFullWidth = true, gameConst }: MapViewerProps) {
   const [hideCityName, setHideCityName] = useState(false);
+  const [doubleTapMode, setDoubleTapMode] = useState(true);
+  const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
   const [activatedCity, setActivatedCity] = useState<{
     id: number;
     text: string;
@@ -41,27 +48,43 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
   } | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const mapBodyRef = useRef<HTMLDivElement>(null);
+  const lastTapTimeRef = useRef<number>(0);
+  const lastTapCityRef = useRef<number | null>(null);
 
   // 도시 데이터 파싱
   const parsedCities = useMemo(() => {
     if (!mapData.cityList || !mapData.nationList) return [];
 
-    // 국가 맵 생성 [id, name, color, capital]
     const nationMap = new Map<number, { name: string; color: string; capital: number }>();
     for (const nation of mapData.nationList) {
       const [id, name, color, capital] = nation;
       nationMap.set(id, { name, color, capital });
     }
 
-    // 도시 파싱 [city, level, state, nation, region, supply, name, x, y]
+    const shownByGeneralSet = new Set(mapData.shownByGeneralList || []);
+
     return mapData.cityList.map((cityData): ParsedCity => {
       const [id, level, state, nationID, region, supply, name, x, y] = cityData;
       const nation = nationID > 0 ? nationMap.get(nationID) : undefined;
 
+      let clickable = 16;
+      
+      if (mapData.spyList && id in mapData.spyList) {
+        clickable |= mapData.spyList[id] << 3;
+      }
+      
+      if (mapData.myNation && nationID === mapData.myNation) {
+        clickable |= 4;
+      }
+      
+      if (shownByGeneralSet.has(id) || (mapData.myCity && id === mapData.myCity)) {
+        clickable |= 2;
+      }
+
       return {
         id,
-        name: name || `도시 ${id}`,
-        level: level !== undefined ? level : 1, // level이 0일 수 있으므로 !== undefined 사용
+        name: String(name || `도시 ${id}`),
+        level: level !== undefined ? level : 1,
         state: state !== undefined ? state : 0,
         nationID: nationID > 0 ? nationID : undefined,
         nation: nation?.name,
@@ -71,61 +94,132 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
         region: region !== undefined ? region : 0,
         x: x !== undefined ? x : 0,
         y: y !== undefined ? y : 0,
-        clickable: true,
+        clickable,
       };
     });
   }, [mapData]);
 
+  // 맵 타이틀 툴팁 생성
+  const titleTooltip = useMemo(() => {
+    const tooltips: string[] = [];
+    
+    // 초반 제한 기간 툴팁
+    const beginLimit = getBeginGameLimitInfo(
+      mapData.startYear,
+      mapData.year,
+      mapData.month
+    );
+    if (beginLimit) {
+      const { remainYear, remainMonth, limitYear } = beginLimit;
+      const remainText = remainYear > 0 
+        ? `${remainYear}년${remainMonth > 0 ? ` ${remainMonth}개월` : ''}`
+        : `${remainMonth}개월`;
+      tooltips.push(`초반제한 기간: ${remainText} (${limitYear}년)`);
+    }
+
+    // 기술 등급 제한 툴팁
+    if (gameConst) {
+      const maxTechLevel = gameConst.maxTechLevel || 12;
+      const initialAllowedTechLevel = gameConst.initialAllowedTechLevel || 1;
+      const techLevelIncYear = gameConst.techLevelIncYear || 5;
+      
+      const currentTechLimit = getMaxRelativeTechLevel(
+        mapData.startYear,
+        mapData.year,
+        maxTechLevel,
+        initialAllowedTechLevel,
+        techLevelIncYear
+      );
+
+      if (currentTechLimit >= maxTechLevel) {
+        tooltips.push(`기술등급 제한: ${currentTechLimit}등급 (최종)`);
+      } else {
+        const nextTechLimitYear = currentTechLimit * techLevelIncYear + mapData.startYear;
+        tooltips.push(`기술등급 제한: ${currentTechLimit}등급 (${nextTechLimitYear}년 해제)`);
+      }
+    }
+
+    return tooltips.join('\n');
+  }, [mapData.startYear, mapData.year, mapData.month, gameConst]);
+
   function handleCityClick(e: React.MouseEvent, city: ParsedCity) {
     e.preventDefault();
     
-    // 도시 ID가 0이거나 클릭 불가능한 경우 무시
     if (city.id === 0 || !city.clickable) {
       return;
     }
     
-    // Ctrl+클릭 또는 Cmd+클릭 시 새 탭에서 열기
     if (e.ctrlKey || e.metaKey) {
       const url = `/${serverID}/info/current-city?cityId=${city.id}`;
       window.open(url, '_blank');
       return;
     }
     
-    // 일반 클릭 시 콜백 호출
-    if (onCityClick) {
-      onCityClick(city.id);
+    if (doubleTapMode) {
+      const currentTime = Date.now();
+      const timeSinceLastTap = currentTime - lastTapTimeRef.current;
+      
+      if (lastTapCityRef.current === city.id && timeSinceLastTap < 600) {
+        if (onCityClick) {
+          onCityClick(city.id);
+        }
+        setSelectedCityId(null);
+        lastTapCityRef.current = null;
+        lastTapTimeRef.current = 0;
+      } else {
+        setSelectedCityId(city.id);
+        lastTapCityRef.current = city.id;
+        lastTapTimeRef.current = currentTime;
+      }
+    } else {
+      if (onCityClick) {
+        onCityClick(city.id);
+      }
     }
   }
 
-  // 레벨을 텍스트로 변환
+  function handleCityTouchEnd(e: React.TouchEvent, city: ParsedCity) {
+    e.preventDefault();
+    
+    if (city.id === 0 || !city.clickable) {
+      return;
+    }
+    
+    if (doubleTapMode) {
+      const currentTime = Date.now();
+      const timeSinceLastTap = currentTime - lastTapTimeRef.current;
+      
+      if (lastTapCityRef.current === city.id && timeSinceLastTap < 600) {
+        if (onCityClick) {
+          onCityClick(city.id);
+        }
+        setSelectedCityId(null);
+        lastTapCityRef.current = null;
+        lastTapTimeRef.current = 0;
+      } else {
+        setSelectedCityId(city.id);
+        lastTapCityRef.current = city.id;
+        lastTapTimeRef.current = currentTime;
+      }
+    } else {
+      if (onCityClick) {
+        onCityClick(city.id);
+      }
+    }
+  }
+
   const getLevelText = (level: number): string => {
     const levelMap: Record<number, string> = {
-      0: '무',
-      1: '향',
-      2: '수',
-      3: '진',
-      4: '관',
-      5: '이',
-      6: '소',
-      7: '중',
-      8: '대',
-      9: '특',
-      10: '경',
+      0: '무', 1: '향', 2: '수', 3: '진', 4: '관',
+      5: '이', 6: '소', 7: '중', 8: '대', 9: '특', 10: '경',
     };
     return levelMap[level] || '무';
   };
 
-  // 지역 ID를 지역 이름으로 변환
   const getRegionText = (region: number): string => {
     const regionMap: Record<number, string> = {
-      1: '하북',
-      2: '중원',
-      3: '서북',
-      4: '서촉',
-      5: '남중',
-      6: '초',
-      7: '오월',
-      8: '동이',
+      1: '하북', 2: '중원', 3: '서북', 4: '서촉',
+      5: '남중', 6: '초', 7: '오월', 8: '동이',
     };
     return regionMap[region] || `지역${region}`;
   };
@@ -148,7 +242,6 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
     setActivatedCity(null);
   }
 
-  // 계절별 클래스 결정
   const getSeasonClass = () => {
     const month = mapData.month || 1;
     if (month <= 3) return 'map_spring';
@@ -161,28 +254,32 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
 
   return (
     <div className={`world_map map_detail full_width_map ${seasonClass} ${hideCityName ? 'hide_cityname' : ''} ${styles.worldMap}`}>
-      <div className={styles.mapTitle}>
+      <div className={styles.mapTitle} title={titleTooltip}>
         <span className={styles.mapTitleText}>
           {mapData.year}年 {mapData.month}月
         </span>
       </div>
-      <div ref={mapBodyRef} className={styles.mapBody}>
-        {/* 배경 레이어들 (먼저 렌더링) */}
+      <div 
+        ref={mapBodyRef} 
+        className={styles.mapBody}
+        onClick={() => setSelectedCityId(null)}
+      >
         <div className={styles.mapBglayer1}></div>
         <div className={styles.mapBglayer2}></div>
         <div className={styles.mapBgroad}></div>
-        {/* 도시 마커들 (나중에 렌더링 - DOM 순서로 위에 표시) */}
         {parsedCities.length > 0 ? (
           parsedCities.map((city) => (
             <MapCityDetail
               key={city.id}
               city={city}
               isMyCity={city.id === myCity}
+              isSelected={doubleTapMode && city.id === selectedCityId}
               isFullWidth={isFullWidth}
               hideCityName={hideCityName}
               onMouseEnter={handleCityMouseEnter}
               onMouseLeave={handleCityMouseLeave}
               onClick={handleCityClick}
+              onTouchEnd={handleCityTouchEnd}
               onToggleCityName={() => setHideCityName(!hideCityName)}
             />
           ))
@@ -191,7 +288,6 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
             도시가 없습니다. parsedCities: {parsedCities.length}
           </div>
         )}
-        {/* 버튼 스택 (가장 위) */}
         <div className={styles.mapButtonStack}>
           <button
             type="button"
@@ -202,6 +298,18 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
             }}
           >
             도시명 표기
+          </button>
+          <button
+            type="button"
+            className={`btn btn-primary btn-sm btn-minimum ${doubleTapMode ? 'active' : ''}`}
+            onClick={() => {
+              setDoubleTapMode(!doubleTapMode);
+              setSelectedCityId(null);
+              lastTapCityRef.current = null;
+              lastTapTimeRef.current = 0;
+            }}
+          >
+            두번 탭 해 도시 이동
           </button>
         </div>
       </div>

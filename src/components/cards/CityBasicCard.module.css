@@ -37,10 +37,20 @@
 
 .cityNamePanel,
 .nationNamePanel {
-    font-weight: bold;
-    text-align: center;
-    border-top: solid 1px gray;
-    border-left: solid 1px gray;
+font-weight: bold;
+text-align: center;
+border-top: solid 1px gray;
+border-left: solid 1px gray;
+}
+
+.clickable {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.clickable:hover {
+  opacity: 0.8;
 }
 
 .popPanel {

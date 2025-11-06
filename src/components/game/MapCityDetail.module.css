@@ -139,21 +139,67 @@
     z-index: 3;
 }
 
-/* my_city - 내 도시 표시 */
+/* my_city - 내 도시 표시 (PHP 버전과 동일한 흰색+빨간색 점선 애니메이션) */
 :global(.city_base .my_city) {
-    animation: blink-my-city-d1 2s infinite;
+    position: relative;
 }
 
-@keyframes blink-my-city-d1 {
+:global(.city_base .my_city)::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    animation: blink-my-city-white 2s infinite;
+}
+
+:global(.city_base .my_city)::after {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    animation: blink-my-city-red 2s infinite;
+}
+
+@keyframes blink-my-city-white {
     0% {
-        outline: solid 4px transparent;
+        outline: dashed 5px transparent;
     }
     50% {
-        outline: solid 4px rgba(255, 0, 0, 1);
+        outline: dashed 5px white;
     }
     100% {
-        outline: solid 4px transparent;
+        outline: dashed 5px transparent;
     }
+}
+
+@keyframes blink-my-city-red {
+    0% {
+        outline: dashed 4px transparent;
+    }
+    50% {
+        outline: dashed 4px red;
+    }
+    100% {
+        outline: dashed 4px transparent;
+    }
+}
+
+/* 거처 도시 아이콘 표시 */
+:global(.city_base .city_home_indicator) {
+    position: absolute;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* 수도 별 아이콘 표시 */
+:global(.city_base .city_capital_indicator) {
+    position: absolute;
+    z-index: 10;
+    pointer-events: none;
 }
 
 /* city_flag - 이미지 사용 (PHP 원본과 동일) */
@@ -313,4 +359,16 @@
 :global(.map_detail .city_base.city_level_8 .city_flag) {
     right: -6px;
     top: -3px;
+}
+
+/* 선택된 도시 하이라이트 애니메이션 */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
 }

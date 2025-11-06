@@ -1,0 +1,87 @@
+.defendContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 데미지 숫자 */
+.damageNumber {
+  position: absolute;
+  font-size: 3rem;
+  font-weight: bold;
+  color: #ff0000;
+  text-shadow: 
+    0 0 10px black, 
+    0 0 20px #ff0000,
+    2px 2px 4px rgba(0, 0, 0, 0.8);
+  animation: damageRise 1s forwards;
+  z-index: 3;
+}
+
+@keyframes damageRise {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+  30% {
+    transform: translateY(-20px) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-60px) scale(1);
+    opacity: 0;
+  }
+}
+
+/* 피격 효과 */
+.hitEffect {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.hitFlash {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255, 0, 0, 0.8) 0%, transparent 70%);
+  animation: flash 0.3s ease-out;
+  border-radius: 50%;
+}
+
+@keyframes flash {
+  0%, 100% { 
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 사망 효과 */
+.deathEffect {
+  position: absolute;
+  font-size: 4rem;
+  animation: deathAppear 0.5s ease-out 0.3s forwards;
+  opacity: 0;
+  z-index: 2;
+}
+
+@keyframes deathAppear {
+  from {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) rotate(360deg);
+    opacity: 1;
+  }
+}

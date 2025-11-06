@@ -1,0 +1,230 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.cutsceneContainer {
+  position: relative;
+  display: flex;
+  gap: 2rem;
+  background: linear-gradient(to bottom, #1a1a2e, #16213e);
+  border: 3px solid #d4af37;
+  border-radius: 12px;
+  padding: 2rem;
+  min-width: 900px;
+  min-height: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.skipHint {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+}
+
+/* 유닛 패널 */
+.unitPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease-out;
+}
+
+.unitPanel.active {
+  transform: scale(1.05);
+}
+
+.unitPanel.dead {
+  opacity: 0.4;
+  filter: grayscale(100%);
+}
+
+/* 초상화 */
+.portrait {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border: 3px solid #666;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 발광 효과 (공격 시) */
+.glowEffect {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  border: 3px solid #d4af37;
+  border-radius: 8px;
+  box-shadow: 
+    0 0 20px #d4af37, 
+    inset 0 0 20px rgba(212, 175, 55, 0.3);
+  animation: pulse 0.5s infinite;
+  pointer-events: none;
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1;
+    box-shadow: 
+      0 0 20px #d4af37, 
+      inset 0 0 20px rgba(212, 175, 55, 0.3);
+  }
+  50% { 
+    opacity: 0.6;
+    box-shadow: 
+      0 0 30px #d4af37, 
+      inset 0 0 30px rgba(212, 175, 55, 0.5);
+  }
+}
+
+/* 흔들림 효과 (피격 시) */
+.shakeEffect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  animation: shake 0.4s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* 사망 오버레이 */
+.deathOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #ff0000;
+  font-weight: bold;
+  text-shadow: 
+    0 0 10px black,
+    0 0 20px #ff0000;
+  animation: deathFadeIn 0.5s;
+}
+
+@keyframes deathFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 유닛 정보 */
+.unitInfo {
+  color: white;
+  text-align: center;
+  min-width: 200px;
+}
+
+.generalName {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #d4af37;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.unitType {
+  font-size: 1rem;
+  color: #aaa;
+  margin-bottom: 0.5rem;
+}
+
+.stats {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: #ccc;
+  margin-bottom: 0.5rem;
+}
+
+.stats div {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.crew {
+  font-size: 1.1rem;
+  color: white;
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
+/* 애니메이션 영역 */
+.animationArea {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 300px;
+  position: relative;
+}
+
+.resultText {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #ff0000;
+  text-shadow: 
+    0 0 20px black,
+    0 0 40px #ff0000;
+  animation: resultPulse 0.5s;
+}
+
+@keyframes resultPulse {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

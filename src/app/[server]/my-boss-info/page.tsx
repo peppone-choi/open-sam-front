@@ -24,7 +24,7 @@ export default function MyBossInfoPage() {
       setLoading(true);
       
       const [bossResult, frontInfoResult] = await Promise.all([
-        SammoAPI.GetMyBossInfo({ session_id: serverID }).catch(() => null),
+        SammoAPI.GetMyBossInfo().catch(() => null),
         SammoAPI.GeneralGetFrontInfo({
           serverID: serverID || '',
           lastNationNoticeDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -60,7 +60,6 @@ export default function MyBossInfoPage() {
             nation={nationData}
             troopInfo={bossData.troopInfo}
             turnTerm={0}
-            lastExecuted={new Date()}
           />
         </div>
       ) : (

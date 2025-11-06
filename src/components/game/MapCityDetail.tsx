@@ -13,19 +13,22 @@ interface MapCity {
   color?: string;
   isCapital: boolean;
   supply: boolean;
+  region: number;
   x: number;
   y: number;
-  clickable: boolean;
+  clickable: number;
 }
 
 interface MapCityDetailProps {
   city: MapCity;
   isMyCity: boolean;
+  isSelected?: boolean;
   isFullWidth: boolean;
   hideCityName?: boolean;
   onMouseEnter?: (e: React.MouseEvent, city: MapCity) => void;
   onMouseLeave?: (e: React.MouseEvent) => void;
   onClick?: (e: React.MouseEvent, city: MapCity) => void;
+  onTouchEnd?: (e: React.TouchEvent, city: MapCity) => void;
   onToggleCityName?: () => void;
 }
 
@@ -35,11 +38,13 @@ const IMAGE_PATH = '/image/game'; // 게임 이미지 경로
 export default function MapCityDetail({
   city,
   isMyCity,
+  isSelected = false,
   isFullWidth,
   hideCityName = false,
   onMouseEnter,
   onMouseLeave,
   onClick,
+  onTouchEnd,
   onToggleCityName,
 }: MapCityDetailProps) {
   // 위치 계산 - 도시 아이콘 중심 맞추기
@@ -68,6 +73,12 @@ export default function MapCityDetail({
   const handleMouseLeave = (e: React.MouseEvent) => {
     if (onMouseLeave) {
       onMouseLeave(e);
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (onTouchEnd) {
+      onTouchEnd(e, city);
     }
   };
 
@@ -220,10 +231,62 @@ export default function MapCityDetail({
           }}
         />
       )}
+      {/* 선택된 도시 하이라이트 */}
+      {isSelected && (
+        <div
+          className="city_selected"
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            width: '45px',
+            height: '45px',
+            background: 'radial-gradient(circle, rgba(255, 255, 0, 0.6) 0%, rgba(255, 255, 0, 0.4) 50%, transparent 100%)',
+            border: '2px solid rgba(255, 255, 0, 0.8)',
+            borderRadius: '50%',
+            pointerEvents: 'none',
+            transform: 'translate(-50%, -50%)',
+            animation: 'pulse 1s ease-in-out infinite',
+          }}
+        />
+      )}
+      {/* 자신의 거처 도시 강조 표시 */}
+      {isMyCity && (
+        <div className="city_home_indicator">
+          <span style={{
+            position: 'absolute',
+            left: '-8px',
+            top: '-8px',
+            fontSize: '16px',
+            zIndex: 10,
+            filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.8))',
+            pointerEvents: 'none',
+          }}>
+            🏠
+          </span>
+        </div>
+      )}
+      {/* 수도 강조 표시 */}
+      {city.isCapital && (
+        <div className="city_capital_indicator">
+          <span style={{
+            position: 'absolute',
+            left: '32px',
+            top: '-8px',
+            fontSize: '14px',
+            zIndex: 10,
+            filter: 'drop-shadow(0 0 2px rgba(255,215,0,0.8))',
+            pointerEvents: 'none',
+          }}>
+            ⭐
+          </span>
+        </div>
+      )}
       <a
         className="city_link"
         href="#"
         onClick={handleClick}
+        onTouchEnd={handleTouchEnd}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         data-text={city.name}
@@ -231,6 +294,7 @@ export default function MapCityDetail({
         data-id={city.id}
         style={{
           cursor: city.clickable ? 'pointer' : 'default',
+          opacity: city.clickable ? 1 : 0.6,
         }}
       >
         <div className="city_img">

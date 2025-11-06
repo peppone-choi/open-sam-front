@@ -11,7 +11,17 @@
 }
 
 .name {
-    grid-column: 1 / span 4;
+grid-column: 1 / span 4;
+}
+
+.clickable {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.clickable:hover {
+  opacity: 0.8;
 }
 
 .typeBody {

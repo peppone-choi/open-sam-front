@@ -51,44 +51,78 @@ export default function MainControlBar({
     };
   }, []);
 
+  const handleDisabledClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+  };
+
   return (
     <div className={styles.controlBar}>
       {/* 회의실: myLevel >= 1 (nationLevel 무관) */}
-      <Link href={`${basePath}/board`} className={`${styles.btn} ${myLevel >= 1 ? '' : styles.disabled}`}>
-        회 의 실
-      </Link>
-      <Link
-        href={`${basePath}/board?isSecret=true`}
-        className={`${styles.btn} ${permission >= 2 ? '' : styles.disabled}`}
-      >
-        기 밀 실
-      </Link>
-      <Link
-        href={`${basePath}/troop`}
-        className={`${styles.btn} ${hasNationAccess && myLevel >= 1 ? '' : styles.disabled}`}
-      >
-        부대 편성
-      </Link>
-      <Link href={`${basePath}/diplomacy`} className={`${styles.btn} ${hasNationAccess && showSecret ? '' : styles.disabled}`}>
-        외 교 부
-      </Link>
+      {!isRonin && myLevel >= 1 ? (
+        <Link href={`${basePath}/board`} className={styles.btn}>
+          회 의 실
+        </Link>
+      ) : (
+        <span className={`${styles.btn} ${styles.disabled}`}>회 의 실</span>
+      )}
+      {permission >= 2 ? (
+        <Link href={`${basePath}/board?isSecret=true`} className={styles.btn}>
+          기 밀 실
+        </Link>
+      ) : (
+        <span className={`${styles.btn} ${styles.disabled}`}>기 밀 실</span>
+      )}
+      {hasNationAccess && myLevel >= 1 ? (
+        <Link href={`${basePath}/troop`} className={styles.btn}>
+          부대 편성
+        </Link>
+      ) : (
+        <span className={`${styles.btn} ${styles.disabled}`}>부대 편성</span>
+      )}
+      {hasNationAccess && showSecret ? (
+        <Link href={`${basePath}/diplomacy`} className={styles.btn}>
+          외 교 부
+        </Link>
+      ) : (
+        <span className={`${styles.btn} ${styles.disabled}`}>외 교 부</span>
+      )}
       {/* 인사부: myLevel >= 1 (nationLevel 무관) */}
-      <Link href={`${basePath}/info/officer`} className={`${styles.btn} ${myLevel >= 1 ? '' : styles.disabled}`}>
-        인 사 부
-      </Link>
-      <Link href={`${basePath}/nation/stratfinan`} className={`${styles.btn} ${hasNationAccess && showSecret ? '' : styles.disabled}`}>
-        내 무 부
-      </Link>
-      <Link href={`${basePath}/chief`} className={`${styles.btn} ${hasNationAccess && showSecret ? '' : styles.disabled}`}>
-        사 령 부
-      </Link>
-      <Link href={`${basePath}/npc-control`} className={`${styles.btn} ${hasNationAccess && showSecret ? '' : styles.disabled}`}>
-        NPC 정책
-      </Link>
+      {!isRonin && myLevel >= 1 ? (
+        <Link href={`${basePath}/info/officer`} className={styles.btn}>
+          인 사 부
+        </Link>
+      ) : (
+        <span className={`${styles.btn} ${styles.disabled}`}>인 사 부</span>
+      )}
+      {hasNationAccess && showSecret ? (
+        <Link href={`${basePath}/nation/stratfinan`} className={styles.btn}>
+          내 무 부
+        </Link>
+      ) : (
+        <span className={`${styles.btn} ${styles.disabled}`}>내 무 부</span>
+      )}
+      {hasNationAccess && showSecret ? (
+        <Link href={`${basePath}/chief`} className={styles.btn}>
+          사 령 부
+        </Link>
+      ) : (
+        <span className={`${styles.btn} ${styles.disabled}`}>사 령 부</span>
+      )}
+      {hasNationAccess && showSecret ? (
+        <Link href={`${basePath}/npc-control`} className={styles.btn}>
+          NPC 정책
+        </Link>
+      ) : (
+        <span className={`${styles.btn} ${styles.disabled}`}>NPC 정책</span>
+      )}
       {/* 암행부: showSecret만 체크 (nationLevel 무관) */}
-      <Link href={`${basePath}/info/generals`} target="_blank" className={`${styles.btn} ${showSecret ? '' : styles.disabled}`}>
-        암 행 부
-      </Link>
+      {showSecret ? (
+        <Link href={`${basePath}/info/generals`} target="_blank" className={styles.btn}>
+          암 행 부
+        </Link>
+      ) : (
+        <span className={`${styles.btn} ${styles.disabled}`}>암 행 부</span>
+      )}
       <Link
         href={`${basePath}/tournament`}
         target="_blank"
@@ -97,28 +131,41 @@ export default function MainControlBar({
         토 너 먼 트
       </Link>
       {/* 세력 정보: myLevel >= 1 (nationLevel 무관) */}
-      <Link href={`${basePath}/info/nation`} className={`${styles.btn} ${myLevel >= 1 ? '' : styles.disabled}`}>
-        세력 정보
-      </Link>
-      <Link
-        href={`${basePath}/info/city`}
-        className={`${styles.btn} ${hasNationAccess && myLevel >= 1 ? '' : styles.disabled}`}
-      >
-        세력 도시
-      </Link>
+      {!isRonin && myLevel >= 1 ? (
+        <Link href={`${basePath}/info/nation`} className={styles.btn}>
+          세력 정보
+        </Link>
+      ) : (
+        <span className={`${styles.btn} ${styles.disabled}`}>세력 정보</span>
+      )}
+      {hasNationAccess && myLevel >= 1 ? (
+        <Link href={`${basePath}/info/city`} className={styles.btn}>
+          세력 도시
+        </Link>
+      ) : (
+        <span className={`${styles.btn} ${styles.disabled}`}>세력 도시</span>
+      )}
       {/* 세력 장수: myLevel >= 1 (nationLevel 무관) */}
-      <Link href={`${basePath}/nation/generals`} className={`${styles.btn} ${myLevel >= 1 ? '' : styles.disabled}`}>
-        세력 장수
-      </Link>
+      {!isRonin && myLevel >= 1 ? (
+        <Link href={`${basePath}/nation/generals`} className={styles.btn}>
+          세력 장수
+        </Link>
+      ) : (
+        <span className={`${styles.btn} ${styles.disabled}`}>세력 장수</span>
+      )}
       <Link href={`${basePath}/world`} className={styles.btn}>
         중원 정보
       </Link>
       <Link href={`${basePath}/info/current-city`} className={styles.btn}>
         현재 도시
       </Link>
-      <Link href={`${basePath}/battle-center`} target="_blank" className={`${styles.btn} ${hasNationAccess && showSecret ? '' : styles.disabled}`}>
-        감 찰 부
-      </Link>
+      {hasNationAccess && showSecret ? (
+        <Link href={`${basePath}/battle-center`} target="_blank" className={styles.btn}>
+          감 찰 부
+        </Link>
+      ) : (
+        <span className={`${styles.btn} ${styles.disabled}`}>감 찰 부</span>
+      )}
       <Link href={`${basePath}/inherit`} className={styles.btn}>
         유산 관리
       </Link>

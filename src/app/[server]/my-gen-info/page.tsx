@@ -62,7 +62,6 @@ export default function MyGenInfoPage() {
             nation={nationData}
             troopInfo={generalData.troopInfo}
             turnTerm={0}
-            lastExecuted={new Date()}
           />
         </div>
       ) : (

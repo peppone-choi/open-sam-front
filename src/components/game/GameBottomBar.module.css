@@ -1,0 +1,260 @@
+/* 모바일 전용 하단 바 */
+.gameBottomBar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: #1a1a1a;
+  border-top: 2px solid #333;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.navbar {
+  width: 100%;
+  max-width: 100vw;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.navbarNav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.navItem {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.navBtn {
+  width: 100%;
+  min-height: 48px; /* 터치 친화적 최소 높이 */
+  padding: 0.75rem 0.5rem;
+  background-color: #2a2a2a;
+  color: white;
+  border: none;
+  border-radius: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #333;
+}
+
+.navItem:last-child .navBtn {
+  border-right: none;
+}
+
+.navBtn:hover {
+  background-color: #3a3a3a;
+}
+
+.navBtn:active {
+  background-color: #0a0a0a;
+}
+
+.navBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.refreshBtn {
+  background-color: #007bff;
+}
+
+.refreshBtn:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.refreshBtn:active:not(:disabled) {
+  background-color: #004085;
+}
+
+.lobbyBtn {
+  background-color: #28a745;
+}
+
+.lobbyBtn:hover {
+  background-color: #218838;
+}
+
+.lobbyBtn:active {
+  background-color: #1e7e34;
+}
+
+/* 빠른 이동 메뉴 (드롭업) */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.quickMenu {
+  position: fixed;
+  bottom: 48px; /* 하단 바 높이만큼 위 */
+  left: 0;
+  right: 0;
+  max-height: 70vh;
+  background-color: #1a1a1a;
+  border-top: 2px solid #333;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
+  z-index: 1002;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.quickMenuHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #2a2a2a;
+  border-bottom: 1px solid #333;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.quickMenuHeader h4 {
+  margin: 0;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.closeBtn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.closeBtn:active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.quickMenuContent {
+  padding: 0.5rem;
+}
+
+.menuSection {
+  margin-bottom: 1rem;
+}
+
+.menuSection:last-child {
+  margin-bottom: 0;
+}
+
+.menuSectionTitle {
+  color: #888;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #333;
+  margin-bottom: 0.25rem;
+}
+
+.menuItem {
+  width: 100%;
+  min-height: 44px; /* 터치 친화적 높이 */
+  padding: 0.75rem 1rem;
+  background-color: #2a2a2a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-align: left;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.menuItem:hover {
+  background-color: #3a3a3a;
+}
+
+.menuItem:active {
+  background-color: #4a4a4a;
+}
+
+/* 모바일에서만 표시 (768px 이하) */
+@media (max-width: 768px) {
+  .gameBottomBar {
+    display: block;
+  }
+}
+
+/* 추가 작은 화면 최적화 (500px 이하) */
+@media (max-width: 500px) {
+  .navBtn {
+    min-height: 52px; /* 더 큰 터치 영역 */
+    font-size: 0.8125rem;
+    padding: 0.875rem 0.25rem;
+  }
+
+  .quickMenu {
+    bottom: 52px; /* 하단 바 높이만큼 위 */
+    max-height: 75vh;
+  }
+
+  .quickMenuHeader h4 {
+    font-size: 0.9375rem;
+  }
+
+  .menuItem {
+    min-height: 48px;
+    font-size: 0.9375rem;
+  }
+}
