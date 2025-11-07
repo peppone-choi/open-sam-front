@@ -37,7 +37,7 @@ interface ParsedCity {
 
 export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFullWidth = true, gameConst }: MapViewerProps) {
   const [hideCityName, setHideCityName] = useState(false);
-  const [doubleTapMode, setDoubleTapMode] = useState(true);
+  const [doubleTapMode, setDoubleTapMode] = useState(false);
   const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
   const [activatedCity, setActivatedCity] = useState<{
     id: number;
