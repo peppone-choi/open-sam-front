@@ -85,17 +85,17 @@ export default function MapCityDetail({
   // 도시 아이콘 이미지 크기 반환 (실제 이미지 크기)
   const getCityIconImgSize = (level: number): { width: string; height: string } => {
     const sizes: Record<number, { width: string; height: string }> = {
-      0: { width: '28px', height: '16px' }, // 무 - 00.png
-      1: { width: '28px', height: '16px' }, // 향 - 00_hyang.png
-      2: { width: '28px', height: '16px' }, // 수 - 00_su.png
+      0: { width: '20px', height: '11px' }, // 무 - 00.png
+      1: { width: '20px', height: '11px' }, // 향 - 00_hyang.png
+      2: { width: '25px', height: '15px' }, // 수 - 00_su.png
       3: { width: '28px', height: '16px' }, // 진 - 00_jin.png
-      4: { width: '28px', height: '16px' }, // 관 - 00_gwan.png
-      5: { width: '28px', height: '16px' }, // 이 - 00_i.png
+      4: { width: '14px', height: '12px' }, // 관 - 00_gwan.png
+      5: { width: '20px', height: '16px' }, // 이 - 00_i.png
       6: { width: '28px', height: '16px' }, // 소 - 01.png
       7: { width: '29px', height: '17px' }, // 중 - 02.png
       8: { width: '27px', height: '18px' }, // 대 - 03.png
       9: { width: '36px', height: '21px' }, // 특 - 04.png
-      10: { width: '41px', height: '25px' }, // 특 - 05.png
+      10: { width: '41px', height: '25px' }, // 경 - 05.png
     };
     return sizes[level] || sizes[8];
   };
@@ -103,12 +103,12 @@ export default function MapCityDetail({
   // 도시 아이콘 위치 반환 (CSS와 동일하게 중앙 정렬)
   const getCityIconPosition = (level: number): { left: string; top: string } => {
     const positions: Record<number, { left: string; top: string }> = {
-      0: { left: 'calc((40px - 28px) / 2)', top: 'calc((30px - 16px) / 2)' },
-      1: { left: 'calc((40px - 28px) / 2)', top: 'calc((30px - 16px) / 2)' },
-      2: { left: 'calc((40px - 28px) / 2)', top: 'calc((30px - 16px) / 2)' },
+      0: { left: 'calc((40px - 20px) / 2)', top: 'calc((30px - 11px) / 2)' },
+      1: { left: 'calc((40px - 20px) / 2)', top: 'calc((30px - 11px) / 2)' },
+      2: { left: 'calc((40px - 25px) / 2)', top: 'calc((30px - 15px) / 2)' },
       3: { left: 'calc((40px - 28px) / 2)', top: 'calc((30px - 16px) / 2)' },
-      4: { left: 'calc((40px - 28px) / 2)', top: 'calc((30px - 16px) / 2)' },
-      5: { left: 'calc((40px - 28px) / 2)', top: 'calc((30px - 16px) / 2)' },
+      4: { left: 'calc((40px - 14px) / 2)', top: 'calc((30px - 12px) / 2)' },
+      5: { left: 'calc((40px - 20px) / 2)', top: 'calc((30px - 16px) / 2)' },
       6: { left: 'calc((40px - 28px) / 2)', top: 'calc((30px - 16px) / 2)' },
       7: { left: 'calc((40px - 29px) / 2)', top: 'calc((30px - 17px) / 2)' },
       8: { left: 'calc((40px - 27px) / 2)', top: 'calc((30px - 18px) / 2)' },
@@ -178,6 +178,35 @@ export default function MapCityDetail({
   // 계림은 중앙 아래에 표시
   const isCenterCity = city.name === '계림';
 
+  // 도시명 위치 계산 (도시 아이콘 크기에 맞춰서)
+  const getCityNamePosition = (level: number): { left?: string; right?: string; top: string } => {
+    const iconSize = getCityIconImgSize(level);
+    const iconWidth = parseInt(iconSize.width);
+    const iconHeight = parseInt(iconSize.height);
+    
+    // 40x30 컨테이너 기준으로 아이콘이 중앙 정렬되어 있음
+    const containerWidth = 40;
+    const iconCenterX = containerWidth / 2; // 20px
+    const iconRight = iconCenterX + iconWidth / 2;
+    const iconCenterY = 15; // 30px / 2
+    const iconBottom = iconCenterY + iconHeight / 2;
+    
+    // 도시명을 아이콘 오른쪽 끝에서 약간 떨어진 위치에 배치
+    const nameLeft = iconRight + 2; // 아이콘 오른쪽 끝에서 2px 간격
+    const nameTop = Math.max(iconBottom - 5, 18); // 최소 18px
+    
+    if (isRightEdge) {
+      // 오른쪽 끝 도시는 아이콘 왼쪽에 배치
+      const iconLeft = iconCenterX - iconWidth / 2;
+      const nameRight = containerWidth - iconLeft + 2;
+      return { right: `${nameRight}px`, top: `${nameTop}px` };
+    } else {
+      return { left: `${nameLeft}px`, top: `${nameTop}px` };
+    }
+  };
+
+  const cityNamePosition = getCityNamePosition(city.level);
+
   return (
     <div
       className={`city_base city_base_${city.id} city_level_${city.level}`}
@@ -201,9 +230,7 @@ export default function MapCityDetail({
           position: 'absolute',
           ...(isCenterCity
             ? { left: '50%', top: '30px', transform: 'translateX(-50%)' }  // 계림은 중앙 아래
-            : isRightEdge 
-              ? { right: '32px', top: '18px' }  // 오른쪽 끝 도시는 왼쪽에 표시
-              : { left: '32px', top: '18px' }   // 일반 도시는 오른쪽에 표시
+            : cityNamePosition
           ),
           fontSize: '10px',
           whiteSpace: 'nowrap',
