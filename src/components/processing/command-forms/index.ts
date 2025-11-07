@@ -19,4 +19,5 @@ export { default as AppointGeneralCommandForm } from './AppointGeneralCommandFor
 export { default as NoAggressionProposalCommandForm } from './NoAggressionProposalCommandForm';
 export { default as PiJangPaJangCommandForm } from './PiJangPaJangCommandForm';
 export { default as MovePopulationCommandForm } from './MovePopulationCommandForm';
+export { default as RaiseArmyCommandForm } from './RaiseArmyCommandForm';
 

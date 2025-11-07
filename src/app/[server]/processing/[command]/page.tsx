@@ -25,7 +25,8 @@ import {
   AppointGeneralCommandForm,
   NoAggressionProposalCommandForm,
   PiJangPaJangCommandForm,
-  MovePopulationCommandForm
+  MovePopulationCommandForm,
+  RaiseArmyCommandForm
 } from '@/components/processing/command-forms';
 import type { ProcGeneralItem, ProcNationItem } from '@/components/processing/SelectGeneral';
 import styles from './page.module.css';
@@ -299,6 +300,16 @@ export default function CommandProcessingPage() {
           amountGuide={commandData.amountGuide || []}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
+        />
+      );
+    }
+
+    // 거병 커맨드
+    if (commandType === '거병' || commandType === 'che_거병' || commandType === 'raiseArmy') {
+      return (
+        <RaiseArmyCommandForm
+          serverID={serverID}
+          onComplete={() => router.push(`/${serverID}/game`)}
         />
       );
     }
