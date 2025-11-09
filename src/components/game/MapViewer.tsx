@@ -37,7 +37,6 @@ interface ParsedCity {
 
 export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFullWidth = true, gameConst }: MapViewerProps) {
   const [hideCityName, setHideCityName] = useState(false);
-  const [doubleTapMode, setDoubleTapMode] = useState(false);
   const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
   const [activatedCity, setActivatedCity] = useState<{
     id: number;
@@ -48,8 +47,6 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
   } | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const mapBodyRef = useRef<HTMLDivElement>(null);
-  const lastTapTimeRef = useRef<number>(0);
-  const lastTapCityRef = useRef<number | null>(null);
 
   // 도시 데이터 파싱
   const parsedCities = useMemo(() => {
@@ -155,26 +152,9 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
       return;
     }
     
-    if (doubleTapMode) {
-      const currentTime = Date.now();
-      const timeSinceLastTap = currentTime - lastTapTimeRef.current;
-      
-      if (lastTapCityRef.current === city.id && timeSinceLastTap < 600) {
-        if (onCityClick) {
-          onCityClick(city.id);
-        }
-        setSelectedCityId(null);
-        lastTapCityRef.current = null;
-        lastTapTimeRef.current = 0;
-      } else {
-        setSelectedCityId(city.id);
-        lastTapCityRef.current = city.id;
-        lastTapTimeRef.current = currentTime;
-      }
-    } else {
-      if (onCityClick) {
-        onCityClick(city.id);
-      }
+    // 단일 클릭으로 바로 이동
+    if (onCityClick) {
+      onCityClick(city.id);
     }
   }
 
@@ -185,26 +165,9 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
       return;
     }
     
-    if (doubleTapMode) {
-      const currentTime = Date.now();
-      const timeSinceLastTap = currentTime - lastTapTimeRef.current;
-      
-      if (lastTapCityRef.current === city.id && timeSinceLastTap < 600) {
-        if (onCityClick) {
-          onCityClick(city.id);
-        }
-        setSelectedCityId(null);
-        lastTapCityRef.current = null;
-        lastTapTimeRef.current = 0;
-      } else {
-        setSelectedCityId(city.id);
-        lastTapCityRef.current = city.id;
-        lastTapTimeRef.current = currentTime;
-      }
-    } else {
-      if (onCityClick) {
-        onCityClick(city.id);
-      }
+    // 단일 터치로 바로 이동
+    if (onCityClick) {
+      onCityClick(city.id);
     }
   }
 
@@ -273,7 +236,7 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
               key={city.id}
               city={city}
               isMyCity={city.id === myCity}
-              isSelected={doubleTapMode && city.id === selectedCityId}
+              isSelected={false}
               isFullWidth={isFullWidth}
               hideCityName={hideCityName}
               onMouseEnter={handleCityMouseEnter}
@@ -298,18 +261,6 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
             }}
           >
             도시명 표기
-          </button>
-          <button
-            type="button"
-            className={`btn btn-primary btn-sm btn-minimum ${doubleTapMode ? 'active' : ''}`}
-            onClick={() => {
-              setDoubleTapMode(!doubleTapMode);
-              setSelectedCityId(null);
-              lastTapCityRef.current = null;
-              lastTapTimeRef.current = 0;
-            }}
-          >
-            두번 탭 해 도시 이동
           </button>
         </div>
       </div>
