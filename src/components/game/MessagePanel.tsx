@@ -61,6 +61,13 @@ export default function MessagePanel({
   const [loadingMore, setLoadingMore] = useState(false);
   const messageListRef = useRef<HTMLDivElement>(null);
 
+  // nationID 변경 시 재야인데 국가/외교 탭이면 전체 탭으로 전환
+  useEffect(() => {
+    if (nationID === 0 && (activeTab === 'national' || activeTab === 'diplomacy')) {
+      setActiveTab('public');
+    }
+  }, [nationID]);
+
   useEffect(() => {
     setMessages([]);
     setOffset(0);
@@ -247,15 +254,17 @@ export default function MessagePanel({
         >
           전체
         </div>
-        <div
-          className={`${styles.boardHeader} ${activeTab === 'national' ? styles.active : ''}`}
-          onClick={() => {
-            setActiveTab('national');
-            setShowSendForm(false);
-          }}
-        >
-          국가
-        </div>
+        {nationID !== 0 && (
+          <div
+            className={`${styles.boardHeader} ${activeTab === 'national' ? styles.active : ''}`}
+            onClick={() => {
+              setActiveTab('national');
+              setShowSendForm(false);
+            }}
+          >
+            국가
+          </div>
+        )}
         <div
           className={`${styles.boardHeader} ${activeTab === 'private' ? styles.active : ''}`}
           onClick={() => {
@@ -265,7 +274,7 @@ export default function MessagePanel({
         >
           개인
         </div>
-        {permissionLevel >= 1 && (
+        {nationID !== 0 && permissionLevel >= 1 && (
           <div
             className={`${styles.boardHeader} ${activeTab === 'diplomacy' ? styles.active : ''}`}
             onClick={() => {
