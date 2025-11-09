@@ -28,7 +28,7 @@ interface Message {
   date: string;
 }
 
-type MessageType = 'public' | 'national' | 'private' | 'diplomacy';
+type MessageType = 'system' | 'public' | 'national' | 'private' | 'diplomacy';
 
 interface Contact {
   mailbox: number;
@@ -45,7 +45,7 @@ export default function MessagePanel({
   serverID,
 }: MessagePanelProps) {
   const { showToast } = useToast();
-  const [activeTab, setActiveTab] = useState<MessageType>('public');
+  const [activeTab, setActiveTab] = useState<MessageType>('system');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -89,6 +89,7 @@ export default function MessagePanel({
 
       const result = await SammoAPI.MessageGetMessages({
         serverID,
+        general_id: generalID,
         type: activeTab,
         limit,
         offset: currentOffset,
@@ -96,12 +97,12 @@ export default function MessagePanel({
 
       if (result.success && result.messages) {
         if (reset) {
-          setMessages(result.messages);
+          setMessages(result.messages || []);
         } else {
-          setMessages(prev => [...prev, ...result.messages]);
+          setMessages(prev => [...prev, ...(result.messages || [])]);
         }
         
-        setHasMore(result.hasMore ?? result.messages.length >= limit);
+        setHasMore(result.hasMore ?? (result.messages?.length || 0) >= limit);
         setOffset(currentOffset + result.messages.length);
       } else {
         setError(result.message || '메시지를 불러오는데 실패했습니다.');
@@ -181,6 +182,7 @@ export default function MessagePanel({
 
       const result = await SammoAPI.MessageSendMessage({
         serverID,
+        general_id: generalID,
         mailbox,
         to_general_id: activeTab === 'private' ? selectedGeneralId : undefined,
         text: sendText,
@@ -227,6 +229,15 @@ export default function MessagePanel({
   return (
     <div className={styles.messagePanel}>
       <div className={styles.messagePanelHeader}>
+        <div
+          className={`${styles.boardHeader} ${styles.systemTab} ${activeTab === 'system' ? styles.active : ''}`}
+          onClick={() => {
+            setActiveTab('system');
+            setShowSendForm(false);
+          }}
+        >
+          🔔 시스템
+        </div>
         <div
           className={`${styles.boardHeader} ${activeTab === 'public' ? styles.active : ''}`}
           onClick={() => {
@@ -344,14 +355,16 @@ export default function MessagePanel({
           </div>
         ) : (
           <>
-            <div className={styles.messageListHeader}>
-              <button
-                className={styles.sendMessageButton}
-                onClick={() => setShowSendForm(true)}
-              >
-                메시지 작성
-              </button>
-            </div>
+            {activeTab !== 'system' && (
+              <div className={styles.messageListHeader}>
+                <button
+                  className={styles.sendMessageButton}
+                  onClick={() => setShowSendForm(true)}
+                >
+                  메시지 작성
+                </button>
+              </div>
+            )}
             {loading ? (
               <div className={styles.messagePlaceholder}>로딩 중...</div>
             ) : error ? (
@@ -366,14 +379,23 @@ export default function MessagePanel({
                 ref={messageListRef}
                 onScroll={handleScroll}
               >
-                {messages.map((msg) => (
-                  <div key={msg.id} className={styles.messageItem}>
-                    <div className={styles.messageDate}>
-                      {msg.date ? new Date(msg.date).toLocaleString('ko-KR') : ''}
+                {messages.map((msg) => {
+                  const messageClass = `${styles.messageItem} ${
+                    msg.type === 'system' ? styles.systemMessage :
+                    msg.type === 'diplomacy' ? styles.diplomacyMessage :
+                    msg.type === 'national' ? styles.nationalMessage :
+                    msg.type === 'private' ? styles.privateMessage :
+                    styles.publicMessage
+                  }`;
+                  return (
+                    <div key={msg.id} className={messageClass}>
+                      <div className={styles.messageDate}>
+                        {msg.date ? new Date(msg.date).toLocaleString('ko-KR') : ''}
+                      </div>
+                      <div className={styles.messageText}>{formatMessageText(msg)}</div>
                     </div>
-                    <div className={styles.messageText}>{formatMessageText(msg)}</div>
-                  </div>
-                ))}
+                  );
+                })}
                 {hasMore && (
                   <div className={styles.loadMoreContainer}>
                     <button

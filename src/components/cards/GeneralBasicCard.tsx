@@ -19,10 +19,18 @@ interface GeneralBasicCardProps {
     leadership?: number;
     strength?: number;
     intel?: number;
+    politics?: number;
+    charm?: number;
     leadership_exp?: number;
     strength_exp?: number;
     intel_exp?: number;
+    politics_exp?: number;
+    charm_exp?: number;
     lbonus?: number;
+    sbonus?: number;
+    ibonus?: number;
+    pbonus?: number;
+    cbonus?: number;
     officer_city?: number;
     turntime?: string | Date;
     horse?: string;
@@ -120,7 +128,7 @@ export default function GeneralBasicCard({
   gameConst,
   cityConst 
 }: GeneralBasicCardProps) {
-  const textColor = isBrightColor(nation.color) ? '#000' : '#fff';
+  const textColor = nation ? (isBrightColor(nation?.color ?? "#666") ? '#000' : '#fff') : '#fff';
 
   // 부상 정보
   const injuryInfo = formatInjury(general.injury || 0);
@@ -173,22 +181,140 @@ export default function GeneralBasicCard({
   const nextExp = nextExpLevelRemain(general.experience || 0, general.explevel || 0);
 
   // 도시명 가져오기
-  const cityName = general.officer_city && cityConst?.[general.officer_city]?.name || '';
+  // officer_city는 관직을 맡은 도시 (태수, 도독 등)
+  const officerCityName = general.officer_city && cityConst?.[general.officer_city]?.name || '';
 
   return (
-    <div className={`${styles.generalCardBasic} bg2`}>
-      <div
-        className={styles.generalIcon}
-        style={{
-          backgroundImage: general.picture ? `url('${getIconPath(general.imgsvr || 0, general.picture)}')` : undefined,
-        }}
-      />
+    <div className={styles.generalCardContainer}>
+      {/* 상단 카드: 기본 정보 + 능력치 */}
+      <div className={`${styles.generalCardTop} bg2`}>
+        <div
+          className={styles.generalIcon}
+          style={{
+            backgroundImage: general.picture ? `url('${getIconPath(general.imgsvr || 0, general.picture)}')` : undefined,
+          }}
+        />
+
+        <div className={styles.infoRow}>
+          <span>{nation?.name || '재야'}</span>
+          <span>|</span>
+          <span>{generalTypeCall}</span>
+          <span>|</span>
+          <span style={{ color: injuryInfo[1] }}>{injuryInfo[0]}</span>
+          {typeof general.turntime === 'string' && (
+            <>
+              <span style={{ marginLeft: '0.5rem' }}>{general.turntime.substring(11, 19)}</span>
+            </>
+          )}
+        </div>
+
+        <div className={styles.statsRow}>
+        <div className={styles.statBox}>
+          <div className={styles.statLabel}>통솔</div>
+          <div className={styles.statValue}>
+            <span style={{ color: injuryInfo[1] }}>
+              {calcInjury('leadership', {
+                leadership: general.leadership ?? 0,
+                strength: general.strength ?? 0,
+                intel: general.intel ?? 0,
+                injury: general.injury || 0
+              })}
+            </span>
+            {typeof general.lbonus === 'number' && general.lbonus !== 0 && (
+              <span style={{ color: general.lbonus > 0 ? 'cyan' : 'red', fontSize: '0.8em' }}>
+                ({general.lbonus > 0 ? '+' : ''}{general.lbonus})
+              </span>
+            )}
+          </div>
+          <div className={styles.statBar}>
+            <SammoBar height={8} percent={((general.leadership_exp || 0) / statUpThreshold) * 100} />
+          </div>
+        </div>
+
+        <div className={styles.statBox}>
+          <div className={styles.statLabel}>무력</div>
+          <div className={styles.statValue}>
+            <span style={{ color: injuryInfo[1] }}>
+              {calcInjury('strength', {
+                leadership: general.leadership ?? 0,
+                strength: general.strength ?? 0,
+                intel: general.intel ?? 0,
+                injury: general.injury || 0
+              })}
+            </span>
+            {typeof general.sbonus === 'number' && general.sbonus !== 0 && (
+              <span style={{ color: general.sbonus > 0 ? 'cyan' : 'red', fontSize: '0.8em' }}>
+                ({general.sbonus > 0 ? '+' : ''}{general.sbonus})
+              </span>
+            )}
+          </div>
+          <div className={styles.statBar}>
+            <SammoBar height={8} percent={((general.strength_exp || 0) / statUpThreshold) * 100} />
+          </div>
+        </div>
+
+        <div className={styles.statBox}>
+          <div className={styles.statLabel}>지력</div>
+          <div className={styles.statValue}>
+            <span style={{ color: injuryInfo[1] }}>
+              {calcInjury('intel', {
+                leadership: general.leadership ?? 0,
+                strength: general.strength ?? 0,
+                intel: general.intel ?? 0,
+                injury: general.injury || 0
+              })}
+            </span>
+            {typeof general.ibonus === 'number' && general.ibonus !== 0 && (
+              <span style={{ color: general.ibonus > 0 ? 'cyan' : 'red', fontSize: '0.8em' }}>
+                ({general.ibonus > 0 ? '+' : ''}{general.ibonus})
+              </span>
+            )}
+          </div>
+          <div className={styles.statBar}>
+            <SammoBar height={8} percent={((general.intel_exp || 0) / statUpThreshold) * 100} />
+          </div>
+        </div>
+
+        <div className={styles.statBox}>
+          <div className={styles.statLabel}>정치</div>
+          <div className={styles.statValue}>
+            <span style={{ color: injuryInfo[1] }}>
+              {general.politics ?? 0}
+            </span>
+            {typeof general.pbonus === 'number' && general.pbonus !== 0 && (
+              <span style={{ color: general.pbonus > 0 ? 'cyan' : 'red', fontSize: '0.8em' }}>
+                ({general.pbonus > 0 ? '+' : ''}{general.pbonus})
+              </span>
+            )}
+          </div>
+          <div className={styles.statBar}>
+            <SammoBar height={8} percent={((general.politics_exp || 0) / statUpThreshold) * 100} />
+          </div>
+        </div>
+
+        <div className={styles.statBox}>
+          <div className={styles.statLabel}>매력</div>
+          <div className={styles.statValue}>
+            <span style={{ color: injuryInfo[1] }}>
+              {general.charm ?? 0}
+            </span>
+            {typeof general.cbonus === 'number' && general.cbonus !== 0 && (
+              <span style={{ color: general.cbonus > 0 ? 'cyan' : 'red', fontSize: '0.8em' }}>
+                ({general.cbonus > 0 ? '+' : ''}{general.cbonus})
+              </span>
+            )}
+          </div>
+          <div className={styles.statBar}>
+            <SammoBar height={8} percent={((general.charm_exp || 0) / statUpThreshold) * 100} />
+          </div>
+        </div>
+      </div>
 
       <div
-        className={styles.generalName}
+        className={styles.generalNameCell}
         style={{
           color: textColor,
-          backgroundColor: nation.color,
+          backgroundColor: nation?.color ?? "#666",
         }}
       >
         <span 
@@ -197,71 +323,13 @@ export default function GeneralBasicCard({
           title="장수 상세 정보"
         >
           {general.name}
-        </span> 【
-        {general.officer_city && cityName && (
-          <>{cityName} </>
+        </span>
+        {officerCityName && (
+          <> 【{officerCityName} {general.officerLevelText}】</>
         )}
-        {general.officerLevelText} | {generalTypeCall} |
-        <span style={{ color: injuryInfo[1] }}>{injuryInfo[0]}</span>
-        】 {typeof general.turntime === 'string' ? general.turntime.substring(11, 19) : ''}
       </div>
 
-      <div className="bg1">통솔</div>
-      <div>
-        <div className={`${styles.row} ${styles.gx0}`}>
-          <div className={styles.statValueCol}>
-            <span style={{ color: injuryInfo[1] }}>
-              {calcInjury('leadership', {
-                leadership: general.leadership || 50,
-                strength: general.strength || 50,
-                intel: general.intel || 50,
-                injury: general.injury || 0
-              })}
-            </span>
-            {general.lbonus && general.lbonus > 0 && (
-              <span style={{ color: 'cyan', marginLeft: '0.25rem' }}>+{general.lbonus}</span>
-            )}
-          </div>
-          <div className={`${styles.statBarCol} ${styles.alignSelfCenter}`}>
-            <SammoBar height={10} percent={((general.leadership_exp || 0) / statUpThreshold) * 100} />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg1">무력</div>
-      <div>
-        <div className={`${styles.row} ${styles.gx0}`}>
-          <div className={styles.statValueCol} style={{ color: injuryInfo[1] }}>
-            {calcInjury('strength', {
-              leadership: general.leadership || 50,
-              strength: general.strength || 50,
-              intel: general.intel || 50,
-              injury: general.injury || 0
-            })}
-          </div>
-          <div className={`${styles.statBarCol} ${styles.alignSelfCenter}`}>
-            <SammoBar height={10} percent={((general.strength_exp || 0) / statUpThreshold) * 100} />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg1">지력</div>
-      <div>
-        <div className={`${styles.row} ${styles.gx0}`}>
-          <div className={styles.statValueCol} style={{ color: injuryInfo[1] }}>
-            {calcInjury('intel', {
-              leadership: general.leadership || 50,
-              strength: general.strength || 50,
-              intel: general.intel || 50,
-              injury: general.injury || 0
-            })}
-          </div>
-          <div className={`${styles.statBarCol} ${styles.alignSelfCenter}`}>
-            <SammoBar height={10} percent={((general.intel_exp || 0) / statUpThreshold) * 100} />
-          </div>
-        </div>
-      </div>
-
+      <div className={styles.detailGrid}>
       <div className="bg1">명마</div>
       <div>{getItemName(general.horse)}</div>
 
@@ -280,41 +348,18 @@ export default function GeneralBasicCard({
       <div className="bg1">도구</div>
       <div>{getItemName(general.item)}</div>
 
-      <div
-        className={styles.generalCrewTypeIcon}
-        style={{
-          backgroundImage: general.crewtype && general.crewtype !== 'None' 
-            ? `url('/images/crewtype${general.crewtype}.png')` 
-            : undefined,
-        }}
-      />
-
-      <div className="bg1">병종</div>
-      <div>{getItemName(general.crewtype)}</div>
-
-      <div className="bg1">병사</div>
-      <div>{(general.crew || 0).toLocaleString()}</div>
-
-      <div className="bg1">성격</div>
-      <div>{getItemName(general.personal)}</div>
-
       <div className="bg1">훈련</div>
       <div>{general.train || 0}</div>
 
       <div className="bg1">사기</div>
       <div>{general.atmos || 50}</div>
 
+      <div className="bg1">성격</div>
+      <div>{getItemName(general.personal)}</div>
+
       <div className="bg1">특기</div>
       <div>
         {getItemName(general.specialDomestic)} / {getItemName(general.specialWar)}
-      </div>
-
-      <div className="bg1">Lv</div>
-      <div className={styles.generalExpLevel}>{general.explevel || 0}</div>
-      <div className={`${styles.generalExpLevelBar} ${styles.dGrid}`}>
-        <div className={styles.alignSelfCenter}>
-          <SammoBar height={10} percent={(nextExp[0] / nextExp[1]) * 100} />
-        </div>
       </div>
 
       <div className="bg1">연령</div>
@@ -366,6 +411,29 @@ export default function GeneralBasicCard({
       <div className="bg1">벌점</div>
       <div className={styles.generalRefreshScoreTotal}>
         {formatRefreshScore(general.refreshScoreTotal || 0)} {(general.refreshScoreTotal || 0).toLocaleString()}점({general.refreshScore || 0})
+      </div>
+      </div>
+
+      <div className={styles.crewInfo}>
+        <div
+          className={styles.generalCrewTypeIcon}
+          style={{
+            backgroundImage: general.crewtype && general.crewtype !== 'None' 
+              ? `url('/images/crewtype${general.crewtype}.png')` 
+              : undefined,
+          }}
+        />
+        <div className={styles.crewText}>
+          <span className={styles.crewType}>
+            {general.crewtype && general.crewtype !== 'None' 
+              ? getItemName(general.crewtype) 
+              : <span style={{ color: '#888' }}>미편성</span>
+            }
+          </span>
+          <span className={styles.crewDivider}> | </span>
+          <span className={styles.crewCount}>{(general.crew || 0).toLocaleString()}명</span>
+        </div>
+      </div>
       </div>
     </div>
   );

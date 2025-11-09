@@ -1,20 +1,214 @@
-.generalCardBasic {
+.generalCardContainer {
+    width: 100%;
+}
+
+.generalCardTop {
     display: grid;
-    grid-template-columns: 64px repeat(3, 2fr 5fr);
-    grid-template-rows: repeat(9, calc(64px / 3));
+    grid-template-columns: 156px 1fr;
+    grid-template-rows: auto auto 1fr auto;
     text-align: center;
     font-size: 14px;
     border-bottom: 1px solid gray;
     border-right: 1px solid gray;
+    border-left: 1px solid gray;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
-.generalCardBasic > div.bg1,
-.generalCardBasic > .generalCrewTypeIcon,
-.generalCardBasic > .generalIcon {
+.generalCardTop > .generalIcon {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    border-right: 1px solid gray;
+    border-top: 1px solid gray;
+    height: 210px;
+}
+
+.generalCardTop > .infoRow {
+    grid-column: 2;
+    grid-row: 1;
+    border-top: 1px solid gray;
+}
+
+.generalCardTop > .statsRow {
+    grid-column: 2;
+    grid-row: 2;
+    border-top: 1px solid gray;
+}
+
+.generalCardTop > .detailGrid {
+    grid-column: 2;
+    grid-row: 3;
+    border-top: 1px solid gray;
+    height: 100%;
+}
+
+.generalCardTop > .generalNameCell {
+    grid-column: 1;
+    grid-row: 4;
+    border-top: 1px solid gray;
+    border-right: 1px solid gray;
+}
+
+.generalCardTop > .crewInfo {
+    grid-column: 2;
+    grid-row: 4;
+    border-top: 1px solid gray;
+}
+
+.detailGrid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: 1fr;
+    text-align: center;
+    font-size: 0.875rem;
+    width: 100%;
+    box-sizing: border-box;
+    height: 100%;
+    overflow: hidden;
+    line-height: 1;
+}
+
+.detailGrid > div.bg1 {
+    border-left: 1px solid gray;
+    background-color: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+}
+
+.detailGrid > div {
+    border-top: 1px solid gray;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+}
+
+.generalNameCell {
+    padding: 0.5rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    text-align: center;
+    height: calc(192px / 10 * 2);
+}
+
+.generalCrewTypeIcon {
+    width: 48px;
+    height: 48px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    flex-shrink: 0;
+}
+
+.crewInfo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0.5rem;
+    height: calc(192px / 10 * 2);
+}
+
+.crewText {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.crewType {
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.crewDivider {
+    color: #666;
+}
+
+.crewCount {
+    font-size: 1.25rem;
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.levelCell {
+    grid-column: 1 / 2;
+    border-top: 1px solid gray;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.infoRow {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    height: calc(192px / 10);
+}
+
+.statsRow {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    height: 70px;
+}
+
+.levelRow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+}
+
+.levelLabel {
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.levelBar {
+    flex: 1;
+}
+
+.statBox {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.statLabel {
+    font-size: 0.75rem;
+    color: #aaa;
+}
+
+.statValue {
+    font-size: 1rem;
+    font-weight: bold;
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+.statBar {
+    width: 100%;
+}
+
+.generalCardBasic > div.bg1 {
     border-left: 1px solid gray;
 }
 
@@ -23,18 +217,14 @@
 }
 
 .generalIcon {
-    width: 64px;
-    height: 64px;
-    background-size: contain;
+    width: 156px;
+    height: 210px;
+    background-size: cover;
     background-repeat: no-repeat;
-    grid-row: 1 / 4;
+    background-position: center;
 }
 
-.generalName {
-grid-row: 1 / 2;
-grid-column: 2 / 8;
-font-weight: bold;
-}
+
 
 .clickable {
   cursor: pointer;
@@ -46,29 +236,13 @@ font-weight: bold;
   opacity: 0.8;
 }
 
-.generalCrewTypeIcon {
-    width: 64px;
-    height: 64px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    grid-row: 4 / 7;
-}
+
 
 .generalExpLevelBar {
     grid-column: 3 / 6;
 }
 
-.generalDefenceTrain {
-    grid-column: 2 / 4;
-}
 
-.generalTroop {
-    grid-column: 2 / 4;
-}
-
-.generalRefreshScoreTotal {
-    grid-column: 5 / 8;
-}
 
 .row {
     display: flex;

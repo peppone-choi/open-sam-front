@@ -42,7 +42,7 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
   const [reservedCommands, setReservedCommands] = useState<ReservedCommand[]>([]);
   const [commandTable, setCommandTable] = useState<CommandTableCategory[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [viewMaxTurn, setViewMaxTurn] = useState(23);
+  const [viewMaxTurn, setViewMaxTurn] = useState(30);
   const [loading, setLoading] = useState(true);
   const [selectedTurnIndices, setSelectedTurnIndices] = useState<Set<number>>(new Set());
   const [serverTime, setServerTime] = useState<Date>(new Date());
@@ -55,8 +55,8 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
     brief: string;
   } | null>(null);
 
-  const MAX_TURN = 30;
-  const FLIPPED_MAX_TURN = 23;
+  const MAX_TURN = 50;
+  const FLIPPED_MAX_TURN = 30;
 
   useEffect(() => {
     loadData();
@@ -80,27 +80,28 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
         }),
       ]);
 
-      // MAX_TURN(30)까지 모든 턴을 채우기 (빈 턴도 포함)
+      // MAX_TURN(50)까지 모든 턴을 채우기 (빈 턴도 포함)
       const commands: ReservedCommand[] = [];
       
       // 세션의 현재 년/월을 사용 (없으면 장수 년/월 사용)
-      const sessionYear = reservedResponse.sessionYear || reservedResponse.year || 180;
-      const sessionMonth = reservedResponse.sessionMonth || reservedResponse.month || 1;
-      const turnTerm = reservedResponse.turnTerm || 60; // 분 단위 (PHP 버전과 동일)
+      const response = reservedResponse as any;
+      const sessionYear = response.sessionYear || response.year || 180;
+      const sessionMonth = response.sessionMonth || response.month || 1;
+      const turnTerm = response.turnTerm || 60; // 분 단위 (PHP 버전과 동일)
       
       console.log('[PartialReservedCommand] API 응답:', {
         sessionYear,
         sessionMonth,
-        generalYear: reservedResponse.year,
-        generalMonth: reservedResponse.month,
+        generalYear: response.year,
+        generalMonth: response.month,
         turnTerm,
-        turnTime: reservedResponse.turnTime,
-        success: reservedResponse.success
+        turnTime: response.turnTime,
+        success: response.success
       });
       
       // baseTime은 UTC ISO 문자열이므로 Date 객체로 파싱
       // 백엔드에서 반환하는 turnTime은 UTC 시간
-      const baseTime = new Date(reservedResponse.turnTime || Date.now());
+      const baseTime = new Date(response.turnTime || Date.now());
       
       // 한국 시간대 포맷터 (한 번만 생성)
       const kstFormatter = new Intl.DateTimeFormat('ko-KR', {
@@ -145,7 +146,7 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
           // 이동 계열 명령 (도시 선택)
           if (arg.destCityID && !arg.amount) {
             const cityName = mapResponse.result && mapResponse.cityList 
-              ? mapResponse.cityList.find((c: any) => c.city === arg.destCityID)?.name 
+              ? (mapResponse.cityList as any).find((c: any) => c.city === arg.destCityID)?.name 
               : null;
             if (cityName) {
               cmd.brief = `${JosaUtil.attachJosa(cityName, '으로')} ${action}`;
@@ -156,7 +157,7 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
           // 물자원조, 발령, 인구이동 등 (도시 + 금액/인구)
           else if (arg.destCityID && arg.amount) {
             const cityName = mapResponse.result && mapResponse.cityList 
-              ? mapResponse.cityList.find((c: any) => c.city === arg.destCityID)?.name 
+              ? (mapResponse.cityList as any).find((c: any) => c.city === arg.destCityID)?.name 
               : null;
             const amountStr = arg.amount.toLocaleString();
             if (cityName) {
@@ -217,31 +218,31 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
       }
 
       setReservedCommands(commands);
-      setServerTime(new Date(reservedResponse.date || Date.now()));
+      setServerTime(new Date(response.date || Date.now()));
 
       console.log('명령 테이블 응답:', {
-        success: commandTableResponse.success,
-        result: commandTableResponse.result,
-        hasCommandTable: !!commandTableResponse.commandTable,
-        commandTableType: typeof commandTableResponse.commandTable,
-        commandTableLength: Array.isArray(commandTableResponse.commandTable) 
-          ? commandTableResponse.commandTable.length 
+        success: (commandTableResponse as any).success,
+        result: (commandTableResponse as any).result,
+        hasCommandTable: !!(commandTableResponse as any).commandTable,
+        commandTableType: typeof (commandTableResponse as any).commandTable,
+        commandTableLength: Array.isArray((commandTableResponse as any).commandTable) 
+          ? (commandTableResponse as any).commandTable.length 
           : 'not array',
         fullResponse: commandTableResponse
       });
 
-      if (commandTableResponse.success && commandTableResponse.commandTable && Array.isArray(commandTableResponse.commandTable) && commandTableResponse.commandTable.length > 0) {
-        console.log('명령 테이블 로드 성공:', commandTableResponse.commandTable.length, '개 카테고리');
-        setCommandTable(commandTableResponse.commandTable);
+      if ((commandTableResponse as any).success && (commandTableResponse as any).commandTable && Array.isArray((commandTableResponse as any).commandTable) && (commandTableResponse as any).commandTable.length > 0) {
+        console.log('명령 테이블 로드 성공:', (commandTableResponse as any).commandTable.length, '개 카테고리');
+        setCommandTable((commandTableResponse as any).commandTable);
       } else {
         console.warn('명령 테이블 로드 실패 또는 비어있음:', {
-          success: commandTableResponse.success,
-          result: commandTableResponse.result,
-          hasCommandTable: !!commandTableResponse.commandTable,
-          commandTableLength: Array.isArray(commandTableResponse.commandTable) 
-            ? commandTableResponse.commandTable.length 
+          success: (commandTableResponse as any).success,
+          result: (commandTableResponse as any).result,
+          hasCommandTable: !!(commandTableResponse as any).commandTable,
+          commandTableLength: Array.isArray((commandTableResponse as any).commandTable) 
+            ? (commandTableResponse as any).commandTable.length 
             : 'not array',
-          reason: commandTableResponse.reason || commandTableResponse.message,
+          reason: (commandTableResponse as any).reason || (commandTableResponse as any).message,
           fullResponse: commandTableResponse
         });
         // 명령 테이블이 없어도 기본 명령(휴식)은 사용 가능하도록 설정
@@ -504,7 +505,7 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
           className={styles.toolbarButton}
           onClick={toggleViewMaxTurn}
         >
-          {viewMaxTurn === FLIPPED_MAX_TURN ? '펼치기' : '접기'}
+          {viewMaxTurn === FLIPPED_MAX_TURN ? '펼치기 (50턴)' : '접기 (30턴)'}
         </button>
         <button
           className={`${styles.toolbarButton} ${isEditMode ? styles.active : ''}`}
@@ -586,33 +587,43 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
 
             {/* 년월 */}
             <div className={styles.yearMonthColumn}>
-              {displayCommands.map((cmd, idx) => (
-                <div key={idx} className={styles.yearMonthCell}>
-                  {cmd.year ? `${cmd.year}年` : ''} {cmd.month ? `${cmd.month}月` : ''}
-                </div>
-              ))}
+              {displayCommands.map((cmd, idx) => {
+                const yearText = cmd.year && typeof cmd.year === 'number' ? `${cmd.year}年` : '';
+                const monthText = cmd.month && typeof cmd.month === 'number' ? `${cmd.month}月` : '';
+                return (
+                  <div key={idx} className={styles.yearMonthCell}>
+                    {yearText} {monthText}
+                  </div>
+                );
+              })}
             </div>
 
             {/* 시간 */}
             <div className={styles.timeColumn}>
               {displayCommands.map((cmd, idx) => (
                 <div key={idx} className={styles.timeCell}>
-                  {cmd.time || '-'}
+                  {typeof cmd.time === 'string' ? cmd.time : '-'}
                 </div>
               ))}
             </div>
 
             {/* 명령 */}
             <div className={styles.commandColumn}>
-              {displayCommands.map((cmd, idx) => (
-                <div
-                  key={idx}
-                  className={styles.commandCell}
-                  title={cmd.tooltip || cmd.brief}
-                  style={cmd.style}
-                  dangerouslySetInnerHTML={{ __html: cmd.brief || '휴식' }}
-                />
-              ))}
+              {displayCommands.map((cmd, idx) => {
+                const briefText = typeof cmd.brief === 'string' ? cmd.brief : (cmd.brief ? String(cmd.brief) : '휴식');
+                const tooltipText = typeof (cmd as ReservedCommand).tooltip === 'string' 
+                  ? (cmd as ReservedCommand).tooltip 
+                  : briefText;
+                return (
+                  <div
+                    key={idx}
+                    className={styles.commandCell}
+                    title={tooltipText}
+                    style={(cmd as ReservedCommand).style}
+                    dangerouslySetInnerHTML={{ __html: briefText }}
+                  />
+                );
+              })}
             </div>
 
             {/* 수정 버튼 (일반 모드) */}
