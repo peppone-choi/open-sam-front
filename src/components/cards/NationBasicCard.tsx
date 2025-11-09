@@ -91,8 +91,12 @@ export default function NationBasicCard({ nation, global }: NationBasicCardProps
       <div className={`${styles.typeBody} ${styles.tbBody}`}>
         {hasNation && nation.type ? (
           <>
-            {nation.type.name || '-'} (<span style={{ color: 'cyan' }}>{nation.type.pros || ''}</span>
-            <span style={{ color: 'magenta' }}>{nation.type.cons || ''}</span>)
+            {nation.type.name || '-'}
+            {(nation.type.pros || nation.type.cons) && ' ('}
+            {nation.type.pros && <span style={{ color: 'cyan' }}>{nation.type.pros}</span>}
+            {nation.type.pros && nation.type.cons && ' / '}
+            {nation.type.cons && <span style={{ color: 'magenta' }}>{nation.type.cons}</span>}
+            {(nation.type.pros || nation.type.cons) && ')'}
           </>
         ) : '-'}
       </div>

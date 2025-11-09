@@ -96,7 +96,7 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick }: GlobalMenu
       if (filtered.length === 0) {
         return filteredMain;
       }
-      return { ...item, main: filteredMain, subMenu: filtered };
+      return { ...item, main: filteredMain as any, subMenu: filtered };
     }
 
     return item;
@@ -104,8 +104,8 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick }: GlobalMenu
 
   const filteredMenu = menu.map(filterMenu).filter((m): m is MenuItem => m !== null);
 
-  const handleMenuClick = (e: React.MouseEvent, item: MenuItem) => {
-    if (item.funcCall && onMenuClick) {
+  const handleMenuClick = (e: React.MouseEvent, item: MenuItem | { name: string; url: string; newTab?: boolean }) => {
+    if ('funcCall' in item && item.funcCall && onMenuClick) {
       e.preventDefault();
       onMenuClick(item.funcCall);
       return;
@@ -115,7 +115,8 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick }: GlobalMenu
     }
     if (item.newTab && item.url) {
       e.preventDefault();
-      window.open(item.url, '_blank');
+      const normalizedUrl = normalizeUrl(item.url);
+      window.open(normalizedUrl, '_blank');
     }
   };
 

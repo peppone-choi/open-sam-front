@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
@@ -80,7 +80,7 @@ interface CommandData {
   [key: string]: any;
 }
 
-export default function CommandProcessingPage() {
+function CommandProcessingContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const serverID = params?.server as string;
@@ -140,8 +140,17 @@ export default function CommandProcessingPage() {
       if (commandData) {
         // 이동 계열 명령 (도시 선택)
         if (args.destCityID && commandData.cities) {
-          const citiesArray = commandData.cities || [];
-          const cityName = citiesArray.find(([id]: [number, string]) => id === args.destCityID)?.[1];
+          const cities: any = commandData.cities;
+          let cityName: string | undefined;
+          
+          if (cities instanceof Map) {
+            const cityData = cities.get(args.destCityID);
+            cityName = cityData?.name || cityData;
+          } else if (Array.isArray(cities)) {
+            const cityData = cities.find(([id]: [number, any]) => id === args.destCityID);
+            cityName = cityData?.[1];
+          }
+          
           if (cityName) {
             brief = `${JosaUtil.attachJosa(cityName, '으로')} ${command}`;
           }
@@ -187,8 +196,17 @@ export default function CommandProcessingPage() {
         }
         // 물자원조, 발령, 인구이동 등 (도시 + 금액/인구)
         else if (args.destCityID && args.amount) {
-          const citiesArray = commandData.cities || [];
-          const cityName = citiesArray.find(([id]: [number, string]) => id === args.destCityID)?.[1];
+          const cities: any = commandData.cities || [];
+          let cityName: string | undefined;
+          
+          if (cities instanceof Map) {
+            const cityData = cities.get(args.destCityID);
+            cityName = cityData?.name || cityData;
+          } else if (Array.isArray(cities)) {
+            const cityData = cities.find(([id]: [number, any]) => id === args.destCityID);
+            cityName = cityData?.[1];
+          }
+          
           const amountStr = args.amount.toLocaleString();
           if (cityName) {
             brief = `${JosaUtil.attachJosa(cityName, '으로')} ${JosaUtil.attachJosa(amountStr, '을')} ${command}`;
@@ -272,7 +290,7 @@ export default function CommandProcessingPage() {
       const citiesArray = commandData.cities || [];
       const citiesMap = new Map<number, { name: string; info?: string }>();
       for (const [cityId, cityName] of citiesArray) {
-        citiesMap.set(cityId, { name: cityName });
+        citiesMap.set(cityId, { name: String(cityName) });
       }
       const currentCity = commandData.currentCity || 0;
 
@@ -527,7 +545,7 @@ export default function CommandProcessingPage() {
           commandName={commandName}
           serverID={serverID}
           generals={commandData.generals || []}
-          cities={commandData.cities || []}
+          cities={(commandData.cities || []) as any}
           troops={commandData.troops || {}}
           currentCity={commandData.currentCity}
           mapData={commandData.mapData}
@@ -578,7 +596,7 @@ export default function CommandProcessingPage() {
         <MovePopulationCommandForm
           commandName={commandName}
           serverID={serverID}
-          cities={commandData.cities || []}
+          cities={(commandData.cities || []) as any}
           currentCity={commandData.currentCity}
           minAmount={commandData.minAmount ?? 100}
           maxAmount={commandData.maxAmount ?? 100000}
@@ -623,5 +641,14 @@ export default function CommandProcessingPage() {
 
   return renderCommandForm();
 }
+
+export default function CommandProcessingPage() {
+  return (
+    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
+      <CommandProcessingContent />
+    </Suspense>
+  );
+}
+
 
 

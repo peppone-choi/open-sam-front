@@ -431,7 +431,7 @@ export default function GamePage() {
 
         {frontInfo.city && (
           <div className={styles.cityInfo}>
-            <CityBasicCard city={frontInfo.city} />
+            <CityBasicCard city={frontInfo.city} cityConstMap={frontInfo.cityConstMap} />
           </div>
         )}
 

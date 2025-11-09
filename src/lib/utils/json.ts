@@ -15,7 +15,7 @@ export class Json {
   /**
    * 값을 JSON 문자열로 인코딩
    */
-  static encode(value: any, flag: JsonFlag = 0): string {
+  static encode(value: any, flag: number = 0): string {
     let processedValue = value;
 
     // DELETE_NULL 플래그: null 값 제거
@@ -24,7 +24,7 @@ export class Json {
     }
 
     // EMPTY_ARRAY_IS_DICT 플래그: 빈 배열을 객체로 변환
-    if (processedValue === [] && (flag & JsonFlag.EMPTY_ARRAY_IS_DICT)) {
+    if (Array.isArray(processedValue) && processedValue.length === 0 && (flag & JsonFlag.EMPTY_ARRAY_IS_DICT)) {
       processedValue = {};
     }
 
@@ -85,7 +85,7 @@ export class Json {
    * 응답을 JSON으로 반환하고 종료 (서버 사이드 전용)
    * @deprecated 클라이언트에서는 사용하지 않음
    */
-  static die(value: any, flag: JsonFlag = JsonFlag.NO_CACHE): never {
+  static die(value: any, flag: number = JsonFlag.NO_CACHE): never {
     throw new Error('Json.die() is server-side only');
   }
 

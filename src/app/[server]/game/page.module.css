@@ -475,7 +475,7 @@
     
     .reservedCommandZone {
         grid-column: 3;
-        grid-row: 1 / 4;
+        grid-row: 1 / 5;
         height: 100%;
         position: relative;
         display: flex;
@@ -483,25 +483,27 @@
         overflow: hidden;
     }
     
-    .cityInfo {
+    .generalInfo {
         grid-column: 1 / 3;
         grid-row: 2;
+        width: auto;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .cityInfo {
+        grid-column: 1 / 3;
+        grid-row: 3;
     }
     
     .nationInfo {
-        grid-column: 1;
-        grid-row: 3;
-    }
-    
-    .generalInfo {
-        grid-column: 2;
-        grid-row: 3;
-        width: auto;
+        grid-column: 1 / 3;
+        grid-row: 4;
     }
     
     .generalCommandToolbar {
         grid-column: 1 / 4;
-        grid-row: 4;
+        grid-row: 5;
     }
 }
 

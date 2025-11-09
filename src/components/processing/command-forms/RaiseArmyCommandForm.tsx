@@ -22,9 +22,9 @@ export default function RaiseArmyCommandForm({ serverID, onComplete }: RaiseArmy
       setLoading(true);
       setError(null);
 
-      const result = await SammoAPI.CommandReserve({
+      const result = await SammoAPI.CommandReserveCommand({
         serverID,
-        commandName: '거병',
+        action: '거병',
         arg: {}
       });
 

@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
-export default function ProcessingPage() {
+function ProcessingContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -32,7 +32,7 @@ export default function ProcessingPage() {
         command: commandType,
         turnList: turnList,
         isChief: isChiefTurn,
-      });
+      } as any);
 
       if (result.result) {
         setCommandData(result.commandTable);
@@ -51,11 +51,11 @@ export default function ProcessingPage() {
 
   async function handleSubmit() {
     try {
-      const result = await SammoAPI.CommandReserveCommand({
+      const result = await SammoAPI.CommandReserveCommand({ 
         command: commandType,
         args: formData,
         turnList: turnList,
-      });
+      } as any);
 
       if (result.result) {
         router.push(`/${serverID}/game`);
@@ -96,3 +96,12 @@ export default function ProcessingPage() {
     </div>
   );
 }
+
+export default function ProcessingPage() {
+  return (
+    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
+      <ProcessingContent />
+    </Suspense>
+  );
+}
+

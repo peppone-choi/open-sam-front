@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
-export default function NPCListPage() {
+function NPCListContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const serverID = params?.server as string;
@@ -80,6 +80,15 @@ export default function NPCListPage() {
     </div>
   );
 }
+
+export default function NPCListPage() {
+  return (
+    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
+      <NPCListContent />
+    </Suspense>
+  );
+}
+
 
 
 

@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
-export default function AuctionPage() {
+function AuctionContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -216,4 +216,13 @@ export default function AuctionPage() {
     </div>
   );
 }
+
+export default function AuctionPage() {
+  return (
+    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
+      <AuctionContent />
+    </Suspense>
+  );
+}
+
 

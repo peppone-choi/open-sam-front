@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
-export default function ErrorLogPage() {
+function ErrorLogContent() {
   const searchParams = useSearchParams();
   const from = searchParams?.get('from') ? Number(searchParams.get('from')) : 0;
 
@@ -83,6 +83,14 @@ export default function ErrorLogPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ErrorLogPage() {
+  return (
+    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
+      <ErrorLogContent />
+    </Suspense>
   );
 }
 

@@ -163,7 +163,7 @@ export default React.memo(GameInfoPanel, (prevProps, nextProps) => {
   return (
     prevProps.serverName === nextProps.serverName &&
     prevProps.serverLocked === nextProps.serverLocked &&
-    prevProps.lastExecuted.getTime() === nextProps.lastExecuted.getTime() &&
+    prevProps.lastExecuted?.getTime() === nextProps.lastExecuted?.getTime() &&
     prevProps.frontInfo.global.year === nextProps.frontInfo.global.year &&
     prevProps.frontInfo.global.month === nextProps.frontInfo.global.month &&
     prevProps.frontInfo.global.lastExecuted === nextProps.frontInfo.global.lastExecuted &&

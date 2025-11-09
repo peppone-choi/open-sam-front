@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
@@ -26,7 +26,7 @@ interface BoardComment {
   text: string;
 }
 
-export default function BoardCommunityPage() {
+function BoardCommunityContent() {
   const params = useParams();
   const serverID = params?.server as string;
 
@@ -161,4 +161,13 @@ export default function BoardCommunityPage() {
     </div>
   );
 }
+
+export default function BoardCommunityPage() {
+  return (
+    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
+      <BoardCommunityContent />
+    </Suspense>
+  );
+}
+
 

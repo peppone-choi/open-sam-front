@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import styles from './page.module.css';
 
-export default function KakaoJoinPage() {
+function KakaoJoinContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const oauthCode = searchParams?.get('code');
@@ -110,6 +110,15 @@ export default function KakaoJoinPage() {
     </div>
   );
 }
+
+export default function KakaoJoinPage() {
+  return (
+    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
+      <KakaoJoinContent />
+    </Suspense>
+  );
+}
+
 
 
 

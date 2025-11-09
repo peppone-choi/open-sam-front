@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
 
-export default function CityInfoPage() {
+function CityInfoContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const serverID = params?.server as string;
@@ -23,7 +23,7 @@ export default function CityInfoPage() {
     try {
       setLoading(true);
       const result = await SammoAPI.GetCityList({ type });
-      if (result.result) {
+      if (result.result && result.cityList) {
         setCityList(result.cityList);
       }
     } catch (err) {
@@ -86,6 +86,15 @@ export default function CityInfoPage() {
     </div>
   );
 }
+
+export default function CityInfoPage() {
+  return (
+    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
+      <CityInfoContent />
+    </Suspense>
+  );
+}
+
 
 
 

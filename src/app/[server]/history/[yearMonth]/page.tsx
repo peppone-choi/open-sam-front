@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import MapViewer from '@/components/game/MapViewer';
 import styles from './page.module.css';
 
-export default function HistoryYearMonthPage() {
+function HistoryYearMonthContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const serverID = params?.server as string;
@@ -67,6 +67,15 @@ export default function HistoryYearMonthPage() {
     </div>
   );
 }
+
+export default function HistoryYearMonthPage() {
+  return (
+    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
+      <HistoryYearMonthContent />
+    </Suspense>
+  );
+}
+
 
 
 

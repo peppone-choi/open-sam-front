@@ -1,0 +1,238 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+
+/**
+ * LOGH Game Screen
+ * 은하영웅전설 게임 화면 - 커맨더 정보, 함대 현황, 작전 입력
+ */
+
+interface Commander {
+  no: number;
+  name: string;
+  faction: 'empire' | 'alliance';
+  rank: string;
+  stats: {
+    command: number;
+    tactics: number;
+    strategy: number;
+    politics: number;
+  };
+  commandPoints: number;
+  supplies: number;
+  fleetId: string | null;
+  position: { x: number; y: number; z: number };
+}
+
+interface Fleet {
+  id: string;
+  name: string;
+  totalShips: number;
+  supplies: number;
+  position: { x: number; y: number; z: number };
+  formation: string;
+}
+
+export default function LoghGamePage() {
+  const [commander, setCommander] = useState<Commander | null>(null);
+  const [fleet, setFleet] = useState<Fleet | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadGameData();
+  }, []);
+
+  async function loadGameData() {
+    try {
+      setLoading(true);
+
+      // Load commander data from API
+      const response = await fetch('/api/logh/my-commander');
+      const commanderData = await response.json();
+      setCommander(commanderData);
+
+      // Load fleet data if commander has a fleet
+      if (commanderData.fleetId) {
+        const fleetResponse = await fetch(`/api/logh/fleet/${commanderData.fleetId}`);
+        const fleetData = await fleetResponse.json();
+        setFleet(fleetData);
+      }
+    } catch (error) {
+      console.error('Failed to load game data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function executeCommand(commandName: string, params: any = {}) {
+    try {
+      await fetch('/api/logh/command/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: commandName, params }),
+      });
+
+      alert(`커맨드 "${commandName}" 실행 완료!`);
+      await loadGameData();
+    } catch (error: any) {
+      alert(`커맨드 실행 실패: ${error.message}`);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="text-white text-xl">로딩 중...</div>
+      </div>
+    );
+  }
+
+  if (!commander) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="text-red-500 text-xl">커맨더 정보를 불러올 수 없습니다</div>
+      </div>
+    );
+  }
+
+  const factionColor = commander.faction === 'empire' ? 'yellow' : 'cyan';
+  const factionName = commander.faction === 'empire' ? '은하제국' : '자유혹성동맹';
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-900 to-purple-900 text-white p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-2">은하영웅전설 OpenSAM</h1>
+          <p className="text-gray-300">Legend of Galactic Heroes</p>
+        </div>
+
+        {/* Commander Info Panel */}
+        <div className={`bg-gray-800 rounded-lg p-6 mb-6 border-2 border-${factionColor}-700`}>
+          <h2 className={`text-2xl font-bold mb-4 text-${factionColor}-400`}>커맨더 정보</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <div className="text-gray-400 text-sm">이름</div>
+              <div className="text-xl font-bold">{commander.name}</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">소속</div>
+              <div className={`text-xl font-bold text-${factionColor}-400`}>{factionName}</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">계급</div>
+              <div className="text-xl font-bold">{commander.rank}</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">CP</div>
+              <div className="text-xl font-bold text-purple-400">{commander.commandPoints}</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">지휘</div>
+              <div className="text-xl font-bold text-blue-400">{commander.stats.command}</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">전술</div>
+              <div className="text-xl font-bold text-red-400">{commander.stats.tactics}</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">전략</div>
+              <div className="text-xl font-bold text-purple-400">{commander.stats.strategy}</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">정치</div>
+              <div className="text-xl font-bold text-green-400">{commander.stats.politics}</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">보급품</div>
+              <div className="text-xl font-bold text-yellow-400">{commander.supplies.toLocaleString()}</div>
+            </div>
+            <div className="md:col-span-3">
+              <div className="text-gray-400 text-sm">좌표</div>
+              <div className="text-xl font-bold text-cyan-400">
+                ({commander.position.x}, {commander.position.y}, {commander.position.z})
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Fleet Info Panel */}
+        {fleet && (
+          <div className="bg-gray-800 rounded-lg p-6 mb-6 border-2 border-cyan-700">
+            <h2 className="text-2xl font-bold mb-4 text-cyan-400">함대 정보</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div>
+                <div className="text-gray-400 text-sm">함대명</div>
+                <div className="text-xl font-bold">{fleet.name}</div>
+              </div>
+              <div>
+                <div className="text-gray-400 text-sm">총 함선</div>
+                <div className="text-xl font-bold text-blue-400">{fleet.totalShips.toLocaleString()}</div>
+              </div>
+              <div>
+                <div className="text-gray-400 text-sm">보급품</div>
+                <div className="text-xl font-bold text-yellow-400">{fleet.supplies.toLocaleString()}</div>
+              </div>
+              <div>
+                <div className="text-gray-400 text-sm">진형</div>
+                <div className="text-xl font-bold text-red-400">{fleet.formation}</div>
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-gray-400 text-sm">함대 좌표</div>
+                <div className="text-xl font-bold text-cyan-400">
+                  ({fleet.position.x}, {fleet.position.y}, {fleet.position.z})
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Command Panel */}
+        <div className="bg-gray-800 rounded-lg p-6 border-2 border-purple-700">
+          <h2 className="text-2xl font-bold mb-4 text-purple-400">작전 커맨드</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { name: '함대 이동', command: 'move_fleet', color: 'cyan', cp: 2 },
+              { name: '작전 발령', command: 'issue_operation', color: 'purple', cp: 5 },
+              { name: '함선 생산', command: 'produce_ships', color: 'blue', cp: 3 },
+              { name: '행성 관리', command: 'manage_planet', color: 'green', cp: 2 },
+              { name: '정찰', command: 'scout', color: 'yellow', cp: 1 },
+              { name: '외교', command: 'diplomacy', color: 'pink', cp: 4 },
+              { name: '진형 변경', command: 'change_formation', color: 'red', cp: 1 },
+              { name: '턴 종료', command: 'turn_end', color: 'gray', cp: 0 },
+            ].map((cmd) => (
+              <button
+                key={cmd.command}
+                onClick={() => executeCommand(cmd.command)}
+                className={`px-4 py-3 rounded-lg font-bold transition-all
+                  bg-${cmd.color}-700 hover:bg-${cmd.color}-600
+                  border-2 border-${cmd.color}-500
+                  transform hover:scale-105 relative`}
+                disabled={commander.commandPoints < cmd.cp}
+              >
+                <div>{cmd.name}</div>
+                {cmd.cp > 0 && (
+                  <div className="text-xs text-gray-300 mt-1">CP: {cmd.cp}</div>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 text-sm text-gray-400 text-center">
+            보유 커맨드 포인트: {commander.commandPoints} CP
+          </div>
+        </div>
+
+        {/* 3D Star Map Preview */}
+        <div className="mt-6 bg-gray-800 rounded-lg p-6 border-2 border-blue-700">
+          <h2 className="text-2xl font-bold mb-4 text-blue-400">은하계 지도</h2>
+          <div className="bg-black rounded-lg h-64 flex items-center justify-center">
+            <div className="text-gray-500">
+              3D 별계도 (구현 예정 - Three.js)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

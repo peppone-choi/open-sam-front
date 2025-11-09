@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './CommandForm.module.css';
 
 interface NationType {
+  id?: string;
   type: string;
   name: string;
-  pros: string;
-  cons: string;
+  pros?: string;
+  cons?: string;
+  description?: string;
 }
 
 interface FoundNationCommandFormProps {
@@ -28,10 +30,17 @@ export default function FoundNationCommandForm({
   onSubmit,
   onCancel
 }: FoundNationCommandFormProps) {
+  // none만 제외한 국가 성향 필터링 (neutral은 유지)
+  const selectableNationTypes = useMemo(() => {
+    return Object.values(nationTypes).filter(
+      type => type.id !== 'none'
+    );
+  }, [nationTypes]);
+
   const [nationName, setNationName] = useState('');
   const [selectedColorID, setSelectedColorID] = useState(0);
   const [selectedNationType, setSelectedNationType] = useState(
-    Object.keys(nationTypes)[0] || 'normal'
+    selectableNationTypes[0]?.id || selectableNationTypes[0]?.type || 'confucianism'
   );
 
   const handleSubmit = () => {
@@ -89,19 +98,20 @@ export default function FoundNationCommandForm({
         {/* 국가 성향 목록 */}
         <div className={styles.nationTypesList}>
           <h3>국가 성향</h3>
-          <ul className={styles.nationTypes}>
-            {Object.values(nationTypes).map((type) => (
-              <li key={type.type} className={styles.nationTypeItem}>
-                <div className={styles.nationTypeName}>- {type.name}</div>
-                <div className={styles.nationTypePros}>
-                  : <span style={{ color: 'cyan' }}>{type.pros}</span>,
+          <div className={styles.nationTypes}>
+            {selectableNationTypes.map((type) => {
+              const description = type.description || '';
+              const parts = description.split(' / ');
+              const pros = parts[0] || type.pros || '';
+              const cons = parts[1] || type.cons || '';
+              
+              return (
+                <div key={type.id || type.type} className={styles.nationTypeItem}>
+                  <strong>{type.name}</strong>{(pros || cons) ? ' : ' : ''}{pros && <span style={{ color: 'cyan' }}>{pros}</span>}{pros && cons && ' / '}{cons && <span style={{ color: 'magenta' }}>{cons}</span>}
                 </div>
-                <div className={styles.nationTypeCons}>
-                  <span style={{ color: 'magenta' }}>{type.cons}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
+              );
+            })}
+          </div>
         </div>
 
         <div className={styles.formRow}>
@@ -145,8 +155,8 @@ export default function FoundNationCommandForm({
               value={selectedNationType}
               onChange={(e) => setSelectedNationType(e.target.value)}
             >
-              {Object.values(nationTypes).map((type) => (
-                <option key={type.type} value={type.type}>
+              {selectableNationTypes.map((type) => (
+                <option key={type.id || type.type} value={type.id || type.type}>
                   {type.name}
                 </option>
               ))}

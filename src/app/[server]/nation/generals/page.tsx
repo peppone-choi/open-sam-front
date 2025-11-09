@@ -21,7 +21,7 @@ export default function NationGeneralsPage() {
     try {
       setLoading(true);
       const result = await SammoAPI.NationGetGenerals();
-      if (result.result) {
+      if (result.result && result.generals) {
         setGenerals(result.generals);
       }
     } catch (err) {

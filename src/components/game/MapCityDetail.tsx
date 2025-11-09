@@ -178,34 +178,25 @@ export default function MapCityDetail({
   // 계림은 중앙 아래에 표시
   const isCenterCity = city.name === '계림';
 
-  // 도시명 위치 계산 (도시 아이콘 크기에 맞춰서)
-  const getCityNamePosition = (level: number): { left?: string; right?: string; top: string } => {
-    const iconSize = getCityIconImgSize(level);
-    const iconWidth = parseInt(iconSize.width);
-    const iconHeight = parseInt(iconSize.height);
-    
-    // 40x30 컨테이너 기준으로 아이콘이 중앙 정렬되어 있음
+  // 도시명 위치 계산 (아이콘 크기와 무관하게 고정 위치)
+  const getCityNamePosition = (): { left?: string; right?: string; top: string } => {
+    // 40x30 컨테이너 기준
     const containerWidth = 40;
-    const iconCenterX = containerWidth / 2; // 20px
-    const iconRight = iconCenterX + iconWidth / 2;
-    const iconCenterY = 15; // 30px / 2
-    const iconBottom = iconCenterY + iconHeight / 2;
     
-    // 도시명을 아이콘 오른쪽 끝에서 약간 떨어진 위치에 배치
-    const nameLeft = iconRight + 2; // 아이콘 오른쪽 끝에서 2px 간격
-    const nameTop = Math.max(iconBottom - 5, 18); // 최소 18px
+    // 도시명을 컨테이너 중앙에서 오른쪽으로 고정 간격 배치
+    const nameLeft = 22; // 컨테이너 중앙(20px)에서 2px 오른쪽
+    const nameTop = 18; // 컨테이너 하단 근처 고정
     
     if (isRightEdge) {
-      // 오른쪽 끝 도시는 아이콘 왼쪽에 배치
-      const iconLeft = iconCenterX - iconWidth / 2;
-      const nameRight = containerWidth - iconLeft + 2;
+      // 오른쪽 끝 도시는 왼쪽에 고정 간격 배치
+      const nameRight = 22;
       return { right: `${nameRight}px`, top: `${nameTop}px` };
     } else {
       return { left: `${nameLeft}px`, top: `${nameTop}px` };
     }
   };
 
-  const cityNamePosition = getCityNamePosition(city.level);
+  const cityNamePosition = getCityNamePosition();
 
   return (
     <div

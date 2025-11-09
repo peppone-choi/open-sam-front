@@ -1,13 +1,40 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import CityBasicCard from '@/components/cards/CityBasicCard';
 import styles from './page.module.css';
 
-export default function CurrentCityPage() {
+const cityConstMap = {
+  region: {
+    0: '기타',
+    1: '하북',
+    2: '중원',
+    3: '서북',
+    4: '서촉',
+    5: '남중',
+    6: '초',
+    7: '오월',
+    8: '동이'
+  },
+  level: {
+    0: '무',
+    1: '향',
+    2: '수',
+    3: '진',
+    4: '관',
+    5: '이',
+    6: '소',
+    7: '중',
+    8: '대',
+    9: '특',
+    10: '경'
+  }
+};
+
+function CurrentCityContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const serverID = params?.server as string;
@@ -83,7 +110,7 @@ export default function CurrentCityPage() {
         <div className="center" style={{ padding: '2rem', color: 'red' }}>{error}</div>
       ) : cityData ? (
         <div className={styles.content}>
-          <CityBasicCard city={cityData} />
+          <CityBasicCard city={cityData} cityConstMap={cityConstMap} />
         </div>
       ) : (
         <div className="center" style={{ padding: '2rem' }}>도시 정보를 불러올 수 없습니다.</div>
@@ -91,6 +118,15 @@ export default function CurrentCityPage() {
     </div>
   );
 }
+
+export default function CurrentCityPage() {
+  return (
+    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
+      <CurrentCityContent />
+    </Suspense>
+  );
+}
+
 
 
 

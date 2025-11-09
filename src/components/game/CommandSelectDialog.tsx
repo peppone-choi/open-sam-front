@@ -131,9 +131,9 @@ export default function CommandSelectDialog({
                   )}
                 </div>
                 <div className={styles.commandTitle}>
-                  {command.title.startsWith(command.simpleName)
+                  {typeof command.title === 'string' && command.title.startsWith(command.simpleName)
                     ? command.title.substring(command.simpleName.length)
-                    : command.title}
+                    : (command.title || '')}
                 </div>
               </div>
             </div>

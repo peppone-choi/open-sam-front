@@ -1,12 +1,12 @@
 .nationCardBasic {
     width: 100%;
-    max-width: 500px;
     height: 193px;
     display: grid;
     grid-template-columns: 7fr 18fr 7fr 18fr;
     grid-template-rows: repeat(10, calc(192px / 10));
     border-bottom: solid 1px gray;
     border-right: solid 1px gray;
+    border-left: solid 1px gray;
     box-sizing: border-box;
 }
 

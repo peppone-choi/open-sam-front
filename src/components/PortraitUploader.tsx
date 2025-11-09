@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { PortraitCropper } from './PortraitCropper';
+import PortraitCropper from './PortraitCropper';
 
 interface PortraitUploaderProps {
   generalId: number;

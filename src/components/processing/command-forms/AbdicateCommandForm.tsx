@@ -53,9 +53,9 @@ export default function AbdicateCommandForm({
             <label>장수:</label>
             <SelectGeneral
               generals={generals}
-              nations={nations}
-              selectedGeneralID={selectedGeneralID}
-              onSelect={setSelectedGeneralID}
+              {...(nations ? { groupByNation: nations } : {})}
+              value={selectedGeneralID}
+              onChange={setSelectedGeneralID}
             />
           </div>
         </div>

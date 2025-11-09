@@ -87,6 +87,7 @@ export interface GetFrontInfoResponse {
     global: any[];
     general: any[];
   };
+  cityConstMap?: Record<number, { name: string }>;
 }
 
 export interface GetMapResponse {
@@ -136,6 +137,14 @@ export class SammoAPI {
     const url = `${this.baseURL}${endpoint}`;
     const token = this.getToken();
     
+    console.log('[API Request]', {
+      url,
+      method: options.method || 'GET',
+      hasToken: !!token,
+      tokenPreview: token ? `${token.substring(0, 20)}...` : null,
+      baseURL: this.baseURL
+    });
+    
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string> || {}),
@@ -144,40 +153,72 @@ export class SammoAPI {
     // 토큰이 있으면 Authorization 헤더에 추가
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+      console.log('[API Request] Authorization 헤더 추가됨');
+    } else {
+      console.warn('[API Request] 토큰 없음!');
     }
     
-    const response = await fetch(url, {
-      ...options,
-      credentials: 'include',
-      headers,
-    });
-
-    if (!response.ok) {
-      // 에러 응답 본문 읽기
-      const errorText = await response.text();
-      let errorData: any;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        errorData = { message: errorText || response.statusText };
-      }
+    try {
+      const response = await fetch(url, {
+        ...options,
+        credentials: 'include',
+        headers,
+      });
       
-      // 401 에러는 특별 처리 (인증 실패는 정상적인 경우일 수 있음)
-      if (response.status === 401) {
-        const error = new Error(errorData.message || errorData.reason || errorData.error || '인증이 필요합니다');
-        (error as any).status = 401;
+      console.log('[API Response]', {
+        url,
+        status: response.status,
+        ok: response.ok
+      });
+
+      if (!response.ok) {
+        // 에러 응답 본문 읽기
+        const errorText = await response.text();
+        let errorData: any;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText || response.statusText };
+        }
+        
+        // 401 에러는 특별 처리 (인증 실패는 정상적인 경우일 수 있음)
+        if (response.status === 401) {
+          const error = new Error(errorData.message || errorData.reason || errorData.error || '인증이 필요합니다');
+          (error as any).status = 401;
+          throw error;
+        }
+        
+        // 다른 에러는 상세 메시지 포함
+        const errorMessage = errorData.reason || errorData.message || errorData.error || this.getKoreanStatusText(response.status);
+        const error = new Error(`요청 실패: ${errorMessage}`);
+        (error as any).status = response.status;
+        (error as any).data = errorData;
         throw error;
       }
-      
-      // 다른 에러는 상세 메시지 포함
-      const errorMessage = errorData.reason || errorData.message || errorData.error || response.statusText;
-      const error = new Error(`API request failed: ${errorMessage}`);
-      (error as any).status = response.status;
-      (error as any).data = errorData;
-      throw error;
-    }
 
-    return response.json();
+      return response.json();
+    } catch (error: any) {
+      // 네트워크 에러나 fetch 자체가 실패한 경우
+      if (error.status) {
+        // 이미 처리된 HTTP 에러는 그대로 throw
+        throw error;
+      }
+      // fetch 실패 (네트워크 연결 끊김, CORS 에러 등)
+      throw new Error(`서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.`);
+    }
+  }
+
+  private static getKoreanStatusText(status: number): string {
+    const statusTexts: Record<number, string> = {
+      400: '잘못된 요청입니다',
+      403: '접근 권한이 없습니다',
+      404: '요청한 리소스를 찾을 수 없습니다',
+      500: '서버 내부 오류가 발생했습니다',
+      502: '게이트웨이 오류가 발생했습니다',
+      503: '서비스를 사용할 수 없습니다',
+      504: '게이트웨이 시간 초과',
+    };
+    return statusTexts[status] || `오류가 발생했습니다 (${status})`;
   }
 
   static async GeneralGetFrontInfo(params: {
@@ -548,6 +589,7 @@ export class SammoAPI {
   static async MessageGetMessages(params?: {
     serverID?: string;
     session_id?: string;
+    general_id?: number;
     type?: string;
     limit?: number;
     offset?: number;
@@ -563,6 +605,7 @@ export class SammoAPI {
     if (params?.type) queryParams.append('type', params.type);
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.offset) queryParams.append('offset', params.offset.toString());
+    if (params?.general_id) queryParams.append('general_id', params.general_id.toString());
 
     return this.request(`/api/message/get-messages?${queryParams.toString()}`, {
       method: 'GET',
@@ -587,6 +630,7 @@ export class SammoAPI {
   static async MessageSendMessage(params: {
     serverID?: string;
     session_id?: string;
+    general_id?: number;
     mailbox?: number;
     to_general_id?: number;
     text: string;
@@ -882,6 +926,7 @@ export class SammoAPI {
 
   static async GetCityList(params?: {
     session_id?: string;
+    type?: number;
   }): Promise<{
     result: boolean;
     cityList?: any[];
@@ -898,6 +943,7 @@ export class SammoAPI {
   static async GetGeneralList(params?: {
     session_id?: string;
     token?: string;
+    type?: number;
   }): Promise<{
     result: boolean;
     generals?: any[];
@@ -1307,17 +1353,7 @@ export class SammoAPI {
   }
 
   // City API
-  static async GetCityList(params: {
-    type?: number;
-  }): Promise<{
-    result: boolean;
-    cityList: any[];
-  }> {
-    return this.request('/api/game/city-list', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    });
-  }
+  // GetCityList is defined earlier in the file
 
   static async GetCurrentCity(): Promise<{
     result: boolean;
@@ -1355,18 +1391,7 @@ export class SammoAPI {
   }
 
   // General API (추가)
-  static async GetGeneralList(params: {
-    type?: number;
-    token?: string;
-  }): Promise<{
-    result: boolean;
-    generalList: any[];
-  }> {
-    return this.request('/api/game/general-list', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    });
-  }
+  // GetGeneralList is defined earlier in the file
 
   static async GetMyGenInfo(): Promise<{
     result: boolean;

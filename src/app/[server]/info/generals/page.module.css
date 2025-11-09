@@ -28,26 +28,59 @@
 }
 
 .content {
-  padding: 1rem;
+  padding: 0;
 }
 
-.generalList {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
+.tableContainer {
+  overflow-x: auto;
+  width: 100%;
 }
 
-.generalItem {
+.generalTable {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #111;
+}
+
+.generalTable thead {
+  background-color: #333;
+}
+
+.generalTable th {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
   border: 1px solid gray;
-  padding: 1rem;
-}
-
-.generalName {
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-
-.generalInfo {
   font-size: 0.9em;
+}
+
+.generalTable td {
+  padding: 0.5rem;
+  border: 1px solid gray;
+  text-align: center;
+  font-size: 0.85em;
+}
+
+.nameCell {
+  text-align: center;
+  min-width: 100px;
+}
+
+.level {
+  font-size: 0.8em;
   color: #aaa;
+  margin-top: 0.25rem;
+}
+
+.statsCell {
+  min-width: 120px;
+  font-family: monospace;
+}
+
+.numberCell {
+  text-align: right;
+  padding-right: 0.75rem;
+}
+
+.timeCell {
+  min-width: 60px;
 }

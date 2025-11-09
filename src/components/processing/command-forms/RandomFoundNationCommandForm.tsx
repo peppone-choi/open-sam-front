@@ -5,10 +5,12 @@ import TopBackBar from '@/components/common/TopBackBar';
 import styles from './CommandForm.module.css';
 
 interface NationType {
+  id?: string;
   type: string;
   name: string;
-  pros: string;
-  cons: string;
+  pros?: string;
+  cons?: string;
+  description?: string;
 }
 
 interface RandomFoundNationCommandFormProps {
@@ -28,18 +30,25 @@ export default function RandomFoundNationCommandForm({
   onSubmit,
   onCancel
 }: RandomFoundNationCommandFormProps) {
+  // none만 제외한 국가 성향 필터링 (neutral은 유지)
+  const selectableNationTypes = useMemo(() => {
+    return Object.values(nationTypes).filter(
+      type => type.id !== 'none'
+    );
+  }, [nationTypes]);
+
   const [nationName, setNationName] = useState('');
   const [selectedColorID, setSelectedColorID] = useState(0);
   const [selectedNationType, setSelectedNationType] = useState<string>(
-    Object.values(nationTypes)[0]?.type || ''
+    selectableNationTypes[0]?.id || selectableNationTypes[0]?.type || 'confucianism'
   );
 
   const nationTypesOptions = useMemo(() => {
-    return Object.values(nationTypes).map(type => ({
-      value: type.type,
+    return selectableNationTypes.map(type => ({
+      value: type.id || type.type,
       label: type.name
     }));
-  }, [nationTypes]);
+  }, [selectableNationTypes]);
 
   const handleSubmit = () => {
     if (!available건국) {

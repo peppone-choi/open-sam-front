@@ -64,9 +64,9 @@ export default function TipTapEditor({
             session_id: serverID || 'sangokushi_default',
           } as any);
 
-          if (result.result && result.path) {
+          if (result.result && (result as any).path) {
             // 이미지 URL을 에디터에 삽입
-            editor.chain().focus().setImage({ src: result.path }).run();
+            editor.chain().focus().setImage({ src: (result as any).path }).run();
           } else {
             alert(result.reason || '이미지 업로드에 실패했습니다.');
           }

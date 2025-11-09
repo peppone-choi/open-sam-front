@@ -178,7 +178,7 @@ export default function BattleMap({
     if (!draggedUnit || !editable) return;
     e.preventDefault();
     const pos = getGridPosition(e.clientX, e.clientY);
-    if (pos && draggedUnit.x !== pos.x || draggedUnit.y !== pos.y) {
+    if (pos && (draggedUnit.x !== pos.x || draggedUnit.y !== pos.y)) {
       if (onUnitMove) {
         onUnitMove(draggedUnit.id, pos.x, pos.y);
       }

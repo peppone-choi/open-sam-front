@@ -123,7 +123,7 @@ export class Validator {
   /**
    * 에러 메시지 반환
    */
-  errors(): Record<string, string[]> {
+  getErrors(): Record<string, string[]> {
     return this.errors;
   }
 

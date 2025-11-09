@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 
-export default function KakaoOAuthPage() {
+function KakaoOAuthContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const code = searchParams?.get('code');
@@ -43,6 +43,14 @@ export default function KakaoOAuthPage() {
     <div style={{ padding: '2rem', textAlign: 'center' }}>
       <div>카카오 인증 처리 중...</div>
     </div>
+  );
+}
+
+export default function KakaoOAuthPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>로딩 중...</div>}>
+      <KakaoOAuthContent />
+    </Suspense>
   );
 }
 
