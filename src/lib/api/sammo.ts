@@ -137,18 +137,6 @@ export class SammoAPI {
     const url = `${this.baseURL}${endpoint}`;
     const token = this.getToken();
     
-    // Authorization 헤더 추가
-    const token = getToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(url, {
-      method,
-      headers,
-      body: method !== 'GET' ? JSON.stringify(body) : undefined,
-    });
-    
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string> || {}),
