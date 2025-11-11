@@ -112,7 +112,14 @@ export default function AdminGamePage() {
       if (result.result) {
         alert('변경되었습니다');
         if (action === 'log') setLog(''); // 로그는 초기화
-        loadSettings();
+        
+        // 시나리오 리셋 후 자동 새로고침
+        if (action === 'resetScenario') {
+          alert('시나리오가 초기화되었습니다. 페이지를 새로고침합니다.');
+          window.location.reload();
+        } else {
+          loadSettings();
+        }
       } else {
         alert(result.reason || '변경에 실패했습니다');
       }

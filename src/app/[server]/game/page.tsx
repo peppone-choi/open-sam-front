@@ -113,7 +113,6 @@ export default function GamePage() {
     // 턴 완료 이벤트 (디바운스 적용, 더 긴 시간으로 깜빡임 방지)
     let turnCompleteTimeout: NodeJS.Timeout | null = null;
     const cleanupTurnComplete = onTurnComplete(() => {
-      console.log('[Socket] 턴 완료');
       if (turnCompleteTimeout) clearTimeout(turnCompleteTimeout);
       turnCompleteTimeout = setTimeout(() => {
         loadDataRef.current?.();
@@ -123,7 +122,6 @@ export default function GamePage() {
     // 월 변경 이벤트 (디바운스 적용, 더 긴 시간으로 깜빡임 방지)
     let monthChangedTimeout: NodeJS.Timeout | null = null;
     const cleanupMonthChanged = onGameEvent('month:changed', (data) => {
-      console.log('[Socket] 월 변경', data);
       // 년/월만 부분 업데이트 (전체 로드 방지)
       if (data.year !== undefined && data.month !== undefined) {
         setFrontInfo(prev => {
@@ -152,7 +150,6 @@ export default function GamePage() {
     // 장수 업데이트 이벤트 (부분 업데이트만, 년/월 업데이트 포함)
     let generalUpdateTimeout: NodeJS.Timeout | null = null;
     const cleanupGeneralUpdate = onGeneralEvent('updated', (data) => {
-      console.log('[Socket] 장수 업데이트:', data.generalId);
       if (generalIdRef.current === data.generalId) {
         // 부분 업데이트만 수행 (전체 로드 대신)
         if (data.updates && frontInfoRef.current) {
@@ -179,7 +176,6 @@ export default function GamePage() {
     // 게임 상태 업데이트 이벤트 (전역 년/월은 유지, 장수별 년/월은 general 업데이트로 처리)
     // lastExecuted는 턴 실행 시점이므로 고정되어야 함 (Socket 이벤트로 업데이트하지 않음)
     const cleanupGameStatus = onGameEvent('status', (data) => {
-      console.log('[Socket] 게임 상태:', data);
       setFrontInfo(prev => {
         if (!prev) return prev;
         // 값이 동일하면 업데이트하지 않음 (무한 루프 방지)

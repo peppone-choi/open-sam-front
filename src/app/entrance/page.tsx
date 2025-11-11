@@ -72,27 +72,14 @@ export default function EntrancePage() {
         if (userInfoData?.result) {
           const characterChecks = serverListData.map(async (server) => {
             try {
-              console.log(`서버 ${server.serverID} 캐릭터 체크 시작...`);
               const frontInfo = await SammoAPI.GeneralGetFrontInfo({
                 serverID: server.serverID,
-              });
-              console.log(`서버 ${server.serverID} 응답:`, {
-                success: frontInfo.success,
-                result: frontInfo.result,
-                hasGeneral: !!frontInfo.general,
-                generalNo: frontInfo.general?.no,
               });
               
               // success가 false이거나 general이 없으면 캐릭터 없음
               const hasCharacter = frontInfo.success === true && frontInfo.general && frontInfo.general.no > 0;
               const characterName = frontInfo.general?.name || '';
               const characterNation = frontInfo.nation?.name || '';
-              
-              console.log(`서버 ${server.serverID} 캐릭터 존재: ${hasCharacter}`, {
-                name: characterName,
-                nation: characterNation,
-                success: frontInfo.success,
-              });
               
               return {
                 serverID: server.serverID,
@@ -102,7 +89,6 @@ export default function EntrancePage() {
               };
             } catch (err: any) {
               // 401 에러나 다른 에러는 캐릭터 없음으로 처리
-              console.log(`서버 ${server.serverID} 캐릭터 체크 실패:`, err);
               return {
                 serverID: server.serverID,
                 hasCharacter: false,
@@ -123,7 +109,6 @@ export default function EntrancePage() {
                 characterNation: result?.characterNation || '',
               };
             });
-            console.log('서버 목록 업데이트:', updated);
             return updated;
           });
         } else {
@@ -162,7 +147,6 @@ export default function EntrancePage() {
         await SammoAPI.Logout();
       } catch (err) {
         // 서버 요청 실패해도 클라이언트 측 토큰은 삭제됨
-        console.log('로그아웃 API 호출 실패:', err);
       }
       
       // 로그인 페이지로 이동

@@ -137,12 +137,16 @@ export class SammoAPI {
     const url = `${this.baseURL}${endpoint}`;
     const token = this.getToken();
     
-    console.log('[API Request]', {
-      url,
-      method: options.method || 'GET',
-      hasToken: !!token,
-      tokenPreview: token ? `${token.substring(0, 20)}...` : null,
-      baseURL: this.baseURL
+    // Authorization 헤더 추가
+    const token = getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, {
+      method,
+      headers,
+      body: method !== 'GET' ? JSON.stringify(body) : undefined,
     });
     
     const headers: Record<string, string> = {
@@ -153,9 +157,6 @@ export class SammoAPI {
     // 토큰이 있으면 Authorization 헤더에 추가
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
-      console.log('[API Request] Authorization 헤더 추가됨');
-    } else {
-      console.warn('[API Request] 토큰 없음!');
     }
     
     try {
@@ -163,12 +164,6 @@ export class SammoAPI {
         ...options,
         credentials: 'include',
         headers,
-      });
-      
-      console.log('[API Response]', {
-        url,
-        status: response.status,
-        ok: response.ok
       });
 
       if (!response.ok) {

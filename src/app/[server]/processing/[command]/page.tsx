@@ -127,8 +127,6 @@ function CommandProcessingContent() {
   }
 
   async function handleSubmit(args: any) {
-    console.log('[CommandProcessing] handleSubmit 호출됨', { command, args });
-
     if (!command) {
       alert('명령이 지정되지 않았습니다.');
       return;
