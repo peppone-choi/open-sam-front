@@ -429,6 +429,17 @@ export default function GamePage() {
           </div>
         </div>
 
+        {frontInfo.general && frontInfo.nation && (
+          <div className={styles.generalInfo}>
+            <GeneralBasicCard
+              general={frontInfo.general}
+              nation={frontInfo.nation}
+              troopInfo={frontInfo.general.reservedCommand ? undefined : undefined}
+              turnTerm={frontInfo.global.turnterm}
+            />
+          </div>
+        )}
+
         {frontInfo.city && (
           <div className={styles.cityInfo}>
             <CityBasicCard city={frontInfo.city} cityConstMap={frontInfo.cityConstMap} />
@@ -438,17 +449,6 @@ export default function GamePage() {
         {frontInfo.nation && (
           <div className={styles.nationInfo}>
             <NationBasicCard nation={frontInfo.nation} global={frontInfo.global} />
-          </div>
-        )}
-
-        {frontInfo.general && frontInfo.nation && (
-          <div className={styles.generalInfo}>
-            <GeneralBasicCard
-              general={frontInfo.general}
-              nation={frontInfo.nation}
-              troopInfo={frontInfo.general.reservedCommand ? undefined : undefined}
-              turnTerm={frontInfo.global.turnterm}
-            />
           </div>
         )}
 

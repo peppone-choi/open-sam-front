@@ -128,7 +128,9 @@ export default function GeneralBasicCard({
   gameConst,
   cityConst 
 }: GeneralBasicCardProps) {
-  const textColor = nation ? (isBrightColor(nation?.color ?? "#666") ? '#000' : '#fff') : '#fff';
+  // 재야는 흰색, 국가는 국가 색상
+  const displayColor = (nation && nation.id !== 0) ? (nation?.color ?? "#666") : "#FFFFFF";
+  const textColor = isBrightColor(displayColor) ? '#000' : '#fff';
 
   // 부상 정보
   const injuryInfo = formatInjury(general.injury || 0);
@@ -314,7 +316,7 @@ export default function GeneralBasicCard({
         className={styles.generalNameCell}
         style={{
           color: textColor,
-          backgroundColor: nation?.color ?? "#666",
+          backgroundColor: displayColor,
         }}
       >
         <span 

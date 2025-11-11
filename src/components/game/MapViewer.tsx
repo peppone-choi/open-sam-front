@@ -56,6 +56,7 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
     for (const nation of mapData.nationList) {
       const [id, name, color, capital] = nation;
       nationMap.set(id, { name, color, capital });
+      console.log('[MapViewer] 국가 정보:', { id, name, color, capital });
     }
 
     const shownByGeneralSet = new Set(mapData.shownByGeneralList || []);

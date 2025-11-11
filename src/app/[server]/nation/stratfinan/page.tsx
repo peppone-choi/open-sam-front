@@ -240,7 +240,7 @@ export default function NationStratFinanPage() {
                   
                   return (
                     <tr key={nation.nation}>
-                      <td style={{backgroundColor: nation.color}}>{nation.name}</td>
+                      <td style={{backgroundColor: nation.nation === 0 ? '#FFFFFF' : nation.color}}>{nation.name}</td>
                       <td>{nation.power?.toLocaleString() || '-'}</td>
                       <td>{nation.gennum?.toLocaleString() || '-'}</td>
                       <td>{nation.cityCnt?.toLocaleString() || '-'}</td>

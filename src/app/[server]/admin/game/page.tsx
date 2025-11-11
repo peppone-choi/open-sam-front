@@ -11,200 +11,486 @@ export default function AdminGamePage() {
   const serverID = params?.server as string;
 
   const [loading, setLoading] = useState(true);
-  const [adminData, setAdminData] = useState<any>(null);
-  const [formData, setFormData] = useState<any>({});
-  const [systemStatus, setSystemStatus] = useState<any>(null);
-  const [timeAdjustMinutes, setTimeAdjustMinutes] = useState<number>(60);
+  const [settings, setSettings] = useState<any>({});
+  
+  // 폼 상태
+  const [serverName, setServerName] = useState('');
+  const [scenario, setScenario] = useState('');
+  const [msg, setMsg] = useState('');
+  const [log, setLog] = useState('');
+  const [starttime, setStarttime] = useState('');
+  const [maxgeneral, setMaxgeneral] = useState(300);
+  const [maxnation, setMaxnation] = useState(12);
+  const [startyear, setStartyear] = useState(220);
+  
+  // 시나리오 목록
+  const [scenarios, setScenarios] = useState<any[]>([]);
+  const [selectedScenarioId, setSelectedScenarioId] = useState('');
 
   useEffect(() => {
-    loadAdminData();
-    loadSystemStatus();
+    loadSettings();
+    loadScenarios();
   }, [serverID]);
 
-  async function loadAdminData() {
+  async function loadScenarios() {
+    try {
+      const result = await SammoAPI.GetPhpScenarios();
+      if (result.success) {
+        setScenarios(result.data.scenarios);
+      }
+    } catch (err) {
+      console.error('시나리오 목록 로드 실패:', err);
+    }
+  }
+
+  async function loadSettings() {
     try {
       setLoading(true);
-      const result = await SammoAPI.AdminGetGameInfo();
+      const result = await SammoAPI.AdminGetGameInfo({ session_id: serverID });
       if (result.result) {
-        setAdminData(result.gameInfo);
-        setFormData(result.gameInfo || {});
+        const data = result.gameInfo;
+        console.log('[Admin] Loaded game info:', { isunited: data.isunited, data });
+        setSettings(data);
+        setServerName(data.serverName || '');
+        setScenario(data.scenario || '');
+        setMsg(data.msg || '');
+        setStarttime(data.starttime ? data.starttime.substring(0, 19) : '');
+        setMaxgeneral(data.maxgeneral || 300);
+        setMaxnation(data.maxnation || 12);
+        setStartyear(data.startyear || 220);
       }
     } catch (err) {
       console.error(err);
-      alert('게임 정보를 불러오는데 실패했습니다.');
+      alert('설정을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
   }
 
-  async function loadSystemStatus() {
+  async function handleSubmit(action: string, value?: any) {
     try {
-      const result = await SammoAPI.AdminGetSystemStatus();
-      if (result.result) {
-        setSystemStatus(result.status);
+      let data: any = { session_id: serverID };
+      
+      switch (action) {
+        case 'serverName':
+          data.serverName = serverName;
+          break;
+        case 'scenario':
+          data.scenario = scenario;
+          break;
+        case 'msg':
+          data.msg = msg;
+          break;
+        case 'log':
+          data.log = log;
+          break;
+        case 'starttime':
+          data.starttime = starttime;
+          break;
+        case 'maxgeneral':
+          data.maxgeneral = maxgeneral;
+          break;
+        case 'maxnation':
+          data.maxnation = maxnation;
+          break;
+        case 'startyear':
+          data.startyear = startyear;
+          break;
+        case 'turnterm':
+          data.turnterm = value;
+          break;
+        case 'status':
+          data.status = value; // preparing, running, paused, finished, united
+          break;
+        case 'resetScenario':
+          data.scenarioId = value;
+          break;
       }
-    } catch (err) {
+
+      const result = await SammoAPI.AdminUpdateGame({ action, data });
+      
+      if (result.result) {
+        alert('변경되었습니다');
+        if (action === 'log') setLog(''); // 로그는 초기화
+        loadSettings();
+      } else {
+        alert(result.reason || '변경에 실패했습니다');
+      }
+    } catch (err: any) {
       console.error(err);
+      alert(err.message || '오류가 발생했습니다');
     }
   }
 
-  async function handleSubmit(action: string) {
-    try {
-      const result = await SammoAPI.AdminUpdateGame({
-        action,
-        data: formData,
-      });
-
-      if (result.result) {
-        alert('변경되었습니다.');
-        await loadAdminData();
-      } else {
-        alert(result.reason || '변경에 실패했습니다.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('변경에 실패했습니다.');
+  async function handleChangeStatus(status: string) {
+    const statusLabels: Record<string, string> = {
+      preparing: '준비중 (테스트)',
+      running: '운영중',
+      paused: '폐쇄',
+      finished: '종료',
+      united: '천하통일'
+    };
+    const statusText = statusLabels[status] || status;
+    console.log('[Admin] Changing server status:', { status, statusText });
+    if (confirm(`서버를 "${statusText}" 상태로 변경하시겠습니까?`)) {
+      await handleSubmit('status', status);
     }
   }
 
-  async function handleAdjustTime(type: 'turn_advance' | 'turn_delay' | 'tournament_advance' | 'tournament_delay') {
-    try {
-      const result = await SammoAPI.AdminAdjustTime({
-        type,
-        minutes: timeAdjustMinutes,
-      });
-
-      if (result.result) {
-        alert(result.reason || '시간이 조정되었습니다.');
-        await loadSystemStatus();
-      } else {
-        alert(result.reason || '시간 조정에 실패했습니다.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('시간 조정에 실패했습니다.');
+  async function handleResetScenario() {
+    if (!selectedScenarioId) {
+      alert('시나리오를 선택해주세요');
+      return;
+    }
+    
+    const selectedScenario = scenarios.find(s => s.id === selectedScenarioId);
+    if (!selectedScenario) return;
+    
+    if (confirm(`정말로 "${selectedScenario.title}" 시나리오로 서버를 초기화하시겠습니까?\n\n⚠️ 모든 장수/국가 데이터가 삭제됩니다!`)) {
+      await handleSubmit('resetScenario', selectedScenarioId);
     }
   }
 
-  async function handleToggleLock(lock: boolean) {
-    try {
-      const result = await SammoAPI.AdminToggleLock({ lock });
-
-      if (result.result) {
-        alert(result.reason || '변경되었습니다.');
-        await loadSystemStatus();
-      } else {
-        alert(result.reason || '변경에 실패했습니다.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('변경에 실패했습니다.');
-    }
-  }
-
-  async function handlePaySalary(type: 'gold' | 'rice') {
-    try {
-      const result = await SammoAPI.AdminPaySalary({ type });
-
-      if (result.result) {
-        alert(result.reason || '지급되었습니다.');
-      } else {
-        alert(result.reason || '지급에 실패했습니다.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('지급에 실패했습니다.');
-    }
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <TopBackBar title="게 임 설 정" />
+        <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
+      </div>
+    );
   }
 
   return (
     <div className={styles.container}>
-      <TopBackBar title="게 임 관 리" />
-      {loading ? (
-        <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
-      ) : (
-        <div className={styles.content}>
-          <div className={styles.adminForm}>
-            <div className={styles.formRow}>
-              <label>운영자메세지</label>
+      <TopBackBar title="게 임 설 정" />
+
+      <table className={`tb_layout bg0`} style={{ width: '1000px', margin: '0 auto' }}>
+        <tbody>
+          <tr>
+            <td colSpan={4} className="bg2" style={{ textAlign: 'center', padding: '0.8rem', fontSize: '1.1em' }}>
+              ⚙️ 서버 상태 제어
+            </td>
+          </tr>
+          <tr>
+            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>서버 상태</td>
+            <td colSpan={3} style={{ padding: '0.5rem' }}>
+              <button
+                type="button"
+                onClick={() => handleChangeStatus('preparing')}
+                style={{ 
+                  marginRight: '0.5rem', 
+                  padding: '0.5rem 1rem', 
+                  backgroundColor: settings.status === 'preparing' ? '#9C27B0' : '#333', 
+                  color: 'white', 
+                  border: '1px solid #666', 
+                  cursor: 'pointer',
+                  fontWeight: settings.status === 'preparing' ? 'bold' : 'normal',
+                  fontSize: '0.9em'
+                }}
+              >
+                🔧 준비중
+              </button>
+              <button
+                type="button"
+                onClick={() => handleChangeStatus('running')}
+                style={{ 
+                  marginRight: '0.5rem', 
+                  padding: '0.5rem 1rem', 
+                  backgroundColor: settings.status === 'running' ? '#4CAF50' : '#333', 
+                  color: 'white', 
+                  border: '1px solid #666', 
+                  cursor: 'pointer',
+                  fontWeight: settings.status === 'running' ? 'bold' : 'normal',
+                  fontSize: '0.9em'
+                }}
+              >
+                ✅ 운영중
+              </button>
+              <button
+                type="button"
+                onClick={() => handleChangeStatus('paused')}
+                style={{ 
+                  marginRight: '0.5rem', 
+                  padding: '0.5rem 1rem', 
+                  backgroundColor: settings.status === 'paused' ? '#f44336' : '#333', 
+                  color: 'white', 
+                  border: '1px solid #666', 
+                  cursor: 'pointer',
+                  fontWeight: settings.status === 'paused' ? 'bold' : 'normal',
+                  fontSize: '0.9em'
+                }}
+              >
+                🔒 폐쇄
+              </button>
+              <button
+                type="button"
+                onClick={() => handleChangeStatus('finished')}
+                style={{ 
+                  marginRight: '0.5rem', 
+                  padding: '0.5rem 1rem', 
+                  backgroundColor: settings.status === 'finished' ? '#607D8B' : '#333', 
+                  color: 'white', 
+                  border: '1px solid #666', 
+                  cursor: 'pointer',
+                  fontWeight: settings.status === 'finished' ? 'bold' : 'normal',
+                  fontSize: '0.9em'
+                }}
+              >
+                🏁 종료
+              </button>
+              <button
+                type="button"
+                onClick={() => handleChangeStatus('united')}
+                style={{ 
+                  padding: '0.5rem 1rem', 
+                  backgroundColor: settings.status === 'united' ? '#FFD700' : '#333', 
+                  color: settings.status === 'united' ? '#000' : 'white', 
+                  border: '1px solid #666', 
+                  cursor: 'pointer',
+                  fontWeight: settings.status === 'united' ? 'bold' : 'normal',
+                  fontSize: '0.9em'
+                }}
+              >
+                👑 천하통일
+              </button>
+              <br />
+              <span style={{ marginTop: '0.5rem', display: 'inline-block', color: '#aaa', fontSize: '0.85em' }}>
+                현재: <strong style={{ color: '#fff' }}>
+                  {settings.status === 'preparing' && '🔧 준비중 (테스트 플레이 가능, 턴 진행 ❌)'}
+                  {settings.status === 'running' && '✅ 운영중 (정상 운영)'}
+                  {settings.status === 'paused' && '🔒 폐쇄 (접속 불가)'}
+                  {settings.status === 'finished' && '🏁 종료 (게임 완료)'}
+                  {settings.status === 'united' && '👑 천하통일 (게임 완료)'}
+                  {!settings.status && '알 수 없음'}
+                </strong>
+              </span>
+            </td>
+          </tr>
+          
+          <tr>
+            <td colSpan={4} className="bg2" style={{ textAlign: 'center', padding: '0.8rem', fontSize: '1.1em' }}>
+              🎮 시나리오 초기화
+            </td>
+          </tr>
+          <tr>
+            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem', verticalAlign: 'top' }}>시나리오 선택</td>
+            <td colSpan={3} style={{ padding: '0.5rem' }}>
+              <select
+                value={selectedScenarioId}
+                onChange={(e) => setSelectedScenarioId(e.target.value)}
+                style={{ width: '500px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.5rem' }}
+              >
+                <option value="">-- 시나리오 선택 --</option>
+                {scenarios.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.title} ({s.startYear}년)
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={handleResetScenario}
+                style={{ 
+                  marginLeft: '0.5rem', 
+                  padding: '0.5rem 1.5rem', 
+                  backgroundColor: '#d32f2f', 
+                  color: 'white', 
+                  border: '1px solid #666', 
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                ⚠️ 서버 초기화
+              </button>
+              <div style={{ marginTop: '0.5rem', color: '#ff6b6b', fontSize: '0.9em' }}>
+                ⚠️ 주의: 서버 초기화 시 모든 장수, 국가, 전쟁 데이터가 삭제되고 선택한 시나리오로 재설정됩니다.
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td colSpan={4} className="bg2" style={{ textAlign: 'center', padding: '0.8rem', fontSize: '1.1em' }}>
+              📝 서버 기본 정보
+            </td>
+          </tr>
+          <tr>
+            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>서버 이름</td>
+            <td colSpan={3} style={{ padding: '0.5rem' }}>
               <input
                 type="text"
-                value={formData.msg || ''}
-                onChange={(e) => setFormData({ ...formData, msg: e.target.value })}
-                className={styles.input}
+                value={serverName}
+                onChange={(e) => setServerName(e.target.value)}
+                placeholder="서버 표시 이름 (예: OpenSAM, 삼국지 184년)"
+                style={{ width: '400px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem' }}
               />
-              <button type="button" onClick={() => handleSubmit('msg')} className={styles.button}>
+              <button 
+                type="button" 
+                onClick={() => handleSubmit('serverName')}
+                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
+              >
                 변경
               </button>
-            </div>
+            </td>
+          </tr>
 
-            <section className={styles.section}>
-              <h2>시간 제어</h2>
-              {systemStatus && (
-                <div className={styles.statusInfo}>
-                  <div>현재 턴 시간: {systemStatus.turntime ? new Date(systemStatus.turntime).toLocaleString('ko-KR') : 'N/A'}</div>
-                  <div>토너먼트 시간: {systemStatus.tnmt_time ? new Date(systemStatus.tnmt_time).toLocaleString('ko-KR') : 'N/A'}</div>
-                  <div>턴 주기: {systemStatus.turnterm}분</div>
-                </div>
-              )}
-              <div className={styles.formRow}>
-                <label>분 조정</label>
-                <input
-                  type="number"
-                  value={timeAdjustMinutes}
-                  onChange={(e) => setTimeAdjustMinutes(parseInt(e.target.value, 10) || 60)}
-                  className={styles.input}
-                  style={{ width: '100px' }}
-                />
-                <span>분</span>
-              </div>
-              <div className={styles.buttonGroup}>
-                <button type="button" onClick={() => handleAdjustTime('turn_advance')} className={styles.button}>
-                  턴 앞당김
-                </button>
-                <button type="button" onClick={() => handleAdjustTime('turn_delay')} className={styles.button}>
-                  턴 지연
-                </button>
-                <button type="button" onClick={() => handleAdjustTime('tournament_advance')} className={styles.button}>
-                  토너먼트 앞당김
-                </button>
-                <button type="button" onClick={() => handleAdjustTime('tournament_delay')} className={styles.button}>
-                  토너먼트 지연
-                </button>
-              </div>
-            </section>
+          <tr>
+            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>시나리오/설명</td>
+            <td colSpan={3} style={{ padding: '0.5rem' }}>
+              <input
+                type="text"
+                value={scenario}
+                onChange={(e) => setScenario(e.target.value)}
+                placeholder="시나리오 설명 (예: 황건적의 난, 관도대전)"
+                style={{ width: '400px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem' }}
+              />
+              <button 
+                type="button" 
+                onClick={() => handleSubmit('scenario')}
+                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
+              >
+                변경
+              </button>
+            </td>
+          </tr>
 
-            <section className={styles.section}>
-              <h2>락 제어</h2>
-              {systemStatus && (
-                <div className={styles.statusInfo}>
-                  <div>현재 상태: {systemStatus.plock > 0 ? '🔒 동결중' : '✅ 가동중'}</div>
-                </div>
-              )}
-              <div className={styles.buttonGroup}>
-                <button type="button" onClick={() => handleToggleLock(true)} className={styles.button}>
-                  락 걸기 (동결)
-                </button>
-                <button type="button" onClick={() => handleToggleLock(false)} className={styles.button}>
-                  락 풀기 (가동)
-                </button>
-              </div>
-            </section>
+          <tr>
+            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>운영자메세지</td>
+            <td colSpan={3} style={{ padding: '0.5rem' }}>
+              <input
+                type="text"
+                value={msg}
+                onChange={(e) => setMsg(e.target.value)}
+                style={{ width: '600px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem' }}
+              />
+              <button 
+                type="button" 
+                onClick={() => handleSubmit('msg')}
+                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
+              >
+                변경
+              </button>
+            </td>
+          </tr>
 
-            <section className={styles.section}>
-              <h2>봉급 지급 (TODO)</h2>
-              <div className={styles.buttonGroup}>
-                <button type="button" onClick={() => handlePaySalary('gold')} className={styles.button}>
-                  금 지급
+          <tr>
+            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>중원정세추가</td>
+            <td colSpan={3} style={{ padding: '0.5rem' }}>
+              <input
+                type="text"
+                value={log}
+                onChange={(e) => setLog(e.target.value)}
+                maxLength={80}
+                placeholder="중원정세 로그..."
+                style={{ width: '600px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem' }}
+              />
+              <button 
+                type="button" 
+                onClick={() => handleSubmit('log')}
+                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
+              >
+                로그쓰기
+              </button>
+            </td>
+          </tr>
+
+          <tr>
+            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>시작시간변경</td>
+            <td style={{ padding: '0.5rem' }}>
+              <input
+                type="text"
+                value={starttime}
+                onChange={(e) => setStarttime(e.target.value)}
+                placeholder="YYYY-MM-DD HH:mm:ss"
+                style={{ width: '180px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem', textAlign: 'right' }}
+              />
+              <button 
+                type="button" 
+                onClick={() => handleSubmit('starttime')}
+                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
+              >
+                변경1
+              </button>
+            </td>
+            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>최근 갱신 시간</td>
+            <td style={{ padding: '0.5rem' }}>&nbsp;{settings.turntime || '-'}</td>
+          </tr>
+
+          <tr>
+            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>최대 장수</td>
+            <td style={{ padding: '0.5rem' }}>
+              <input
+                type="number"
+                value={maxgeneral}
+                onChange={(e) => setMaxgeneral(Number(e.target.value))}
+                style={{ width: '60px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem', textAlign: 'right' }}
+              />
+              <button 
+                type="button" 
+                onClick={() => handleSubmit('maxgeneral')}
+                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
+              >
+                변경2
+              </button>
+            </td>
+            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>최대 국가</td>
+            <td style={{ padding: '0.5rem' }}>
+              <input
+                type="number"
+                value={maxnation}
+                onChange={(e) => setMaxnation(Number(e.target.value))}
+                style={{ width: '60px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem', textAlign: 'right' }}
+              />
+              <button 
+                type="button" 
+                onClick={() => handleSubmit('maxnation')}
+                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
+              >
+                변경3
+              </button>
+            </td>
+          </tr>
+
+          <tr>
+            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>시작 년도</td>
+            <td style={{ padding: '0.5rem' }}>
+              <input
+                type="number"
+                value={startyear}
+                onChange={(e) => setStartyear(Number(e.target.value))}
+                style={{ width: '60px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem', textAlign: 'right' }}
+              />
+              <button 
+                type="button" 
+                onClick={() => handleSubmit('startyear')}
+                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
+              >
+                변경4
+              </button>
+            </td>
+            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>현재 년월</td>
+            <td style={{ padding: '0.5rem' }}>{settings.year || 220}년 {settings.month || 1}월</td>
+          </tr>
+
+          <tr>
+            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>턴시간</td>
+            <td colSpan={3} style={{ padding: '0.5rem' }}>
+              {[1, 2, 5, 10, 20, 30, 60, 120].map((term) => (
+                <button
+                  key={term}
+                  type="button"
+                  onClick={() => handleSubmit('turnterm', term)}
+                  style={{ marginRight: '0.3rem', padding: '0.3rem 0.8rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
+                >
+                  {term}분턴
                 </button>
-                <button type="button" onClick={() => handlePaySalary('rice')} className={styles.button}>
-                  쌀 지급
-                </button>
-              </div>
-            </section>
-          </div>
-        </div>
-      )}
+              ))}
+              <span style={{ marginLeft: '1rem', color: '#aaa' }}>
+                (현재: {settings.turnterm || 60}분)
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }

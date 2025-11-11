@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSocket } from '@/hooks/useSocket';
+import StrategicMap from '@/components/logh/StrategicMap';
+import TacticalMap from '@/components/logh/TacticalMap';
 
 /**
  * LOGH Game Screen
- * 은하영웅전설 게임 화면 - 커맨더 정보, 함대 현황, 작전 입력
+ * 은하영웅전설 게임 화면 - 전략/전술 맵, 함대 관리
  */
 
 interface Commander {
@@ -37,6 +40,12 @@ export default function LoghGamePage() {
   const [commander, setCommander] = useState<Commander | null>(null);
   const [fleet, setFleet] = useState<Fleet | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTacticalMap, setActiveTacticalMap] = useState<string | null>(null);
+  const [selectedFleet, setSelectedFleet] = useState<any>(null);
+  const sessionId = 'test_session'; // TODO: 실제 세션 ID로 교체
+
+  // Socket.IO 연결
+  const { socket, isConnected } = useSocket({ sessionId, autoConnect: true });
 
   useEffect(() => {
     loadGameData();
@@ -223,16 +232,38 @@ export default function LoghGamePage() {
           </div>
         </div>
 
-        {/* 3D Star Map Preview */}
+        {/* Strategic Map */}
         <div className="mt-6 bg-gray-800 rounded-lg p-6 border-2 border-blue-700">
-          <h2 className="text-2xl font-bold mb-4 text-blue-400">은하계 지도</h2>
-          <div className="bg-black rounded-lg h-64 flex items-center justify-center">
-            <div className="text-gray-500">
-              3D 별계도 (구현 예정 - Three.js)
-            </div>
-          </div>
+          <h2 className="text-2xl font-bold mb-4 text-blue-400">전략 맵 (100x50 그리드)</h2>
+          <StrategicMap
+            sessionId={sessionId}
+            onFleetClick={(fleet: any) => {
+              console.log('Fleet clicked:', fleet);
+              setSelectedFleet(fleet);
+            }}
+            onCellClick={(x: number, y: number) => {
+              console.log('Cell clicked:', x, y);
+              // 선택된 함대가 있으면 이동 명령
+              if (selectedFleet && socket) {
+                socket.emit('fleet:move', {
+                  fleetId: selectedFleet.fleetId,
+                  x,
+                  y,
+                });
+              }
+            }}
+          />
         </div>
       </div>
+
+      {/* Tactical Map (Modal) */}
+      {activeTacticalMap && (
+        <TacticalMap
+          sessionId={sessionId}
+          tacticalMapId={activeTacticalMap}
+          onClose={() => setActiveTacticalMap(null)}
+        />
+      )}
     </div>
   );
 }

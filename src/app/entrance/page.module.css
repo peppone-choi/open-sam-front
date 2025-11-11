@@ -94,6 +94,26 @@
   padding: 1rem;
   font-size: 0.9em;
   color: #aaa;
+  line-height: 1.8;
+}
+
+.alert {
+  color: orange;
+}
+
+.mainServer {
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+.seasonServer {
+  color: #4dabf7;
+  font-weight: bold;
+}
+
+.testServer {
+  color: #69db7c;
+  font-weight: bold;
 }
 
 .userInfo {
@@ -156,6 +176,58 @@
   background-color: #ff8533;
 }
 
+.globalAdminPanel {
+  margin-bottom: 2rem;
+  border: 1px solid gray;
+}
 
+.adminActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 1rem;
+  border-bottom: 1px solid gray;
+  background-color: #1a1a1a;
+}
 
+.noticeEdit {
+  padding: 1rem;
+  background-color: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.noticeEdit label {
+  color: #aaa;
+  font-size: 0.9em;
+}
+
+.noticeTextarea {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: black;
+  color: white;
+  border: 1px solid #666;
+  border-radius: 4px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.adminBtn {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background-color: #4a4a4a;
+  color: white;
+  border: 1px solid #666;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 0.9em;
+  transition: background-color 0.3s;
+}
+
+.adminBtn:hover {
+  background-color: #ff6b00;
+  border-color: #ff8533;
+}
 

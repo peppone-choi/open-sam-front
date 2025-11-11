@@ -1,0 +1,56 @@
+.container {
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.menuGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.menuCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: white;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.menuCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+}
+
+.menuIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.menuTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.menuDescription {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  text-align: center;
+}
+
+/* 다크 테마 적용 */
+@media (prefers-color-scheme: dark) {
+  .menuCard {
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+  }
+}

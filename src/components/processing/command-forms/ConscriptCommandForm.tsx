@@ -64,6 +64,7 @@ export default function ConscriptCommandForm({
 }: ConscriptCommandFormProps) {
   const [selectedCrewType, setSelectedCrewType] = useState<CrewTypeItem | null>(null);
   const [amount, setAmount] = useState(1);
+  const [showUnavailable, setShowUnavailable] = useState(false);
 
   // 병종 맵 생성
   const crewTypeMap = useMemo(() => {
@@ -81,19 +82,25 @@ export default function ConscriptCommandForm({
     if (crewTypeMap.has(currentCrewType)) {
       const currentType = crewTypeMap.get(currentCrewType)!;
       setSelectedCrewType(currentType);
-      // 현재 병종과 같으면 채울 수 있는 만큼, 다르면 통솔력만큼
+      
+      // 자금으로 살 수 있는 최대 병력 계산
+      const maxAffordable = Math.floor(gold / (currentType.baseCost * goldCoeff));
+      
+      // 현재 병종과 같으면 채울 수 있는 만큼, 다르면 통솔력과 자금 중 적은 것
       if (currentType.id === currentCrewType) {
-        setAmount(Math.max(1, fullLeadership - Math.floor(crew / 100)));
+        const needAmount = Math.max(1, fullLeadership - Math.floor(crew / 100));
+        setAmount(Math.min(needAmount, maxAffordable, fullLeadership));
       } else {
-        setAmount(fullLeadership);
+        setAmount(Math.min(fullLeadership, maxAffordable));
       }
     } else if (crewTypeMap.size > 0) {
       // 첫 번째 병종 선택
       const firstType = Array.from(crewTypeMap.values())[0];
       setSelectedCrewType(firstType);
-      setAmount(fullLeadership);
+      const maxAffordable = Math.floor(gold / (firstType.baseCost * goldCoeff));
+      setAmount(Math.min(fullLeadership, maxAffordable));
     }
-  }, [crewTypeMap, currentCrewType, crew, fullLeadership]);
+  }, [crewTypeMap, currentCrewType, crew, fullLeadership, gold, goldCoeff]);
 
   const handleAmountChange = (newAmount: number) => {
     setAmount(Math.max(1, Math.min(newAmount, Math.floor(fullLeadership * 1.2))));
@@ -116,6 +123,14 @@ export default function ConscriptCommandForm({
   };
 
   const handleSubmit = () => {
+    console.log('[ConscriptCommandForm] handleSubmit 호출됨', {
+      selectedCrewType,
+      amount,
+      gold,
+      goldCoeff,
+      notAvailable: selectedCrewType?.notAvailable
+    });
+
     if (!selectedCrewType) {
       alert('병종을 선택해주세요.');
       return;
@@ -134,6 +149,11 @@ export default function ConscriptCommandForm({
       alert(`자금이 부족합니다. 필요: ${totalCost.toLocaleString()}금, 보유: ${gold.toLocaleString()}금`);
       return;
     }
+
+    console.log('[ConscriptCommandForm] onSubmit 호출', {
+      crewType: selectedCrewType.id,
+      amount: amount * 100
+    });
 
     onSubmit({
       crewType: selectedCrewType.id,
@@ -165,13 +185,25 @@ export default function ConscriptCommandForm({
           </div>
         </div>
 
+        {/* 필터 토글 버튼 */}
+        <div className={crewStyles.filterSection}>
+          <label className={crewStyles.filterToggle}>
+            <input
+              type="checkbox"
+              checked={showUnavailable}
+              onChange={(e) => setShowUnavailable(e.target.checked)}
+            />
+            <span>징병 불가 병종 표시</span>
+          </label>
+        </div>
+
         {/* 병종 계열별 선택 */}
         <div className={crewStyles.armTypeList}>
           {armCrewTypes.map((armType) => (
             <div key={armType.armType} className={crewStyles.armTypeGroup}>
               <h3 className={crewStyles.armTypeTitle}>{armType.armName}</h3>
               <div className={crewStyles.crewTypeGrid}>
-                {armType.values.map((crewType) => (
+                {armType.values.filter(ct => showUnavailable || !ct.notAvailable).map((crewType) => (
                   <div
                     key={crewType.id}
                     className={`${crewStyles.crewTypeItem} ${
@@ -180,10 +212,15 @@ export default function ConscriptCommandForm({
                     onClick={() => {
                       if (!crewType.notAvailable) {
                         setSelectedCrewType(crewType);
+                        
+                        // 자금으로 살 수 있는 최대 병력 계산
+                        const maxAffordable = Math.floor(gold / (crewType.baseCost * goldCoeff));
+                        
                         if (crewType.id === currentCrewType) {
-                          setAmount(Math.max(1, fullLeadership - Math.floor(crew / 100)));
+                          const needAmount = Math.max(1, fullLeadership - Math.floor(crew / 100));
+                          setAmount(Math.min(needAmount, maxAffordable, fullLeadership));
                         } else {
-                          setAmount(fullLeadership);
+                          setAmount(Math.min(fullLeadership, maxAffordable));
                         }
                       }
                     }}
@@ -289,12 +326,30 @@ export default function ConscriptCommandForm({
             <div className={crewStyles.submitSection}>
               <button
                 type="button"
-                onClick={handleSubmit}
+                onClick={() => {
+                  console.log('[ConscriptCommandForm] 버튼 클릭됨');
+                  handleSubmit();
+                }}
                 className={styles.submitButton}
-                disabled={selectedCrewType.notAvailable || getTotalCost() > gold}
+                disabled={selectedCrewType?.notAvailable || getTotalCost() > gold}
+                style={{
+                  opacity: (selectedCrewType?.notAvailable || getTotalCost() > gold) ? 0.5 : 1,
+                  cursor: (selectedCrewType?.notAvailable || getTotalCost() > gold) ? 'not-allowed' : 'pointer',
+                  backgroundColor: (selectedCrewType?.notAvailable || getTotalCost() > gold) ? '#666' : undefined
+                }}
               >
                 {commandName}
               </button>
+              {selectedCrewType && getTotalCost() > gold && (
+                <div style={{ marginTop: '10px', fontSize: '14px', color: '#ff6b6b', textAlign: 'center' }}>
+                  ⚠️ 자금이 부족합니다 (필요: {getTotalCost().toLocaleString()}금, 보유: {gold.toLocaleString()}금)
+                </div>
+              )}
+              {selectedCrewType?.notAvailable && (
+                <div style={{ marginTop: '10px', fontSize: '14px', color: '#ff6b6b', textAlign: 'center' }}>
+                  ⚠️ 이 병종은 현재 징병할 수 없습니다
+                </div>
+              )}
             </div>
           </div>
         )}

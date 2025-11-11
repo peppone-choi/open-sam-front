@@ -181,7 +181,7 @@
         outline: dashed 4px transparent;
     }
     50% {
-        outline: dashed 4px red;
+        outline: dashed 4px var(--nation-color, red);
     }
     100% {
         outline: dashed 4px transparent;
@@ -371,4 +371,20 @@
         opacity: 0.7;
         transform: translate(-50%, -50%) scale(1.1);
     }
+}
+
+/* 내 거처 도시 테두리 애니메이션 */
+@keyframes pulse-border {
+    0%, 100% {
+        border-color: #FFD700;
+        box-shadow: 0 0 8px rgba(255, 215, 0, 0.8), inset 0 0 8px rgba(255, 215, 0, 0.3);
+    }
+    50% {
+        border-color: #FFA500;
+        box-shadow: 0 0 12px rgba(255, 165, 0, 1), inset 0 0 12px rgba(255, 165, 0, 0.5);
+    }
+}
+
+:global(.city_base .city_home_indicator) {
+    animation: pulse-border 2s ease-in-out infinite;
 }

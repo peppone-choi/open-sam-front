@@ -87,11 +87,14 @@ export default function AdminPage() {
             {serverList.map((server) => (
               <Link
                 key={server.name}
-                href={`/${server.name}/admin/info`}
+                href={`/${server.name}/admin`}
                 className={styles.serverCard}
               >
                 <div className={styles.serverName}>{server.korName}</div>
                 <div className={styles.serverId}>{server.name}</div>
+                <div className={styles.serverStatus}>
+                  {server.enable ? '🟢 활성' : '🔴 비활성'}
+                </div>
               </Link>
             ))}
           </div>

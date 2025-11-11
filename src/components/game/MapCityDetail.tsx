@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import NationFlag from './NationFlag';
 import styles from './MapCityDetail.module.css';
 
 interface MapCity {
@@ -156,6 +157,24 @@ export default function MapCityDetail({
     return levelNames[level] || '대';
   };
 
+  // 도시 레벨별 깃발 위치 반환 (아이콘 오른쪽 위에 맞춤)
+  const getFlagPosition = (level: number): { right: string; top: string } => {
+    const positions: Record<number, { right: string; top: string }> = {
+      0: { right: '8px', top: '-2px' },    // 무 (20x11)
+      1: { right: '8px', top: '-2px' },    // 향 (20x11)
+      2: { right: '5px', top: '-3px' },    // 수 (25x15)
+      3: { right: '3px', top: '-3px' },    // 진 (28x16)
+      4: { right: '10px', top: '-2px' },   // 관 (14x12)
+      5: { right: '8px', top: '-3px' },    // 이 (20x16)
+      6: { right: '3px', top: '-3px' },    // 소 (28x16)
+      7: { right: '2px', top: '-4px' },    // 중 (29x17)
+      8: { right: '4px', top: '-4px' },    // 대 (27x18)
+      9: { right: '-2px', top: '-5px' },   // 특 (36x21)
+      10: { right: '-4px', top: '-6px' },  // 경 (41x25)
+    };
+    return positions[level] || positions[8];
+  };
+
   // 색상을 파일명 형식으로 변환 (#FF0000 -> FF0000)
   const getColorValue = (color?: string): string => {
     if (!color) return '';
@@ -171,7 +190,21 @@ export default function MapCityDetail({
   };
 
   const colorValue = city.color ? getColorValue(city.color) : '';
-  const rgbColor = city.color ? hexToRgb(city.color) : null;
+  // 공백지는 흰색, 그 외는 국가 색상
+  const displayColor = (city.nationID && city.nationID > 0) ? city.color : '#FFFFFF';
+  const rgbColor = displayColor ? hexToRgb(displayColor) : null;
+
+  // 디버깅: 수도 정보 로그 (업 도시만)
+  if (city.name === '업') {
+    console.log('[MapCityDetail] 업 도시 정보:', {
+      cityId: city.id,
+      cityName: city.name,
+      nationID: city.nationID,
+      nation: city.nation,
+      isCapital: city.isCapital,
+      color: city.color
+    });
+  }
 
   // 오른쪽 끝 도시는 도시명을 왼쪽에 표시 (X 좌표 650 이상)
   const isRightEdge = city.x >= 650;
@@ -232,20 +265,21 @@ export default function MapCityDetail({
       </span>
       {/* city_bg 제거 - 아이콘 이미지에 오라 효과 적용 */}
       {/* 배경 레이어 - city_link 밖에 배치 (PHP 원본과 동일) */}
-      {city.nationID && city.nationID > 0 && (
+      {city.nationID && city.nationID > 0 && rgbColor && (
         <div
           className="city_bg"
           style={{
             position: 'absolute',
             left: '50%',
             top: '50%',
-            width: '35px',
-            height: '35px',
-            background: 'radial-gradient(circle, rgba(255, 0, 0, 0.9) 0%, rgba(255, 0, 0, 0.7) 30%, rgba(255, 0, 0, 0.4) 60%, transparent 100%)',
-            filter: 'blur(4px)',
+            width: '40px',
+            height: '40px',
+            background: `radial-gradient(circle, rgba(${rgbColor}, 1.0) 0%, rgba(${rgbColor}, 0.95) 20%, rgba(${rgbColor}, 0.8) 40%, rgba(${rgbColor}, 0.6) 60%, rgba(${rgbColor}, 0.3) 80%, transparent 100%)`,
+            filter: 'blur(3px)',
             borderRadius: '50%',
             pointerEvents: 'none',
             transform: 'translate(-50%, -50%)',
+            boxShadow: `0 0 10px rgba(${rgbColor}, 0.8), 0 0 20px rgba(${rgbColor}, 0.4)`,
           }}
         />
       )}
@@ -268,38 +302,25 @@ export default function MapCityDetail({
           }}
         />
       )}
-      {/* 자신의 거처 도시 강조 표시 */}
+      {/* 자신의 거처 도시 강조 표시 - 도시 아이콘을 둘러싸는 테두리 */}
       {isMyCity && (
-        <div className="city_home_indicator">
-          <span style={{
-            position: 'absolute',
-            left: '-8px',
-            top: '-8px',
-            fontSize: '16px',
-            zIndex: 10,
-            filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.8))',
-            pointerEvents: 'none',
-          }}>
-            🏠
-          </span>
-        </div>
+        <div className="city_home_indicator" style={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          width: '48px',
+          height: '38px',
+          transform: 'translate(-50%, -50%)',
+          border: '2px solid #FFD700',
+          borderRadius: '4px',
+          boxShadow: '0 0 8px rgba(255, 215, 0, 0.8), inset 0 0 8px rgba(255, 215, 0, 0.3)',
+          zIndex: 3,
+          pointerEvents: 'none',
+          animation: 'pulse-border 2s ease-in-out infinite',
+        }}
+      />
       )}
-      {/* 수도 강조 표시 */}
-      {city.isCapital && (
-        <div className="city_capital_indicator">
-          <span style={{
-            position: 'absolute',
-            left: '32px',
-            top: '-8px',
-            fontSize: '14px',
-            zIndex: 10,
-            filter: 'drop-shadow(0 0 2px rgba(255,215,0,0.8))',
-            pointerEvents: 'none',
-          }}>
-            ⭐
-          </span>
-        </div>
-      )}
+
       <a
         className="city_link"
         href="#"
@@ -328,23 +349,43 @@ export default function MapCityDetail({
               display: 'block',
             }}
           />
-          <div className={`city_filler ${isMyCity ? 'my_city' : ''}`} />
-          {city.nationID && city.nationID > 0 && city.color && (
-            <div className="city_flag">
-              <img 
-                src={`${IMAGE_PATH}/${city.supply ? 'f' : 'd'}${colorValue}.gif`}
-                alt="깃발"
-              />
-              {city.isCapital && (
-                <div className="city_capital">
-                  <img 
-                    src={`${IMAGE_PATH}/event51.gif`}
-                    alt="수도"
-                  />
-                </div>
-              )}
-            </div>
-          )}
+          <div 
+            className={`city_filler ${isMyCity ? 'my_city' : ''}`}
+            style={{
+              // @ts-ignore - CSS 변수
+              '--nation-color': city.color || '#ff0000'
+            }}
+          />
+          {/* 깃발 - 모든 도시에 표시 (공백지는 흰색) */}
+          <div className="city_flag" style={{ 
+            position: 'absolute',
+            ...getFlagPosition(city.level),
+            zIndex: 5,
+            pointerEvents: 'none'
+          }}>
+            <NationFlag 
+              color={city.nationID && city.nationID > 0 && city.color ? city.color : '#FFFFFF'} 
+              size={16}
+              animate={true}  // 모든 도시 애니메이션
+            />
+            {city.isCapital && (
+              <div className="city_capital" style={{
+                position: 'absolute',
+                left: '-2px',
+                top: '14px',
+              }}>
+                <img 
+                  src="/sam_icon/event/event51.gif"
+                  alt="수도"
+                  width={12}
+                  height={12}
+                  style={{
+                    imageRendering: 'pixelated'
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
         {city.state > 0 && (
           <div className="city_state">

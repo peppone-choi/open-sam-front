@@ -871,6 +871,23 @@ export class SammoAPI {
     });
   }
 
+  static async GetPhpScenarios(): Promise<{
+    success: boolean;
+    data: {
+      scenarios: Array<{
+        id: string;
+        title: string;
+        startYear: number;
+        mapName: string;
+      }>;
+      total: number;
+    };
+  }> {
+    return this.request('/api/scenarios/templates', {
+      method: 'GET',
+    });
+  }
+
   static async DeleteMe(params: {
     password: string;
     globalSalt: string;
@@ -1683,6 +1700,8 @@ export class SammoAPI {
     leadership?: number;
     strength?: number;
     intel?: number;
+    politics?: number;    // 정치
+    charm?: number;       // 매력
     character?: string;
     pic?: boolean;
     city?: number;

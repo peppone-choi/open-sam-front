@@ -55,8 +55,10 @@ interface NationBasicCardProps {
 }
 
 export default function NationBasicCard({ nation, global }: NationBasicCardProps) {
-  const textColor = isBrightColor(nation.color) ? 'black' : 'white';
   const hasNation = nation.id && nation.id !== 0;
+  // 재야는 흰색, 국가는 국가 색상
+  const displayColor = hasNation ? nation.color : '#FFFFFF';
+  const textColor = isBrightColor(displayColor) ? 'black' : 'white';
 
   // 기술력 계산 (간단한 버전)
   const tech = nation.tech || 0;
@@ -74,7 +76,7 @@ export default function NationBasicCard({ nation, global }: NationBasicCardProps
       <div
         className={`${styles.name} ${styles.tbTitle}`}
         style={{
-          backgroundColor: nation.color,
+          backgroundColor: displayColor,
           color: textColor,
           fontWeight: 'bold',
         }}
