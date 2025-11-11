@@ -40,8 +40,8 @@ interface CityBasicCardProps {
 
 function CityBasicCard({ city, cityConstMap }: CityBasicCardProps) {
   // 공백지(재야)는 흰색, 국가 소속은 국가 색상
-  const nationColor = (city.nation && city.nation > 0) 
-    ? (city.nationInfo?.color || '#808080')
+  const nationColor = (city.nationInfo?.id && city.nationInfo.id > 0) 
+    ? (city.nationInfo.color || '#808080')
     : '#FFFFFF';
   const textColor = isBrightColor(nationColor) ? 'black' : 'white';
   
