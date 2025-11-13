@@ -5,12 +5,16 @@ import { SammoAPI } from '@/lib/api/sammo';
 import { useToast } from '@/contexts/ToastContext';
 import styles from './MessagePanel.module.css';
 
+import type { ColorSystem } from '@/types/colorSystem';
+
 interface MessagePanelProps {
   generalID: number;
   generalName: string;
   nationID: number;
   permissionLevel: number;
   serverID?: string;
+  nationColor?: string;
+  colorSystem?: ColorSystem;
 }
 
 interface Message {
@@ -43,6 +47,8 @@ export default function MessagePanel({
   nationID,
   permissionLevel,
   serverID,
+  nationColor,
+  colorSystem,
 }: MessagePanelProps) {
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<MessageType>('system');
@@ -217,27 +223,36 @@ export default function MessagePanel({
     }
   }
 
-  const formatMessageText = (msg: Message): string => {
+  const formatSenderName = (msg: Message): string => {
     let sender = '';
     if (msg.src_general_name) {
       sender = msg.src_general_name;
       if (msg.src_nation_name) {
-        sender += `(${msg.src_nation_name})`;
+        sender += ` (${msg.src_nation_name})`;
       }
     } else if (msg.src_nation_name) {
       sender = msg.src_nation_name;
     } else {
       sender = '알 수 없음';
     }
-
-    return `【${sender}】${msg.text}`;
+    return sender;
   };
 
   return (
-    <div className={styles.messagePanel}>
+    <div 
+      className={styles.messagePanel}
+      style={{
+        borderColor: colorSystem?.border || '#444',
+        backgroundColor: colorSystem?.pageBg,
+      }}
+    >
       <div className={styles.messagePanelHeader}>
         <div
           className={`${styles.boardHeader} ${styles.systemTab} ${activeTab === 'system' ? styles.active : ''}`}
+          style={{
+            backgroundColor: activeTab === 'system' ? colorSystem?.error : colorSystem?.buttonBg,
+            color: activeTab === 'system' ? '#fff' : colorSystem?.buttonText,
+          }}
           onClick={() => {
             setActiveTab('system');
             setShowSendForm(false);
@@ -247,6 +262,10 @@ export default function MessagePanel({
         </div>
         <div
           className={`${styles.boardHeader} ${activeTab === 'public' ? styles.active : ''}`}
+          style={{
+            backgroundColor: activeTab === 'public' ? colorSystem?.buttonHover : colorSystem?.buttonBg,
+            color: colorSystem?.buttonText,
+          }}
           onClick={() => {
             setActiveTab('public');
             setShowSendForm(false);
@@ -257,6 +276,10 @@ export default function MessagePanel({
         {nationID !== 0 && (
           <div
             className={`${styles.boardHeader} ${activeTab === 'national' ? styles.active : ''}`}
+            style={{
+              backgroundColor: activeTab === 'national' ? colorSystem?.buttonHover : colorSystem?.buttonBg,
+              color: colorSystem?.buttonText,
+            }}
             onClick={() => {
               setActiveTab('national');
               setShowSendForm(false);
@@ -267,6 +290,10 @@ export default function MessagePanel({
         )}
         <div
           className={`${styles.boardHeader} ${activeTab === 'private' ? styles.active : ''}`}
+          style={{
+            backgroundColor: activeTab === 'private' ? colorSystem?.buttonHover : colorSystem?.buttonBg,
+            color: colorSystem?.buttonText,
+          }}
           onClick={() => {
             setActiveTab('private');
             setShowSendForm(false);
@@ -277,6 +304,10 @@ export default function MessagePanel({
         {nationID !== 0 && permissionLevel >= 1 && (
           <div
             className={`${styles.boardHeader} ${activeTab === 'diplomacy' ? styles.active : ''}`}
+            style={{
+              backgroundColor: activeTab === 'diplomacy' ? colorSystem?.buttonHover : colorSystem?.buttonBg,
+              color: colorSystem?.buttonText,
+            }}
             onClick={() => {
               setActiveTab('diplomacy');
               setShowSendForm(false);
@@ -288,8 +319,8 @@ export default function MessagePanel({
       </div>
       <div className={styles.messagePanelBody}>
         {showSendForm ? (
-          <div className={styles.sendForm}>
-            <div className={styles.sendFormHeader}>
+          <div className={styles.sendForm} style={{ backgroundColor: colorSystem?.pageBg }}>
+            <div className={styles.sendFormHeader} style={{ borderColor: colorSystem?.border }}>
               <button
                 className={styles.closeButton}
                 onClick={() => {
@@ -299,10 +330,11 @@ export default function MessagePanel({
                   setSelectedMailbox(0);
                   setSelectedGeneralId(0);
                 }}
+                style={{ color: colorSystem?.text }}
               >
                 ✕
               </button>
-              <h3>메시지 전송</h3>
+              <h3 style={{ color: colorSystem?.text }}>메시지 전송</h3>
             </div>
             {(activeTab === 'diplomacy' || activeTab === 'private') && (
               <div className={styles.sendFormSelect}>
@@ -311,6 +343,11 @@ export default function MessagePanel({
                     value={selectedMailbox}
                     onChange={(e) => setSelectedMailbox(Number(e.target.value))}
                     className={styles.selectBox}
+                    style={{
+                      backgroundColor: colorSystem?.buttonBg,
+                      color: colorSystem?.buttonText,
+                      borderColor: colorSystem?.border,
+                    }}
                   >
                     <option value={0}>대상 국가 선택</option>
                     {contacts
@@ -326,6 +363,11 @@ export default function MessagePanel({
                     value={selectedGeneralId}
                     onChange={(e) => setSelectedGeneralId(Number(e.target.value))}
                     className={styles.selectBox}
+                    style={{
+                      backgroundColor: colorSystem?.buttonBg,
+                      color: colorSystem?.buttonText,
+                      borderColor: colorSystem?.border,
+                    }}
                   >
                     <option value={0}>대상 장수 선택</option>
                     {contacts.map((contact) =>
@@ -348,6 +390,11 @@ export default function MessagePanel({
               placeholder="메시지 내용을 입력하세요..."
               className={styles.sendTextarea}
               rows={5}
+              style={{
+                backgroundColor: colorSystem?.buttonBg,
+                color: colorSystem?.buttonText,
+                borderColor: colorSystem?.border,
+              }}
             />
             {sendError && (
               <div className={styles.sendError}>{sendError}</div>
@@ -357,6 +404,11 @@ export default function MessagePanel({
                 onClick={handleSendMessage}
                 disabled={sendLoading}
                 className={styles.sendButton}
+                style={{
+                  backgroundColor: colorSystem?.buttonBg,
+                  color: colorSystem?.buttonText,
+                  borderColor: colorSystem?.border,
+                }}
               >
                 {sendLoading ? '전송 중...' : '전송'}
               </button>
@@ -368,6 +420,10 @@ export default function MessagePanel({
               <div className={styles.messageListHeader}>
                 <button
                   className={styles.sendMessageButton}
+                  style={{ 
+                    backgroundColor: colorSystem?.buttonBg,
+                    color: colorSystem?.text,
+                  }}
                   onClick={() => setShowSendForm(true)}
                 >
                   메시지 작성
@@ -375,13 +431,13 @@ export default function MessagePanel({
               </div>
             )}
             {loading ? (
-              <div className={styles.messagePlaceholder}>로딩 중...</div>
+              <div className={styles.messagePlaceholder} style={{ color: colorSystem?.textMuted }}>로딩 중...</div>
             ) : error ? (
-              <div className={styles.messagePlaceholder} style={{ color: 'red' }}>
+              <div className={styles.messagePlaceholder} style={{ color: colorSystem?.error }}>
                 {error}
               </div>
             ) : messages.length === 0 ? (
-              <div className={styles.messagePlaceholder}>메시지가 없습니다.</div>
+              <div className={styles.messagePlaceholder} style={{ color: colorSystem?.textMuted }}>메시지가 없습니다.</div>
             ) : (
               <div 
                 className={styles.messageList} 
@@ -397,11 +453,90 @@ export default function MessagePanel({
                     styles.publicMessage
                   }`;
                   return (
-                    <div key={msg.id} className={messageClass}>
-                      <div className={styles.messageDate}>
-                        {msg.date ? new Date(msg.date).toLocaleString('ko-KR') : ''}
+                    <div 
+                      key={msg.id} 
+                      style={{
+                        backgroundColor: colorSystem?.pageBg,
+                        border: '1px solid ' + (colorSystem?.borderLight || '#444'),
+                        borderLeft: '3px solid ' + (
+                          msg.type === 'system' ? colorSystem?.error : 
+                          msg.type === 'national' ? colorSystem?.success : 
+                          msg.type === 'diplomacy' ? colorSystem?.special :
+                          colorSystem?.border
+                        ),
+                        borderRadius: '4px',
+                        padding: '0.75rem',
+                        marginBottom: '0.5rem',
+                      }}
+                    >
+                      <div 
+                        className={messageClass}
+                        style={{
+                          color: colorSystem?.text,
+                          display: 'flex',
+                          gap: '0.5rem',
+                          alignItems: 'flex-start',
+                        }}
+                      >
+                        {msg.src_general_id && (
+                          <div style={{ 
+                            width: '46.8px', 
+                            height: '63px', 
+                            flexShrink: 0,
+                            backgroundColor: '#1a1a1a',
+                            border: '1px solid ' + (colorSystem?.border || '#666'),
+                            borderRadius: '2px',
+                            backgroundSize: 'cover',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'center',
+                          }}>
+                            {/* 장수 아이콘 영역 - 156x210 비율 유지 (약 1/3.33 크기) */}
+                          </div>
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            marginBottom: '0.5rem',
+                            gap: '0.5rem',
+                          }}>
+                            <div style={{ 
+                              fontWeight: 'bold', 
+                              color: colorSystem?.buttonText,
+                              fontSize: '0.875rem',
+                              backgroundColor: colorSystem?.buttonBg,
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '3px',
+                            }}>
+                              {formatSenderName(msg)}
+                            </div>
+                            <div className={styles.messageDate} style={{ 
+                              color: colorSystem?.textDim,
+                              fontSize: '0.75rem',
+                              whiteSpace: 'nowrap',
+                            }}>
+                              {msg.date ? new Date(msg.date).toLocaleString('ko-KR') : ''}
+                            </div>
+                          </div>
+                          <div 
+                            className={styles.messageText} 
+                            style={{ 
+                              color: colorSystem?.text,
+                              backgroundColor: 'transparent',
+                              border: '1px solid ' + (colorSystem?.borderLight || '#444'),
+                              padding: '0.5rem',
+                              borderRadius: '4px',
+                              wordBreak: 'break-word',
+                              whiteSpace: 'pre-wrap',
+                              minHeight: 'auto',
+                              maxHeight: 'none',
+                            }}
+                          >
+                            {msg.text}
+                          </div>
+                        </div>
                       </div>
-                      <div className={styles.messageText}>{formatMessageText(msg)}</div>
                     </div>
                   );
                 })}
@@ -411,6 +546,11 @@ export default function MessagePanel({
                       className={styles.loadMoreButton}
                       onClick={handleLoadMore}
                       disabled={loadingMore}
+                      style={{
+                        backgroundColor: colorSystem?.buttonBg,
+                        color: colorSystem?.buttonText,
+                        borderColor: colorSystem?.border,
+                      }}
                     >
                       {loadingMore ? '로딩 중...' : '더보기'}
                     </button>

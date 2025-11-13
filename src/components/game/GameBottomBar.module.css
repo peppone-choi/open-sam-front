@@ -6,7 +6,6 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  background-color: #1a1a1a;
   border-top: 2px solid #333;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
 }

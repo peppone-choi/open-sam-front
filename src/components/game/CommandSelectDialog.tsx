@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './CommandSelectDialog.module.css';
+import type { ColorSystem } from '@/types/colorSystem';
 
 interface CommandItem {
   value: string;
@@ -26,6 +27,8 @@ interface CommandSelectDialogProps {
   turnYear?: number;
   turnMonth?: number;
   turnTime?: string;
+  nationColor?: string;
+  colorSystem?: ColorSystem;
 }
 
 export default function CommandSelectDialog({
@@ -37,6 +40,8 @@ export default function CommandSelectDialog({
   turnYear,
   turnMonth,
   turnTime,
+  nationColor,
+  colorSystem,
 }: CommandSelectDialogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -87,12 +92,22 @@ export default function CommandSelectDialog({
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div ref={dialogRef} tabIndex={-1} className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+      <div 
+        ref={dialogRef} 
+        tabIndex={-1} 
+        className={styles.dialog} 
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          backgroundColor: colorSystem?.pageBg,
+          borderColor: colorSystem?.border,
+          color: colorSystem?.text,
+        }}
+      >
         <div className={styles.header}>
-          <h3>
+          <h3 style={{ color: colorSystem?.text }}>
             명령 선택
             {turnIndex !== null && (
-              <span style={{ fontSize: '0.85em', fontWeight: 'normal', marginLeft: '0.5rem', color: '#999' }}>
+              <span style={{ fontSize: '0.85em', fontWeight: 'normal', marginLeft: '0.5rem', color: colorSystem?.textMuted }}>
                 - {turnIndex + 1}턴{turnYear && turnMonth ? ` (${turnYear}年 ${turnMonth}月${turnTime ? ` ${turnTime}` : ''})` : ''}
               </span>
             )}
@@ -106,6 +121,21 @@ export default function CommandSelectDialog({
               key={category.category}
               className={`${styles.categoryButton} ${selectedCategory === category.category ? styles.active : ''}`}
               onClick={() => setSelectedCategory(category.category)}
+              style={{
+                backgroundColor: selectedCategory === category.category ? colorSystem?.buttonActive : colorSystem?.buttonBg,
+                borderColor: colorSystem?.border,
+                color: colorSystem?.buttonText,
+              }}
+              onMouseEnter={(e) => {
+                if (selectedCategory !== category.category) {
+                  e.currentTarget.style.backgroundColor = colorSystem?.buttonHover || '';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedCategory !== category.category) {
+                  e.currentTarget.style.backgroundColor = colorSystem?.buttonBg || '';
+                }
+              }}
             >
               {category.category}
             </button>
@@ -119,6 +149,21 @@ export default function CommandSelectDialog({
               className={`${styles.commandItem} ${!command.possible ? styles.disabled : ''}`}
               onClick={() => handleCommandClick(command)}
               title={command.title}
+              style={{
+                backgroundColor: command.possible ? colorSystem?.buttonBg : colorSystem?.borderLight,
+                borderColor: colorSystem?.borderLight,
+                color: command.possible ? colorSystem?.buttonText : colorSystem?.textDim,
+              }}
+              onMouseEnter={(e) => {
+                if (command.possible) {
+                  e.currentTarget.style.backgroundColor = colorSystem?.buttonHover || '';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (command.possible) {
+                  e.currentTarget.style.backgroundColor = colorSystem?.buttonBg || '';
+                }
+              }}
             >
               <div className={styles.commandBody}>
                 <div className={styles.commandName}>
@@ -141,7 +186,15 @@ export default function CommandSelectDialog({
         </div>
 
         <div className={styles.footer}>
-          <button className={styles.closeFooterButton} onClick={onClose}>
+          <button 
+            className={styles.closeFooterButton} 
+            onClick={onClose}
+            style={{
+              backgroundColor: colorSystem?.buttonBg,
+              color: colorSystem?.buttonText,
+              borderColor: colorSystem?.border,
+            }}
+          >
             닫기
           </button>
         </div>

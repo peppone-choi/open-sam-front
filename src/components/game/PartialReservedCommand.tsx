@@ -7,10 +7,13 @@ import styles from './PartialReservedCommand.module.css';
 import { SammoAPI } from '@/lib/api/sammo';
 import CommandSelectDialog from './CommandSelectDialog';
 import { JosaUtil } from '@/lib/utils/josaUtil';
+import type { ColorSystem } from '@/types/colorSystem';
 
 interface PartialReservedCommandProps {
   generalID: number;
   serverID: string;
+  nationColor?: string;
+  colorSystem?: ColorSystem;
 }
 
 interface ReservedCommand {
@@ -36,7 +39,7 @@ interface CommandTableCategory {
   }>;
 }
 
-export default function PartialReservedCommand({ generalID, serverID }: PartialReservedCommandProps) {
+export default function PartialReservedCommand({ generalID, serverID, nationColor, colorSystem }: PartialReservedCommandProps) {
   const router = useRouter();
   const { showToast } = useToast();
   const [reservedCommands, setReservedCommands] = useState<ReservedCommand[]>([]);
@@ -484,11 +487,24 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
 
   if (loading && reservedCommands.length === 0) {
     return (
-      <div className={styles.commandPad}>
-        <div className={styles.header}>
+      <div 
+        className={styles.commandPad}
+        style={{
+          borderColor: colorSystem?.border,
+          backgroundColor: colorSystem?.pageBg,
+        }}
+      >
+        <div className={styles.header} style={{ 
+          backgroundColor: colorSystem?.buttonBg,
+          color: colorSystem?.buttonText,
+          fontWeight: 'bold',
+        }}>
           <h4>명령 목록</h4>
         </div>
-        <div className={styles.content}>
+        <div className={styles.content} style={{ 
+          color: colorSystem?.textMuted,
+          backgroundColor: colorSystem?.pageBg,
+        }}>
           <div>로딩 중...</div>
         </div>
       </div>
@@ -496,7 +512,14 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
   }
 
   return (
-    <div className={styles.commandPad}>
+    <div 
+      className={styles.commandPad}
+      style={{
+        borderColor: colorSystem?.border,
+        color: colorSystem?.text,
+        backgroundColor: colorSystem?.pageBg,
+      }}
+    >
       <div className={styles.toolbar}>
         <div className={styles.clock}>
           {serverTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
@@ -571,13 +594,23 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
 
       {!isDialogOpen && (
         <div className={`${styles.commandTableWrapper} ${viewMaxTurn === MAX_TURN ? styles.scrollable : styles.noScroll}`}>
-          <div className={`${styles.commandTable} ${isEditMode || isBatchMode ? styles.isEditMode : ''}`}>
+          <div 
+            className={`${styles.commandTable} ${isEditMode || isBatchMode ? styles.isEditMode : ''}`}
+            style={{
+              backgroundColor: colorSystem?.pageBg,
+            }}
+          >
             {/* 턴 번호 */}
             <div className={styles.turnNumberColumn}>
               {displayCommands.map((_, idx) => (
                 <div
                   key={idx}
                   className={`${styles.turnCell} ${isEditMode || isBatchMode ? styles.turnCellEditable : ''} ${selectedTurnIndices.has(idx) ? styles.selected : ''}`}
+                  style={{
+                    backgroundColor: selectedTurnIndices.has(idx) ? colorSystem?.buttonHover : 'transparent',
+                    color: colorSystem?.text,
+                    borderColor: colorSystem?.border,
+                  }}
                   onClick={(e) => handleTurnClick(idx, e)}
                 >
                   {idx + 1}
@@ -591,7 +624,15 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
                 const yearText = cmd.year && typeof cmd.year === 'number' ? `${cmd.year}年` : '';
                 const monthText = cmd.month && typeof cmd.month === 'number' ? `${cmd.month}月` : '';
                 return (
-                  <div key={idx} className={styles.yearMonthCell}>
+                  <div 
+                    key={idx} 
+                    className={styles.yearMonthCell}
+                    style={{
+                      backgroundColor: 'transparent',
+                      color: colorSystem?.text,
+                      borderColor: colorSystem?.border,
+                    }}
+                  >
                     {yearText} {monthText}
                   </div>
                 );
@@ -601,7 +642,15 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
             {/* 시간 */}
             <div className={styles.timeColumn}>
               {displayCommands.map((cmd, idx) => (
-                <div key={idx} className={styles.timeCell}>
+                <div 
+                  key={idx} 
+                  className={styles.timeCell}
+                  style={{
+                    backgroundColor: 'transparent',
+                    color: colorSystem?.text,
+                    borderColor: colorSystem?.border,
+                  }}
+                >
                   {typeof cmd.time === 'string' ? cmd.time : '-'}
                 </div>
               ))}
@@ -619,7 +668,12 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
                     key={idx}
                     className={styles.commandCell}
                     title={tooltipText}
-                    style={(cmd as ReservedCommand).style}
+                    style={{
+                      ...(cmd as ReservedCommand).style,
+                      backgroundColor: 'transparent',
+                      color: colorSystem?.text,
+                      borderColor: colorSystem?.border,
+                    }}
                     dangerouslySetInnerHTML={{ __html: briefText }}
                   />
                 );
@@ -630,12 +684,24 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
             {!isEditMode && !isBatchMode && (
               <div className={styles.actionColumn}>
                 {displayCommands.map((_, idx) => (
-                  <div key={idx} className={styles.actionCell}>
+                  <div 
+                    key={idx} 
+                    className={styles.actionCell}
+                    style={{
+                      backgroundColor: 'transparent',
+                      borderColor: colorSystem?.border,
+                    }}
+                  >
                     <button
                       type="button"
                       className={styles.editButton}
                       disabled={false}
                       title="명령 수정"
+                      style={{
+                        backgroundColor: colorSystem?.buttonBg,
+                        color: colorSystem?.buttonText,
+                        borderColor: colorSystem?.border,
+                      }}
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -663,6 +729,8 @@ export default function PartialReservedCommand({ generalID, serverID }: PartialR
             turnYear={editingTurnIndex !== null ? displayCommands[editingTurnIndex]?.year : undefined}
             turnMonth={editingTurnIndex !== null ? displayCommands[editingTurnIndex]?.month : undefined}
             turnTime={editingTurnIndex !== null ? displayCommands[editingTurnIndex]?.time : undefined}
+            nationColor={nationColor}
+            colorSystem={colorSystem}
             onClose={() => {
               setIsDialogOpen(false);
               setEditingTurnIndex(null);

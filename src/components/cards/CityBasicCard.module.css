@@ -9,6 +9,8 @@
     overflow-x: hidden;
     overflow-y: hidden;
     height: fit-content;
+    gap: 1px;
+    padding: 4px;
 }
 
 .cellText {
@@ -25,10 +27,10 @@
 
 .gPanel {
     display: grid;
-    grid-template-columns: 1fr 2fr;
-    border-top: solid 1px gray;
-    border-left: solid 1px gray;
-    min-height: calc(192px / 10);
+    grid-template-columns: 3fr 7fr;
+    border-top: none;
+    border-left: none;
+    min-height: 24px;
 }
 
 .gHead {
@@ -36,19 +38,25 @@
     justify-content: center;
     align-items: center;
     padding: 0.25rem;
+    border-radius: 2px;
+}
+
+.gBody {
+    border-radius: 2px;
 }
 
 .cityNamePanel,
 .nationNamePanel {
     font-weight: bold;
-    min-height: calc(192px / 10);
+    min-height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0.25rem;
-text-align: center;
-border-top: solid 1px gray;
-border-left: solid 1px gray;
+    text-align: center;
+    border-top: none;
+    border-left: none;
+    border-radius: 2px;
 }
 
 .clickable {
@@ -63,7 +71,7 @@ border-left: solid 1px gray;
 
 .popPanel {
     grid-column: 1 / 3;
-    grid-template-columns: 1fr 5fr;
+    grid-template-columns: 3fr 17fr;
 }
 
 @media (min-width: 1000px) {

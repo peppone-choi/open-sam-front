@@ -264,6 +264,26 @@ export function useSocket(options: UseSocketOptions = {}) {
     };
   };
 
+  /**
+   * 로그 업데이트 리스너
+   */
+  const onLogUpdate = (callback: (data: { 
+    sessionId: string;
+    generalId: number;
+    logType: 'action' | 'history';
+    logId: number;
+    logText: string;
+    timestamp: Date;
+  }) => void) => {
+    if (!socket) return () => {};
+    
+    socket.on('log:updated', callback);
+    
+    return () => {
+      socket.off('log:updated', callback);
+    };
+  };
+
   return {
     socket,
     isConnected,
@@ -271,7 +291,8 @@ export function useSocket(options: UseSocketOptions = {}) {
     onGeneralEvent,
     onNationEvent,
     onBattleEvent,
-    onTurnComplete
+    onTurnComplete,
+    onLogUpdate
   };
 }
 

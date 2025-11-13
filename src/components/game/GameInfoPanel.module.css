@@ -1,6 +1,5 @@
 .gameInfoPanel {
     width: 100%;
-    background-color: black;
     color: white;
     border-bottom: solid 1px gray;
     flex-shrink: 0;

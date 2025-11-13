@@ -1,5 +1,4 @@
 .commandPad {
-    background-color: black;
     border: 1px solid gray;
     padding: 0;
     color: white;
@@ -105,7 +104,7 @@
     grid-template-columns: minmax(30px, 1fr) minmax(75px, 2.5fr) minmax(40px, 1fr) 5fr;
     gap: 0;
     width: 100%;
-    height: calc(100% + 4px);
+    height: 100%;
     flex-shrink: 0;
 }
 
@@ -132,6 +131,7 @@
 .actionColumn {
     display: flex;
     flex-direction: column;
+    gap: 0.5px;
 }
 
 .turnCell,
@@ -154,18 +154,17 @@
 }
 
 .turnCell {
-    background-color: #0066cc;
     cursor: pointer;
     user-select: none;
 }
 
 .turnCellEditable:hover {
-    background-color: #0088ff;
+    opacity: 0.8;
 }
 
 .turnCell.selected {
-    background-color: #00ccff;
-    color: black;
+    opacity: 1;
+    font-weight: bold;
 }
 
 .yearMonthCell {

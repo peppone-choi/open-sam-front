@@ -42,6 +42,11 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
     id: number;
     text: string;
     nation: string;
+    nationColor: string;
+    flagImage?: string;
+    flagTextColor?: string;
+    flagBgColor?: string;
+    flagBorderColor?: string;
     region: number;
     level: number;
   } | null>(null);
@@ -52,11 +57,19 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
   const parsedCities = useMemo(() => {
     if (!mapData.cityList || !mapData.nationList) return [];
 
-    const nationMap = new Map<number, { name: string; color: string; capital: number }>();
+    const nationMap = new Map<number, { 
+      name: string; 
+      color: string; 
+      capital: number;
+      flagImage?: string;
+      flagTextColor?: string;
+      flagBgColor?: string;
+      flagBorderColor?: string;
+    }>();
     for (const nation of mapData.nationList) {
-      const [id, name, color, capital] = nation;
-      nationMap.set(id, { name, color, capital });
-      console.log('[MapViewer] 국가 정보:', { id, name, color, capital });
+      const [id, name, color, capital, flagImage, flagTextColor, flagBgColor, flagBorderColor] = nation;
+      nationMap.set(id, { name, color, capital, flagImage, flagTextColor, flagBgColor, flagBorderColor });
+      console.log('[MapViewer] 국가 정보:', { id, name, color, capital, flagImage, flagTextColor, flagBgColor, flagBorderColor });
     }
 
     const shownByGeneralSet = new Set(mapData.shownByGeneralList || []);
@@ -188,15 +201,66 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
     return regionMap[region] || `지역${region}`;
   };
 
+  // 배경색 밝기 기반으로 텍스트 색상 자동 결정
+  const getContrastTextColor = (bgColor: string): string => {
+    // hex 색상을 RGB로 변환
+    const hex = bgColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    // 밝기 계산 (YIQ 공식)
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    
+    // 밝기가 128 이상이면 어두운 글자, 아니면 밝은 글자
+    return brightness >= 128 ? '#000000' : '#ffffff';
+  };
+
+  // 배경색 밝기 기반으로 테두리 색상 자동 결정
+  const getContrastBorderColor = (bgColor: string): string => {
+    // hex 색상을 RGB로 변환
+    const hex = bgColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    // 밝기 계산 (YIQ 공식)
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    
+    // 밝기가 180 이상(밝은 색)이면 어두운 테두리, 아니면 밝은 테두리
+    return brightness >= 180 ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.8)';
+  };
+
   function handleCityMouseEnter(e: React.MouseEvent, city: ParsedCity) {
     if (mapBodyRef.current) {
       const rect = mapBodyRef.current.getBoundingClientRect();
       setTooltipPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
     }
+
+    // 국가 정보에서 깃발 데이터 가져오기
+    const nationInfo = city.nationID && mapData.nationList 
+      ? mapData.nationList.find(n => n[0] === city.nationID)
+      : undefined;
+
+    const flagBgColor = nationInfo?.[6] || nationInfo?.[2] || city.color || '#ffffff';
+    const rawFlagTextColor = nationInfo?.[5];
+    const flagTextColor = (rawFlagTextColor && rawFlagTextColor !== 'auto') 
+      ? rawFlagTextColor 
+      : getContrastTextColor(flagBgColor);
+    const rawFlagBorderColor = nationInfo?.[7];
+    const flagBorderColor = (rawFlagBorderColor && rawFlagBorderColor !== 'auto')
+      ? rawFlagBorderColor
+      : getContrastBorderColor(flagBgColor);
+
     setActivatedCity({
       id: city.id,
       text: city.name,
       nation: city.nation || '무소속',
+      nationColor: city.color || '#ffffff',
+      flagImage: nationInfo?.[4],
+      flagTextColor,
+      flagBgColor,
+      flagBorderColor,
       region: city.region,
       level: city.level,
     });
@@ -255,13 +319,13 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
         <div className={styles.mapButtonStack}>
           <button
             type="button"
-            className={`btn btn-primary btn-sm btn-minimum ${hideCityName ? 'active' : ''}`}
+            className={`${styles.mapToggleBtn} ${hideCityName ? styles.active : ''}`}
             onClick={() => {
               setHideCityName(!hideCityName);
               console.log('hideCityName:', !hideCityName);
             }}
           >
-            도시명 표기
+            🏷️ 도시명
           </button>
         </div>
       </div>
@@ -279,7 +343,22 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
           <div className={styles.cityName}>
             [{getRegionText(activatedCity.region)}|{getLevelText(activatedCity.level)}] {activatedCity.text}
           </div>
-          <div className={styles.nationName}>{activatedCity.nation}</div>
+          <div className={styles.nationFlag}>
+            <div 
+              className={styles.flagIcon}
+              style={{
+                backgroundColor: activatedCity.flagBgColor,
+                color: activatedCity.flagTextColor,
+                borderColor: activatedCity.flagBorderColor,
+                backgroundImage: activatedCity.flagImage ? `url(${activatedCity.flagImage})` : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            >
+              {!activatedCity.flagImage && activatedCity.nation.charAt(0)}
+            </div>
+            <span className={styles.nationNameText}>{activatedCity.nation}</span>
+          </div>
         </div>
       )}
     </div>

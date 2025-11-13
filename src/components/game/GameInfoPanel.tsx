@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import type { GetFrontInfoResponse } from '@/lib/api/sammo';
+import type { ColorSystem } from '@/types/colorSystem';
 import styles from './GameInfoPanel.module.css';
 
 interface GameInfoPanelProps {
@@ -9,13 +10,17 @@ interface GameInfoPanelProps {
   serverName?: string;
   serverLocked?: boolean;
   lastExecuted?: Date;
+  nationColor?: string;
+  colorSystem?: ColorSystem;
 }
 
 function GameInfoPanel({ 
   frontInfo, 
   serverName = '',
   serverLocked = false,
-  lastExecuted = new Date()
+  lastExecuted = new Date(),
+  nationColor,
+  colorSystem
 }: GameInfoPanelProps) {
   const global = frontInfo.global;
   const nation = frontInfo.nation;
@@ -106,54 +111,47 @@ function GameInfoPanel({
   }, [displayServerName, scenarioName, global.serverCnt]);
   
   return (
-    <div className={styles.gameInfoPanel}>
+    <div 
+      className={styles.gameInfoPanel}
+      style={{
+        borderColor: colorSystem?.border || '#555',
+      }}
+    >
       <h3 className={styles.scenarioName}>
-        <span className={styles.avoidWrap} style={{ color: 'cyan' }}>
+        <span className={styles.avoidWrap} style={{ color: colorSystem?.info || 'cyan' }}>
           {serverTitle || '게임'}
         </span>
       </h3>
-      <div className={styles.gameInfo}>
+      <div className={styles.gameInfo} style={{ color: colorSystem?.text }}>
         <div className={`${styles.infoRow} ${styles.subScenarioName}`}>
-          <span style={{ color: 'cyan' }}>{global.scenarioText}</span>
+          <span style={{ color: colorSystem?.info || 'cyan' }}>{global.scenarioText}</span>
         </div>
         <div className={`${styles.infoRow} ${styles.subNPCType}`}>
-          <span style={{ color: 'cyan' }}>
+          <span style={{ color: colorSystem?.info || 'cyan' }}>
             NPC 수, 상성: {global.extendedGeneral ? '확장' : '표준'} {global.isFiction ? '가상' : '사실'}
           </span>
         </div>
         <div className={`${styles.infoRow} ${styles.subNPCMode}`}>
-          <span style={{ color: 'cyan' }}>NPC선택: {npcModeText}</span>
+          <span style={{ color: colorSystem?.info || 'cyan' }}>NPC선택: {npcModeText}</span>
         </div>
         <div className={`${styles.infoRow} ${styles.subYearMonth}`}>
-          현재: <span style={{ color: 'yellow', fontWeight: 'bold' }}>{global.year}年 {global.month}月</span> ({global.turnterm}분 턴)
+          현재: <span style={{ color: colorSystem?.warning || 'yellow', fontWeight: 'bold' }}>{global.year}年 {global.month}月</span> ({global.turnterm}분 턴)
         </div>
         <div className={`${styles.infoRow} ${styles.subNextTurn}`}>
-          다음 턴: <span style={{ color: 'lime', fontWeight: 'bold' }}>{timeUntilNextTurn}</span>
+          다음 턴: <span style={{ color: colorSystem?.success || 'lime', fontWeight: 'bold' }}>{timeUntilNextTurn}</span>
         </div>
         <div className={`${styles.infoRow} ${styles.subOnlineUserCnt}`}>
           접속자: {(global.onlineUserCnt || 0).toLocaleString()}명
         </div>
-        <div className={`${styles.infoRow} ${styles.subLastExecuted}`} style={{ color: serverLocked ? 'magenta' : 'cyan', fontSize: '0.9em' }}>
+        <div className={`${styles.infoRow} ${styles.subLastExecuted}`} style={{ color: serverLocked ? (colorSystem?.special || 'magenta') : (colorSystem?.info || 'cyan'), fontSize: '0.9em' }}>
           최종 처리: {formatTime(lastExecuted).substring(11)} {/* 시:분:초만 표시 */}
         </div>
         {global.isTournamentActive && (
           <div className={`${styles.infoRow} ${styles.subTournamentState}`}>
-            <span style={{ color: 'cyan' }}>토너먼트 진행 중</span>
+            <span style={{ color: colorSystem?.info || 'cyan' }}>토너먼트 진행 중</span>
           </div>
         )}
       </div>
-      <div className={styles.onlineNations}>
-        접속중인 국가: {global.onlineNations || '-'}
-      </div>
-      <div className={styles.onlineUsers}>
-        【 접속자 】 {nation?.onlineGen || '-'}
-      </div>
-      {nation?.notice && (
-        <div className={styles.nationNotice}>
-          <div>【 국가방침 】</div>
-          <div className={styles.nationNoticeBody} dangerouslySetInnerHTML={{ __html: nation.notice.msg || '' }} />
-        </div>
-      )}
     </div>
   );
 }

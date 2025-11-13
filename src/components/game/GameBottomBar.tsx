@@ -8,15 +8,23 @@ interface GameBottomBarProps {
   onRefresh: () => void;
   onToggleMenu: () => void;
   isLoading?: boolean;
+  nationColor?: string;
 }
 
 export default function GameBottomBar({ 
   onRefresh, 
   onToggleMenu,
-  isLoading = false 
+  isLoading = false,
+  nationColor
 }: GameBottomBarProps) {
   const router = useRouter();
   const [showQuickMenu, setShowQuickMenu] = useState(false);
+  
+  // 국가색 기반 배경색
+  const barBgColor = nationColor ? `${nationColor}30` : '#1a1a1a';
+  const barBorderColor = nationColor ? `${nationColor}60` : '#444';
+  const buttonBgColor = nationColor ? `${nationColor}80` : '#555';
+  const menuBgColor = nationColor ? `${nationColor}30` : '#1a1a1a';
 
   const scrollToSelector = (selector: string) => {
     const element = document.querySelector(selector);
@@ -48,7 +56,13 @@ export default function GameBottomBar({
       {showQuickMenu && (
         <>
           <div className={styles.backdrop} onClick={() => setShowQuickMenu(false)} />
-          <div className={styles.quickMenu}>
+          <div 
+            className={styles.quickMenu}
+            style={{
+              backgroundColor: menuBgColor,
+              borderColor: barBorderColor,
+            }}
+          >
             <div className={styles.quickMenuHeader}>
               <h4>빠른 이동</h4>
               <button 
@@ -116,7 +130,13 @@ export default function GameBottomBar({
       )}
 
       {/* 하단 바 */}
-      <nav className={styles.gameBottomBar}>
+      <nav 
+        className={styles.gameBottomBar}
+        style={{
+          backgroundColor: barBgColor,
+          borderColor: barBorderColor,
+        }}
+      >
         <div className={styles.navbar}>
           <ul className={styles.navbarNav}>
             {/* 명령으로 */}

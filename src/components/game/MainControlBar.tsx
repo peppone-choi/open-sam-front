@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import styles from './MainControlBar.module.css';
+import type { ColorSystem } from '@/types/colorSystem';
 
 interface MainControlBarProps {
   permission: number;
@@ -11,8 +12,10 @@ interface MainControlBarProps {
   myLevel: number;
   nationLevel: number;
   nationId: number; // 재야 체크용 (0이면 재야)
+  nationColor?: string; // 국가색
   isTournamentApplicationOpen: boolean;
   isBettingActive: boolean;
+  colorSystem?: ColorSystem;
 }
 
 export default function MainControlBar({
@@ -21,8 +24,10 @@ export default function MainControlBar({
   myLevel,
   nationLevel,
   nationId,
+  nationColor,
   isTournamentApplicationOpen,
   isBettingActive,
+  colorSystem,
 }: MainControlBarProps) {
   const params = useParams();
   const serverID = params?.server as string;
@@ -56,7 +61,13 @@ export default function MainControlBar({
   };
 
   return (
-    <div className={styles.controlBar}>
+    <div 
+      className={styles.controlBar}
+      style={{
+        borderColor: colorSystem?.border,
+        color: colorSystem?.text,
+      }}
+    >
       {/* 회의실: myLevel >= 1 (nationLevel 무관) */}
       {!isRonin && myLevel >= 1 ? (
         <Link href={`${basePath}/board`} className={styles.btn}>

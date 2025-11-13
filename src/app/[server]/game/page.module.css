@@ -37,7 +37,7 @@
     max-width: 700px;
     height: 500px;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     box-sizing: border-box;
 }
 
@@ -98,7 +98,6 @@
 }
 
 .container {
-    background-color: black;
     color: white;
     min-height: 100vh;
     position: relative;
@@ -122,7 +121,6 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.5rem 1rem;
-    background-color: #1a1a1a;
     border-bottom: 1px solid #333;
     width: 100%;
     max-width: 1040px;
@@ -138,18 +136,17 @@
 
 .refreshBtn {
     padding: 0.5rem 1rem;
-    background-color: #007bff;
     color: white;
     border: none;
     border-radius: 0.25rem;
     font-size: 0.875rem;
     cursor: pointer;
     font-weight: 500;
-    transition: background-color 0.2s;
+    transition: opacity 0.2s;
 }
 
 .refreshBtn:hover:not(:disabled) {
-    background-color: #0056b3;
+    opacity: 0.8;
 }
 
 .refreshBtn:disabled {
@@ -159,19 +156,18 @@
 
 .lobbyBtn {
     padding: 0.5rem 1rem;
-    background-color: #28a745;
     color: white;
     border: none;
     border-radius: 0.25rem;
     font-size: 0.875rem;
     text-decoration: none;
     font-weight: 500;
-    transition: background-color 0.2s;
+    transition: opacity 0.2s;
     display: inline-block;
 }
 
 .lobbyBtn:hover {
-    background-color: #218838;
+    opacity: 0.8;
 }
 
 @media (min-width: 1040px) {
@@ -234,7 +230,7 @@
 .ingameBoardWrapper {
     flex: 1;
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: visible;
     min-height: 0;
     width: 100%;
     box-sizing: border-box;
@@ -292,13 +288,15 @@
     box-sizing: border-box;
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: visible;
 }
 
 .mapView {
     grid-column: 1 / -1;
     display: flex;
     justify-content: center;
+    overflow: visible;
+    position: relative;
 }
 
 .reservedCommandZone {
@@ -309,7 +307,6 @@
 }
 
 .commandPadPlaceholder {
-    background-color: black;
     border: 1px solid gray;
     padding: 0.5rem;
     color: white;
@@ -317,7 +314,6 @@
 }
 
 .commandPadPlaceholder .header {
-    background-color: #333;
     padding: 0.5rem;
     text-align: center;
     margin-bottom: 0.5rem;
@@ -517,26 +513,22 @@
 .actionMiniPlate button {
     flex: 1;
     padding: 0.5rem 1rem;
-    background-color: #00582c;
     color: white;
-    border: 1px solid #004020;
     border-radius: 4px;
     font-weight: bold;
     font-size: 14px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: opacity 0.2s;
     text-align: center;
     min-width: 0;
 }
 
 .actionMiniPlate button:hover {
-    background-color: #007040;
-    color: white;
+    opacity: 0.8;
 }
 
 .actionMiniPlate button:active {
-    background-color: #003020;
-    color: white;
+    opacity: 0.6;
 }
 
 .actionMiniPlate button:first-child {
@@ -546,24 +538,96 @@
 .actionButton {
     flex: 1;
     padding: 0.5rem 1rem;
-    background-color: #00582c;
     color: white;
-    border: 1px solid #004020;
     border-radius: 4px;
     font-weight: bold;
     font-size: 14px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: opacity 0.2s;
     text-align: center;
     min-width: 0;
 }
 
 .actionButton:hover {
-    background-color: #007040;
-    color: white;
+    opacity: 0.8;
 }
 
 .actionButton:active {
-    background-color: #003020;
-    color: white;
+    opacity: 0.6;
+}
+
+/* 로그/기록 섹션 */
+.recordZone {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    width: 100%;
+    max-width: 1040px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+@media (min-width: 1000px) {
+    .recordZone {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.recordColumn {
+    border: 1px solid gray;
+    border-top: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.recordColumn:nth-child(1),
+.recordColumn:nth-child(2) {
+    border-right: none;
+}
+
+@media (min-width: 1000px) {
+    .recordColumn:nth-child(1) {
+        border-right: 1px solid gray;
+    }
+    
+    .recordColumn:nth-child(2) {
+        border-right: none;
+    }
+}
+
+.recordColumn:nth-child(3) {
+    grid-column: 1 / -1;
+}
+
+.recordHeader {
+    text-align: center;
+    padding: 0.5rem;
+    font-weight: bold;
+    border-top: 1px solid gray;
+    border-bottom: 1px solid gray;
+}
+
+.recordList {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.recordItem {
+    padding: 0.25rem 0;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+.recordItem:last-child {
+    border-bottom: none;
+}
+
+.recordEmpty {
+    padding: 1rem;
+    text-align: center;
+    color: #888;
+    font-size: 0.875rem;
+    line-height: 1.6;
 }

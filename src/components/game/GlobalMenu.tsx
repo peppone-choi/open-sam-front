@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import styles from './GlobalMenu.module.css';
+import type { ColorSystem } from '@/types/colorSystem';
 
 export interface MenuItem {
   type?: 'item' | 'multi' | 'split' | 'line';
@@ -24,9 +25,11 @@ interface GlobalMenuProps {
   menu: MenuItem[];
   globalInfo?: Record<string, any>;
   onMenuClick?: (url: string) => void;
+  nationColor?: string;
+  colorSystem?: ColorSystem;
 }
 
-export default function GlobalMenu({ menu, globalInfo, onMenuClick }: GlobalMenuProps) {
+export default function GlobalMenu({ menu, globalInfo, onMenuClick, nationColor, colorSystem }: GlobalMenuProps) {
   const params = useParams();
   const serverID = params?.server as string;
   const [openDropdowns, setOpenDropdowns] = useState<Set<number>>(new Set());
@@ -121,7 +124,17 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick }: GlobalMenu
   };
 
   return (
-    <div className={styles.globalMenu}>
+    <div 
+      className={styles.globalMenu}
+      style={{
+        '--button-bg': colorSystem?.buttonBg,
+        '--button-hover': colorSystem?.buttonHover,
+        '--button-text': colorSystem?.buttonText,
+        '--dropdown-bg': colorSystem?.pageBg,
+        '--dropdown-border': colorSystem?.border,
+        color: colorSystem?.text,
+      } as React.CSSProperties}
+    >
       {filteredMenu.map((item, idx) => {
         if (item.type === 'line') {
           return <hr key={idx} className={styles.menuDivider} />;
@@ -166,6 +179,7 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick }: GlobalMenu
                         className={styles.dropdownItem}
                         target={subItem.newTab ? '_blank' : undefined}
                         onClick={(e) => handleMenuClick(e, subItem)}
+                        style={{ color: colorSystem?.text }}
                       >
                         {subItem.name}
                       </Link>
@@ -212,6 +226,7 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick }: GlobalMenu
                         className={styles.dropdownItem}
                         target={subItem.newTab ? '_blank' : undefined}
                         onClick={(e) => handleMenuClick(e, subItem)}
+                        style={{ color: colorSystem?.text }}
                       >
                         {subItem.name}
                       </Link>

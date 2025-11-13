@@ -16,6 +16,10 @@
     font-size: 0.875rem;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn:hover {
@@ -36,7 +40,8 @@
 
 .btnGroup {
     position: relative;
-    display: flex;
+    display: inline-flex;
+    align-items: stretch;
 }
 
 .btnSplit {
@@ -49,13 +54,14 @@
     font-size: 0.875rem;
     cursor: pointer;
     transition: all 0.2s;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
 }
 
 .btnGroup .btn {
     border-radius: 0.2rem 0 0 0.2rem;
+    margin: 0;
 }
 
 .btnSplit:hover {
