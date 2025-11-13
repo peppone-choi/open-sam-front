@@ -2,12 +2,15 @@
 
 import React from 'react';
 import SammoBar from '../game/SammoBar';
+import NationFlag from '../common/NationFlag';
 import { isBrightColor } from '@/utils/isBrightColor';
 import { formatInjury } from '@/utils/formatInjury';
 import { calcInjury } from '@/utils/calcInjury';
 import { formatGeneralTypeCall } from '@/utils/formatGeneralTypeCall';
 import { formatOfficerLevelText } from '@/utils/formatOfficerLevelText';
+import { TroopIconDisplay } from '../common/TroopIconDisplay';
 import styles from './GeneralBasicCard.module.css';
+import type { ColorSystem } from '@/types/colorSystem';
 
 interface GeneralBasicCardProps {
   general: {
@@ -39,7 +42,7 @@ interface GeneralBasicCardProps {
     item?: string;
     gold?: number;
     rice?: number;
-    crewtype?: string;
+    crewtype?: string | number | { id: number; label: string };
     crew?: number;
     personal?: string;
     train?: number;
@@ -80,6 +83,7 @@ interface GeneralBasicCardProps {
     retirementYear?: number;
   };
   cityConst?: Record<number, { name: string }>;
+  colorSystem?: ColorSystem;
 }
 
 // 경험치 임계값 (기본값)
@@ -104,9 +108,15 @@ function formatRefreshScore(score: number): string {
 }
 
 // 아이템 이름 가져오기 (간단 버전)
-function getItemName(item: string | undefined): string {
+function getItemName(item: string | undefined | any): string {
   if (!item || item === 'None') return '-';
-  return item;
+  // 객체인 경우 (예: {id, name, label} 구조)
+  if (typeof item === 'object' && item !== null) {
+    if ('label' in item && item.label) return String(item.label);
+    if ('name' in item && item.name) return String(item.name);
+    return '-';
+  }
+  return String(item);
 }
 
 // 아이콘 경로 가져오기
@@ -126,7 +136,8 @@ export default function GeneralBasicCard({
   troopInfo,
   turnTerm = 60,
   gameConst,
-  cityConst 
+  cityConst,
+  colorSystem
 }: GeneralBasicCardProps) {
   // 재야는 흰색, 국가는 국가 색상
   const displayColor = (nation && nation.id !== 0) ? (nation?.color ?? "#666") : "#FFFFFF";
@@ -149,7 +160,11 @@ export default function GeneralBasicCard({
   // 연령 색상
   const retirementYear = gameConst?.retirementYear || 70;
   const age = general.age || 20;
-  const ageColor = age < retirementYear * 0.75 ? 'limegreen' : age < retirementYear ? 'yellow' : 'red';
+  const ageColor = age < retirementYear * 0.75 
+    ? (colorSystem?.success || 'limegreen') 
+    : age < retirementYear 
+      ? (colorSystem?.warning || 'yellow') 
+      : (colorSystem?.error || 'red');
 
   // 다음 실행 시간 계산 (PHP 버전과 동일한 로직)
   // 장수의 turntime과 현재 시간을 비교하여 남은 시간 계산
@@ -187,9 +202,23 @@ export default function GeneralBasicCard({
   const officerCityName = general.officer_city && cityConst?.[general.officer_city]?.name || '';
 
   return (
-    <div className={styles.generalCardContainer}>
+    <div 
+      className={styles.generalCardContainer}
+      style={{
+        borderColor: colorSystem?.border,
+        color: colorSystem?.text,
+        backgroundColor: colorSystem?.pageBg,
+      }}
+    >
       {/* 상단 카드: 기본 정보 + 능력치 */}
-      <div className={`${styles.generalCardTop} bg2`}>
+      <div 
+        className={`${styles.generalCardTop} bg2`}
+        style={{
+          borderColor: colorSystem?.border,
+          color: colorSystem?.text,
+          backgroundColor: colorSystem?.pageBg,
+        }}
+      >
         <div
           className={styles.generalIcon}
           style={{
@@ -197,22 +226,52 @@ export default function GeneralBasicCard({
           }}
         />
 
-        <div className={styles.infoRow}>
-          <span>{nation?.name || '재야'}</span>
+        <div 
+          className={styles.infoRow}
+          style={{
+            backgroundColor: colorSystem?.buttonBg,
+            color: colorSystem?.buttonText,
+          }}
+        >
+          {nation && nation.id !== 0 ? (
+            <NationFlag 
+              nation={{
+                name: nation.name,
+                color: nation.color,
+                flagImage: nation.flagImage,
+                flagTextColor: nation.flagTextColor,
+                flagBgColor: nation.flagBgColor,
+                flagBorderColor: nation.flagBorderColor,
+              }} 
+              size={16} 
+            />
+          ) : (
+            <span>재야</span>
+          )}
           <span>|</span>
           <span>{generalTypeCall}</span>
           <span>|</span>
-          <span style={{ color: injuryInfo[1] }}>{injuryInfo[0]}</span>
-          {typeof general.turntime === 'string' && (
+          <span>{injuryInfo[0]}</span>
+          {general.turntime && (
             <>
-              <span style={{ marginLeft: '0.5rem' }}>{general.turntime.substring(11, 19)}</span>
+              <span>|</span>
+              <span>
+                {typeof general.turntime === 'string' 
+                  ? (general.turntime.includes('T') 
+                      ? new Date(general.turntime).toLocaleTimeString('ko-KR', { hour12: false })
+                      : general.turntime.substring(11, 19))
+                  : general.turntime instanceof Date
+                    ? general.turntime.toLocaleTimeString('ko-KR', { hour12: false })
+                    : ''}
+              </span>
             </>
           )}
         </div>
 
         <div className={styles.statsRow}>
-        <div className={styles.statBox}>
-          <div className={styles.statLabel}>통솔</div>
+        <div>
+        <div className={styles.statBox} style={{ backgroundColor: colorSystem?.borderLight, borderRadius: '4px', padding: '4px 4px 6px 4px' }}>
+          <div className={styles.statLabel} style={{ color: colorSystem?.text, fontWeight: 'bold' }}>통솔</div>
           <div className={styles.statValue}>
             <span style={{ color: injuryInfo[1] }}>
               {calcInjury('leadership', {
@@ -223,18 +282,18 @@ export default function GeneralBasicCard({
               })}
             </span>
             {typeof general.lbonus === 'number' && general.lbonus !== 0 && (
-              <span style={{ color: general.lbonus > 0 ? 'cyan' : 'red', fontSize: '0.8em' }}>
+              <span style={{ color: general.lbonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red'), fontSize: '0.8em' }}>
                 ({general.lbonus > 0 ? '+' : ''}{general.lbonus})
               </span>
             )}
           </div>
           <div className={styles.statBar}>
-            <SammoBar height={8} percent={((general.leadership_exp || 0) / statUpThreshold) * 100} />
+            <SammoBar height={8} percent={((general.leadership_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
           </div>
         </div>
 
-        <div className={styles.statBox}>
-          <div className={styles.statLabel}>무력</div>
+        <div className={styles.statBox} style={{ backgroundColor: colorSystem?.borderLight, borderRadius: '4px', padding: '4px 4px 6px 4px' }}>
+          <div className={styles.statLabel} style={{ color: colorSystem?.text, fontWeight: 'bold' }}>무력</div>
           <div className={styles.statValue}>
             <span style={{ color: injuryInfo[1] }}>
               {calcInjury('strength', {
@@ -245,18 +304,18 @@ export default function GeneralBasicCard({
               })}
             </span>
             {typeof general.sbonus === 'number' && general.sbonus !== 0 && (
-              <span style={{ color: general.sbonus > 0 ? 'cyan' : 'red', fontSize: '0.8em' }}>
+              <span style={{ color: general.sbonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red'), fontSize: '0.8em' }}>
                 ({general.sbonus > 0 ? '+' : ''}{general.sbonus})
               </span>
             )}
           </div>
           <div className={styles.statBar}>
-            <SammoBar height={8} percent={((general.strength_exp || 0) / statUpThreshold) * 100} />
+            <SammoBar height={8} percent={((general.strength_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
           </div>
         </div>
 
-        <div className={styles.statBox}>
-          <div className={styles.statLabel}>지력</div>
+        <div className={styles.statBox} style={{ backgroundColor: colorSystem?.borderLight, borderRadius: '4px', padding: '4px 4px 6px 4px' }}>
+          <div className={styles.statLabel} style={{ color: colorSystem?.text, fontWeight: 'bold' }}>지력</div>
           <div className={styles.statValue}>
             <span style={{ color: injuryInfo[1] }}>
               {calcInjury('intel', {
@@ -267,48 +326,49 @@ export default function GeneralBasicCard({
               })}
             </span>
             {typeof general.ibonus === 'number' && general.ibonus !== 0 && (
-              <span style={{ color: general.ibonus > 0 ? 'cyan' : 'red', fontSize: '0.8em' }}>
+              <span style={{ color: general.ibonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red'), fontSize: '0.8em' }}>
                 ({general.ibonus > 0 ? '+' : ''}{general.ibonus})
               </span>
             )}
           </div>
           <div className={styles.statBar}>
-            <SammoBar height={8} percent={((general.intel_exp || 0) / statUpThreshold) * 100} />
+            <SammoBar height={8} percent={((general.intel_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
           </div>
         </div>
 
-        <div className={styles.statBox}>
-          <div className={styles.statLabel}>정치</div>
+        <div className={styles.statBox} style={{ backgroundColor: colorSystem?.borderLight, borderRadius: '4px', padding: '4px 4px 6px 4px' }}>
+          <div className={styles.statLabel} style={{ color: colorSystem?.text, fontWeight: 'bold' }}>정치</div>
           <div className={styles.statValue}>
             <span style={{ color: injuryInfo[1] }}>
               {general.politics ?? 0}
             </span>
             {typeof general.pbonus === 'number' && general.pbonus !== 0 && (
-              <span style={{ color: general.pbonus > 0 ? 'cyan' : 'red', fontSize: '0.8em' }}>
+              <span style={{ color: general.pbonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red'), fontSize: '0.8em' }}>
                 ({general.pbonus > 0 ? '+' : ''}{general.pbonus})
               </span>
             )}
           </div>
           <div className={styles.statBar}>
-            <SammoBar height={8} percent={((general.politics_exp || 0) / statUpThreshold) * 100} />
+            <SammoBar height={8} percent={((general.politics_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
           </div>
         </div>
 
-        <div className={styles.statBox}>
-          <div className={styles.statLabel}>매력</div>
+        <div className={styles.statBox} style={{ backgroundColor: colorSystem?.borderLight, borderRadius: '4px', padding: '4px 4px 6px 4px' }}>
+          <div className={styles.statLabel} style={{ color: colorSystem?.text, fontWeight: 'bold' }}>매력</div>
           <div className={styles.statValue}>
             <span style={{ color: injuryInfo[1] }}>
               {general.charm ?? 0}
             </span>
             {typeof general.cbonus === 'number' && general.cbonus !== 0 && (
-              <span style={{ color: general.cbonus > 0 ? 'cyan' : 'red', fontSize: '0.8em' }}>
+              <span style={{ color: general.cbonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red'), fontSize: '0.8em' }}>
                 ({general.cbonus > 0 ? '+' : ''}{general.cbonus})
               </span>
             )}
           </div>
           <div className={styles.statBar}>
-            <SammoBar height={8} percent={((general.charm_exp || 0) / statUpThreshold) * 100} />
+            <SammoBar height={8} percent={((general.charm_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
           </div>
+        </div>
         </div>
       </div>
 
@@ -332,57 +392,57 @@ export default function GeneralBasicCard({
       </div>
 
       <div className={styles.detailGrid}>
-      <div className="bg1">명마</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>명마</div>
       <div>{getItemName(general.horse)}</div>
 
-      <div className="bg1">무기</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>무기</div>
       <div>{getItemName(general.weapon)}</div>
 
-      <div className="bg1">서적</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>서적</div>
       <div>{getItemName(general.book)}</div>
 
-      <div className="bg1">자금</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>자금</div>
       <div>{(general.gold || 0).toLocaleString()}</div>
 
-      <div className="bg1">군량</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>군량</div>
       <div>{(general.rice || 0).toLocaleString()}</div>
 
-      <div className="bg1">도구</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>도구</div>
       <div>{getItemName(general.item)}</div>
 
-      <div className="bg1">훈련</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>훈련</div>
       <div>{general.train || 0}</div>
 
-      <div className="bg1">사기</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>사기</div>
       <div>{general.atmos || 50}</div>
 
-      <div className="bg1">성격</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>성격</div>
       <div>{getItemName(general.personal)}</div>
 
-      <div className="bg1">특기</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>특기</div>
       <div>
         {getItemName(general.specialDomestic)} / {getItemName(general.specialWar)}
       </div>
 
-      <div className="bg1">연령</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>연령</div>
       <div style={{ color: ageColor }}>{age}세</div>
 
-      <div className="bg1">수비</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>수비</div>
       <div className={styles.generalDefenceTrain}>
         {general.defence_train === 999 ? (
-          <span style={{ color: 'red' }}>수비 안함</span>
+          <span style={{ color: colorSystem?.error || 'red' }}>수비 안함</span>
         ) : (
-          <span style={{ color: 'limegreen' }}>수비 함(훈사{general.defence_train || 0})</span>
+          <span style={{ color: colorSystem?.success || 'limegreen' }}>수비 함(훈사{general.defence_train || 0})</span>
         )}
       </div>
 
-      <div className="bg1">삭턴</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>삭턴</div>
       <div>{general.killturn || 0} 턴</div>
 
-      <div className="bg1">실행</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>실행</div>
       <div>{nextExecuteMinute}분 남음</div>
 
-      <div className="bg1">부대</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>부대</div>
       {!troopInfo ? (
         <div className={styles.generalTroop}>-</div>
       ) : (
@@ -400,7 +460,7 @@ export default function GeneralBasicCard({
           ) : (
             <span 
               className={styles.clickable}
-              style={{ color: 'orange' }}
+              style={{ color: colorSystem?.warning || 'orange' }}
               onClick={() => window.location.href = '/troop'}
               title="부대 정보"
             >
@@ -410,30 +470,50 @@ export default function GeneralBasicCard({
         </div>
       )}
 
-      <div className="bg1">벌점</div>
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>병종</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        {general.crewtype && general.crewtype !== 'None' ? (
+          <>
+            <TroopIconDisplay 
+              crewtype={
+                typeof general.crewtype === 'object' && general.crewtype !== null && 'id' in general.crewtype
+                  ? general.crewtype.id
+                  : typeof general.crewtype === 'string' 
+                    ? parseInt(general.crewtype) 
+                    : general.crewtype
+              } 
+              size={20} 
+            />
+            <span>
+              {typeof general.crewtype === 'object' && general.crewtype !== null && 'label' in general.crewtype 
+                ? general.crewtype.label 
+                : getItemName(general.crewtype)}
+            </span>
+          </>
+        ) : (
+          <span style={{ color: colorSystem?.textMuted }}>미편성</span>
+        )}
+      </div>
+
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>병사</div>
+      <div>{(general.crew || 0).toLocaleString()}명</div>
+
+      <div className="bg1" style={{ backgroundColor: colorSystem?.borderLight, color: colorSystem?.text, fontWeight: '500' }}>벌점</div>
       <div className={styles.generalRefreshScoreTotal}>
         {formatRefreshScore(general.refreshScoreTotal || 0)} {(general.refreshScoreTotal || 0).toLocaleString()}점({general.refreshScore || 0})
       </div>
       </div>
 
+      {/* 레벨 정보 */}
       <div className={styles.crewInfo}>
-        <div
-          className={styles.generalCrewTypeIcon}
-          style={{
-            backgroundImage: general.crewtype && general.crewtype !== 'None' 
-              ? `url('/images/crewtype${general.crewtype}.png')` 
-              : undefined,
-          }}
-        />
-        <div className={styles.crewText}>
-          <span className={styles.crewType}>
-            {general.crewtype && general.crewtype !== 'None' 
-              ? getItemName(general.crewtype) 
-              : <span style={{ color: '#888' }}>미편성</span>
-            }
+        <div style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '0.75rem 1rem', gap: '0.5rem' }}>
+          <span style={{ fontWeight: 'bold', color: colorSystem?.success || '#4CAF50', fontSize: '1em', minWidth: '50px' }}>Lv.{general.explevel || 0}</span>
+          <div style={{ flex: 1 }}>
+            <SammoBar height={10} percent={((general.experience || 0) % nextExp[1]) / nextExp[1] * 100} barColor={displayColor} />
+          </div>
+          <span style={{ fontSize: '0.85em', color: colorSystem?.textMuted || '#aaa', whiteSpace: 'nowrap' }}>
+            {nextExp[0].toLocaleString()} / {nextExp[1].toLocaleString()}
           </span>
-          <span className={styles.crewDivider}> | </span>
-          <span className={styles.crewCount}>{(general.crew || 0).toLocaleString()}명</span>
         </div>
       </div>
       </div>

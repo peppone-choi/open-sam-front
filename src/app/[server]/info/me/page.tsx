@@ -35,7 +35,7 @@ export default function MyPage() {
           serverID: serverID || '',
           lastNationNoticeDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
           lastGeneralRecordID: 0,
-          lastWorldHistoryID: 0,
+          lastGlobalHistoryID: 0,
         }).catch(() => null),
       ]);
 
@@ -105,6 +105,34 @@ export default function MyPage() {
                   {frontInfo?.nation?.name || basicInfo?.myNationID || '-'}
                 </div>
               </div>
+              {frontInfo?.general && (
+                <>
+                  <div className={styles.infoItem}>
+                    <div className={styles.infoLabel}>레벨</div>
+                    <div className={styles.infoValue}>
+                      {frontInfo.general.level || frontInfo.general.data?.level || 1}
+                    </div>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <div className={styles.infoLabel}>통솔</div>
+                    <div className={styles.infoValue}>
+                      {frontInfo.general.leadership || frontInfo.general.data?.leadership || 0}
+                    </div>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <div className={styles.infoLabel}>무력</div>
+                    <div className={styles.infoValue}>
+                      {frontInfo.general.strength || frontInfo.general.data?.strength || 0}
+                    </div>
+                  </div>
+                  <div className={styles.infoItem}>
+                    <div className={styles.infoLabel}>지력</div>
+                    <div className={styles.infoValue}>
+                      {frontInfo.general.intel || frontInfo.general.data?.intel || 0}
+                    </div>
+                  </div>
+                </>
+              )}
               {basicInfo && (
                 <>
                   <div className={styles.infoItem}>

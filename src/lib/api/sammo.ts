@@ -83,9 +83,12 @@ export interface GetFrontInfoResponse {
     } | null>;
   } | null;
   recentRecord: {
-    history: any[];
-    global: any[];
-    general: any[];
+    history: ([number, string] | { id: number; text: string; timestamp: Date })[];  // [id, html text] or object
+    global: ([number, string] | { id: number; text: string; timestamp: Date })[];   // [id, html text] or object
+    general: ([number, string] | { id: number; text: string; timestamp: Date })[];  // [id, html text] or object
+    flushHistory?: number;
+    flushGlobal?: number;
+    flushGeneral?: number;
   };
   cityConstMap?: Record<number, { name: string }>;
 }
@@ -94,7 +97,7 @@ export interface GetMapResponse {
   success: boolean;
   result: boolean;
   cityList: number[][];
-  nationList: Array<[number, string, string, number]>;
+  nationList: Array<[number, string, string, number, string, string, string, string]>; // id, name, color, capital, flagImage, flagTextColor, flagBgColor, flagBorderColor
   myCity: number | null;
   myNation: number | null;
   spyList: Record<number, number>;
@@ -207,14 +210,16 @@ export class SammoAPI {
   static async GeneralGetFrontInfo(params: {
     serverID: string;
     lastNationNoticeDate?: string;
-    lastGeneralRecordID?: number;
-    lastWorldHistoryID?: number;
+    lastGeneralRecordID?: number; // 장수동향
+    lastPersonalHistoryID?: number; // 개인기록
+    lastGlobalHistoryID?: number; // 중원정세
   }): Promise<GetFrontInfoResponse> {
     const query = new URLSearchParams();
     query.append('serverID', params.serverID);
     if (params.lastNationNoticeDate) query.append('lastNationNoticeDate', params.lastNationNoticeDate);
     if (params.lastGeneralRecordID) query.append('lastGeneralRecordID', String(params.lastGeneralRecordID));
-    if (params.lastWorldHistoryID) query.append('lastWorldHistoryID', String(params.lastWorldHistoryID));
+    if (params.lastPersonalHistoryID) query.append('lastPersonalHistoryID', String(params.lastPersonalHistoryID));
+    if (params.lastGlobalHistoryID) query.append('lastGlobalHistoryID', String(params.lastGlobalHistoryID));
     
     return this.request<GetFrontInfoResponse>(`/api/general/get-front-info?${query.toString()}`, {
       method: 'GET',
@@ -818,6 +823,7 @@ export class SammoAPI {
 
   static async GetServerStatus(): Promise<{
     result: boolean;
+    notice?: string;
     server: Array<{
       color: string;
       korName: string;
@@ -1651,6 +1657,7 @@ export class SammoAPI {
   }): Promise<{
     result: boolean;
     nations: any[];
+    allowJoinNation?: boolean;
     statLimits?: {
       min: number;
       max: number;
@@ -1685,6 +1692,7 @@ export class SammoAPI {
     intel?: number;
     politics?: number;    // 정치
     charm?: number;       // 매력
+    trait?: string;       // 특성
     character?: string;
     pic?: boolean;
     city?: number;

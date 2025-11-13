@@ -15,8 +15,64 @@ import MessagePanel from '@/components/game/MessagePanel';
 import GlobalMenu from '@/components/game/GlobalMenu';
 import GameBottomBar from '@/components/game/GameBottomBar';
 import VersionModal from '@/components/game/VersionModal';
+import GameViewTabs from '@/components/game/GameViewTabs';
 import { useSocket } from '@/hooks/useSocket';
 import styles from './page.module.css';
+import { makeAccentColors } from '@/types/colorSystem';
+
+// ColorSystem 유틸리티 함수들
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return "#" + [r, g, b].map(x => {
+    const hex = Math.round(Math.max(0, Math.min(255, x))).toString(16);
+    return hex.length === 1 ? "0" + hex : hex;
+  }).join('');
+}
+
+function calculateLuminance(hex: string): number {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return 0.5;
+  
+  const rsRGB = rgb.r / 255;
+  const gsRGB = rgb.g / 255;
+  const bsRGB = rgb.b / 255;
+  
+  const r = rsRGB <= 0.03928 ? rsRGB / 12.92 : Math.pow((rsRGB + 0.055) / 1.055, 2.4);
+  const g = gsRGB <= 0.03928 ? gsRGB / 12.92 : Math.pow((gsRGB + 0.055) / 1.055, 2.4);
+  const b = bsRGB <= 0.03928 ? bsRGB / 12.92 : Math.pow((bsRGB + 0.055) / 1.055, 2.4);
+  
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function darkenColor(hex: string, amount: number): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  
+  return rgbToHex(
+    rgb.r * (1 - amount),
+    rgb.g * (1 - amount),
+    rgb.b * (1 - amount)
+  );
+}
+
+function adjustColorForText(hex: string): string {
+  const luminance = calculateLuminance(hex);
+  
+  if (luminance > 0.5) {
+    const darkenAmount = 0.3 + (luminance - 0.5) * 0.6;
+    return darkenColor(hex, darkenAmount);
+  }
+  
+  return hex;
+}
 
 export default function GamePage() {
   const params = useParams();
@@ -37,7 +93,7 @@ export default function GamePage() {
     () => ({ sessionId: serverID, autoConnect: !!serverID }),
     [serverID]
   );
-  const { socket, isConnected, onGameEvent, onGeneralEvent, onTurnComplete } = useSocket(socketOptions);
+  const { socket, isConnected, onGameEvent, onGeneralEvent, onTurnComplete, onLogUpdate } = useSocket(socketOptions);
 
   // 로딩 중복 방지 Ref
   const loadingRef = React.useRef(false);
@@ -55,8 +111,9 @@ export default function GamePage() {
         SammoAPI.GeneralGetFrontInfo({
           serverID,
           lastNationNoticeDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
-          lastGeneralRecordID: 0,
-          lastWorldHistoryID: 0,
+          lastGeneralRecordID: 0, // 장수동향
+          lastPersonalHistoryID: 0, // 개인기록
+          lastGlobalHistoryID: 0, // 중원정세
         }),
         SammoAPI.GlobalGetMap({ 
           serverID,
@@ -72,6 +129,9 @@ export default function GamePage() {
         setError('캐릭터가 없습니다. 캐릭터를 생성해주세요.');
         return;
       }
+
+      // 디버깅: recentRecord 확인
+      console.log('[GamePage] recentRecord:', frontInfoData.recentRecord);
 
       setFrontInfo(frontInfoData);
       setMapData(mapDataResponse);
@@ -197,17 +257,70 @@ export default function GamePage() {
       });
     });
 
+    // 로그 업데이트 이벤트 (실시간 로그 추가)
+    const cleanupLogUpdate = onLogUpdate((data) => {
+      console.log('[GamePage] 로그 업데이트:', data);
+      
+      // 장수동향, 개인기록, 중원정세에 실시간으로 추가
+      setFrontInfo(prev => {
+        if (!prev) return prev;
+        
+        const newLog = {
+          id: data.logId,
+          text: data.logText,
+          timestamp: data.timestamp
+        };
+        
+        // 로그 타입에 따라 적절한 배열에 추가
+        if (data.logType === 'action') {
+          // 장수동향 (general_id가 현재 장수와 일치하는 경우만)
+          if (data.generalId === generalIdRef.current) {
+            return {
+              ...prev,
+              recentRecord: {
+                ...prev.recentRecord,
+                general: [newLog, ...(prev.recentRecord?.general || [])].slice(0, 20) // 최대 20개
+              }
+            };
+          }
+        } else if (data.logType === 'history') {
+          if (data.generalId === 0) {
+            // 중원정세 (general_id = 0)
+            return {
+              ...prev,
+              recentRecord: {
+                ...prev.recentRecord,
+                global: [newLog, ...(prev.recentRecord?.global || [])].slice(0, 20)
+              }
+            };
+          } else if (data.generalId === generalIdRef.current) {
+            // 개인기록 (general_id가 현재 장수와 일치)
+            return {
+              ...prev,
+              recentRecord: {
+                ...prev.recentRecord,
+                history: [newLog, ...(prev.recentRecord?.history || [])].slice(0, 20)
+              }
+            };
+          }
+        }
+        
+        return prev;
+      });
+    });
+
     return () => {
       cleanupTurnComplete();
       cleanupMonthChanged();
       cleanupGeneralUpdate();
       cleanupGameStatus();
+      cleanupLogUpdate();
       // 타임아웃 클리어
       if (turnCompleteTimeout) clearTimeout(turnCompleteTimeout);
       if (monthChangedTimeout) clearTimeout(monthChangedTimeout);
       if (generalUpdateTimeout) clearTimeout(generalUpdateTimeout);
     };
-    }, [socket, isConnected, onTurnComplete, onGameEvent, onGeneralEvent]);
+    }, [socket, isConnected, onTurnComplete, onGameEvent, onGeneralEvent, onLogUpdate]);
 
   // 메모이제이션으로 불필요한 재계산 방지 (조건부 렌더링 전에 호출해야 함)
   const showSecret = useMemo(() => {
@@ -220,6 +333,75 @@ export default function GamePage() {
     return new Date(frontInfo.global.lastExecuted);
   }, [frontInfo?.global?.lastExecuted]);
 
+  // 국가색 기반 색상 시스템 (조건부 렌더링 전에 배치)
+  // 통일된 디자인: 배경(30) < 테두리(80) < 버튼(A0) < 버튼호버(C0) < 액티브(FF)
+  const nationColor = frontInfo?.nation?.color;
+  const colorSystem = useMemo(() => {
+    if (!nationColor) {
+      return {
+        // 배경
+        pageBg: '#1a1a1a',
+        // 테두리
+        border: '#555555',
+        borderLight: '#444444',
+        // 버튼
+        buttonBg: '#666666',
+        buttonHover: '#777777',
+        buttonActive: '#888888',
+        buttonText: '#ffffff',
+        activeBg: '#888888',
+        // 글자색
+        text: '#ffffff',
+        textMuted: '#aaaaaa',
+        textDim: '#666666',
+        // 강조색
+        accent: '#00bcd4',
+        accentBright: '#00e5ff',
+        success: '#4caf50',
+        warning: '#ff9800',
+        error: '#f44336',
+        info: '#00bcd4',
+        special: '#e91e63',
+      };
+    }
+    
+    // 밝기 자동 조정하여 글자색 생성
+    const textColor = adjustColorForText(nationColor);
+    
+    // 국가색 기반 강조색 생성
+    const accentColors = makeAccentColors(nationColor);
+    
+    // 버튼 글자색: 국가색이 밝으면 검은색, 어두우면 흰색
+    const luminance = calculateLuminance(nationColor);
+    const buttonTextColor = luminance > 0.5 ? '#000000' : '#ffffff';
+    
+    return {
+      // 배경
+      pageBg: `${nationColor}30`,
+      // 테두리
+      border: `${nationColor}80`,
+      borderLight: `${nationColor}60`,
+      // 버튼 (국가색 기반)
+      buttonBg: `${nationColor}A0`,
+      buttonHover: `${nationColor}C0`,
+      buttonActive: `${nationColor}FF`,
+      buttonText: buttonTextColor,
+      activeBg: `${nationColor}FF`,
+      // 글자색 (국가색 기반 - 밝기 자동 조정)
+      text: textColor,
+      textMuted: `${textColor}C0`,
+      textDim: `${textColor}80`,
+      // 강조색 (국가색 기반)
+      accent: nationColor,
+      accentBright: accentColors.accentBright,
+      success: accentColors.success,
+      warning: accentColors.warning,
+      error: accentColors.error,
+      info: accentColors.info,
+      special: accentColors.special,
+    };
+  }, [nationColor]);
+
   const gameInfoPanelProps = useMemo(() => {
     if (!frontInfo) return null;
     // 세션 이름이 있으면 사용, 없으면 serverID 사용
@@ -228,9 +410,11 @@ export default function GamePage() {
       frontInfo,
       serverName: displayServerName,
       serverLocked: frontInfo.global.isLocked,
-      lastExecuted: lastExecutedDate
+      lastExecuted: lastExecutedDate,
+      nationColor: frontInfo.nation?.color,
+      colorSystem
     };
-  }, [frontInfo, serverID, lastExecutedDate]);
+  }, [frontInfo, serverID, lastExecutedDate, colorSystem]);
 
   const mainControlBarProps = useMemo(() => {
     if (!frontInfo?.general || !frontInfo?.nation) return null;
@@ -240,8 +424,10 @@ export default function GamePage() {
       myLevel: frontInfo.general.officerLevel,
       nationLevel: frontInfo.nation.level,
       nationId: frontInfo.nation.id,
+      nationColor: frontInfo.nation.color,
       isTournamentApplicationOpen: frontInfo.global.isTournamentApplicationOpen,
-      isBettingActive: frontInfo.global.isBettingActive
+      isBettingActive: frontInfo.global.isBettingActive,
+      colorSystem
     };
   }, [
     frontInfo?.general?.permission,
@@ -249,6 +435,7 @@ export default function GamePage() {
     frontInfo?.general?.officerLevel,
     frontInfo?.nation?.level,
     frontInfo?.nation?.id,
+    frontInfo?.nation?.color,
     frontInfo?.global?.isTournamentApplicationOpen,
     frontInfo?.global?.isBettingActive
   ]);
@@ -270,15 +457,17 @@ export default function GamePage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className="center" style={{ padding: '2rem' }}>
-          서버 갱신 중입니다.
-        </div>
-      </div>
-    );
-  }
+  // body와 html 배경색 설정 (페이지 양쪽 여백도 국가색으로)
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.body.style.backgroundColor = colorSystem.pageBg;
+      document.documentElement.style.backgroundColor = colorSystem.pageBg;
+      return () => {
+        document.body.style.backgroundColor = '';
+        document.documentElement.style.backgroundColor = '';
+      };
+    }
+  }, [colorSystem.pageBg]);
 
   if (error || !frontInfo) {
     return (
@@ -309,14 +498,28 @@ export default function GamePage() {
   }
 
   return (
-    <div className={styles.container}>
+    <div 
+      className={styles.container}
+    >
       {/* 페이지 상단 컨트롤 바 */}
-      <div className={styles.pageControls}>
+      <div 
+        className={styles.pageControls}
+        style={{
+          borderColor: colorSystem.border,
+        }}
+      >
         <div className={styles.pageControlsLeft}>
           <button
             type="button"
             onClick={loadData}
             className={styles.refreshBtn}
+            style={{
+              backgroundColor: colorSystem.buttonBg,
+              borderColor: colorSystem.border,
+              color: colorSystem.buttonText,
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colorSystem.buttonHover}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colorSystem.buttonBg}
             disabled={loading}
           >
             {loading ? '갱신 중...' : '갱신'}
@@ -326,6 +529,11 @@ export default function GamePage() {
           <Link
             href="/entrance"
             className={styles.lobbyBtn}
+            style={{
+              backgroundColor: colorSystem.buttonBg,
+              borderColor: colorSystem.border,
+              color: colorSystem.buttonText,
+            }}
           >
             로비
           </Link>
@@ -333,37 +541,71 @@ export default function GamePage() {
       </div>
 
       {/* 헤더 패널 */}
-      <div className={styles.headerPanel}>
-        <div className={styles.commonToolbar}>
+      <div 
+        className={styles.headerPanel}
+        style={{
+          borderColor: colorSystem.border,
+          color: colorSystem.text,
+        }}
+      >
+        <div 
+          className={styles.commonToolbar}
+          style={{
+            borderColor: colorSystem.border,
+          }}
+        >
           {globalMenu.length > 0 && (
-            <GlobalMenu
-              menu={globalMenu}
-              globalInfo={frontInfo.global}
-              onMenuClick={handleMenuClick}
-            />
+          <GlobalMenu
+            menu={globalMenu}
+            globalInfo={frontInfo.global}
+            onMenuClick={handleMenuClick}
+            nationColor={nationColor}
+            colorSystem={colorSystem}
+          />
           )}
         </div>
         {gameInfoPanelProps && <GameInfoPanel {...gameInfoPanelProps} />}
         
         {/* 접속 중인 국가 및 접속자 정보 */}
         {frontInfo.global.onlineNations && (
-          <div className={styles.onlineNations} style={{ borderTop: '1px solid #333', padding: '0.5rem 1rem' }}>
+          <div 
+            className={styles.onlineNations} 
+            style={{ 
+              borderTop: `1px solid ${colorSystem.border}`, 
+              padding: '0.5rem 1rem',
+              color: colorSystem.text,
+            }}
+          >
             접속중인 국가: {frontInfo.global.onlineNations}
           </div>
         )}
         {frontInfo.nation && (
-          <div className={styles.onlineUsers} style={{ borderTop: '1px solid #333', padding: '0.5rem 1rem' }}>
+          <div 
+            className={styles.onlineUsers} 
+            style={{ 
+              borderTop: `1px solid ${colorSystem.border}`, 
+              padding: '0.5rem 1rem',
+              color: colorSystem.text,
+            }}
+          >
             【 접속자 】 {frontInfo.nation.onlineGen || 0}
           </div>
         )}
         
         {/* 국가방침 */}
         {frontInfo.nation && frontInfo.nation.notice && (
-          <div className={styles.nationNotice} style={{ borderTop: '1px solid #333', padding: '0.5rem 0' }}>
+          <div 
+            className={styles.nationNotice} 
+            style={{ 
+              borderTop: `1px solid ${colorSystem.border}`, 
+              padding: '0.5rem 0',
+              color: colorSystem.text,
+            }}
+          >
             <div style={{ padding: '0 1rem' }}>【 국가방침 】</div>
             <div 
               className={styles.nationNoticeBody}
-              style={{ padding: '0.5rem 1rem' }}
+              style={{ padding: '0.5rem 1rem', color: colorSystem.text }}
               dangerouslySetInnerHTML={{ __html: frontInfo.nation.notice.msg || '' }}
             />
           </div>
@@ -371,17 +613,23 @@ export default function GamePage() {
       </div>
 
       {/* 메인 게임 보드 */}
-      <div className={styles.contentWrapper}>
+      <div 
+        className={styles.contentWrapper}
+        style={{
+          borderColor: colorSystem.border,
+        }}
+      >
         <div className={styles.ingameBoardWrapper}>
           <div id="ingameBoard" className={styles.ingameBoard}>
         <div className={styles.mapView}>
-          {mapData && (
-            <MapViewer
+          {mapData && frontInfo.general && (
+            <GameViewTabs
               serverID={serverID}
+              generalId={frontInfo.general.no}
+              cityId={frontInfo.general.city}
+              cityName={frontInfo.city?.name}
               mapData={mapData}
-              myCity={frontInfo.general.city}
               onCityClick={handleCityClick}
-              gameConst={gameConst}
             />
           )}
         </div>
@@ -391,6 +639,8 @@ export default function GamePage() {
             <PartialReservedCommand
               generalID={frontInfo.general.no}
               serverID={serverID}
+              nationColor={frontInfo.nation?.color}
+              colorSystem={colorSystem}
             />
           ) : (
             <div className={styles.commandPadPlaceholder}>
@@ -404,47 +654,49 @@ export default function GamePage() {
           )}
         </div>
 
-        {/* actionMiniPlate: 갱신/로비 버튼 */}
-        <div id="actionMiniPlate" className={styles.actionMiniPlate}>
-          <div className={styles.actionMiniPlateRow}>
-            <button
-              type="button"
-              onClick={loadData}
-              className={`${styles.actionBtn} ${styles.refreshBtn}`}
-              disabled={loading}
-            >
-              {loading ? '갱신 중...' : '갱 신'}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push('/entrance')}
-              className={`${styles.actionBtn} ${styles.lobbyBtn}`}
-            >
-              로비로
-            </button>
-          </div>
-        </div>
+
 
         {frontInfo.general && frontInfo.nation && (
-          <div className={styles.generalInfo}>
+          <div 
+            className={styles.generalInfo}
+            style={{
+              borderColor: colorSystem.border,
+            }}
+          >
             <GeneralBasicCard
               general={frontInfo.general}
               nation={frontInfo.nation}
               troopInfo={frontInfo.general.reservedCommand ? undefined : undefined}
               turnTerm={frontInfo.global.turnterm}
+              colorSystem={colorSystem}
             />
           </div>
         )}
 
         {frontInfo.city && (
-          <div className={styles.cityInfo}>
-            <CityBasicCard city={frontInfo.city} cityConstMap={frontInfo.cityConstMap} />
+          <div 
+            className={styles.cityInfo}
+            style={{
+              borderColor: colorSystem.border,
+            }}
+          >
+            <CityBasicCard city={frontInfo.city} cityConstMap={frontInfo.cityConstMap} colorSystem={colorSystem} />
           </div>
         )}
 
         {frontInfo.nation && (
-          <div className={styles.nationInfo}>
-            <NationBasicCard nation={frontInfo.nation} global={frontInfo.global} />
+          <div 
+            className={styles.nationInfo}
+            style={{
+              borderColor: colorSystem.border,
+            }}
+          >
+            <NationBasicCard 
+              nation={frontInfo.nation} 
+              global={frontInfo.global} 
+              cityConstMap={frontInfo.cityConstMap}
+              colorSystem={colorSystem}
+            />
           </div>
         )}
 
@@ -454,52 +706,114 @@ export default function GamePage() {
           )}
         </div>
 
-        {/* actionMiniPlateSub: 명령으로/갱신/로비 버튼 */}
-        <div id="actionMiniPlateSub" className={styles.actionMiniPlateSub}>
-          <div className={styles.actionMiniPlateSubRow}>
-            <button
-              type="button"
-              onClick={() => {
-                const element = document.getElementById('reservedCommandPanel');
-                if (element) {
-                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }}
-              className={`${styles.actionBtn} ${styles.commandBtn}`}
-            >
-              명령으로
-            </button>
-            <button
-              type="button"
-              onClick={loadData}
-              className={`${styles.actionBtn} ${styles.refreshBtn}`}
-              disabled={loading}
-            >
-              {loading ? '갱신 중...' : '갱 신'}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push('/entrance')}
-              className={`${styles.actionBtn} ${styles.lobbyBtn}`}
-            >
-              로비로
-            </button>
-          </div>
-        </div>
+
         </div>
       </div>
       </div>
 
-      {/* 메시지 패널 전 commonToolbar */}
-      <div className={styles.commonToolbar}>
-        {globalMenu.length > 0 && (
-          <GlobalMenu
-            menu={globalMenu}
-            globalInfo={frontInfo.global}
-            onMenuClick={handleMenuClick}
-          />
-        )}
-      </div>
+      {/* 로그/기록 섹션 */}
+      {frontInfo.recentRecord && (
+        <div 
+          className={styles.recordZone}
+          style={{
+            borderColor: colorSystem.border,
+            color: colorSystem.text,
+          }}
+        >
+          <div 
+            className={styles.recordColumn}
+            style={{
+              borderColor: colorSystem.border,
+            }}
+          >
+            <div 
+              className={`${styles.recordHeader} bg1`}
+              style={{
+                borderColor: colorSystem.border,
+                backgroundColor: colorSystem.buttonBg,
+                color: colorSystem.buttonText,
+                fontWeight: 'bold',
+              }}
+            >
+              장수 동향
+            </div>
+            <div className={styles.recordList} style={{ color: colorSystem.text, backgroundColor: colorSystem.pageBg }}>
+              {frontInfo.recentRecord.global && frontInfo.recentRecord.global.length > 0 ? (
+                frontInfo.recentRecord.global.map((item, index: number) => {
+                  const [id, text] = Array.isArray(item) ? item : [item.id, item.text];
+                  return (
+                    <div key={id ?? `global-${index}`} className={styles.recordItem} style={{ color: colorSystem.text }} dangerouslySetInnerHTML={{ __html: text }} />
+                  );
+                })
+              ) : (
+                <div className={styles.recordEmpty} style={{ color: colorSystem.textMuted }}>아직 기록이 없습니다. 게임을 진행하면 다른 장수들의 활동이 여기에 표시됩니다.</div>
+              )}
+            </div>
+          </div>
+          <div 
+            className={styles.recordColumn}
+            style={{
+              borderColor: colorSystem.border,
+            }}
+          >
+            <div 
+              className={`${styles.recordHeader} bg1`}
+              style={{
+                borderColor: colorSystem.border,
+                backgroundColor: colorSystem.buttonBg,
+                color: colorSystem.buttonText,
+                fontWeight: 'bold',
+              }}
+            >
+              개인 기록
+            </div>
+            <div className={styles.recordList} style={{ color: colorSystem.text, backgroundColor: colorSystem.pageBg }}>
+              {frontInfo.recentRecord.general && frontInfo.recentRecord.general.length > 0 ? (
+                frontInfo.recentRecord.general.map((item, index: number) => {
+                  const [id, text] = Array.isArray(item) ? item : [item.id, item.text];
+                  return (
+                    <div key={id ?? `general-${index}`} className={styles.recordItem} style={{ color: colorSystem.text }} dangerouslySetInnerHTML={{ __html: text }} />
+                  );
+                })
+              ) : (
+                <div className={styles.recordEmpty} style={{ color: colorSystem.textMuted }}>아직 기록이 없습니다. 명령을 실행하면 여기에 결과가 표시됩니다.</div>
+              )}
+            </div>
+          </div>
+          <div 
+            className={styles.recordColumn}
+            style={{
+              borderColor: colorSystem.border,
+            }}
+          >
+            <div 
+              className={`${styles.recordHeader} bg1`}
+              style={{
+                borderColor: colorSystem.border,
+                backgroundColor: colorSystem.buttonBg,
+                color: colorSystem.buttonText,
+                fontWeight: 'bold',
+              }}
+            >
+              중원 정세
+            </div>
+            <div className={styles.recordList} style={{ color: colorSystem.text, backgroundColor: colorSystem.pageBg }}>
+              {frontInfo.recentRecord.history && frontInfo.recentRecord.history.length > 0 ? (
+                frontInfo.recentRecord.history.map((item, index: number) => {
+                  const [id, text] = Array.isArray(item) ? item : [item.id, item.text];
+                  return (
+                    <div key={id ?? `history-${index}`} className={styles.recordItem} style={{ color: colorSystem.text }} dangerouslySetInnerHTML={{ __html: text }} />
+                  );
+                })
+              ) : (
+                <div className={styles.recordEmpty} style={{ color: colorSystem.textMuted }}>아직 기록이 없습니다. 주요 사건이 발생하면 여기에 표시됩니다.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+
 
       {/* 메시지 패널 */}
       <div className={styles.messagePanelZone}>
@@ -508,16 +822,25 @@ export default function GamePage() {
           generalName={frontInfo.general.name}
           nationID={frontInfo.nation?.id || 0}
           permissionLevel={frontInfo.general.permission}
+          nationColor={frontInfo.nation?.color}
+          colorSystem={colorSystem}
         />
       </div>
 
       {/* 메시지 패널 후 commonToolbar */}
-      <div className={styles.commonToolbar}>
+      <div 
+        className={styles.commonToolbar}
+        style={{
+          borderColor: colorSystem.border,
+        }}
+      >
         {globalMenu.length > 0 && (
           <GlobalMenu
             menu={globalMenu}
             globalInfo={frontInfo.global}
             onMenuClick={handleMenuClick}
+            nationColor={nationColor}
+            colorSystem={colorSystem}
           />
         )}
       </div>
@@ -527,6 +850,7 @@ export default function GamePage() {
         onRefresh={loadData}
         onToggleMenu={handleToggleMenu}
         isLoading={loading}
+        nationColor={nationColor}
       />
 
       {/* 버전 모달 */}

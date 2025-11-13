@@ -25,6 +25,7 @@ interface City {
   name: string;
   x: number;
   y: number;
+  nation?: number; // 소속 국가 ID
 }
 
 export default function JoinPage() {
@@ -33,7 +34,8 @@ export default function JoinPage() {
   const serverID = params?.server as string;
 
   const [nationList, setNationList] = useState<Nation[]>([]);
-  const [cityList, setCityList] = useState<City[]>([]);
+  const [cityList, setCityList] = useState<City[]>([]); // 전체 도시 목록
+  const [allCities, setAllCities] = useState<City[]>([]); // 전체 도시 목록 (필터링용)
   const [statLimits, setStatLimits] = useState<StatLimits>({ min: 15, max: 90, total: 275 });
   const [allowJoinNation, setAllowJoinNation] = useState(true); // 소속 국가 선택 가능 여부
   const [loading, setLoading] = useState(true);
@@ -62,7 +64,8 @@ export default function JoinPage() {
         setNationList(result.nations);
         setAllowJoinNation(result.allowJoinNation !== false); // 기본값 true
         if (result.cities) {
-          setCityList(result.cities);
+          setAllCities(result.cities); // 전체 도시 목록 저장
+          setCityList(result.cities); // 초기에는 전체 도시 표시
         }
         if (result.statLimits) {
           setStatLimits(result.statLimits);
@@ -92,6 +95,23 @@ export default function JoinPage() {
   useEffect(() => {
     loadNations();
   }, [loadNations]);
+
+  // 국가 선택 변경 시 도시 필터링
+  useEffect(() => {
+    if (formData.nation === 0) {
+      // 재야 선택 시 모든 도시 표시
+      setCityList(allCities);
+    } else {
+      // 선택한 국가의 도시만 표시
+      const filteredCities = allCities.filter(city => city.nation === formData.nation);
+      setCityList(filteredCities);
+      
+      // 현재 선택된 도시가 필터링된 목록에 없으면 초기화
+      if (formData.city !== 0 && !filteredCities.some(city => city.id === formData.city)) {
+        setFormData(prev => ({ ...prev, city: 0 }));
+      }
+    }
+  }, [formData.nation, allCities]);
 
   function calculateTotalStats() {
     return formData.leadership + formData.strength + formData.intel + formData.politics + formData.charm;
@@ -790,8 +810,13 @@ export default function JoinPage() {
               <button
                 type="button"
                 onClick={() => {
-                  if (cityList.length > 0) {
-                    const randomCity = cityList[Math.floor(Math.random() * cityList.length)];
+                  // 현재 선택된 국가에 속한 도시만 랜덤 선택
+                  const availableCities = formData.nation === 0 
+                    ? allCities // 재야면 모든 도시
+                    : allCities.filter(city => city.nation === formData.nation); // 선택한 국가의 도시만
+                  
+                  if (availableCities.length > 0) {
+                    const randomCity = availableCities[Math.floor(Math.random() * availableCities.length)];
                     setFormData(prev => ({ ...prev, city: randomCity.id }));
                   }
                 }}

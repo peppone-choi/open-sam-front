@@ -46,7 +46,7 @@ export default function AdminGamePage() {
   async function loadSettings() {
     try {
       setLoading(true);
-      const result = await SammoAPI.AdminGetGameInfo({ session_id: serverID });
+      const result = await SammoAPI.AdminGetGameInfo();
       if (result.result) {
         const data = result.gameInfo;
         console.log('[Admin] Loaded game info:', { isunited: data.isunited, data });
@@ -154,7 +154,25 @@ export default function AdminGamePage() {
     if (!selectedScenario) return;
     
     if (confirm(`정말로 "${selectedScenario.title}" 시나리오로 서버를 초기화하시겠습니까?\n\n⚠️ 모든 장수/국가 데이터가 삭제됩니다!`)) {
-      await handleSubmit('resetScenario', selectedScenarioId);
+      // 현재 세션의 turnterm을 함께 전달
+      try {
+        const data = { 
+          session_id: serverID,
+          scenarioId: selectedScenarioId,
+          turnterm: settings.turnterm || 60  // 현재 turnterm 유지
+        };
+        const result = await SammoAPI.AdminUpdateGame({ action: 'resetScenario', data });
+        
+        if (result.result) {
+          alert('시나리오가 초기화되었습니다. 페이지를 새로고침합니다.');
+          window.location.reload();
+        } else {
+          alert(result.reason || '변경에 실패했습니다');
+        }
+      } catch (err: any) {
+        console.error(err);
+        alert(err.message || '오류가 발생했습니다');
+      }
     }
   }
 

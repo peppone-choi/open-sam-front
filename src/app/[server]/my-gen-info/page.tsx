@@ -29,7 +29,7 @@ export default function MyGenInfoPage() {
           serverID: serverID || '',
           lastNationNoticeDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
           lastGeneralRecordID: 0,
-          lastWorldHistoryID: 0,
+          lastGlobalHistoryID: 0,
         }).catch(() => null),
       ]);
 
