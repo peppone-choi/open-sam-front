@@ -135,111 +135,119 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick, nationColor,
         color: colorSystem?.text,
       } as React.CSSProperties}
     >
-      {filteredMenu.map((item, idx) => {
-        if (item.type === 'line') {
-          return <hr key={idx} className={styles.menuDivider} />;
-        }
+      {filteredMenu.length === 0 ? (
+        <div style={{ padding: '1rem', textAlign: 'center', color: '#666' }}>
+          메뉴를 불러올 수 없습니다.
+        </div>
+      ) : (
+        <>
+          {filteredMenu.map((item, idx) => {
+            if (item.type === 'line') {
+              return <hr key={idx} className={styles.menuDivider} />;
+            }
 
-        if (item.type === 'item' || (!item.type && item.url)) {
-          const href = normalizeUrl(item.url);
-          const content = (
-            <Link
-              href={href}
-              className={styles.menuButton}
-              target={item.newTab ? '_blank' : undefined}
-              onClick={(e) => handleMenuClick(e, item)}
-            >
-              {item.name}
-            </Link>
-          );
-          return <div key={idx} className={styles.menuItem}>{content}</div>;
-        }
-
-        if (item.type === 'multi' && item.subMenu) {
-          const isOpen = openDropdowns.has(idx);
-          return (
-            <div key={idx} className={styles.menuItem}>
-              <button
-                className={styles.menuButton}
-                onClick={() => toggleDropdown(idx)}
-              >
-                {item.name} ▼
-              </button>
-              {isOpen && (
-                <div className={styles.dropdownMenu}>
-                  {item.subMenu.map((subItem, subIdx) => {
-                    if (subItem.type === 'line') {
-                      return <hr key={subIdx} className={styles.menuDivider} />;
-                    }
-                    const href = normalizeUrl(subItem.url);
-                    return (
-                      <Link
-                        key={subIdx}
-                        href={href}
-                        className={styles.dropdownItem}
-                        target={subItem.newTab ? '_blank' : undefined}
-                        onClick={(e) => handleMenuClick(e, subItem)}
-                        style={{ color: colorSystem?.text }}
-                      >
-                        {subItem.name}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        }
-
-        if (item.type === 'split' && item.main && item.subMenu) {
-          const isOpen = openDropdowns.has(idx);
-          const mainHref = normalizeUrl(item.main.url);
-          return (
-            <div key={idx} className={styles.menuItem}>
-              <div className={styles.splitButton}>
+            if (item.type === 'item' || (!item.type && item.url)) {
+              const href = normalizeUrl(item.url);
+              const content = (
                 <Link
-                  href={mainHref}
+                  href={href}
                   className={styles.menuButton}
-                  target={item.main.newTab ? '_blank' : undefined}
-                  onClick={(e) => handleMenuClick(e, item.main!)}
+                  target={item.newTab ? '_blank' : undefined}
+                  onClick={(e) => handleMenuClick(e, item)}
                 >
-                  {item.main.name}
+                  {item.name}
                 </Link>
-                <button
-                  className={styles.splitToggle}
-                  onClick={() => toggleDropdown(idx)}
-                >
-                  ▼
-                </button>
-              </div>
-              {isOpen && (
-                <div className={styles.dropdownMenu}>
-                  {item.subMenu.map((subItem, subIdx) => {
-                    if (subItem.type === 'line') {
-                      return <hr key={subIdx} className={styles.menuDivider} />;
-                    }
-                    const href = normalizeUrl(subItem.url);
-                    return (
-                      <Link
-                        key={subIdx}
-                        href={href}
-                        className={styles.dropdownItem}
-                        target={subItem.newTab ? '_blank' : undefined}
-                        onClick={(e) => handleMenuClick(e, subItem)}
-                        style={{ color: colorSystem?.text }}
-                      >
-                        {subItem.name}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        }
+              );
+              return <div key={idx} className={styles.menuItem}>{content}</div>;
+            }
 
-        return null;
-      })}
+            if (item.type === 'multi' && item.subMenu) {
+              const isOpen = openDropdowns.has(idx);
+              return (
+                <div key={idx} className={styles.menuItem}>
+                  <button
+                    className={styles.menuButton}
+                    onClick={() => toggleDropdown(idx)}
+                  >
+                    {item.name} ▼
+                  </button>
+                  {isOpen && (
+                    <div className={styles.dropdownMenu}>
+                      {item.subMenu.map((subItem, subIdx) => {
+                        if (subItem.type === 'line') {
+                          return <hr key={subIdx} className={styles.menuDivider} />;
+                        }
+                        const href = normalizeUrl(subItem.url);
+                        return (
+                          <Link
+                            key={subIdx}
+                            href={href}
+                            className={styles.dropdownItem}
+                            target={subItem.newTab ? '_blank' : undefined}
+                            onClick={(e) => handleMenuClick(e, subItem)}
+                            style={{ color: colorSystem?.text }}
+                          >
+                            {subItem.name}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            if (item.type === 'split' && item.main && item.subMenu) {
+              const isOpen = openDropdowns.has(idx);
+              const mainHref = normalizeUrl(item.main.url);
+              return (
+                <div key={idx} className={styles.menuItem}>
+                  <div className={styles.splitButton}>
+                    <Link
+                      href={mainHref}
+                      className={styles.menuButton}
+                      target={item.main.newTab ? '_blank' : undefined}
+                      onClick={(e) => handleMenuClick(e, item.main!)}
+                    >
+                      {item.main.name}
+                    </Link>
+                    <button
+                      className={styles.splitToggle}
+                      onClick={() => toggleDropdown(idx)}
+                    >
+                      ▼
+                    </button>
+                  </div>
+                  {isOpen && (
+                    <div className={styles.dropdownMenu}>
+                      {item.subMenu.map((subItem, subIdx) => {
+                        if (subItem.type === 'line') {
+                          return <hr key={subIdx} className={styles.menuDivider} />;
+                        }
+                        const href = normalizeUrl(subItem.url);
+                        return (
+                          <Link
+                            key={subIdx}
+                            href={href}
+                            className={styles.dropdownItem}
+                            target={subItem.newTab ? '_blank' : undefined}
+                            onClick={(e) => handleMenuClick(e, subItem)}
+                            style={{ color: colorSystem?.text }}
+                          >
+                            {subItem.name}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            return null;
+          })}
+        </>
+      )}
     </div>
   );
 }

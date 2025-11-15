@@ -36,6 +36,8 @@ function BoardContent() {
   const [articles, setArticles] = useState<BoardArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [newArticle, setNewArticle] = useState({ title: '', text: '' });
+  const [newComments, setNewComments] = useState<Record<number, string>>({});
+
 
   useEffect(() => {
     loadArticles();
@@ -44,7 +46,7 @@ function BoardContent() {
   async function loadArticles() {
     try {
       setLoading(true);
-      const result = await SammoAPI.GetBoardArticles({ isSecret });
+       const result = await SammoAPI.GetBoardArticles({ isSecret, session_id: serverID });
       if (result.result) {
         // articles가 객체일 수도 있고 배열일 수도 있음
         const articlesArray = Array.isArray(result.articles) 
@@ -60,19 +62,20 @@ function BoardContent() {
     }
   }
 
-  async function submitArticle() {
+   async function submitArticle() {
     if (!newArticle.title || !newArticle.text) {
       alert('제목과 내용을 입력해주세요.');
       return;
     }
-
+ 
     try {
       const result = await SammoAPI.PostBoardArticle({
         isSecret,
         title: newArticle.title,
         text: newArticle.text,
+        session_id: serverID,
       });
-
+ 
       if (result.result) {
         setNewArticle({ title: '', text: '' });
         await loadArticles();
@@ -84,6 +87,34 @@ function BoardContent() {
       alert('게시물 등록에 실패했습니다.');
     }
   }
+
+  async function submitComment(articleNo: number) {
+    const text = newComments[articleNo]?.trim();
+    if (!text) {
+      alert('댓글 내용을 입력해주세요.');
+      return;
+    }
+
+    try {
+      const result = await SammoAPI.PostBoardComment({
+        documentNo: articleNo,
+        text,
+        isSecret,
+        session_id: serverID,
+      });
+
+      if (result.result) {
+        setNewComments((prev) => ({ ...prev, [articleNo]: '' }));
+        await loadArticles();
+      } else {
+        alert(result.reason || '댓글 등록에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('댓글 등록에 실패했습니다.');
+    }
+  }
+
 
   const title = isSecret ? '기밀실' : '회의실';
 
@@ -140,29 +171,57 @@ function BoardContent() {
                 <div className={styles.date}>{article.date.slice(5, 16)}</div>
               </div>
               <div className={styles.articleContent}>
-                <div className={styles.authorIcon}>
-                  <img src={article.author_icon || '/images/default-avatar.png'} alt={article.author} width="64" height="64" />
-                </div>
-                <div className={styles.text} dangerouslySetInnerHTML={{ __html: article.text }} />
-                {article.comment && article.comment.length > 0 && (
-                  <div className={styles.comments}>
-                    {article.comment.map((comment: BoardComment) => (
-                      <div key={comment.no} className={styles.commentItem}>
-                        <div className={styles.commentAuthor}>{comment.author}</div>
-                        <div className={styles.commentText}>{comment.text}</div>
-                        <div className={styles.commentDate}>{comment.date.slice(5, 16)}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
-}
+                 <div className={styles.authorIcon}>
+                   <img
+                     src={article.author_icon || '/default_portrait.png'}
+                     alt={article.author}
+                     width={78}
+                     height={105}
+                     style={{ objectFit: 'cover', aspectRatio: '26 / 35' }}
+                     onError={(e) => {
+                       (e.target as HTMLImageElement).src = '/default_portrait.png';
+                     }}
+                   />
+                 </div>
+                 <div className={styles.text} dangerouslySetInnerHTML={{ __html: article.text }} />
+                 {article.comment && article.comment.length > 0 && (
+                   <div className={styles.comments}>
+                     {article.comment.map((comment: BoardComment) => (
+                       <div key={comment.no} className={styles.commentItem}>
+                         <div className={styles.commentAuthor}>{comment.author}</div>
+                         <div className={styles.commentText}>{comment.text}</div>
+                         <div className={styles.commentDate}>{comment.date.slice(5, 16)}</div>
+                       </div>
+                     ))}
+                   </div>
+                 )}
+                 <div className={styles.commentForm}>
+                   <input
+                     type="text"
+                     placeholder="댓글을 입력하세요..."
+                     value={newComments[article.no] || ''}
+                     onChange={(e) =>
+                       setNewComments((prev) => ({ ...prev, [article.no]: e.target.value }))
+                     }
+                     className={styles.commentInput}
+                   />
+                   <button
+                     type="button"
+                     onClick={() => submitComment(article.no)}
+                     className={styles.commentSubmitBtn}
+                   >
+                     댓글 등록
+                   </button>
+                 </div>
+               </div>
+             </div>
+           ))
+         )}
+       </div>
+     </div>
+   );
+ }
+
 
 export default function BoardPage() {
   return (

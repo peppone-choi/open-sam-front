@@ -151,11 +151,14 @@ export class SammoAPI {
     }
     
     try {
+      console.log(`API Request: ${url}`, options);
       const response = await fetch(url, {
         ...options,
         credentials: 'include',
         headers,
       });
+
+      console.log(`API Response: ${response.status} ${response.statusText}`);
 
       if (!response.ok) {
         // 에러 응답 본문 읽기
@@ -182,7 +185,9 @@ export class SammoAPI {
         throw error;
       }
 
-      return response.json();
+      const responseData = await response.json();
+      console.log(`API Response Data:`, responseData);
+      return responseData;
     } catch (error: any) {
       // 네트워크 에러나 fetch 자체가 실패한 경우
       if (error.status) {
@@ -455,15 +460,25 @@ export class SammoAPI {
     if (params?.serverID) query.append('session_id', params.serverID);
     if (params?.session_id) query.append('session_id', params.session_id);
     
+    const body: any = {
+      general_id: params.general_id,
+      turn_idx: params.turn_idx,
+      action: params.action,
+      arg: params.arg || {},
+      brief: params.brief,
+    };
+
+    // serverID가 있으면 session_id로 매핑
+    if (params.serverID && !body.session_id) {
+      body.session_id = params.serverID;
+    }
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    }
+
     return this.request(`/api/command/reserve-command?${query.toString()}`, {
       method: 'POST',
-      body: JSON.stringify({
-        general_id: params.general_id,
-        turn_idx: params.turn_idx,
-        action: params.action,
-        arg: params.arg || {},
-        brief: params.brief,
-      }),
+      body: JSON.stringify(body),
     });
   }
 
@@ -478,6 +493,180 @@ export class SammoAPI {
     return this.request('/api/command/push', {
       method: 'POST',
       body: JSON.stringify(params),
+    });
+  }
+
+  // NationCommand API (Chief / nation turns)
+  static async NationCommandGetReservedCommand(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    success: boolean;
+    result: boolean;
+    lastExecute: string | Date;
+    year: number;
+    month: number;
+    turnTerm: number;
+    date: string | Date;
+    chiefList: Record<number, {
+      name: string | null;
+      turnTime: string | null;
+      officerLevel?: number;
+      officerLevelText: string;
+      npcType: number | null;
+      turn: Record<number, {
+        action: string;
+        brief: string;
+        arg: any;
+      }>;
+    }>;
+    troopList: Record<number, string>;
+    isChief: boolean;
+    autorun_limit: number;
+    officerLevel: number;
+    commandList: any;
+    mapName: string;
+    unitSet: string;
+    message?: string;
+  }> {
+    const query = new URLSearchParams();
+    if (params?.serverID) query.append('session_id', params.serverID);
+    if (params?.session_id) query.append('session_id', params.session_id);
+
+    return this.request(`/api/nationcommand/get-reserved-command?${query.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  static async NationCommandReserveCommand(params: {
+    serverID?: string;
+    session_id?: string;
+    general_id?: number;
+    action: string;
+    turnList: number[];
+    arg?: any;
+  }): Promise<{
+    success: boolean;
+    result: boolean;
+    brief?: string;
+    reason?: string;
+    message?: string;
+  }> {
+    const body: any = {
+      action: params.action,
+      turnList: params.turnList,
+      arg: params.arg || {},
+    };
+
+    if (params.serverID && !body.session_id) {
+      body.session_id = params.serverID;
+    }
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    }
+    if (params.general_id) {
+      body.general_id = params.general_id;
+    }
+
+    return this.request('/api/nationcommand/reserve-command', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  static async NationCommandReserveBulkCommand(params: {
+    serverID?: string;
+    session_id?: string;
+    general_id?: number;
+    commands: Array<{
+      turnList: number[];
+      action: string;
+      arg: any;
+    }>;
+  }): Promise<{
+    success: boolean;
+    result: boolean;
+    briefList?: Record<number, string>;
+    reason?: string;
+    message?: string;
+  }> {
+    const body: any = {
+      commands: params.commands,
+    };
+
+    if (params.serverID && !body.session_id) {
+      body.session_id = params.serverID;
+    }
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    }
+    if (params.general_id) {
+      body.general_id = params.general_id;
+    }
+
+    return this.request('/api/nationcommand/reserve-bulk-command', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  static async NationCommandPushCommand(params: {
+    serverID?: string;
+    session_id?: string;
+    general_id?: number;
+    amount: number;
+  }): Promise<{
+    success: boolean;
+    result?: boolean;
+    message?: string;
+  }> {
+    const body: any = {
+      amount: params.amount,
+    };
+
+    if (params.serverID && !body.session_id) {
+      body.session_id = params.serverID;
+    }
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    }
+    if (params.general_id) {
+      body.general_id = params.general_id;
+    }
+
+    return this.request('/api/nationcommand/push-command', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  static async NationCommandRepeatCommand(params: {
+    serverID?: string;
+    session_id?: string;
+    general_id?: number;
+    amount: number;
+  }): Promise<{
+    success: boolean;
+    result?: boolean;
+    message?: string;
+  }> {
+    const body: any = {
+      amount: params.amount,
+    };
+
+    if (params.serverID && !body.session_id) {
+      body.session_id = params.serverID;
+    }
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    }
+    if (params.general_id) {
+      body.general_id = params.general_id;
+    }
+
+    return this.request('/api/nationcommand/repeat-command', {
+      method: 'POST',
+      body: JSON.stringify(body),
     });
   }
 
@@ -766,9 +955,11 @@ export class SammoAPI {
   // Troop API
   static async TroopNewTroop(params: {
     name: string;
+    session_id?: string;
   }): Promise<{
     result: boolean;
     reason?: string;
+    success?: boolean;
   }> {
     return this.request('/api/troop/new', {
       method: 'POST',
@@ -959,11 +1150,12 @@ export class SammoAPI {
     token?: string;
     type?: number;
   }): Promise<{
+    success?: boolean;
     result: boolean;
     generals?: any[];
     generalList?: any[];
   }> {
-    return this.request('/api/game/general-list', {
+    return this.request('/api/nation/general-list', {
       method: 'POST',
       body: JSON.stringify(params || {}),
     });
@@ -1138,14 +1330,24 @@ export class SammoAPI {
 
   static async RespondDiplomacyLetter(params: {
     letterNo: number;
-    accept: boolean;
+    accept?: boolean;
+    action?: 'accept' | 'reject';
+    serverID?: string;
+    session_id?: string;
   }): Promise<{
     result: boolean;
     reason?: string;
   }> {
+    const action = params.action || (params.accept ? 'accept' : 'reject');
+    const session_id = params.serverID || params.session_id;
+
     return this.request('/api/diplomacy/respond-letter', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify({
+        letterNo: params.letterNo,
+        action,
+        session_id,
+      }),
     });
   }
 
@@ -1257,13 +1459,22 @@ export class SammoAPI {
       args: any;
       turnList: number[];
     }>;
+    serverID?: string;
+    session_id?: string;
+    general_id?: number;
   }): Promise<{
     result: boolean;
     reason?: string;
   }> {
+    const body: any = { ...params };
+
+    if (params.serverID && !body.session_id) {
+      body.session_id = params.serverID;
+    }
+
     return this.request('/api/command/reserve-bulk', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(body),
     });
   }
 
@@ -1301,13 +1512,22 @@ export class SammoAPI {
   static async RepeatCommand(params: {
     commandID: number;
     repeatCount: number;
+    serverID?: string;
+    session_id?: string;
+    general_id?: number;
   }): Promise<{
     result: boolean;
     reason?: string;
   }> {
+    const body: any = { ...params };
+
+    if (params.serverID && !body.session_id) {
+      body.session_id = params.serverID;
+    }
+
     return this.request('/api/command/repeat', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(body),
     });
   }
 
@@ -1321,9 +1541,15 @@ export class SammoAPI {
     result: boolean;
     message?: string;
   }> {
+    const body: any = { ...params };
+
+    if (params.serverID && !body.session_id) {
+      body.session_id = params.serverID;
+    }
+
     return this.request('/api/command/push-command', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(body),
     });
   }
 
@@ -1337,9 +1563,15 @@ export class SammoAPI {
     result: boolean;
     message?: string;
   }> {
+    const body: any = { ...params };
+
+    if (params.serverID && !body.session_id) {
+      body.session_id = params.serverID;
+    }
+
     return this.request('/api/command/pull-command', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(body),
     });
   }
 
@@ -1353,9 +1585,15 @@ export class SammoAPI {
     result: boolean;
     reason?: string;
   }> {
+    const body: any = { ...params };
+
+    if (params.serverID && !body.session_id) {
+      body.session_id = params.serverID;
+    }
+
     return this.request('/api/command/delete-command', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(body),
     });
   }
 
@@ -1543,6 +1781,7 @@ export class SammoAPI {
   // Board API
   static async GetBoardArticles(params: {
     isSecret?: boolean;
+    session_id?: string;
   }): Promise<{
     result: boolean;
     articles: any[];
@@ -1557,11 +1796,28 @@ export class SammoAPI {
     isSecret?: boolean;
     title: string;
     text: string;
+    session_id?: string;
   }): Promise<{
     result: boolean;
     reason?: string;
   }> {
     return this.request('/api/board/post-article', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  static async PostBoardComment(params: {
+    documentNo: number;
+    text: string;
+    isSecret?: boolean;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    comment?: any;
+  }> {
+    return this.request('/api/board/comment', {
       method: 'POST',
       body: JSON.stringify(params),
     });
@@ -1655,12 +1911,24 @@ export class SammoAPI {
   }
 
   // Chief API
-  static async GetChiefCenter(): Promise<{
+  static async GetChiefCenter(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
     result: boolean;
-    commands: any[];
+    center?: any;
+    reason?: string;
   }> {
+    const body: any = { ...(params || {}) };
+
+    // serverID를 session_id로 매핑
+    if (params?.serverID && !body.session_id) {
+      body.session_id = params.serverID;
+    }
+
     return this.request('/api/chief/center', {
       method: 'POST',
+      body: JSON.stringify(body),
     });
   }
 
@@ -1873,6 +2141,112 @@ export class SammoAPI {
     });
   }
 
+  /**
+   * GameSession 관리용 관리자 API (구 Entity용)
+   * 현재 어드민 UI에서는 sessions 컬렉션을 사용하므로
+   * 이 메서드들은 더 이상 직접 사용하지 않습니다.
+   */
+  static async AdminListGameSessions(params?: {
+    limit?: number;
+    skip?: number;
+  }): Promise<{
+    data: any[];
+    meta: {
+      total: number;
+      limit: number;
+      skip: number;
+      page: number;
+      pages: number;
+    };
+  }> {
+    const query = new URLSearchParams();
+    if (params?.limit) query.append('limit', String(params.limit));
+    if (params?.skip) query.append('skip', String(params.skip));
+
+    return this.request(`/api/game-session?${query.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  static async AdminCreateGameSession(params: {
+    scenarioId: string;
+    title?: string;
+    startYear?: number;
+    mapName?: string;
+  }): Promise<{
+    data: any;
+  }> {
+    return this.request('/api/game-session', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  static async AdminDeleteGameSession(id: string): Promise<{
+    message: string;
+  }> {
+    return this.request(`/api/game-session/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  /**
+   * 전역 세션(sessions 컬렉션) 관리용 관리자 API
+   */
+  static async AdminSessionList(): Promise<{
+    success: boolean;
+    sessions: Array<{
+      sessionId: string;
+      scenario: string;
+      year?: number;
+      month?: number;
+      turnterm?: number;
+      status: string;
+      statusText: string;
+      createdAt?: string;
+      updatedAt?: string;
+    }>;
+  }> {
+    return this.request('/api/admin/session/list', {
+      method: 'GET',
+    });
+  }
+
+  static async AdminSessionCreate(params: {
+    sessionId: string;
+    scenario?: string;
+    turnterm?: number;
+    config?: any;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    session?: {
+      sessionId: string;
+      scenario: string;
+    };
+  }> {
+    return this.request('/api/admin/session/create', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  static async AdminSessionReset(params: {
+    sessionId: string;
+  }): Promise<{
+    success: boolean;
+    message?: string;
+    session?: {
+      sessionId: string;
+      status: string;
+    };
+  }> {
+    return this.request('/api/admin/session/reset', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
   static async AdminGetInfo(params: {
     type?: number;
     type2?: number;
@@ -2029,12 +2403,13 @@ export class SammoAPI {
   }
 
   // Info API
-  static async GetBettingInfo(): Promise<{
+  static async GetBettingInfo(params?: { session_id?: string }): Promise<{
     result: boolean;
     bettingList: any[];
   }> {
     return this.request('/api/info/betting', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
@@ -2153,14 +2528,23 @@ export class SammoAPI {
     command: string;
     turnList?: number[];
     isChief?: boolean;
+    serverID?: string;
+    session_id?: string;
   }): Promise<{
     result: boolean;
     commandData: any;
     reason?: string;
   }> {
+    const body: any = { ...params };
+
+    // serverID를 session_id로 매핑
+    if (params.serverID && !body.session_id) {
+      body.session_id = params.serverID;
+    }
+
     return this.request('/api/processing/command', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(body),
     });
   }
 
@@ -2169,13 +2553,21 @@ export class SammoAPI {
     turnList?: number[];
     isChief?: boolean;
     data: any;
+    serverID?: string;
+    session_id?: string;
   }): Promise<{
     result: boolean;
     reason?: string;
   }> {
+    const body: any = { ...params };
+
+    if (params.serverID && !body.session_id) {
+      body.session_id = params.serverID;
+    }
+
     return this.request('/api/processing/submit-command', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(body),
     });
   }
 

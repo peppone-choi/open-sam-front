@@ -50,13 +50,13 @@ export default function NationFlag({
   className 
 }: NationFlagProps) {
   const originalColor = nation.flagBgColor || nation.color || '#ffffff';
-  
-  // 밝은 색상이면 자동으로 어둡게 보정
-  const flagBgColor = adjustColorForText(originalColor);
-  
-  // 보정된 배경색은 항상 어두우므로 흰색 글자
-  const flagTextColor = nation.flagTextColor || '#ffffff';
-  
+
+  // 국기 배경은 국가색/플래그 색을 그대로 사용
+  const flagBgColor = originalColor;
+
+  // 배경 밝기에 따라 글자색/테두리 자동 결정 (필드 값이 있으면 우선)
+  const flagTextColor = nation.flagTextColor || getContrastTextColor(flagBgColor);
+
   const flagBorderColor = nation.flagBorderColor || getContrastBorderColor(flagBgColor);
 
   return (

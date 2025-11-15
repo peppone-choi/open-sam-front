@@ -20,7 +20,8 @@ export default function BettingInfoPage() {
   async function loadBettingList() {
     try {
       setLoading(true);
-      const result = await SammoAPI.GetBettingInfo();
+      const result = await SammoAPI.GetBettingInfo({ session_id: serverID });
+
       if (result.result) {
         setBettingList(result.bettingList);
       }

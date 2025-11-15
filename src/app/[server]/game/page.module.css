@@ -1,9 +1,9 @@
 .world_map {
     width: 100%;
     max-width: 700px;
-    background: black;
+    background: #050814;
     font-size: 14px;
-    color: white;
+    color: inherit;
     position: relative;
     box-sizing: border-box;
 }
@@ -98,7 +98,7 @@
 }
 
 .container {
-    color: white;
+    color: inherit;
     min-height: 100vh;
     position: relative;
     padding: 0;
@@ -309,7 +309,7 @@
 .commandPadPlaceholder {
     border: 1px solid gray;
     padding: 0.5rem;
-    color: white;
+    color: inherit;
     font-size: 0.875rem;
 }
 
@@ -321,12 +321,12 @@
 
 .commandPadPlaceholder .header h4 {
     margin: 0;
-    color: white;
+    color: inherit;
     font-size: 1rem;
 }
 
 .commandPadPlaceholder .content {
-    color: white;
+    color: inherit;
     padding: 0.5rem;
     text-align: center;
 }
@@ -411,12 +411,12 @@
 }
 
 .actionBtn.refreshBtn {
-    background-color: #007bff;
+    background-color: #2563eb;
     color: white;
 }
 
 .actionBtn.refreshBtn:hover:not(:disabled) {
-    background-color: #0056b3;
+    background-color: #1d4ed8;
 }
 
 .actionBtn.refreshBtn:disabled {
@@ -425,21 +425,21 @@
 }
 
 .actionBtn.lobbyBtn {
-    background-color: #28a745;
+    background-color: #22c55e;
     color: white;
 }
 
 .actionBtn.lobbyBtn:hover {
-    background-color: #218838;
+    background-color: #16a34a;
 }
 
 .actionBtn.commandBtn {
-    background-color: #6c757d;
+    background-color: #6b7280;
     color: white;
 }
 
 .actionBtn.commandBtn:hover {
-    background-color: #5a6268;
+    background-color: #4b5563;
 }
 
 @media (min-width: 1040px) {

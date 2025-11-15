@@ -28,6 +28,8 @@ export default function AdminGamePage() {
   const [scenarios, setScenarios] = useState<any[]>([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState('');
 
+  // (서버별 페이지에서는 전역 세션을 관리하지 않음)
+
   useEffect(() => {
     loadSettings();
     loadScenarios();
@@ -43,6 +45,7 @@ export default function AdminGamePage() {
       console.error('시나리오 목록 로드 실패:', err);
     }
   }
+ 
 
   async function loadSettings() {
     try {
@@ -180,6 +183,7 @@ export default function AdminGamePage() {
       }
     }
   }
+ 
 
   if (loading) {
     return (

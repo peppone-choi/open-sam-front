@@ -48,9 +48,12 @@ function CityBasicCard({ city, cityConstMap, colorSystem }: CityBasicCardProps) 
     ? (city.nationInfo.color || '#808080')
     : '#FFFFFF';
   
-  // 밝은 색상이면 자동으로 어둡게 보정
+  // 도시 이름 패널: 밝은 색상은 어둡게 보정 + 흰 글자
   const displayColor = adjustColorForText(nationColor);
-  const textColor = '#FFFFFF'; // 보정된 색상은 항상 어두우므로 흰색 글자
+  const cityTitleTextColor = '#FFFFFF';
+
+  // 지배 국가 패널: 국가색을 그대로 배경으로 쓰되, 밝기에 따라 글자색 자동 선택
+  const nationTextColor = isBrightColor(nationColor) ? '#000000' : '#FFFFFF';
   
   // 속성 헤더 공통 스타일
   const labelStyle = {
@@ -87,7 +90,7 @@ function CityBasicCard({ city, cityConstMap, colorSystem }: CityBasicCardProps) 
       <div
         className={styles.cityNamePanel}
         style={{
-          color: textColor,
+          color: cityTitleTextColor,
           backgroundColor: displayColor,
         }}
       >
@@ -105,7 +108,7 @@ function CityBasicCard({ city, cityConstMap, colorSystem }: CityBasicCardProps) 
       <div
         className={styles.nationNamePanel}
         style={{
-          color: textColor,
+          color: nationTextColor,
           backgroundColor: nationColor,
           display: 'flex',
           alignItems: 'center',

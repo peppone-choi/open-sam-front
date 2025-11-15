@@ -109,6 +109,7 @@ function CommandProcessingContent() {
         command,
         turnList,
         isChief,
+        serverID,
       });
 
       if (result.result && result.commandData) {
@@ -226,20 +227,33 @@ function CommandProcessingContent() {
         action: command,
         arg: args,
         brief,
+        isChief,
       });
       
-      const result = await SammoAPI.CommandReserveCommand({
-        serverID,
-        general_id: generalID,
-        turn_idx: turnList.length > 0 ? turnList[0] : undefined,
-        action: command,
-        arg: args,
-        brief,
-      });
+      let result: any;
+      if (isChief) {
+        // 사령부 턴: NationCommand로 예약
+        result = await SammoAPI.NationCommandReserveCommand({
+          serverID,
+          action: command,
+          turnList,
+          arg: args,
+        });
+      } else {
+        // 개인 턴: 기존 개인 커맨드 예약 API
+        result = await SammoAPI.CommandReserveCommand({
+          serverID,
+          general_id: generalID,
+          turn_idx: turnList.length > 0 ? turnList[0] : undefined,
+          action: command,
+          arg: args,
+          brief,
+        });
+      }
 
       console.log('명령 제출 결과:', result);
 
-      if (result.result) {
+      if (result.result ?? result.success) {
         alert('명령이 등록되었습니다.');
         router.push(`/${serverID}/${isChief ? 'chief' : 'game'}`);
       } else {

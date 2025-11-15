@@ -20,7 +20,8 @@ export default function TournamentInfoPage() {
   async function loadTournamentData() {
     try {
       setLoading(true);
-      const result = await SammoAPI.GetTournamentInfo();
+      const result = await SammoAPI.GetTournamentInfo({ session_id: serverID });
+
       if (result.result) {
         setTournamentData(result.tournament);
       }

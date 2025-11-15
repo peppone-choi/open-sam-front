@@ -348,64 +348,109 @@ export default function GamePage() {
   // 통일된 디자인: 배경(30) < 테두리(80) < 버튼(A0) < 버튼호버(C0) < 액티브(FF)
   const nationColor = frontInfo?.nation?.color;
   const colorSystem = useMemo(() => {
+    // 기본 다크 테마 (국가색 없음 혹은 안전한 기본값)
     if (!nationColor) {
       return {
         // 배경
-        pageBg: '#1a1a1a',
+        pageBg: '#050814',
         // 테두리
-        border: '#555555',
-        borderLight: '#444444',
+        border: '#4b5563',
+        borderLight: '#374151',
         // 버튼
-        buttonBg: '#666666',
-        buttonHover: '#777777',
-        buttonActive: '#888888',
-        buttonText: '#ffffff',
-        activeBg: '#888888',
+        buttonBg: '#2563eb',
+        buttonHover: '#1d4ed8',
+        buttonActive: '#1e40af',
+        buttonText: '#f9fafb',
+        activeBg: '#1e40af',
         // 글자색
-        text: '#ffffff',
-        textMuted: '#aaaaaa',
-        textDim: '#666666',
+        text: '#e5e7eb',
+        textMuted: '#9ca3af',
+        textDim: '#6b7280',
         // 강조색
-        accent: '#00bcd4',
-        accentBright: '#00e5ff',
-        success: '#4caf50',
-        warning: '#ff9800',
-        error: '#f44336',
-        info: '#00bcd4',
-        special: '#e91e63',
+        accent: '#38bdf8',
+        accentBright: '#0ea5e9',
+        success: '#22c55e',
+        warning: '#facc15',
+        error: '#ef4444',
+        info: '#38bdf8',
+        special: '#a855f7',
       };
     }
-    
-    // 밝기 자동 조정하여 글자색 생성
-    const textColor = adjustColorForText(nationColor);
-    
+
     // 국가색 기반 강조색 생성
     const accentColors = makeAccentColors(nationColor);
-    
-    // 버튼 배경색: 밝은 색상이면 어둡게 보정
-    const buttonBgColor = adjustColorForText(nationColor);
-    
-    // 버튼 글자색: 국가색이 밝으면 검은색, 어두우면 흰색
     const luminance = calculateLuminance(nationColor);
-    const buttonTextColor = luminance > 0.5 ? '#000000' : '#ffffff';
-    
+
+    // 흰색/아주 밝은 국가색: 어두운 배경 고정, 국가색은 포인트로만
+    if (luminance >= 0.85) {
+      const textBase = '#e5e7eb';
+      const buttonBgColor = adjustColorForText(nationColor);
+
+      return {
+        pageBg: '#050814',
+        border: '#4b5563',
+        borderLight: '#374151',
+        buttonBg: `${buttonBgColor}E6`,
+        buttonHover: `${buttonBgColor}F2`,
+        buttonActive: `${buttonBgColor}FF`,
+        buttonText: '#f9fafb',
+        activeBg: `${buttonBgColor}FF`,
+        text: textBase,
+        textMuted: '#9ca3af',
+        textDim: '#6b7280',
+        accent: nationColor,
+        accentBright: accentColors.accentBright,
+        success: accentColors.success,
+        warning: accentColors.warning,
+        error: accentColors.error,
+        info: accentColors.info,
+        special: accentColors.special,
+      };
+    }
+
+    // 검은색/아주 어두운 국가색: 밝은 배경 고정, 국가색은 포인트로만
+    if (luminance <= 0.15) {
+      const textBase = '#111827';
+      const buttonBgColor = adjustColorForText(nationColor);
+
+      return {
+        pageBg: '#f5f5f7',
+        border: '#9ca3af',
+        borderLight: '#d1d5db',
+        buttonBg: `${buttonBgColor}E6`,
+        buttonHover: `${buttonBgColor}F2`,
+        buttonActive: `${buttonBgColor}FF`,
+        buttonText: '#f9fafb',
+        activeBg: `${buttonBgColor}FF`,
+        text: textBase,
+        textMuted: '#6b7280',
+        textDim: '#9ca3af',
+        accent: nationColor,
+        accentBright: accentColors.accentBright,
+        success: accentColors.success,
+        warning: accentColors.warning,
+        error: accentColors.error,
+        info: accentColors.info,
+        special: accentColors.special,
+      };
+    }
+
+    // 일반 국가색: 기존 로직을 기반으로 하되 과도한 밝기/채도는 adjustColorForText에 맡김
+    const textColor = adjustColorForText(nationColor);
+    const buttonBgColor = adjustColorForText(nationColor);
+
     return {
-      // 배경
       pageBg: `${nationColor}30`,
-      // 테두리
       border: `${nationColor}80`,
       borderLight: `${nationColor}60`,
-      // 버튼 (밝은 색상 자동 보정 적용)
       buttonBg: `${buttonBgColor}A0`,
       buttonHover: `${buttonBgColor}C0`,
       buttonActive: `${buttonBgColor}FF`,
-      buttonText: '#ffffff', // 보정된 색상은 항상 어두우므로 흰색 글자
+      buttonText: luminance > 0.5 ? '#111827' : '#f9fafb',
       activeBg: `${buttonBgColor}FF`,
-      // 글자색 (국가색 기반 - 밝기 자동 조정)
       text: textColor,
       textMuted: `${textColor}C0`,
       textDim: `${textColor}80`,
-      // 강조색 (국가색 기반)
       accent: nationColor,
       accentBright: accentColors.accentBright,
       success: accentColors.success,
@@ -487,25 +532,48 @@ export default function GamePage() {
     return (
       <div className={styles.container}>
         <div className="center" style={{ padding: '2rem', color: 'red' }}>
-          <div style={{ marginBottom: '1rem' }}>
-            {error || '데이터를 불러올 수 없습니다.'}
+          <div style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
+            ⚠️ {error || '데이터를 불러올 수 없습니다.'}
           </div>
-          {(error?.includes('캐릭터') || error?.includes('장수')) && (
-            <Link 
-              href={`/${serverID}/join`}
+          <div style={{ marginBottom: '1.5rem', fontSize: '0.9rem', color: '#666' }}>
+            {error?.includes('서버') && '서버 연결 상태를 확인해주세요.'}
+            {error?.includes('네트워크') && '인터넷 연결을 확인해주세요.'}
+            {error?.includes('인증') && '다시 로그인이 필요할 수 있습니다.'}
+          </div>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <button
+              onClick={handleReload}
+              disabled={loading}
               style={{
-                display: 'inline-block',
                 padding: '0.75rem 1.5rem',
-                backgroundColor: '#ff6b00',
+                backgroundColor: '#007bff',
                 color: 'white',
-                textDecoration: 'none',
+                border: 'none',
                 borderRadius: '4px',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1
               }}
             >
-              캐릭터 생성하기
-            </Link>
-          )}
+              {loading ? '재시도 중...' : '다시 시도'}
+            </button>
+            {(error?.includes('캐릭터') || error?.includes('장수')) && (
+              <Link 
+                href={`/${serverID}/join`}
+                style={{
+                  display: 'inline-block',
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '4px',
+                  fontWeight: 'bold'
+                }}
+              >
+                캐릭터 생성하기
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     );

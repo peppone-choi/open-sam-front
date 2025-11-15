@@ -112,6 +112,9 @@ export default function AdminPage() {
           <Link href="/admin/error-log" className={styles.adminLink}>
             에러 로그
           </Link>
+          <Link href="/admin/sessions" className={styles.adminLink}>
+            세션 관리
+          </Link>
         </div>
       </div>
     </div>

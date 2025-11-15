@@ -155,12 +155,22 @@ export function useSocket(options: UseSocketOptions = {}) {
 
     // 에러 이벤트
     newSocket.on('connect_error', (error) => {
-      console.error('Socket.IO 연결 오류:', error);
+      const message = (error && (error as any).message) ? (error as any).message : String(error);
+
+      // JWT 만료/유효하지 않은 토큰 오류는 콘솔 에러로 띄우지 않고 조용히 처리
+      if (message.includes('유효하지 않은 토큰입니다')) {
+        console.warn('Socket.IO 인증 실패(유효하지 않은 토큰):', message);
+        setIsConnected(false);
+        connectingRef.current = false;
+        return;
+      }
+
+      console.warn('Socket.IO 연결 오류:', error);
       setIsConnected(false);
       connectingRef.current = false;
       
       // transport error는 무시 (재연결 시도됨)
-      if (error.message && error.message.includes('transport')) {
+      if (message.includes('transport')) {
         return;
       }
     });

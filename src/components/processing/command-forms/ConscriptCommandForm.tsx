@@ -340,21 +340,31 @@ export default function ConscriptCommandForm({
                   handleSubmit();
                 }}
                 className={styles.submitButton}
-                disabled={selectedCrewType?.notAvailable || getTotalCost() > gold}
-                style={{
-                  opacity: (selectedCrewType?.notAvailable || getTotalCost() > gold) ? 0.5 : 1,
-                  cursor: (selectedCrewType?.notAvailable || getTotalCost() > gold) ? 'not-allowed' : 'pointer',
-                  backgroundColor: (selectedCrewType?.notAvailable || getTotalCost() > gold) ? '#666' : undefined
-                }}
-              >
+                 disabled={
+                   selectedCrewType?.notAvailable ||
+                   getTotalCost() > gold ||
+                   getTotalRice() > rice
+                 }
+                 style={{
+                   opacity: (selectedCrewType?.notAvailable || getTotalCost() > gold || getTotalRice() > rice) ? 0.5 : 1,
+                   cursor: (selectedCrewType?.notAvailable || getTotalCost() > gold || getTotalRice() > rice) ? 'not-allowed' : 'pointer',
+                   backgroundColor: (selectedCrewType?.notAvailable || getTotalCost() > gold || getTotalRice() > rice) ? '#666' : undefined
+                 }}
+               >
                 {commandName}
               </button>
-              {selectedCrewType && getTotalCost() > gold && (
-                <div style={{ marginTop: '10px', fontSize: '14px', color: '#ff6b6b', textAlign: 'center' }}>
-                  ⚠️ 자금이 부족합니다 (필요: {getTotalCost().toLocaleString()}금, 보유: {gold.toLocaleString()}금)
-                </div>
-              )}
-              {selectedCrewType?.notAvailable && (
+               {selectedCrewType && getTotalCost() > gold && (
+                 <div style={{ marginTop: '10px', fontSize: '14px', color: '#ff6b6b', textAlign: 'center' }}>
+                   ⚠️ 자금이 부족합니다 (필요: {getTotalCost().toLocaleString()}금, 보유: {gold.toLocaleString()}금)
+                 </div>
+               )}
+               {selectedCrewType && getTotalRice() > rice && (
+                 <div style={{ marginTop: '10px', fontSize: '14px', color: '#ff6b6b', textAlign: 'center' }}>
+                   ⚠️ 군량이 부족합니다 (필요: {getTotalRice().toLocaleString()}미, 보유: {rice.toLocaleString()}미)
+                 </div>
+               )}
+               {selectedCrewType?.notAvailable && (
+
                 <div style={{ marginTop: '10px', fontSize: '14px', color: '#ff6b6b', textAlign: 'center' }}>
                   ⚠️ 이 병종은 현재 징병할 수 없습니다
                 </div>

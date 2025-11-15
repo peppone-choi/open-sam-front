@@ -30,7 +30,7 @@ function DiplomacyProcessContent() {
     try {
       setLoading(true);
       // 외교 데이터는 GetDiplomacyLetter에서 가져올 수 있음
-      const result = await SammoAPI.GetDiplomacyLetter();
+      const result = await SammoAPI.GetDiplomacyLetter({ session_id: serverID });
       if (result.result && result.letters) {
         const letter = result.letters.find((l: any) => l.no === letterNo);
         setDiplomacyData(letter || null);
@@ -51,6 +51,8 @@ function DiplomacyProcessContent() {
 
     try {
       const result = await SammoAPI.DiplomacyProcess({
+        serverID,
+        session_id: serverID,
         letterNo,
         action,
         data: formData,

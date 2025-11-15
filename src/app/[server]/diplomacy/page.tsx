@@ -4,7 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import TipTapEditor from '@/components/editor/TipTapEditor';
 import styles from './page.module.css';
+
 
 interface Letter {
   no: number;
@@ -50,7 +52,7 @@ export default function DiplomacyPage() {
   async function loadLetters() {
     try {
       setLoading(true);
-      const result = await SammoAPI.GetDiplomacyLetter({ serverID });
+      const result = await SammoAPI.GetDiplomacyLetter({ session_id: serverID });
       if (result.success && result.letters) {
         setLetters(result.letters);
       } else {
@@ -74,11 +76,13 @@ export default function DiplomacyPage() {
     try {
       const result = await SammoAPI.SendDiplomacyLetter({
         serverID,
+        session_id: serverID,
         prevNo: newLetter.prevNo ? Number(newLetter.prevNo) : undefined,
         destNationID: Number(newLetter.destNation),
         brief: newLetter.brief,
         detail: newLetter.detail,
       });
+
 
       if (result.success && result.result) {
         setShowNewLetter(false);
@@ -132,12 +136,11 @@ export default function DiplomacyPage() {
           </div>
           <div className={styles.formGroup}>
             <label>상세 내용 (외교권자 전용)</label>
-            <textarea
-              value={newLetter.detail}
-              onChange={(e) => setNewLetter({ ...newLetter, detail: e.target.value })}
-              className={styles.textarea}
+            <TipTapEditor
+              content={newLetter.detail}
+              onChange={(content) => setNewLetter({ ...newLetter, detail: content })}
               placeholder="외교권자만 볼 수 있는 상세 내용을 입력하세요 (선택사항)"
-              rows={8}
+              serverID={serverID}
             />
           </div>
           <button type="button" onClick={sendLetter} className={styles.sendBtn}>
@@ -163,61 +166,69 @@ export default function DiplomacyPage() {
                 <div className={styles.date}>{letter.date}</div>
               </div>
               <div className={styles.letterMessage}>{letter.brief}</div>
-              {letter.status && (
-                <div className={styles.letterStatus}>
-                  상태: {letter.status}
-                  {letter.status === 'pending' && (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          const result = await SammoAPI.DiplomacyProcess({
-                            serverID,
-                            letterNo: letter.no,
-                            action: 'accept',
-                          });
-                          if (result.success && result.result) {
-                            await loadLetters();
-                          } else {
-                            alert(result.reason || result.message || '처리에 실패했습니다.');
-                          }
-                        } catch (err) {
-                          console.error(err);
-                          alert('처리에 실패했습니다.');
-                        }
-                      }}
-                      className={styles.acceptBtn}
-                    >
-                      수락
-                    </button>
-                  )}
-                  {letter.status === 'pending' && (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          const result = await SammoAPI.DiplomacyProcess({
-                            serverID,
-                            letterNo: letter.no,
-                            action: 'reject',
-                          });
-                          if (result.success && result.result) {
-                            await loadLetters();
-                          } else {
-                            alert(result.reason || result.message || '처리에 실패했습니다.');
-                          }
-                        } catch (err) {
-                          console.error(err);
-                          alert('처리에 실패했습니다.');
-                        }
-                      }}
-                      className={styles.rejectBtn}
-                    >
-                      거절
-                    </button>
-                  )}
+              {letter.detail && (
+                <div className={styles.letterDetail}>
+                  <div className={styles.letterDetailLabel}>상세 내용</div>
+                  <div className={styles.letterDetailBody}>{letter.detail}</div>
                 </div>
               )}
+
+               {letter.status && (
+                 <div className={styles.letterStatus}>
+                   상태: {letter.status}
+                   {letter.status === 'pending' && (
+                     <button
+                       type="button"
+                       onClick={async () => {
+                         try {
+                           const result = await SammoAPI.RespondDiplomacyLetter({
+                             serverID,
+                             letterNo: letter.no,
+                             action: 'accept',
+                           });
+                           if (result.result) {
+                             await loadLetters();
+                           } else {
+                             alert(result.reason || '처리에 실패했습니다.');
+                           }
+                         } catch (err) {
+                           console.error(err);
+                           alert('처리에 실패했습니다.');
+                         }
+                       }}
+                       className={styles.acceptBtn}
+                     >
+                       수락
+                     </button>
+                   )}
+                   {letter.status === 'pending' && (
+                     <button
+                       type="button"
+                       onClick={async () => {
+                         try {
+                           const result = await SammoAPI.RespondDiplomacyLetter({
+                             serverID,
+                             letterNo: letter.no,
+                             action: 'reject',
+                           });
+                           if (result.result) {
+                             await loadLetters();
+                           } else {
+                             alert(result.reason || '처리에 실패했습니다.');
+                           }
+                         } catch (err) {
+                           console.error(err);
+                           alert('처리에 실패했습니다.');
+                         }
+                       }}
+                       className={styles.rejectBtn}
+                     >
+                       거절
+                     </button>
+                   )}
+                 </div>
+               )}
+
             </div>
           ))}
         </div>

@@ -99,6 +99,7 @@ export default function TroopPage() {
     try {
       const result = await SammoAPI.TroopNewTroop({
         name: newTroopName,
+        session_id: serverID,
       });
 
       if (result.result) {
