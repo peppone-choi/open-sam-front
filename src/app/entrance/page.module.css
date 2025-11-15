@@ -231,3 +231,26 @@
   border-color: #ff8533;
 }
 
+.npcPlayBtn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #ff8c00 0%, #ffa500 100%);
+  color: white;
+  border: 2px solid #ffa500;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  min-width: 80px;
+  text-align: center;
+  font-size: 0.9em;
+  box-shadow: 0 2px 4px rgba(255, 140, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.npcPlayBtn:hover {
+  background: linear-gradient(135deg, #ffa500 0%, #ffb733 100%);
+  border-color: #ffb733;
+  box-shadow: 0 4px 8px rgba(255, 140, 0, 0.5);
+  transform: translateY(-2px);
+}
+

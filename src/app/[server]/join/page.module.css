@@ -1,3 +1,30 @@
+.scoutTable {
+  width: 95%;
+  max-width: 1000px;
+  margin: 1rem auto;
+  border-collapse: collapse;
+  background: #111;
+  border: 1px solid #444;
+}
+
+.scoutTable th {
+  padding: 0.75rem;
+  background: #222;
+  border: 1px solid #444;
+  color: #fff;
+  font-weight: bold;
+}
+
+.scoutTable td {
+  padding: 0.5rem;
+  border: 1px solid #333;
+  color: #ccc;
+}
+
+.scoutTable tbody tr:hover {
+  background: #1a1a1a;
+}
+
 .container {
   max-width: 1000px;
   width: 1000px;

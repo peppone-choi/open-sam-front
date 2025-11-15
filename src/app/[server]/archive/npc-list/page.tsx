@@ -36,7 +36,7 @@ function NPCListContent() {
 
   return (
     <div className={styles.container}>
-      <TopBackBar title="빙 의 일 람" />
+      <TopBackBar title="오리지널 캐릭터 일람" />
       <div className={styles.filterSection}>
         <form method="get" className={styles.filterForm}>
           <label>

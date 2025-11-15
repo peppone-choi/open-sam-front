@@ -22,6 +22,7 @@ export default function AdminGamePage() {
   const [maxgeneral, setMaxgeneral] = useState(300);
   const [maxnation, setMaxnation] = useState(12);
   const [startyear, setStartyear] = useState(220);
+  const [allowNpcPossess, setAllowNpcPossess] = useState(false);
   
   // 시나리오 목록
   const [scenarios, setScenarios] = useState<any[]>([]);
@@ -58,6 +59,7 @@ export default function AdminGamePage() {
         setMaxgeneral(data.maxgeneral || 300);
         setMaxnation(data.maxnation || 12);
         setStartyear(data.startyear || 220);
+        setAllowNpcPossess(data.allowNpcPossess || false);
       }
     } catch (err) {
       console.error(err);
@@ -95,6 +97,9 @@ export default function AdminGamePage() {
           break;
         case 'startyear':
           data.startyear = startyear;
+          break;
+        case 'allowNpcPossess':
+          data.allowNpcPossess = allowNpcPossess;
           break;
         case 'turnterm':
           data.turnterm = value;
@@ -159,7 +164,7 @@ export default function AdminGamePage() {
         const data = { 
           session_id: serverID,
           scenarioId: selectedScenarioId,
-          turnterm: settings.turnterm || 60  // 현재 turnterm 유지
+          turnterm: settings.turnterm || 60  // 분 단위
         };
         const result = await SammoAPI.AdminUpdateGame({ action: 'resetScenario', data });
         
@@ -512,6 +517,28 @@ export default function AdminGamePage() {
               <span style={{ marginLeft: '1rem', color: '#aaa' }}>
                 (현재: {settings.turnterm || 60}분)
               </span>
+            </td>
+          </tr>
+
+          <tr>
+            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>오리지널 캐릭터 플레이</td>
+            <td colSpan={3} style={{ padding: '0.5rem' }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={allowNpcPossess}
+                  onChange={(e) => setAllowNpcPossess(e.target.checked)}
+                  style={{ marginRight: '0.5rem', width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                <span>오리지널 캐릭터 플레이 허용</span>
+              </label>
+              <button 
+                type="button" 
+                onClick={() => handleSubmit('allowNpcPossess')}
+                style={{ marginLeft: '1rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
+              >
+                변경
+              </button>
             </td>
           </tr>
         </tbody>

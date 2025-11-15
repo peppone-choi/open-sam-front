@@ -4,6 +4,7 @@ import React from 'react';
 import SammoBar from '../game/SammoBar';
 import NationFlag from '../common/NationFlag';
 import { isBrightColor } from '@/utils/isBrightColor';
+import { adjustColorForText } from '@/types/colorSystem';
 import { formatInjury } from '@/utils/formatInjury';
 import { calcInjury } from '@/utils/calcInjury';
 import { formatGeneralTypeCall } from '@/utils/formatGeneralTypeCall';
@@ -140,8 +141,10 @@ export default function GeneralBasicCard({
   colorSystem
 }: GeneralBasicCardProps) {
   // 재야는 흰색, 국가는 국가 색상
-  const displayColor = (nation && nation.id !== 0) ? (nation?.color ?? "#666") : "#FFFFFF";
-  const textColor = isBrightColor(displayColor) ? '#000' : '#fff';
+  const nationColor = (nation && nation.id !== 0) ? (nation?.color ?? "#666") : "#FFFFFF";
+  // 밝은 색상이면 자동으로 어둡게 보정
+  const displayColor = adjustColorForText(nationColor);
+  const textColor = '#ffffff'; // 보정된 색상은 항상 어두우므로 흰색 글자
 
   // 부상 정보
   const injuryInfo = formatInjury(general.injury || 0);
@@ -219,12 +222,20 @@ export default function GeneralBasicCard({
           backgroundColor: colorSystem?.pageBg,
         }}
       >
-        <div
-          className={styles.generalIcon}
-          style={{
-            backgroundImage: general.picture ? `url('${getIconPath(general.imgsvr || 0, general.picture)}')` : undefined,
-          }}
-        />
+        <div className={styles.generalIcon}>
+          <img
+            src={general.picture ? getIconPath(general.imgsvr || 0, general.picture) : '/default_portrait.png'}
+            alt={general.name}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/default_portrait.png';
+            }}
+          />
+        </div>
 
         <div 
           className={styles.infoRow}

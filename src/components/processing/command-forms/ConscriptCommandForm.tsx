@@ -41,6 +41,7 @@ interface ConscriptCommandFormProps {
   currentCrewType: number;
   crew: number;
   gold: number;
+  rice: number;
   onSubmit: (args: { crewType: number; amount: number }) => void;
   onCancel: () => void;
 }
@@ -59,6 +60,7 @@ export default function ConscriptCommandForm({
   currentCrewType,
   crew,
   gold,
+  rice,
   onSubmit,
   onCancel
 }: ConscriptCommandFormProps) {
@@ -145,8 +147,15 @@ export default function ConscriptCommandForm({
     }
     
     const totalCost = Math.ceil(amount * selectedCrewType.baseCost * goldCoeff);
+    const totalRice = getTotalRice();
+    
     if (totalCost > gold) {
       alert(`자금이 부족합니다. 필요: ${totalCost.toLocaleString()}금, 보유: ${gold.toLocaleString()}금`);
+      return;
+    }
+    
+    if (totalRice > rice) {
+      alert(`군량이 부족합니다. 필요: ${totalRice.toLocaleString()}미, 보유: ${rice.toLocaleString()}미`);
       return;
     }
 
@@ -181,7 +190,7 @@ export default function ConscriptCommandForm({
             {goldCoeff > 1 && ` | 모병 비용: ${goldCoeff}배`}
           </div>
           <div>
-            현재 병력: {crew}명 | 자금: {gold.toLocaleString()}금
+            현재 병력: {crew}명 | 자금: {gold.toLocaleString()}금 | 군량: {rice.toLocaleString()}미
           </div>
         </div>
 

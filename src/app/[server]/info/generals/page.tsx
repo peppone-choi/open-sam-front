@@ -36,7 +36,7 @@ function GeneralsInfoContent() {
   async function loadGeneralList() {
     try {
       setLoading(true);
-      const result = await SammoAPI.GetGeneralList({ type });
+      const result = await SammoAPI.GetGeneralList({ session_id: serverID, type });
       if (result.result && result.generalList) {
         setGeneralList(result.generalList);
       }
@@ -73,6 +73,13 @@ function GeneralsInfoContent() {
               <option value={6}>삭제턴</option>
               <option value={7}>턴</option>
               <option value={8}>부대</option>
+              <option value={9}>통솔</option>
+              <option value={10}>무력</option>
+              <option value={11}>지력</option>
+              <option value={12}>정치</option>
+              <option value={13}>매력</option>
+              <option value={14}>훈련</option>
+              <option value={15}>사기</option>
             </select>
           </label>
         </form>
@@ -86,12 +93,18 @@ function GeneralsInfoContent() {
               <thead>
                 <tr>
                   <th>이름</th>
-                  <th>통무지</th>
+                  <th>관직</th>
+                  <th>통솔</th>
+                  <th>무력</th>
+                  <th>지력</th>
+                  <th>정치</th>
+                  <th>매력</th>
+                  <th>병력</th>
+                  <th>병종</th>
+                  <th>도시</th>
+                  <th>부대</th>
                   <th>자금</th>
                   <th>군량</th>
-                  <th>도시</th>
-                  <th>병종</th>
-                  <th>병사</th>
                   <th>훈련</th>
                   <th>사기</th>
                   <th>삭턴</th>
@@ -105,14 +118,18 @@ function GeneralsInfoContent() {
                       <div>{general.name}</div>
                       <div className={styles.level}>Lv {general.explevel || 0}</div>
                     </td>
-                    <td className={styles.statsCell}>
-                      {general.leadership}∥{general.strength}∥{general.intel}
-                    </td>
+                    <td className={styles.centerCell}>{general.officer_level || '-'}</td>
+                    <td className={styles.statCell}>{general.leadership || 0}</td>
+                    <td className={styles.statCell}>{general.strength || 0}</td>
+                    <td className={styles.statCell}>{general.intel || 0}</td>
+                    <td className={styles.statCell}>{general.experience || 0}</td>
+                    <td className={styles.statCell}>{general.dedlevel || 0}</td>
+                    <td className={styles.numberCell}>{general.crew?.toLocaleString() || 0}</td>
+                    <td className={styles.centerCell}>{getCrewTypeName(general.crewtype || 0)}</td>
+                    <td className={styles.centerCell}>{general.cityName || general.city}</td>
+                    <td className={styles.centerCell}>{general.troopName || '-'}</td>
                     <td className={styles.numberCell}>{general.gold?.toLocaleString() || 0}</td>
                     <td className={styles.numberCell}>{general.rice?.toLocaleString() || 0}</td>
-                    <td>{general.cityName || general.city}</td>
-                    <td>{getCrewTypeName(general.crewtype || 0)}</td>
-                    <td className={styles.numberCell}>{general.crew?.toLocaleString() || 0}</td>
                     <td className={styles.numberCell}>{general.train || 0}</td>
                     <td className={styles.numberCell}>{general.atmos || 0}</td>
                     <td className={styles.numberCell}>{general.killturn || 0}</td>

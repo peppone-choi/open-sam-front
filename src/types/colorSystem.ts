@@ -136,7 +136,7 @@ function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: n
 /**
  * 색상을 어둡게 만들기 (amount: 0.0 ~ 1.0)
  */
-function darkenColor(hex: string, amount: number): string {
+export function darkenColor(hex: string, amount: number): string {
   const rgb = hexToRgb(hex);
   if (!rgb) return hex;
   
@@ -196,7 +196,7 @@ function adjustLightness(hex: string, amount: number): string {
  * - 밝은 색상(노란색 등): 어둡게 변환
  * - 어두운 색상: 그대로 사용
  */
-function adjustColorForText(hex: string): string {
+export function adjustColorForText(hex: string): string {
   const luminance = calculateLuminance(hex);
   
   // 밝기가 0.5 이상이면 어둡게 조정

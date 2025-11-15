@@ -17,7 +17,9 @@ import GameBottomBar from '@/components/game/GameBottomBar';
 import VersionModal from '@/components/game/VersionModal';
 import GameViewTabs from '@/components/game/GameViewTabs';
 import { useSocket } from '@/hooks/useSocket';
+import { convertLog } from '@/utils/convertLog';
 import styles from './page.module.css';
+import '@/styles/log.css';
 import { makeAccentColors } from '@/types/colorSystem';
 
 // ColorSystem 유틸리티 함수들
@@ -150,6 +152,20 @@ export default function GamePage() {
     }
   }, [serverID]);
 
+  // 새로고침 함수 (모든 데이터 재로드 + 웹소켓 재연결)
+  const handleReload = useCallback(async () => {
+    if (loadingRef.current) return;
+    
+    // 웹소켓 재연결
+    if (socket) {
+      socket.disconnect();
+      socket.connect();
+    }
+    
+    // 모든 데이터 재로드
+    await loadData();
+  }, [socket, loadData]);
+
   // 초기 데이터 로드
   useEffect(() => {
     if (!serverID) return;
@@ -210,9 +226,11 @@ export default function GamePage() {
     // 장수 업데이트 이벤트 (부분 업데이트만, 년/월 업데이트 포함)
     let generalUpdateTimeout: NodeJS.Timeout | null = null;
     const cleanupGeneralUpdate = onGeneralEvent('updated', (data) => {
+      console.log('[GamePage] 장수 업데이트 이벤트:', data);
       if (generalIdRef.current === data.generalId) {
         // 부분 업데이트만 수행 (전체 로드 대신)
         if (data.updates && frontInfoRef.current) {
+          console.log('[GamePage] 장수 정보 부분 업데이트:', data.updates);
           setFrontInfo(prev => {
             if (!prev || !prev.general) return prev;
             return {
@@ -225,6 +243,7 @@ export default function GamePage() {
           });
         } else {
           // 업데이트 데이터가 없으면 디바운스 후 전체 로드
+          console.log('[GamePage] 장수 정보 전체 로드 예약 (2초 후)');
           if (generalUpdateTimeout) clearTimeout(generalUpdateTimeout);
           generalUpdateTimeout = setTimeout(() => {
             loadDataRef.current?.();
@@ -265,6 +284,7 @@ export default function GamePage() {
       setFrontInfo(prev => {
         if (!prev) return prev;
         
+        // convertLog는 표시할 때만 적용 (데이터는 원본 그대로 저장)
         const newLog = {
           id: data.logId,
           text: data.logText,
@@ -273,33 +293,24 @@ export default function GamePage() {
         
         // 로그 타입에 따라 적절한 배열에 추가
         if (data.logType === 'action') {
-          // 장수동향 (general_id가 현재 장수와 일치하는 경우만)
+          // 개인기록 (general_id가 현재 장수와 일치, log_type = 'action')
           if (data.generalId === generalIdRef.current) {
             return {
               ...prev,
               recentRecord: {
                 ...prev.recentRecord,
-                general: [newLog, ...(prev.recentRecord?.general || [])].slice(0, 20) // 최대 20개
+                history: [newLog, ...(prev.recentRecord?.history || [])].slice(0, 20)
               }
             };
           }
         } else if (data.logType === 'history') {
           if (data.generalId === 0) {
-            // 중원정세 (general_id = 0)
+            // 장수동향 (general_id = 0, log_type = 'history')
             return {
               ...prev,
               recentRecord: {
                 ...prev.recentRecord,
-                global: [newLog, ...(prev.recentRecord?.global || [])].slice(0, 20)
-              }
-            };
-          } else if (data.generalId === generalIdRef.current) {
-            // 개인기록 (general_id가 현재 장수와 일치)
-            return {
-              ...prev,
-              recentRecord: {
-                ...prev.recentRecord,
-                history: [newLog, ...(prev.recentRecord?.history || [])].slice(0, 20)
+                general: [newLog, ...(prev.recentRecord?.general || [])].slice(0, 20) // 최대 20개
               }
             };
           }
@@ -371,6 +382,9 @@ export default function GamePage() {
     // 국가색 기반 강조색 생성
     const accentColors = makeAccentColors(nationColor);
     
+    // 버튼 배경색: 밝은 색상이면 어둡게 보정
+    const buttonBgColor = adjustColorForText(nationColor);
+    
     // 버튼 글자색: 국가색이 밝으면 검은색, 어두우면 흰색
     const luminance = calculateLuminance(nationColor);
     const buttonTextColor = luminance > 0.5 ? '#000000' : '#ffffff';
@@ -381,12 +395,12 @@ export default function GamePage() {
       // 테두리
       border: `${nationColor}80`,
       borderLight: `${nationColor}60`,
-      // 버튼 (국가색 기반)
-      buttonBg: `${nationColor}A0`,
-      buttonHover: `${nationColor}C0`,
-      buttonActive: `${nationColor}FF`,
-      buttonText: buttonTextColor,
-      activeBg: `${nationColor}FF`,
+      // 버튼 (밝은 색상 자동 보정 적용)
+      buttonBg: `${buttonBgColor}A0`,
+      buttonHover: `${buttonBgColor}C0`,
+      buttonActive: `${buttonBgColor}FF`,
+      buttonText: '#ffffff', // 보정된 색상은 항상 어두우므로 흰색 글자
+      activeBg: `${buttonBgColor}FF`,
       // 글자색 (국가색 기반 - 밝기 자동 조정)
       text: textColor,
       textMuted: `${textColor}C0`,
@@ -511,7 +525,7 @@ export default function GamePage() {
         <div className={styles.pageControlsLeft}>
           <button
             type="button"
-            onClick={loadData}
+            onClick={handleReload}
             className={styles.refreshBtn}
             style={{
               backgroundColor: colorSystem.buttonBg,
@@ -738,11 +752,11 @@ export default function GamePage() {
               장수 동향
             </div>
             <div className={styles.recordList} style={{ color: colorSystem.text, backgroundColor: colorSystem.pageBg }}>
-              {frontInfo.recentRecord.global && frontInfo.recentRecord.global.length > 0 ? (
-                frontInfo.recentRecord.global.map((item, index: number) => {
+              {frontInfo.recentRecord.general && frontInfo.recentRecord.general.length > 0 ? (
+                frontInfo.recentRecord.general.map((item, index: number) => {
                   const [id, text] = Array.isArray(item) ? item : [item.id, item.text];
                   return (
-                    <div key={id ?? `global-${index}`} className={styles.recordItem} style={{ color: colorSystem.text }} dangerouslySetInnerHTML={{ __html: text }} />
+                    <div key={id ?? `general-${index}`} className={styles.recordItem} style={{ color: colorSystem.text }} dangerouslySetInnerHTML={{ __html: convertLog(text) }} />
                   );
                 })
               ) : (
@@ -768,11 +782,11 @@ export default function GamePage() {
               개인 기록
             </div>
             <div className={styles.recordList} style={{ color: colorSystem.text, backgroundColor: colorSystem.pageBg }}>
-              {frontInfo.recentRecord.general && frontInfo.recentRecord.general.length > 0 ? (
-                frontInfo.recentRecord.general.map((item, index: number) => {
+              {frontInfo.recentRecord.history && frontInfo.recentRecord.history.length > 0 ? (
+                frontInfo.recentRecord.history.map((item, index: number) => {
                   const [id, text] = Array.isArray(item) ? item : [item.id, item.text];
                   return (
-                    <div key={id ?? `general-${index}`} className={styles.recordItem} style={{ color: colorSystem.text }} dangerouslySetInnerHTML={{ __html: text }} />
+                    <div key={id ?? `history-${index}`} className={styles.recordItem} style={{ color: colorSystem.text }} dangerouslySetInnerHTML={{ __html: convertLog(text) }} />
                   );
                 })
               ) : (
@@ -798,11 +812,11 @@ export default function GamePage() {
               중원 정세
             </div>
             <div className={styles.recordList} style={{ color: colorSystem.text, backgroundColor: colorSystem.pageBg }}>
-              {frontInfo.recentRecord.history && frontInfo.recentRecord.history.length > 0 ? (
-                frontInfo.recentRecord.history.map((item, index: number) => {
+              {frontInfo.recentRecord.global && frontInfo.recentRecord.global.length > 0 ? (
+                frontInfo.recentRecord.global.map((item, index: number) => {
                   const [id, text] = Array.isArray(item) ? item : [item.id, item.text];
                   return (
-                    <div key={id ?? `history-${index}`} className={styles.recordItem} style={{ color: colorSystem.text }} dangerouslySetInnerHTML={{ __html: text }} />
+                    <div key={id ?? `global-${index}`} className={styles.recordItem} style={{ color: colorSystem.text }} dangerouslySetInnerHTML={{ __html: convertLog(text) }} />
                   );
                 })
               ) : (
@@ -847,7 +861,7 @@ export default function GamePage() {
 
       {/* 모바일 전용 하단 바 */}
       <GameBottomBar
-        onRefresh={loadData}
+        onRefresh={handleReload}
         onToggleMenu={handleToggleMenu}
         isLoading={loading}
         nationColor={nationColor}

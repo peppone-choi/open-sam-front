@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { adjustColorForText } from '@/types/colorSystem';
 import styles from './NationFlag.module.css';
 
 interface NationFlagProps {
@@ -48,13 +49,13 @@ export default function NationFlag({
   showName = true,
   className 
 }: NationFlagProps) {
-  const flagBgColor = nation.flagBgColor || nation.color || '#ffffff';
+  const originalColor = nation.flagBgColor || nation.color || '#ffffff';
   
-  // 배경색 기반으로 자동 계산된 색상
-  const autoTextColor = getContrastTextColor(flagBgColor);
+  // 밝은 색상이면 자동으로 어둡게 보정
+  const flagBgColor = adjustColorForText(originalColor);
   
-  // flagTextColor가 지정되어 있으면 그대로 사용, 없으면 자동 계산
-  const flagTextColor = nation.flagTextColor || autoTextColor;
+  // 보정된 배경색은 항상 어두우므로 흰색 글자
+  const flagTextColor = nation.flagTextColor || '#ffffff';
   
   const flagBorderColor = nation.flagBorderColor || getContrastBorderColor(flagBgColor);
 

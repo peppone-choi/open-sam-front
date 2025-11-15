@@ -380,11 +380,17 @@ export class SammoAPI {
     });
   }
 
-  static async GlobalGetNationList(): Promise<{
+  static async GlobalGetNationList(params?: {
+    session_id?: string;
+  }): Promise<{
     result: boolean;
-    nationList: Array<[number, string, string, number]>;
+    nations?: any[];
+    nationList?: Array<[number, string, string, number]>;
   }> {
-    return this.request('/api/global/get-nation-list', {
+    const query = new URLSearchParams();
+    if (params?.session_id) query.append('session_id', params.session_id);
+    
+    return this.request(`/api/global/get-nation-list?${query.toString()}`, {
       method: 'GET',
     });
   }
@@ -809,6 +815,7 @@ export class SammoAPI {
     name: string;
     grade: string;
     picture: string;
+    icon?: string;
     global_salt: string;
     join_date: string;
     third_use: boolean;
@@ -830,6 +837,7 @@ export class SammoAPI {
       name: string;
       exists: boolean;
       enable: boolean;
+      allow_npc_possess?: boolean;
     }>;
   }> {
     return this.request('/api/gateway/get-server-status', {
@@ -971,12 +979,14 @@ export class SammoAPI {
   }
 
   static async SelectNPC(params: {
-    npcID: number;
+    pick: number;
+    session_id: string;
   }): Promise<{
     result: boolean;
     reason?: string;
+    general_name?: string;
   }> {
-    return this.request('/api/game/select-npc', {
+    return this.request('/api/general/select-npc', {
       method: 'POST',
       body: JSON.stringify(params),
     });
@@ -1361,12 +1371,16 @@ export class SammoAPI {
   // City API
   // GetCityList is defined earlier in the file
 
-  static async GetCurrentCity(): Promise<{
+  static async GetCurrentCity(sessionId?: string): Promise<{
     result: boolean;
-    city: any;
+    city?: any;
   }> {
-    return this.request('/api/game/current-city', {
-      method: 'POST',
+    const query = new URLSearchParams();
+    if (sessionId) query.append('sessionId', sessionId);
+    
+    return this.request(`/api/game/current-city?${query.toString()}`, {
+      method: 'GET',
+      credentials: 'include'
     });
   }
 
@@ -1793,7 +1807,7 @@ export class SammoAPI {
     troops?: any[];
     message?: string;
   }> {
-    return this.request('/api/nation/general-list', {
+    return this.request('/api/nation/generals', {
       method: 'POST',
       body: JSON.stringify(params || {}),
     });
@@ -2228,6 +2242,21 @@ export class SammoAPI {
     reason?: string;
   }> {
     return this.request('/api/install/file-install', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  static async GetSelectNpcToken(params: {
+    session_id: string;
+    refresh?: boolean;
+    keep?: number[];
+  }): Promise<{
+    result: boolean;
+    npcs?: any[];
+    token?: string;
+  }> {
+    return this.request('/api/general/get-select-npc-token', {
       method: 'POST',
       body: JSON.stringify(params),
     });

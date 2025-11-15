@@ -22,7 +22,7 @@ function CityInfoContent() {
   async function loadCityList() {
     try {
       setLoading(true);
-      const result = await SammoAPI.GetCityList({ type });
+      const result = await SammoAPI.GetCityList({ type, session_id: serverID });
       if (result.result && result.cityList) {
         setCityList(result.cityList);
       }
@@ -71,16 +71,38 @@ function CityInfoContent() {
         <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
       ) : (
         <div className={styles.content}>
-          <div className={styles.cityList}>
-            {cityList.map((city) => (
-              <div key={city.id} className={styles.cityItem}>
-                <div className={styles.cityName}>{city.name}</div>
-                <div className={styles.cityInfo}>
-                  인구: {city.pop} / {city.popMax} | 민심: {city.trust}% | 농업: {city.agri} | 상업: {city.comm}
-                </div>
-              </div>
-            ))}
-          </div>
+          <table className={styles.cityTable}>
+            <thead>
+              <tr>
+                <th>도시명</th>
+                <th>레벨</th>
+                <th>지역</th>
+                <th>인구</th>
+                <th>농업</th>
+                <th>상업</th>
+                <th>치안</th>
+                <th>방어</th>
+                <th>성벽</th>
+                <th>민심</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cityList.map((city) => (
+                <tr key={city.city}>
+                  <td className={styles.cityName}>{city.name}</td>
+                  <td>{city.level}</td>
+                  <td>{city.region}</td>
+                  <td>{city.pop} / {city.pop_max}</td>
+                  <td>{city.agri} / {city.agri_max}</td>
+                  <td>{city.comm} / {city.comm_max}</td>
+                  <td>{city.secu} / {city.secu_max}</td>
+                  <td>{city.def} / {city.def_max}</td>
+                  <td>{city.wall} / {city.wall_max}</td>
+                  <td>{city.trust ? Math.round(city.trust * 10) / 10 : 0}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

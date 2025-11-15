@@ -29,26 +29,39 @@
 
 .content {
   padding: 1rem;
+  overflow-x: auto;
 }
 
-.cityList {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
+.cityTable {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #1a1a1a;
 }
 
-.cityItem {
-  border: 1px solid gray;
-  padding: 1rem;
+.cityTable thead {
+  background-color: #333;
+}
+
+.cityTable th {
+  padding: 0.75rem;
+  text-align: center;
+  border: 1px solid #555;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.cityTable td {
+  padding: 0.5rem;
+  text-align: center;
+  border: 1px solid #555;
+  white-space: nowrap;
+}
+
+.cityTable tbody tr:hover {
+  background-color: #2a2a2a;
 }
 
 .cityName {
   font-weight: bold;
-  margin-bottom: 0.5rem;
-  font-size: 1.1em;
-}
-
-.cityInfo {
-  font-size: 0.9em;
-  color: #aaa;
+  color: #4af;
 }

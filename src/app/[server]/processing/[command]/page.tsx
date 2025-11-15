@@ -381,6 +381,7 @@ function CommandProcessingContent() {
           currentCrewType={commandData.currentCrewType || 1100}
           crew={commandData.crew || 0}
           gold={commandData.gold || 0}
+          rice={commandData.rice || 0}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
         />

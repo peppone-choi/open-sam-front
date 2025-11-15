@@ -71,16 +71,24 @@
   margin-top: 0.25rem;
 }
 
-.statsCell {
-  min-width: 120px;
+.centerCell {
+  text-align: center;
+  min-width: 60px;
+}
+
+.statCell {
+  text-align: center;
+  min-width: 50px;
   font-family: monospace;
 }
 
 .numberCell {
   text-align: right;
   padding-right: 0.75rem;
+  min-width: 70px;
 }
 
 .timeCell {
+  text-align: center;
   min-width: 60px;
 }

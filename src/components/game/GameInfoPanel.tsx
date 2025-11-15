@@ -41,7 +41,7 @@ function GameInfoPanel({
         // lastExecuted를 기준으로 다음 턴 시각 계산
         const turnterm = global.turnterm || 60; // 분
         const lastExec = lastExecuted.getTime();
-        const nextTurnTime = lastExec + (turnterm * 60 * 1000);
+        const nextTurnTime = lastExec + (turnterm * 60 * 1000); // 분을 밀리초로 변환
         const now = Date.now();
         const diff = nextTurnTime - now;
 

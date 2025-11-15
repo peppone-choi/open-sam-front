@@ -77,7 +77,7 @@ function CurrentCityContent() {
     try {
       setLoading(true);
       setError(null);
-      const result = await SammoAPI.GetCurrentCity();
+      const result = await SammoAPI.GetCurrentCity(serverID);
       if (result.result) {
         setCityData(result.city);
       } else {

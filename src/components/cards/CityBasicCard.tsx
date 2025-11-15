@@ -5,6 +5,7 @@ import SammoBar from '../game/SammoBar';
 import NationFlag from '../common/NationFlag';
 import { getNPCColor } from '@/utils/getNPCColor';
 import { isBrightColor } from '@/utils/isBrightColor';
+import { adjustColorForText } from '@/types/colorSystem';
 import styles from './CityBasicCard.module.css';
 import type { ColorSystem } from '@/types/colorSystem';
 
@@ -46,7 +47,10 @@ function CityBasicCard({ city, cityConstMap, colorSystem }: CityBasicCardProps) 
   const nationColor = (city.nationInfo?.id && city.nationInfo.id > 0) 
     ? (city.nationInfo.color || '#808080')
     : '#FFFFFF';
-  const textColor = isBrightColor(nationColor) ? 'black' : 'white';
+  
+  // 밝은 색상이면 자동으로 어둡게 보정
+  const displayColor = adjustColorForText(nationColor);
+  const textColor = '#FFFFFF'; // 보정된 색상은 항상 어두우므로 흰색 글자
   
   // 속성 헤더 공통 스타일
   const labelStyle = {
@@ -84,7 +88,7 @@ function CityBasicCard({ city, cityConstMap, colorSystem }: CityBasicCardProps) 
         className={styles.cityNamePanel}
         style={{
           color: textColor,
-          backgroundColor: nationColor,
+          backgroundColor: displayColor,
         }}
       >
         <div>

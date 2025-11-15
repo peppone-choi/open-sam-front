@@ -20,7 +20,10 @@ interface Server {
   hasCharacter?: boolean; // 캐릭터 존재 여부
   characterName?: string; // 캐릭터 이름
   characterNation?: string; // 캐릭터 국가
+  characterPicture?: string; // 캐릭터 얼굴 이미지
+  characterImgsvr?: number; // 캐릭터 이미지 서버
   generals?: Array<{ name: string; nation: string }>;
+  allow_npc_possess?: boolean; // NPC 플레이 허용 여부
 }
 
 export default function EntrancePage() {
@@ -63,6 +66,7 @@ export default function EntrancePage() {
           statusText: s.statusText || '운영중',
           scenarioName: s.scenarioName || '',
           hasCharacter: false, // 초기값
+          allow_npc_possess: s.allow_npc_possess || false,
         }));
         
         setServerList(serverListData);
@@ -80,12 +84,16 @@ export default function EntrancePage() {
               const hasCharacter = frontInfo.success === true && frontInfo.general && frontInfo.general.no > 0;
               const characterName = frontInfo.general?.name || '';
               const characterNation = frontInfo.nation?.name || '';
+              const characterPicture = frontInfo.general?.picture || '';
+              const characterImgsvr = frontInfo.general?.imgsvr || 0;
               
               return {
                 serverID: server.serverID,
                 hasCharacter,
                 characterName,
                 characterNation,
+                characterPicture,
+                characterImgsvr,
               };
             } catch (err: any) {
               // 401 에러나 다른 에러는 캐릭터 없음으로 처리
@@ -107,6 +115,8 @@ export default function EntrancePage() {
                 hasCharacter: result?.hasCharacter ?? false,
                 characterName: result?.characterName || '',
                 characterNation: result?.characterNation || '',
+                characterPicture: result?.characterPicture || '',
+                characterImgsvr: result?.characterImgsvr || 0,
               };
             });
             return updated;
@@ -216,8 +226,8 @@ export default function EntrancePage() {
             <tr>
               <th className="bg1">서 버</th>
               <th className="bg1">정 보</th>
-              <th className="bg1">캐릭터 이름</th>
-              <th className="bg1">소속 국가</th>
+              <th className="bg1">얼 굴</th>
+              <th className="bg1">이 름</th>
               <th className="bg1">선 택</th>
               {isAdmin && <th className="bg1">관 리</th>}
             </tr>
@@ -280,14 +290,30 @@ export default function EntrancePage() {
                     </td>
                     <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                       {server.hasCharacter ? (
-                        <span style={{ color: '#fff' }}>{server.characterName || '-'}</span>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                          <img
+                            src={server.characterPicture ? `/images/gen_icon/${server.characterImgsvr || 0}/${server.characterPicture}.jpg` : '/default_portrait.png'}
+                            alt={server.characterName || '캐릭터'}
+                            style={{
+                              width: '52px',
+                              height: '70px',
+                              aspectRatio: '26 / 35',
+                              objectFit: 'cover',
+                              objectPosition: 'center',
+                              border: '1px solid #666',
+                            }}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/default_portrait.png';
+                            }}
+                          />
+                        </div>
                       ) : (
                         <span style={{ color: '#666' }}>-</span>
                       )}
                     </td>
                     <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                       {server.hasCharacter ? (
-                        <span style={{ color: server.color || '#fff' }}>{server.characterNation || '-'}</span>
+                        <span style={{ color: '#fff', fontWeight: 'bold' }}>{server.characterName || '-'}</span>
                       ) : (
                         <span style={{ color: '#666' }}>-</span>
                       )}
@@ -303,13 +329,24 @@ export default function EntrancePage() {
                             입 장
                           </Link>
                         ) : (
-                          <Link 
-                            href={`/${server.serverID}/join`} 
-                            className={styles.createBtn}
-                            title={`${server.korName} 서버에 캐릭터 생성`}
-                          >
-                            캐릭터 생성
-                          </Link>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
+                            <Link 
+                              href={`/${server.serverID}/join`} 
+                              className={styles.createBtn}
+                              title={`${server.korName} 서버에 캐릭터 생성`}
+                            >
+                              캐릭터 생성
+                            </Link>
+                            {server.allow_npc_possess && (
+                              <button
+                                className={styles.npcPlayBtn}
+                                onClick={() => router.push(`/${server.serverID}/select-npc`)}
+                                title="오리지널 캐릭터로 플레이"
+                              >
+                                ⭐ 오리지널 캐릭터 플레이
+                              </button>
+                            )}
+                          </div>
                         )
                       ) : (
                         <span className={styles.disabled}>-</span>
@@ -352,7 +389,7 @@ export default function EntrancePage() {
         <div className={styles.userInfo}>
           <div className={`${styles.sectionTitle} bg2`}>계 정 관 리</div>
           <div className={styles.actions}>
-            <Link href="/user_info" className={styles.btn}>
+            <Link href="/user-info" className={styles.btn}>
               비밀번호 &amp; 전콘 &amp; 탈퇴
             </Link>
             <button type="button" onClick={handleLogout} className={styles.btn}>

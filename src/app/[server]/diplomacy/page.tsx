@@ -121,19 +121,23 @@ export default function DiplomacyPage() {
             </select>
           </div>
           <div className={styles.formGroup}>
-            <label>내용(국가 내 공개)</label>
+            <label>내용 (국가 내 공개)</label>
             <textarea
               value={newLetter.brief}
               onChange={(e) => setNewLetter({ ...newLetter, brief: e.target.value })}
               className={styles.textarea}
+              placeholder="국가 구성원 모두가 볼 수 있는 공개 내용을 입력하세요"
+              rows={5}
             />
           </div>
           <div className={styles.formGroup}>
-            <label>내용(외교권자 전용)</label>
+            <label>상세 내용 (외교권자 전용)</label>
             <textarea
               value={newLetter.detail}
               onChange={(e) => setNewLetter({ ...newLetter, detail: e.target.value })}
               className={styles.textarea}
+              placeholder="외교권자만 볼 수 있는 상세 내용을 입력하세요 (선택사항)"
+              rows={8}
             />
           </div>
           <button type="button" onClick={sendLetter} className={styles.sendBtn}>

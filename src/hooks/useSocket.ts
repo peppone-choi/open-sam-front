@@ -96,6 +96,9 @@ export function useSocket(options: UseSocketOptions = {}) {
       auth: {
         token: authToken
       },
+      query: {
+        sessionId: sessionId || ''
+      },
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,

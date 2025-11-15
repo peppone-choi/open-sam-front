@@ -37,6 +37,7 @@ export default function TipTapEditor({
       }),
     ],
     content,
+    immediatelyRender: false,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },

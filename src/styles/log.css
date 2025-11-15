@@ -1,0 +1,49 @@
+/**
+ * 게임 로그 커스텀 태그 스타일
+ */
+
+/* 크기 */
+.log-small {
+  font-size: 0.85em;
+}
+
+/* 색상 */
+.log-red {
+  color: red;
+}
+
+.log-blue {
+  color: blue;
+}
+
+.log-green {
+  color: green;
+}
+
+.log-yellow {
+  color: yellow;
+}
+
+.log-cyan {
+  color: cyan;
+}
+
+.log-magenta {
+  color: magenta;
+}
+
+.log-lime {
+  color: limegreen;
+}
+
+.log-skyblue {
+  color: skyblue;
+}
+
+.log-orange {
+  color: orangered;
+}
+
+.log-white {
+  color: white;
+}

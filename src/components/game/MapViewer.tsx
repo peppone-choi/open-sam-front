@@ -212,8 +212,8 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
     // 밝기 계산 (YIQ 공식)
     const brightness = (r * 299 + g * 587 + b * 114) / 1000;
     
-    // 밝기가 128 이상이면 어두운 글자, 아니면 밝은 글자
-    return brightness >= 128 ? '#000000' : '#ffffff';
+    // 밝기가 150 이상이면 어두운 글자, 아니면 밝은 글자
+    return brightness >= 150 ? '#000000' : '#ffffff';
   };
 
   // 배경색 밝기 기반으로 테두리 색상 자동 결정
@@ -227,8 +227,8 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
     // 밝기 계산 (YIQ 공식)
     const brightness = (r * 299 + g * 587 + b * 114) / 1000;
     
-    // 밝기가 180 이상(밝은 색)이면 어두운 테두리, 아니면 밝은 테두리
-    return brightness >= 180 ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.8)';
+    // 밝기가 200 이상(매우 밝은 색)이면 어두운 테두리, 아니면 밝은 테두리
+    return brightness >= 200 ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.8)';
   };
 
   function handleCityMouseEnter(e: React.MouseEvent, city: ParsedCity) {

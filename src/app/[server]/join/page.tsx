@@ -50,7 +50,62 @@ export default function JoinPage() {
     character: 'Random',
     city: 0, // 0이면 랜덤
     trait: '범인', // 선택된 트레잇
+    pic: '',
+    useCustomIcon: false,
   });
+  
+  const [iconPreview, setIconPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleIconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 파일 타입 검증
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일만 업로드 가능합니다.');
+      return;
+    }
+
+    // 파일 크기 검증 (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('파일 크기는 5MB 이하여야 합니다.');
+      return;
+    }
+
+    setUploading(true);
+    
+    // base64로 변환
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const base64 = event.target?.result as string;
+        setIconPreview(base64); // 미리보기
+        const base64Data = base64.split(',')[1]; // data:image/... 제거
+        
+        const result = await SammoAPI.MiscUploadImage({
+          imageData: base64Data,
+          session_id: serverID
+        } as any);
+      
+        if (result.result && result.url) {
+          setFormData(prev => ({ ...prev, pic: result.url || '' }));
+        } else {
+          alert(result.reason || '이미지 업로드에 실패했습니다.');
+          setIconPreview(null);
+          setFormData(prev => ({ ...prev, pic: '' }));
+        }
+      } catch (err) {
+        console.error('이미지 업로드 에러:', err);
+        alert('이미지 업로드 중 오류가 발생했습니다.');
+        setIconPreview(null);
+        setFormData(prev => ({ ...prev, pic: '' }));
+      } finally {
+        setUploading(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const loadNations = useCallback(async () => {
     if (!serverID) return;
@@ -115,6 +170,23 @@ export default function JoinPage() {
 
   function calculateTotalStats() {
     return formData.leadership + formData.strength + formData.intel + formData.politics + formData.charm;
+  }
+
+  // 배경색에 따라 텍스트 색상 결정 (밝은 배경 -> 검은색, 어두운 배경 -> 흰색)
+  function getTextColor(bgColor: string): string {
+    if (!bgColor) return '#ffffff';
+    
+    // #RRGGBB 형식을 RGB로 변환
+    const hex = bgColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    // 밝기 계산 (YIQ 공식)
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    
+    // 밝기가 128 이상이면 검은색, 아니면 흰색
+    return brightness > 128 ? '#000000' : '#ffffff';
   }
 
   function getTraitInfo(traitName: string) {
@@ -529,7 +601,7 @@ export default function JoinPage() {
         charm: formData.charm,
         character: formData.character,
         trait: formData.trait, // 트레잇 전송
-        pic: true,
+        pic: formData.pic ? true : undefined, // 전용 아이콘 사용 여부 (boolean)
         city: formData.city || undefined, // 0이면 undefined (랜덤)
         serverID: serverID,
       });
@@ -551,7 +623,45 @@ export default function JoinPage() {
 
   return (
     <div className={styles.container}>
-      <TopBackBar title="장수 생성" />
+      <TopBackBar title="장수 생성" backUrl="/entrance" />
+      
+      {/* 임관 권유문 테이블 */}
+      {nationList.length > 0 && (
+        <table className={styles.scoutTable}>
+          <thead>
+            <tr className="bg2">
+              <th style={{ width: '130px' }}>국가</th>
+              <th>임관 권유문</th>
+            </tr>
+          </thead>
+          <tbody>
+            {nationList.filter(n => n.nation !== 0).map((nation) => {
+              const bgColor = nation.color || '#000000';
+              const textColor = getTextColor(bgColor);
+              return (
+                <tr 
+                  key={nation.nation}
+                  style={{ 
+                    backgroundColor: bgColor,
+                    color: textColor
+                  }}
+                >
+                  <td style={{ fontWeight: 'bold', textAlign: 'center' }}>
+                    {nation.name}
+                  </td>
+                  <td style={{ padding: '0.5rem' }}>
+                    <div 
+                      style={{ maxHeight: '200px', overflow: 'hidden' }}
+                      dangerouslySetInnerHTML={{ __html: nation.scoutmsg || '-' }}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+      
       {loading ? (
         <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
       ) : (
@@ -829,6 +939,93 @@ export default function JoinPage() {
             {cityList.length === 0 && (
               <div style={{ marginTop: '0.5rem', fontSize: '0.9em', color: '#999' }}>
                 도시 목록을 불러올 수 없습니다. 랜덤으로 선택됩니다.
+              </div>
+            )}
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>
+              <input
+                type="checkbox"
+                checked={formData.useCustomIcon}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setFormData({ ...formData, useCustomIcon: checked });
+                  if (!checked) {
+                    setIconPreview(null);
+                    setFormData(prev => ({ ...prev, pic: '' }));
+                  }
+                }}
+                style={{ marginRight: '0.5rem' }}
+              />
+              전용 아이콘 사용
+            </label>
+            
+            {formData.useCustomIcon && (
+              <div style={{ marginTop: '0.75rem' }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleIconUpload}
+                  disabled={uploading}
+                  className={styles.input}
+                  style={{ marginBottom: '0.5rem' }}
+                />
+                
+                <div style={{ 
+                  fontSize: '0.85em', 
+                  color: '#999', 
+                  marginBottom: '0.5rem' 
+                }}>
+                  권장 크기: 156x210px. 다른 크기는 중앙을 기준으로 잘립니다.
+                </div>
+                
+                {uploading && (
+                  <div style={{ 
+                    padding: '0.75rem', 
+                    background: 'rgba(251, 189, 8, 0.1)', 
+                    borderRadius: '4px', 
+                    color: '#fbbd08',
+                    marginBottom: '0.5rem'
+                  }}>
+                    업로드 중...
+                  </div>
+                )}
+                
+                {iconPreview && !uploading && (
+                  <div style={{ 
+                    marginTop: '0.5rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}>
+                    <div style={{
+                      width: '128px',
+                      height: '128px',
+                      border: '2px solid rgba(142, 192, 124, 0.5)',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'rgba(0, 0, 0, 0.3)'
+                    }}>
+                      <img
+                        src={iconPreview}
+                        alt="아이콘 미리보기"
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    </div>
+                    <div style={{ fontSize: '0.85em', color: '#8ec07c' }}>
+                      ✓ 업로드 완료
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
