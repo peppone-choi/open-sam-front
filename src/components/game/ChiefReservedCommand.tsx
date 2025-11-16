@@ -402,26 +402,24 @@ export default function ChiefReservedCommand({ serverID, colorSystem }: ChiefRes
                 <div
                   key={idx}
                   className={`${styles.turnCell} ${selectedTurns.includes(idx) ? 'selected' : ''}`}
-                   style={{
-                     backgroundColor: 'transparent',
-                     color: colorSystem?.text,
-                     borderColor: colorSystem?.border,
-                   }}
+                  style={{
+                    backgroundColor: 'transparent',
+                    color: colorSystem?.text,
+                    borderColor: colorSystem?.border,
+                  }}
                   onClick={() => {
                     setSelectedTurns((prev) =>
                       prev.includes(idx) ? prev.filter((t) => t !== idx) : [...prev, idx]
                     );
                   }}
                 >
-                   {idx + 1}
-                 </div>
-               ))}
-             </div>
-
+                  {idx + 1}
+                </div>
               ))}
             </div>
 
             {/* 년월 */}
+
             <div className={styles.yearMonthColumn}>
               {turns.map((cmd, idx) => (
                 <div

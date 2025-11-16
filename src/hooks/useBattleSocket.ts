@@ -50,7 +50,7 @@ export interface BattleState {
 
 export interface BattleCommand {
   generalId: number;
-  command: 'move' | 'attack' | 'hold' | 'retreat';
+  command: 'move' | 'attack' | 'hold' | 'retreat' | 'volley';
   targetPosition?: { x: number; y: number };
   targetGeneralId?: number;
 }
@@ -168,6 +168,17 @@ export function useBattleSocket(options: UseBattleSocketOptions) {
     });
   }, [sendCommand]);
 
+  /**
+   * 일제 사격 명령 (Volley)
+   */
+  const fireVolley = useCallback((unitGeneralId: number, targetGeneralId?: number) => {
+    sendCommand({
+      generalId: unitGeneralId,
+      command: 'volley',
+      targetGeneralId,
+    });
+  }, [sendCommand]);
+
   // 이벤트 리스너 등록
   useEffect(() => {
     if (!socket || !isConnected) {
@@ -262,6 +273,7 @@ export function useBattleSocket(options: UseBattleSocketOptions) {
     attackUnit,
     holdPosition,
     retreat,
+    fireVolley,
     
     // 저수준 함수
     joinBattle,

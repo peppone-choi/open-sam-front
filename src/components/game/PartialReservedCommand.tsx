@@ -196,6 +196,12 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
           else if (arg.newName) {
             cmd.brief = `${JosaUtil.attachJosa(arg.newName, '으로')} ${action}`;
           }
+          // 징병/모병 (병력 수)
+          else if (arg.amount && ['징병', '모병', 'che_징병', 'che_모병', 'conscript', 'recruitSoldiers'].includes(action)) {
+            const crew = Number(arg.amount) || 0;
+            const crewStr = crew.toLocaleString();
+            cmd.brief = `${JosaUtil.attachJosa(crewStr + '명', '을')} ${action}`;
+          }
           // 군량매매, 헌납 등 (금액만)
           else if (arg.amount) {
             const amountStr = arg.amount.toLocaleString();

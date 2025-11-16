@@ -25,8 +25,9 @@ export default function DiplomacyPage() {
   const [letters, setLetters] = useState<Letter[]>([]);
   const [nations, setNations] = useState<Array<[number, string, string, number]>>([]);
   const [loading, setLoading] = useState(true);
-  const [showNewLetter, setShowNewLetter] = useState(false);
+  const [showNewLetter, setShowNewLetter] = useState(true);
   const [newLetter, setNewLetter] = useState({
+
     prevNo: '',
     destNation: '',
     brief: '',
@@ -40,12 +41,29 @@ export default function DiplomacyPage() {
 
   async function loadNations() {
     try {
-      const result = await SammoAPI.GlobalGetNationList();
-      if (result.result && result.nationList) {
+      const result = await SammoAPI.GlobalGetNationList({ session_id: serverID });
+
+      if (!result.result) {
+        setNations([]);
+        return;
+      }
+
+      if (Array.isArray(result.nationList)) {
         setNations(result.nationList);
+      } else if (Array.isArray(result.nations)) {
+        const list = result.nations.map((n: any): [number, string, string, number] => [
+          n.nation ?? n.id,
+          n.name,
+          n.color ?? '#000000',
+          0,
+        ]);
+        setNations(list);
+      } else {
+        setNations([]);
       }
     } catch (err) {
       console.error(err);
+      setNations([]);
     }
   }
 
@@ -83,12 +101,11 @@ export default function DiplomacyPage() {
         detail: newLetter.detail,
       });
 
-
       if (result.success && result.result) {
-        setShowNewLetter(false);
         setNewLetter({ prevNo: '', destNation: '', brief: '', detail: '' });
         await loadLetters();
       } else {
+
         alert(result.reason || result.message || '외교문서 전송에 실패했습니다.');
       }
     } catch (err) {
@@ -102,10 +119,9 @@ export default function DiplomacyPage() {
       <TopBackBar title="외 교 부" reloadable onReload={loadLetters} />
 
       <div className={styles.header}>
-        <button type="button" onClick={() => setShowNewLetter(!showNewLetter)} className={styles.composeBtn}>
-          {showNewLetter ? '작성 취소' : '새 외교문서 작성'}
-        </button>
+        <span>외교문서 작성</span>
       </div>
+
 
       {showNewLetter && (
         <div className={styles.composeForm}>
@@ -152,7 +168,19 @@ export default function DiplomacyPage() {
       {loading ? (
         <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
       ) : letters.length === 0 ? (
-        <div className="center" style={{ padding: '2rem' }}>외교문서가 없습니다.</div>
+        <div className="center" style={{ padding: '2rem' }}>
+          <div style={{ marginBottom: '1rem' }}>외교문서가 없습니다.</div>
+          <button
+            type="button"
+            onClick={() => {
+              setShowNewLetter(true);
+              setNewLetter({ prevNo: '', destNation: '', brief: '', detail: '' });
+            }}
+            className={styles.composeBtn}
+          >
+            새 외교문서 작성
+          </button>
+        </div>
       ) : (
         <div className={styles.lettersList}>
           {letters.map((letter) => (
@@ -166,14 +194,14 @@ export default function DiplomacyPage() {
                 <div className={styles.date}>{letter.date}</div>
               </div>
               <div className={styles.letterMessage}>{letter.brief}</div>
-              {letter.detail && (
-                <div className={styles.letterDetail}>
-                  <div className={styles.letterDetailLabel}>상세 내용</div>
-                  <div className={styles.letterDetailBody}>{letter.detail}</div>
-                </div>
-              )}
+               {letter.detail && (
+                  <div className={styles.letterDetail}>
+                    <div className={styles.letterDetailLabel}>상세 내용</div>
+                    <div className={styles.letterDetailBody}>{letter.detail}</div>
+                  </div>
+                )}
 
-               {letter.status && (
+                {letter.status && (
                  <div className={styles.letterStatus}>
                    상태: {letter.status}
                    {letter.status === 'pending' && (
@@ -229,14 +257,33 @@ export default function DiplomacyPage() {
                  </div>
                )}
 
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+               <div className={styles.letterActions}>
+                 <button
+                   type="button"
+                   onClick={() => {
+                     setShowNewLetter(true);
+                     setNewLetter({
+                       prevNo: String(letter.no),
+                       destNation: '',
+                       brief: '',
+                       detail: '',
+                     });
+                   }}
+                   className={styles.renewBtn}
+                 >
+                   추가 문서 작성
+                 </button>
+               </div>
 
-
-
-
+             </div>
+           ))}
+         </div>
+       )}
+     </div>
+   );
+ }
+ 
+ 
+ 
+ 
+ 

@@ -147,7 +147,10 @@ export default function PeacefulCastleScene() {
 
     return () => {
       window.removeEventListener('resize', resize);
-      app.destroy(true, { children: true });
+      const appAny = app as any;
+      if (appAny && appAny.renderer && !appAny._destroyed) {
+        appAny.destroy(true, { children: true });
+      }
       appRef.current = null;
     };
   }, []);

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import BattleMap, { BattleUnit } from '@/components/battle/BattleMap';
+import IsoTacticalBattleMap from '@/components/battle/IsoTacticalBattleMap';
 import styles from './page.module.css';
 
 export default function BattleSimulatorPage() {
@@ -110,8 +111,17 @@ export default function BattleSimulatorPage() {
   }
 
   function handleCellClick(x: number, y: number) {
-    console.log('Cell clicked:', x, y);
+    if (selectedUnitId) {
+      setUnits((prev) =>
+        prev.map((unit) =>
+          unit.id === selectedUnitId ? { ...unit, x, y } : unit,
+        ),
+      );
+    } else {
+      console.log('Cell clicked:', x, y);
+    }
   }
+
 
   function handleCombat(attackerId: string, defenderId: string) {
     const { calculateCombat, updateUnitsAfterCombat } = require('@/utils/battleUtils');
@@ -194,19 +204,15 @@ export default function BattleSimulatorPage() {
           </div>
 
           <div className={styles.battleMapSection}>
-            <h2>40x40 전투 맵</h2>
+            <h2>전술 전투맵 (등각)</h2>
             <div className={styles.mapWrapper}>
-              <BattleMap
+              <IsoTacticalBattleMap
                 width={40}
                 height={40}
                 units={units}
-                onUnitClick={handleUnitClick}
-                onUnitMove={handleUnitMove}
-                onCellClick={handleCellClick}
-                onCombat={handleCombat}
                 selectedUnitId={selectedUnitId}
-                editable={true}
-                showCutscenes={true}
+                onUnitClick={handleUnitClick}
+                onCellClick={handleCellClick}
               />
             </div>
           </div>

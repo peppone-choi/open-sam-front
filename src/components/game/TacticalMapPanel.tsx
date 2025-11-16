@@ -3,6 +3,9 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useSocket } from '@/hooks/useSocket';
 import styles from './TacticalMapPanel.module.css';
+import { ThreeTacticalMapEngine } from '@/lib/tactical/threeTacticalMap';
+import type { UnitInstance, UnitVisualConfig } from '@/lib/tactical/isoTacticalMap';
+
 
 /**
  * 삼국지 전술맵 패널
@@ -14,12 +17,29 @@ interface BattleUnit {
   generalId: number;
   generalName: string;
   troops: number;
+  maxTroops: number;
   position?: { x: number; y: number };
+  velocity?: { x: number; y: number };
+  facing?: number;
+  unitType?: number;
+  morale?: number;
   hp: number;
   maxHp: number;
   side: 'attacker' | 'defender';
 }
+ 
+interface BattleParticipant {
 
+  generalId: number;
+  role: 'FIELD_COMMANDER' | 'SUB_COMMANDER' | 'STAFF';
+  controlledUnitGeneralIds?: number[];
+}
+
+interface BattleMapInfo {
+  width: number;
+  height: number;
+}
+ 
 interface BattleState {
   battleId: string;
   status: 'deploying' | 'in_progress' | 'completed';
@@ -27,7 +47,10 @@ interface BattleState {
   defenderUnits: BattleUnit[];
   currentTurn: number;
   terrain: string;
+  participants?: BattleParticipant[];
+  map?: BattleMapInfo;
 }
+
 
 interface LogEntry {
   id: number;
@@ -45,15 +68,125 @@ interface Props {
 
 export default function TacticalMapPanel({ serverID, generalId, cityId, cityName }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const threeCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const threeEngineRef = useRef<ThreeTacticalMapEngine | null>(null);
+  const prevUnitsRef = useRef<Map<number, { troops: number; side: 'attacker' | 'defender'; position?: { x: number; y: number }; unitType?: any }>>(new Map());
+ 
   const [battleState, setBattleState] = useState<BattleState | null>(null);
+
   const [isInBattle, setIsInBattle] = useState(false);
   const [recentLogs, setRecentLogs] = useState<LogEntry[]>([]);
   
   const canvasWidth = 740;
   const canvasHeight = 500;
 
+  const myParticipant = React.useMemo(() => {
+    if (!battleState || !generalId) return null;
+    return battleState.participants?.find((p) => p.generalId === generalId) ?? null;
+  }, [battleState, generalId]);
+
+  const myRole = myParticipant?.role ?? null;
+
+  // three 전술맵 엔진 생성/정리
+  useEffect(() => {
+    if (!isInBattle) {
+      if (threeEngineRef.current) {
+        threeEngineRef.current.destroy();
+        threeEngineRef.current = null;
+      }
+      return;
+    }
+
+    const canvas = threeCanvasRef.current;
+    if (!canvas) return;
+
+    const engine = new ThreeTacticalMapEngine({
+      canvas,
+      width: canvasWidth,
+      height: canvasHeight,
+      logicalWidth: 40,
+      logicalHeight: 40,
+    });
+    threeEngineRef.current = engine;
+
+    return () => {
+      engine.destroy();
+      if (threeEngineRef.current === engine) {
+        threeEngineRef.current = null;
+      }
+    };
+  }, [isInBattle, canvasWidth, canvasHeight]);
+
+  // 전투 상태 변경 시 three 전술맵 유닛/투사체 동기화
+  useEffect(() => {
+    const engine = threeEngineRef.current;
+    if (!engine || !battleState || !isInBattle) return;
+
+    const mapWidth = battleState.map?.width ?? 800;
+    const mapHeight = battleState.map?.height ?? 600;
+
+    const prev = prevUnitsRef.current;
+    const curr = new Map<number, BattleUnit>();
+
+    battleState.attackerUnits.forEach((u) => curr.set(u.generalId, { ...u, side: 'attacker' }));
+    battleState.defenderUnits.forEach((u) => curr.set(u.generalId, { ...u, side: 'defender' }));
+
+    // 병력 감소 감지 → 투사체 스폰
+    curr.forEach((unit, generalId) => {
+      const before = prev.get(generalId);
+      if (!before) return;
+      if (unit.troops >= before.troops || unit.troops <= 0) return;
+      if (!unit.position) return;
+
+      // 가장 가까운 적 유닛을 공격자로 추정
+      const enemies = [...battleState.attackerUnits, ...battleState.defenderUnits]
+        .filter((e) => e.side !== unit.side && e.troops > 0 && e.position);
+      if (enemies.length === 0) return;
+
+      let best: BattleUnit | null = null;
+      let bestDist = Infinity;
+      for (const e of enemies) {
+        if (!e.position) continue;
+        const dx = e.position.x - unit.position!.x;
+        const dy = e.position.y - unit.position!.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < bestDist) {
+          bestDist = d2;
+          best = e as any;
+        }
+      }
+      if (!best || !best.position) return;
+
+      const toGrid = worldToGrid(unit.position, unit.side, mapWidth, mapHeight);
+      const fromGrid = worldToGrid(best.position, best.side as any, mapWidth, mapHeight);
+
+      // 병종에 따라 아크 타입 추정
+      const ut = (best as any).unitType;
+      const arcType: 'flat' | 'high' =
+        typeof ut === 'string' && (ut === 'ARCHER' || ut === 'WIZARD' || ut === 'SIEGE')
+          ? 'high'
+          : 'flat';
+
+      const color = best.side === 'attacker' ? 0xffcc66 : 0x66ccff;
+      engine.spawnProjectileGrid(fromGrid, toGrid, arcType, color);
+    });
+
+    // 현재 상태를 다음 비교를 위해 저장
+    const nextPrev = new Map<number, { troops: number; side: 'attacker' | 'defender'; position?: { x: number; y: number }; unitType?: any }>();
+    battleState.attackerUnits.forEach((u) => nextPrev.set(u.generalId, { troops: u.troops, side: 'attacker', position: u.position, unitType: u.unitType }));
+    battleState.defenderUnits.forEach((u) => nextPrev.set(u.generalId, { troops: u.troops, side: 'defender', position: u.position, unitType: u.unitType }));
+    prevUnitsRef.current = nextPrev;
+
+    // 유닛 위치/방향 동기화
+    const units = mapBattleStateToUnitInstances(battleState);
+    units.forEach((u) => engine.upsertUnit(u));
+  }, [battleState, isInBattle]);
+
+ 
+ 
   // Socket.IO
   const { socket, onBattleEvent, onLogUpdate } = useSocket({ sessionId: serverID, autoConnect: true });
+
 
   // 전투 이벤트 리스너
   useEffect(() => {
@@ -556,7 +689,17 @@ export default function TacticalMapPanel({ serverID, generalId, cityId, cityName
         </span>
       </div>
       <div className={styles.canvasWrapper}>
-        <canvas ref={canvasRef} className={styles.canvas} />
+        {/* 평화/기본용 2D 캔버스 */}
+        <canvas
+          ref={canvasRef}
+          className={styles.canvas}
+          style={{ display: isInBattle ? 'none' : 'block' }}
+        />
+
+        {/* 전투 중 three 전술맵 캔버스 */}
+        {isInBattle && (
+          <canvas ref={threeCanvasRef} className={styles.canvas} />
+        )}
         
         {/* 로그 오버레이 (하단, 페이드인/아웃) */}
         {recentLogs.length > 0 && (
@@ -605,6 +748,18 @@ export default function TacticalMapPanel({ serverID, generalId, cityId, cityName
             <span className={styles.infoLabel}>수비군:</span>
             <span className={styles.infoValue}>{battleState.defenderUnits.length}부대</span>
           </div>
+          {myRole && (
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>역할:</span>
+              <span className={styles.infoValue}>
+                {myRole === 'FIELD_COMMANDER'
+                  ? '총사령관'
+                  : myRole === 'SUB_COMMANDER'
+                  ? '부장'
+                  : '참모'}
+              </span>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -640,10 +795,85 @@ const getLogIcon = (type: string): string => {
 // 로그 텍스트 포맷팅
 const formatLogText = (text: string): string => {
   return text
-    .replace(/<R>(.*?)<\/>/g, '<span style="color: #E24A4A; font-weight: bold;">$1</span>')
-    .replace(/<B>(.*?)<\/>/g, '<span style="color: #4A90E2; font-weight: bold;">$1</span>')
-    .replace(/<G>(.*?)<\/>/g, '<span style="color: #7ED321; font-weight: bold;">$1</span>')
-    .replace(/<Y>(.*?)<\/>/g, '<span style="color: #F5A623; font-weight: bold;">$1</span>')
-    .replace(/<S>(.*?)<\/>/g, '<span style="color: #9013FE; font-weight: bold;">$1</span>')
-    .replace(/<1>(.*?)<\/>/g, '<span style="color: #888; font-style: italic;">$1</span>');
+    .replace(/<R>(.*?)<\/>/g, '<span style="color: #E24A4A; font-weight: bold;">$1<\/span>')
+    .replace(/<B>(.*?)<\/>/g, '<span style="color: #4A90E2; font-weight: bold;">$1<\/span>')
+    .replace(/<G>(.*?)<\/>/g, '<span style="color: #7ED321; font-weight: bold;">$1<\/span>')
+    .replace(/<Y>(.*?)<\/>/g, '<span style="color: #F5A623; font-weight: bold;">$1<\/span>')
+    .replace(/<S>(.*?)<\/>/g, '<span style="color: #9013FE; font-weight: bold;">$1<\/span>')
+    .replace(/<1>(.*?)<\/>/g, '<span style="color: #888; font-style: italic;">$1<\/span>');
 };
+
+// === BattleState -> UnitInstance 어댑터 ===
+
+const TACTICAL_LOGICAL_WIDTH = 40;
+const TACTICAL_LOGICAL_HEIGHT = 40;
+
+function mapBattleStateToUnitInstances(state: BattleState): UnitInstance[] {
+  const instances: UnitInstance[] = [];
+  const mapWidth = state.map?.width ?? 800;
+  const mapHeight = state.map?.height ?? 600;
+
+  const convert = (u: BattleUnit): UnitInstance => {
+    // world position -> grid
+    const defaultX = u.side === 'attacker' ? mapWidth * 0.25 : mapWidth * 0.75;
+    const defaultY = u.side === 'attacker' ? mapHeight * 0.25 : mapHeight * 0.75;
+    const wx = clamp01((u.position?.x ?? defaultX) / mapWidth);
+    const wy = clamp01((u.position?.y ?? defaultY) / mapHeight);
+
+    const col = Math.floor(wx * TACTICAL_LOGICAL_WIDTH);
+    const row = Math.floor(wy * TACTICAL_LOGICAL_HEIGHT);
+
+    const role = mapUnitTypeToRole(u.unitType);
+    const visual: UnitVisualConfig = {
+      id: `voxel-${u.side}-${u.generalId}`,
+      role,
+      cultureTags: u.side === 'attacker' ? ['Han'] : ['YellowTurban'],
+      isElite: u.troops >= u.maxTroops * 0.9,
+    };
+
+    const unit: UnitInstance = {
+      id: visual.id,
+      visual,
+      gridPos: { row, col },
+    };
+
+    // three 쪽에서 병력/사기/방향/속도 표현에 사용할 수 있도록 메타 정보 부여
+    (unit as any).troopsRatio = u.maxTroops > 0 ? u.troops / u.maxTroops : 1;
+    (unit as any).morale = u.morale ?? 100;
+    (unit as any).facing = u.facing ?? 0;
+    if (u.velocity) {
+      const speed = Math.sqrt(u.velocity.x * u.velocity.x + u.velocity.y * u.velocity.y);
+      (unit as any).speed = speed;
+    }
+
+    return unit;
+  };
+
+  state.attackerUnits.forEach((u) => instances.push(convert(u)));
+  state.defenderUnits.forEach((u) => instances.push(convert(u)));
+
+  return instances;
+}
+
+function mapUnitTypeToRole(unitType?: number): UnitVisualConfig['role'] {
+  switch (unitType) {
+    case 1:
+      return 'archer';
+    case 2:
+      return 'cavalry';
+    case 3:
+      return 'scholar';
+    case 0:
+    case 4:
+    default:
+      return 'infantry';
+  }
+}
+
+function clamp01(v: number): number {
+  if (Number.isNaN(v)) return 0;
+  if (v < 0) return 0;
+  if (v > 1) return 1;
+  return v;
+}
+ 

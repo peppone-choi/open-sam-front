@@ -625,10 +625,10 @@ export class IsoTacticalMapEngine {
   private unitsLayer: PIXI.Container;
   private effects: EffectsLayer;
   private units: Map<string, { instance: UnitInstance; sprite: PIXI.Container }>;
-
+ 
   constructor(options: IsoTacticalMapOptions) {
     const { canvas, width, height, isoConfig = defaultIsoConfig } = options;
-
+ 
     this.app = new PIXI.Application({
       view: canvas,
       width,
@@ -636,28 +636,42 @@ export class IsoTacticalMapEngine {
       backgroundAlpha: 0,
       antialias: false,
     });
-
+ 
     this.iso = new IsoTransform(isoConfig);
-
+ 
     const backgroundLayer = new PIXI.Container();
     const unitsLayer = new PIXI.Container();
     const effectsLayer = new PIXI.Container();
-
+ 
     this.app.stage.addChild(backgroundLayer, unitsLayer, effectsLayer);
-
+ 
     this.unitsLayer = unitsLayer;
     this.effects = new EffectsLayer(this.app);
     effectsLayer.addChild(this.effects.root);
-
+ 
     this.units = new Map();
-
+ 
     this.drawGrid(backgroundLayer, width, height, isoConfig);
   }
-
+ 
   destroy(): void {
-    this.app.destroy(true, { children: true, texture: true, baseTexture: true });
+    // Pixi Application.destroy는 한 번만 안전하게 호출해야 함
+    const appAny = this.app as any;
+    if (!appAny || appAny._destroyed || !appAny.renderer) {
+      return;
+    }
+
+    appAny.destroy(true, { children: true, texture: true, baseTexture: true });
     this.units.clear();
   }
+ 
+  /**
+   * 화면 좌표를 등각 그리드 좌표로 변환
+   */
+  screenToGrid(x: number, y: number): GridPos {
+    return this.iso.screenToGrid(x, y);
+  }
+
 
   private drawGrid(
     layer: PIXI.Container,

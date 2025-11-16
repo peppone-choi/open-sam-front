@@ -106,7 +106,7 @@ export default function OfficerPage() {
   async function loadOfficerData() {
     try {
       setLoading(true);
-      const result = await SammoAPI.GetOfficerInfo();
+      const result = await SammoAPI.GetOfficerInfo({ session_id: serverID });
       if (result.result) {
         setOfficerData(result.officer);
       } else {
