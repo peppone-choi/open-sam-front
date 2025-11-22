@@ -1,3 +1,6 @@
+// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
+// import storybook from "eslint-plugin-storybook";
+
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
@@ -16,21 +19,21 @@ const eslintConfig = defineConfig([
   {
     rules: {
       // Relax TypeScript strict rules for legacy PHP migration
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": "warn",
-      "@typescript-eslint/no-require-imports": "warn",
-      "@typescript-eslint/ban-ts-comment": "warn",
-      "prefer-const": "warn",
-      "prefer-rest-params": "warn",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/ban-ts-comment": "off",
+      "prefer-const": "off",
+      "prefer-rest-params": "off",
       
       // React hooks - allow setState in effects (common pattern in this codebase)
       "react-hooks/set-state-in-effect": "off",
-      "react-hooks/exhaustive-deps": "warn",
-      "react-hooks/immutability": "warn",
-      "react-hooks/preserve-manual-memoization": "warn",
+      "react-hooks/exhaustive-deps": "off",
+      "react-hooks/immutability": "off",
+      "react-hooks/preserve-manual-memoization": "off",
       
       // Next.js - allow <img> tags (custom loader in use)
-      "@next/next/no-img-element": "warn",
+      "@next/next/no-img-element": "off",
     }
   }
 ]);

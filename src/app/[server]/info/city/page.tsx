@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
-import styles from './page.module.css';
+import { cn } from '@/lib/utils';
 
 function CityInfoContent() {
   const params = useParams();
@@ -34,90 +34,123 @@ function CityInfoContent() {
     }
   }
 
+  const sortOptions = [
+    { value: 1, label: '기본' },
+    { value: 2, label: '인구' },
+    { value: 3, label: '인구율' },
+    { value: 4, label: '민심' },
+    { value: 5, label: '농업' },
+    { value: 6, label: '상업' },
+    { value: 7, label: '치안' },
+    { value: 8, label: '수비' },
+    { value: 9, label: '성벽' },
+    { value: 10, label: '시세' },
+    { value: 11, label: '지역' },
+    { value: 12, label: '규모' },
+  ];
+
   return (
-    <div className={styles.container}>
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
       <TopBackBar title="세 력 도 시" reloadable onReload={loadCityList} />
-      <div className={styles.filterSection}>
-        <form method="get" className={styles.filterForm}>
-          <label>
-            정렬순서:
-            <select
-              name="type"
-              value={type}
-              onChange={(e) => {
-                const url = new URL(window.location.href);
-                url.searchParams.set('type', e.target.value);
-                window.location.href = url.toString();
-              }}
-              className={styles.select}
-            >
-              <option value={1}>기본</option>
-              <option value={2}>인구</option>
-              <option value={3}>인구율</option>
-              <option value={4}>민심</option>
-              <option value={5}>농업</option>
-              <option value={6}>상업</option>
-              <option value={7}>치안</option>
-              <option value={8}>수비</option>
-              <option value={9}>성벽</option>
-              <option value={10}>시세</option>
-              <option value={11}>지역</option>
-              <option value={12}>규모</option>
-            </select>
-          </label>
-        </form>
-      </div>
-      {loading ? (
-        <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
-      ) : (
-        <div className={styles.content}>
-          <table className={styles.cityTable}>
-            <thead>
-              <tr>
-                <th>도시명</th>
-                <th>레벨</th>
-                <th>지역</th>
-                <th>인구</th>
-                <th>농업</th>
-                <th>상업</th>
-                <th>치안</th>
-                <th>방어</th>
-                <th>성벽</th>
-                <th>민심</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cityList.map((city) => (
-                <tr key={city.city}>
-                  <td className={styles.cityName}>{city.name}</td>
-                  <td>{city.level}</td>
-                  <td>{city.region}</td>
-                  <td>{city.pop} / {city.pop_max}</td>
-                  <td>{city.agri} / {city.agri_max}</td>
-                  <td>{city.comm} / {city.comm_max}</td>
-                  <td>{city.secu} / {city.secu_max}</td>
-                  <td>{city.def} / {city.def_max}</td>
-                  <td>{city.wall} / {city.wall_max}</td>
-                  <td>{city.trust ? Math.round(city.trust * 10) / 10 : 0}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Filter Section */}
+        <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-4 shadow-lg flex items-center gap-4">
+          <label className="text-sm font-medium text-gray-300 whitespace-nowrap">정렬 기준</label>
+          <select
+            value={type}
+            onChange={(e) => {
+              const url = new URL(window.location.href);
+              url.searchParams.set('type', e.target.value);
+              window.location.href = url.toString();
+            }}
+            className="bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 transition-colors text-white min-w-[150px]"
+          >
+            {sortOptions.map((opt) => (
+              <option key={opt.value} value={opt.value} className="bg-gray-900">
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </div>
-      )}
+
+        {/* Table Section */}
+        {loading ? (
+          <div className="flex justify-center items-center h-[50vh]">
+             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          </div>
+        ) : (
+          <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead>
+                  <tr className="bg-gray-800/50 text-gray-300 border-b border-white/5 font-medium">
+                    <th className="py-3 px-4 whitespace-nowrap">도시명</th>
+                    <th className="py-3 px-4 whitespace-nowrap text-center">레벨</th>
+                    <th className="py-3 px-4 whitespace-nowrap text-center">지역</th>
+                    <th className="py-3 px-4 whitespace-nowrap text-right">인구</th>
+                    <th className="py-3 px-4 whitespace-nowrap text-right">농업</th>
+                    <th className="py-3 px-4 whitespace-nowrap text-right">상업</th>
+                    <th className="py-3 px-4 whitespace-nowrap text-right">치안</th>
+                    <th className="py-3 px-4 whitespace-nowrap text-right">방어</th>
+                    <th className="py-3 px-4 whitespace-nowrap text-right">성벽</th>
+                    <th className="py-3 px-4 whitespace-nowrap text-right">민심</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {cityList.map((city) => (
+                    <tr key={city.city} className="hover:bg-white/5 transition-colors">
+                      <td className="py-3 px-4 font-bold text-blue-400">{city.name}</td>
+                      <td className="py-3 px-4 text-center">{city.level}</td>
+                      <td className="py-3 px-4 text-center">{city.region}</td>
+                      <td className="py-3 px-4 text-right font-mono text-gray-300">
+                        {city.pop} <span className="text-gray-600 text-xs">/ {city.pop_max}</span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono text-gray-300">
+                        {city.agri} <span className="text-gray-600 text-xs">/ {city.agri_max}</span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono text-gray-300">
+                        {city.comm} <span className="text-gray-600 text-xs">/ {city.comm_max}</span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono text-gray-300">
+                        {city.secu} <span className="text-gray-600 text-xs">/ {city.secu_max}</span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono text-gray-300">
+                        {city.def} <span className="text-gray-600 text-xs">/ {city.def_max}</span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono text-gray-300">
+                        {city.wall} <span className="text-gray-600 text-xs">/ {city.wall_max}</span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono text-gray-300">
+                        {city.trust ? Math.round(city.trust * 10) / 10 : 0}%
+                      </td>
+                    </tr>
+                  ))}
+                  {cityList.length === 0 && (
+                     <tr>
+                        <td colSpan={10} className="py-8 text-center text-gray-500">
+                           도시가 없습니다.
+                        </td>
+                     </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
 export default function CityInfoPage() {
   return (
-    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-950 flex justify-center items-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+      </div>
+    }>
       <CityInfoContent />
     </Suspense>
   );
 }
-
-
-
-
-

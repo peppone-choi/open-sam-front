@@ -1,169 +1,133 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import styles from './page.module.css';
+import { useEffect, useState } from 'react';
+import TopBackBar from '@/components/common/TopBackBar';
+import { loghApi } from '@/lib/api/logh';
+import { UserProfile } from '@/types/logh';
+import { cn } from '@/lib/utils';
 
-/**
- * LOGH - 내 제독 정보
- * 삼국지의 "내 장수 정보"와 대응
- */
-
-interface Commander {
-  no: number;
-  name: string;
-  faction: 'empire' | 'alliance';
-  rank: string;
-  stats: {
-    command: number;      // 지휘력
-    tactics: number;      // 전술
-    strategy: number;     // 전략
-    politics: number;     // 정치
-  };
-  experience: number;
-  fleetId: string | null;
-  position: {
-    system: string;
-    x: number;
-    y: number;
-    z: number;
-  };
-}
-
-export default function MyCommanderInfoPage() {
-  const [commander, setCommander] = useState<Commander | null>(null);
+export default function LoghMyInfoPage() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadCommanderInfo();
+    loadProfile();
   }, []);
 
-  async function loadCommanderInfo() {
+  const loadProfile = async () => {
     try {
-      setLoading(true);
-      // TODO: LOGH API 호출
-      const response = await fetch('/api/logh/my-commander');
-      const data = await response.json();
-      setCommander(data.commander);
-    } catch (err) {
-      console.error(err);
-      alert('제독 정보를 불러오는데 실패했습니다.');
+      const data = await loghApi.getUserProfile();
+      setProfile(data);
+    } catch (e) {
+      console.error('프로필 로드 실패', e);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   if (loading) {
     return (
-      <div className={styles.container}>
-        <div className="center">로딩 중...</div>
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
       </div>
     );
   }
 
-  if (!commander) {
+  if (!profile) {
     return (
-      <div className={styles.container}>
-        <div className="center">제독 정보를 찾을 수 없습니다.</div>
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center text-red-400">
+        제독 정보를 불러올 수 없습니다.
       </div>
     );
   }
 
-  const factionName = commander.faction === 'empire' ? '은하제국' : '자유행성동맹';
+  const factionColor = profile.faction === 'empire' ? 'text-yellow-400' : 'text-cyan-400';
+  const factionName = profile.faction === 'empire' ? '은하제국' : '자유행성동맹';
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1>{commander.name} 제독</h1>
-        <Link href="/logh/game" className={styles.backButton}>
-          ← 전장으로
-        </Link>
-      </div>
+    <div className="min-h-screen bg-gray-950 text-gray-100 font-sans p-4 md:p-6 lg:p-8">
+      <TopBackBar title="내 제독 정보" backUrl="/logh/game" />
 
-      <div className={styles.infoSection}>
-        <h2>기본 정보</h2>
-        <table className={styles.infoTable}>
-          <tbody>
-            <tr>
-              <th>이름</th>
-              <td>{commander.name}</td>
-            </tr>
-            <tr>
-              <th>소속</th>
-              <td>{factionName}</td>
-            </tr>
-            <tr>
-              <th>계급</th>
-              <td>{commander.rank}</td>
-            </tr>
-            <tr>
-              <th>경험치</th>
-              <td>{commander.experience.toLocaleString()}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* 프로필 카드 */}
+        <div className="md:col-span-1 bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center">
+          <div className="w-32 h-32 mx-auto bg-gray-800 rounded-full mb-4 border-2 border-white/20 flex items-center justify-center overflow-hidden">
+            <span className="text-4xl">👤</span>
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-1">{profile.name}</h2>
+          <div className={cn("text-sm font-bold uppercase tracking-wider mb-4", factionColor)}>
+            {factionName} | {profile.rank}
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2 text-sm bg-black/30 p-3 rounded-lg">
+            <div>
+              <div className="text-gray-500">PCP (정치)</div>
+              <div className="text-purple-400 font-mono font-bold text-lg">{profile.pcp}/{profile.maxPcp}</div>
+            </div>
+            <div>
+              <div className="text-gray-500">MCP (군사)</div>
+              <div className="text-red-400 font-mono font-bold text-lg">{profile.mcp}/{profile.maxMcp}</div>
+            </div>
+          </div>
+        </div>
 
-      <div className={styles.statsSection}>
-        <h2>능력치</h2>
-        <table className={styles.statsTable}>
-          <tbody>
-            <tr>
-              <th>지휘력</th>
-              <td>
-                <div className={styles.statBar}>
-                  <div 
-                    className={styles.statFill}
-                    style={{ width: `${commander.stats.command}%` }}
-                  />
-                  <span>{commander.stats.command}</span>
+        {/* 상세 정보 및 직책 카드 */}
+        <div className="md:col-span-2 space-y-6">
+          {/* Stats Mockup */}
+          <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-6">
+            <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2">능력치</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { label: '지휘력', val: 85, color: 'bg-blue-500' },
+                { label: '전술안', val: 92, color: 'bg-red-500' },
+                { label: '전략안', val: 88, color: 'bg-purple-500' },
+                { label: '정치력', val: 45, color: 'bg-green-500' },
+              ].map(stat => (
+                <div key={stat.label}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-400">{stat.label}</span>
+                    <span className="font-bold text-white">{stat.val}</span>
+                  </div>
+                  <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <div className={cn("h-full", stat.color)} style={{ width: `${stat.val}%` }} />
+                  </div>
                 </div>
-              </td>
-            </tr>
-            <tr>
-              <th>전술</th>
-              <td>
-                <div className={styles.statBar}>
-                  <div 
-                    className={styles.statFill}
-                    style={{ width: `${commander.stats.tactics}%` }}
-                  />
-                  <span>{commander.stats.tactics}</span>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <th>전략</th>
-              <td>
-                <div className={styles.statBar}>
-                  <div 
-                    className={styles.statFill}
-                    style={{ width: `${commander.stats.strategy}%` }}
-                  />
-                  <span>{commander.stats.strategy}</span>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <th>정치</th>
-              <td>
-                <div className={styles.statBar}>
-                  <div 
-                    className={styles.statFill}
-                    style={{ width: `${commander.stats.politics}%` }}
-                  />
-                  <span>{commander.stats.politics}</span>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </div>
+          </div>
 
-      <div className={styles.positionSection}>
-        <h2>현재 위치</h2>
-        <p>성계: {commander.position.system}</p>
-        <p>좌표: ({commander.position.x}, {commander.position.y}, {commander.position.z})</p>
+          {/* Job Cards */}
+          <div className="bg-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-6">
+            <h3 className="text-lg font-bold text-white mb-4 border-b border-white/10 pb-2 flex justify-between items-center">
+              <span>보유 직책 카드</span>
+              <span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-1 rounded">직책 카드</span>
+            </h3>
+            
+            {profile.jobCards && profile.jobCards.length > 0 ? (
+              <div className="space-y-3">
+                {profile.jobCards.map((card) => (
+                  <div key={card.id} className="bg-black/40 border border-white/10 p-4 rounded-lg flex justify-between items-center group hover:border-blue-500/50 transition-colors">
+                    <div>
+                      <div className="font-bold text-white group-hover:text-blue-300 transition-colors">{card.title}</div>
+                      <div className="text-xs text-gray-500 mt-1">요구 계급: {card.rankReq}</div>
+                    </div>
+                    <div className="flex gap-1">
+                      {card.commands.map(cmd => (
+                        <span key={cmd} className="text-[10px] bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">
+                          {cmd}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 text-sm">
+                보유 중인 직책 카드가 없습니다.
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,5 @@
 import React from 'react';
-
-type UnitType = 'FOOTMAN' | 'SPEARMAN' | 'ARCHER' | 'CAVALRY' | 'SIEGE' | 'WIZARD' | 'MIXED' | 'CASTLE';
+import type { UnitType } from '@/utils/unitTypeMapping';
 
 interface TroopIconProps {
   type: UnitType;

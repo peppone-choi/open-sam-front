@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import BattleCutsceneModal from './BattleCutsceneModal';
 import { BattleCutscene } from '@/types/battle';
+import { calculateCombat, getAttackTypeByCrewtype, getAttackTypeByUnitType } from '@/utils/battleUtils';
+import { getUnitTypeInfo, getUnitTypeName } from '@/utils/unitTypeMapping';
 import styles from './BattleMap.module.css';
 
 export interface BattleUnit {
@@ -49,11 +51,19 @@ export default function BattleMap({
   showCutscenes = true,
 }: BattleMapProps) {
   const [draggedUnit, setDraggedUnit] = useState<BattleUnit | null>(null);
-  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [cutscene, setCutscene] = useState<BattleCutscene | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
+  const activeTouchIdRef = useRef<number | null>(null);
 
   const CELL_SIZE = 15; // 각 셀의 픽셀 크기
+
+  const cells = useMemo(
+    () => Array.from({ length: width * height }, (_, idx) => ({ x: idx % width, y: Math.floor(idx / width) })),
+    [width, height]
+  );
+
+  const xLabels = useMemo(() => Array.from({ length: width }, (_, idx) => idx), [width]);
+  const yLabels = useMemo(() => Array.from({ length: height }, (_, idx) => idx), [height]);
 
   const getCellPosition = useCallback((x: number, y: number) => {
     return {
@@ -73,30 +83,18 @@ export default function BattleMap({
     return null;
   }, [width, height, CELL_SIZE]);
 
-  const handleCellClick = useCallback((e: React.MouseEvent, x: number, y: number) => {
-    e.stopPropagation();
-    
-    // 선택된 유닛이 있고, 클릭한 위치에 적 유닛이 있으면 전투 발생
-    if (selectedUnitId && showCutscenes) {
-      const selectedUnit = units.find(u => u.id === selectedUnitId);
-      const targetUnit = units.find(u => u.x === x && u.y === y);
-      
-      if (selectedUnit && targetUnit && selectedUnit.type !== targetUnit.type) {
-        // 전투 연출 표시
-        triggerCombat(selectedUnit, targetUnit);
-        return;
-      }
+  const findTrackedTouch = useCallback((touchList: React.TouchList) => {
+    if (touchList.length === 0) {
+      return null;
     }
-    
-    if (onCellClick) {
-      onCellClick(x, y);
+    if (activeTouchIdRef.current == null) {
+      return touchList[0];
     }
-  }, [onCellClick, selectedUnitId, showCutscenes, units]);
+    const match = Array.from(touchList).find((touch) => touch.identifier === activeTouchIdRef.current);
+    return match ?? touchList[0];
+  }, []);
 
   const triggerCombat = useCallback((attacker: BattleUnit, defender: BattleUnit) => {
-    const { calculateCombat, getAttackTypeByUnitType, getAttackTypeByCrewtype } = require('@/utils/battleUtils');
-    const { getUnitTypeName, getUnitTypeInfo } = require('@/utils/unitTypeMapping');
-    
     const result = calculateCombat(attacker, defender);
     
     // 거리 계산
@@ -158,37 +156,82 @@ export default function BattleMap({
     }
   }, [onCombat]);
 
+  const handleCellActivate = useCallback((event: React.MouseEvent | React.TouchEvent, x: number, y: number) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (selectedUnitId && showCutscenes) {
+      const selectedUnit = units.find((u) => u.id === selectedUnitId);
+      const targetUnit = units.find((u) => u.x === x && u.y === y);
+      
+      if (selectedUnit && targetUnit && selectedUnit.type !== targetUnit.type) {
+        triggerCombat(selectedUnit, targetUnit);
+        return;
+      }
+    }
+    
+    if (onCellClick) {
+      onCellClick(x, y);
+    }
+  }, [onCellClick, selectedUnitId, showCutscenes, units, triggerCombat]);
+
   const handleUnitMouseDown = useCallback((e: React.MouseEvent, unit: BattleUnit) => {
     if (!editable) return;
     e.stopPropagation();
     setDraggedUnit(unit);
-    const pos = getGridPosition(e.clientX, e.clientY);
-    if (pos) {
-      setDragOffset({
-        x: e.clientX - pos.x * CELL_SIZE,
-        y: e.clientY - pos.y * CELL_SIZE,
-      });
-    }
     if (onUnitClick) {
       onUnitClick(unit);
     }
-  }, [editable, getGridPosition, CELL_SIZE, onUnitClick]);
+  }, [editable, onUnitClick]);
+
+  const handleUnitTouchStart = useCallback((event: React.TouchEvent, unit: BattleUnit) => {
+    if (!editable) return;
+    const primaryTouch = event.touches[0];
+    if (!primaryTouch) return;
+    activeTouchIdRef.current = primaryTouch.identifier;
+    setDraggedUnit(unit);
+    event.preventDefault();
+    if (onUnitClick) {
+      onUnitClick(unit);
+    }
+  }, [editable, onUnitClick]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!draggedUnit || !editable) return;
     e.preventDefault();
     const pos = getGridPosition(e.clientX, e.clientY);
     if (pos && (draggedUnit.x !== pos.x || draggedUnit.y !== pos.y)) {
-      if (onUnitMove) {
-        onUnitMove(draggedUnit.id, pos.x, pos.y);
-      }
+      onUnitMove?.(draggedUnit.id, pos.x, pos.y);
     }
   }, [draggedUnit, editable, getGridPosition, onUnitMove]);
 
+  const handleTouchMove = useCallback((event: React.TouchEvent) => {
+    if (!draggedUnit || !editable) return;
+    const touch = findTrackedTouch(event.touches);
+    if (!touch) return;
+    event.preventDefault();
+    const pos = getGridPosition(touch.clientX, touch.clientY);
+    if (pos && (draggedUnit.x !== pos.x || draggedUnit.y !== pos.y)) {
+      onUnitMove?.(draggedUnit.id, pos.x, pos.y);
+    }
+  }, [draggedUnit, editable, findTrackedTouch, getGridPosition, onUnitMove]);
+
   const handleMouseUp = useCallback(() => {
     setDraggedUnit(null);
-    setDragOffset({ x: 0, y: 0 });
   }, []);
+
+  const handleTouchEnd = useCallback((event: React.TouchEvent) => {
+    if (activeTouchIdRef.current == null) {
+      setDraggedUnit(null);
+      return;
+    }
+    const ended = Array.from(event.changedTouches).some((touch) => touch.identifier === activeTouchIdRef.current);
+    if (ended || event.touches.length === 0) {
+      activeTouchIdRef.current = null;
+      setDraggedUnit(null);
+    }
+  }, []);
+
 
   return (
     <>
@@ -204,24 +247,24 @@ export default function BattleMap({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
     >
       {/* 그리드 셀들 */}
-      {Array.from({ length: width * height }).map((_, idx) => {
-        const x = idx % width;
-        const y = Math.floor(idx / width);
-        return (
-          <div
-            key={`cell-${x}-${y}`}
-            className={styles.gridCell}
-            style={{
-              gridColumn: x + 1,
-              gridRow: y + 1,
-            }}
-            onClick={(e) => handleCellClick(e, x, y)}
-            title={`${x}, ${y}`}
-          />
-        );
-      })}
+      {cells.map(({ x, y }) => (
+        <div
+          key={`cell-${x}-${y}`}
+          className={styles.gridCell}
+          style={{
+            gridColumn: x + 1,
+            gridRow: y + 1,
+          }}
+          onClick={(e) => handleCellActivate(e, x, y)}
+          onTouchEnd={(e) => handleCellActivate(e, x, y)}
+          title={`${x}, ${y}`}
+        />
+      ))}
 
       {/* 유닛들 */}
       {units.map((unit) => {
@@ -238,6 +281,7 @@ export default function BattleMap({
               height: CELL_SIZE - 2,
             }}
             onMouseDown={(e) => handleUnitMouseDown(e, unit)}
+            onTouchStart={(e) => handleUnitTouchStart(e, unit)}
             title={unit.name}
           >
             <div className={styles.unitIcon}>{unit.type === 'attacker' ? '⚔' : '🛡'}</div>
@@ -250,12 +294,12 @@ export default function BattleMap({
 
       {/* 그리드 라벨 */}
       <div className={styles.gridLabels}>
-        {Array.from({ length: width }).map((_, x) => (
+        {xLabels.map((x) => (
           <div key={`label-x-${x}`} className={styles.gridLabelX} style={{ left: x * CELL_SIZE }}>
             {x}
           </div>
         ))}
-        {Array.from({ length: height }).map((_, y) => (
+        {yLabels.map((y) => (
           <div key={`label-y-${y}`} className={styles.gridLabelY} style={{ top: y * CELL_SIZE }}>
             {y}
           </div>

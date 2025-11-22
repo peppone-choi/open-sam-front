@@ -1,32 +1,18 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { SammoAPI } from '@/lib/api/sammo';
+import { SammoAPI, type JoinCitySummary, type JoinNationSummary, type JoinStatLimits } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
-import styles from './page.module.css';
+import InfoSummaryCard from '@/components/info/InfoSummaryCard';
+import HistoryTimeline from '@/components/info/HistoryTimeline';
+import { buildJoinSummaryCards, buildTimelineFromSources, getTraitInfo } from '@/lib/utils/game/entryFormatter';
+import { INFO_TEXT } from '@/constants/uiText';
+import { cn } from '@/lib/utils';
 
-interface Nation {
-  nation: number;
-  name: string;
-  color: string;
-  scout?: string;
-  scoutmsg?: string;
-}
-
-interface StatLimits {
-  min: number;
-  max: number;
-  total: number; // 통무지정매 5개 능력치 합계 (기본 275, 평균 55)
-}
-
-interface City {
-  id: number;
-  name: string;
-  x: number;
-  y: number;
-  nation?: number; // 소속 국가 ID
-}
+type Nation = JoinNationSummary;
+type StatLimits = JoinStatLimits;
+type City = JoinCitySummary;
 
 export default function JoinPage() {
   const params = useParams();
@@ -109,39 +95,40 @@ export default function JoinPage() {
 
   const loadNations = useCallback(async () => {
     if (!serverID) return;
-    
+
     try {
       setLoading(true);
-      const result = await SammoAPI.GetJoinNations({
-        serverID: serverID,
-      });
-      if (result.result) {
-        setNationList(result.nations);
-        setAllowJoinNation(result.allowJoinNation !== false); // 기본값 true
-        if (result.cities) {
-          setAllCities(result.cities); // 전체 도시 목록 저장
-          setCityList(result.cities); // 초기에는 전체 도시 표시
-        }
-        if (result.statLimits) {
-          setStatLimits(result.statLimits);
-          // 초기 능력치를 균등 분배 (5개 능력치)
-          const total = result.statLimits.total;
-          const defaultStat = Math.floor(total / 5);
-          const remainder = total - (defaultStat * 5);
-          setFormData(prev => ({
-            ...prev,
-            leadership: defaultStat + remainder,
-            strength: defaultStat,
-            intel: defaultStat,
-            politics: defaultStat,
-            charm: defaultStat,
-            nation: result.allowJoinNation !== false ? prev.nation : 0, // 국가 선택 불가면 0
-          }));
-        }
+      const response = await SammoAPI.JoinGetNations(serverID);
+      if (!response?.result) {
+        throw new Error(response?.reason || '국가 목록을 불러오지 못했습니다.');
+      }
+
+      setNationList(response.nations ?? []);
+      const allowNationSelection = response.allowJoinNation !== false;
+      setAllowJoinNation(allowNationSelection);
+
+      if (response.cities) {
+        setAllCities(response.cities);
+        setCityList(response.cities);
+      }
+
+      if (response.statLimits) {
+        const limits = response.statLimits;
+        setStatLimits(limits);
+        const defaultStat = Math.floor(limits.total / 5);
+        const remainder = limits.total - defaultStat * 5;
+        setFormData((prev) => ({
+          ...prev,
+          leadership: defaultStat + remainder,
+          strength: defaultStat,
+          intel: defaultStat,
+          politics: defaultStat,
+          charm: defaultStat,
+          nation: allowNationSelection ? prev.nation : 0,
+        }));
       }
     } catch (err) {
       console.error(err);
-      alert('국가 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -172,12 +159,64 @@ export default function JoinPage() {
     return formData.leadership + formData.strength + formData.intel + formData.politics + formData.charm;
   }
 
+  const totalStats = calculateTotalStats();
+  const selectedNation = useMemo(() => nationList.find((nation) => nation.nation === formData.nation), [nationList, formData.nation]);
+  const joinSummaryCards = useMemo(
+    () =>
+      buildJoinSummaryCards({
+        trait: formData.trait,
+        statLimits,
+        totalStats,
+        allowJoinNation,
+        selectedNationName: selectedNation?.name,
+        hasCustomIcon: formData.useCustomIcon,
+      }),
+    [formData.trait, statLimits, totalStats, allowJoinNation, selectedNation?.name, formData.useCustomIcon],
+  );
+  const traitMetadata = useMemo(() => getTraitInfo(formData.trait), [formData.trait]);
+  const entryTimelineEvents = useMemo(
+    () =>
+      buildTimelineFromSources([
+        {
+          id: 'trait',
+          order: 1,
+          category: 'system',
+          title: `트레잇 · ${traitMetadata.name}`,
+          description: traitMetadata.details,
+        },
+        {
+          id: 'stat',
+          order: 2,
+          category: 'action',
+          title: `능력치 합 ${totalStats}p`,
+          description: `최소 ${statLimits.min} / 최대 ${statLimits.max}`,
+        },
+        {
+          id: 'nation',
+          order: 3,
+          category: 'nation',
+          title: selectedNation ? `${selectedNation.name} 시작` : '재야 시작',
+          description: allowJoinNation ? '원하는 국가를 선택하세요.' : '현재 재야 전용 서버입니다.',
+        },
+        {
+          id: 'icon',
+          order: 4,
+          category: 'system',
+          title: formData.useCustomIcon ? '전용 아이콘 업로드 완료' : '기본 아이콘 사용',
+          description: formData.useCustomIcon ? '검수 후 자동 반영됩니다.' : '설정 > 아이콘 관리에서 변경 가능',
+        },
+      ]),
+    [traitMetadata, totalStats, statLimits.min, statLimits.max, selectedNation?.name, allowJoinNation, formData.useCustomIcon],
+  );
+
   // 배경색에 따라 텍스트 색상 결정 (밝은 배경 -> 검은색, 어두운 배경 -> 흰색)
   function getTextColor(bgColor: string): string {
     if (!bgColor) return '#ffffff';
     
     // #RRGGBB 형식을 RGB로 변환
-    const hex = bgColor.replace('#', '');
+    let hex = bgColor.replace('#', '');
+    if(hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+
     const r = parseInt(hex.substr(0, 2), 16);
     const g = parseInt(hex.substr(2, 2), 16);
     const b = parseInt(hex.substr(4, 2), 16);
@@ -189,55 +228,6 @@ export default function JoinPage() {
     return brightness > 128 ? '#000000' : '#ffffff';
   }
 
-  function getTraitInfo(traitName: string) {
-    switch (traitName) {
-      case '천재':
-        return { 
-          name: '천재', 
-          description: '하늘이 내린 재능', 
-          details: '최대 95, 보너스 5~7개',
-          penalty: '유산 1000P, 초기 자원 50%, 나이 -7세',
-          color: '#ff6b6b', 
-          totalMin: 220, 
-          totalMax: 240, 
-          max: 95 
-        };
-      case '영재':
-        return { 
-          name: '영재', 
-          description: '남다른 자질', 
-          details: '최대 92, 보너스 4~6개',
-          penalty: '유산 500P, 초기 자원 70%, 나이 -4세',
-          color: '#4ecdc4', 
-          totalMin: 241, 
-          totalMax: 255, 
-          max: 92 
-        };
-      case '수재':
-        return { 
-          name: '수재', 
-          description: '뛰어난 소질', 
-          details: '최대 91, 보너스 4~5개',
-          penalty: '유산 200P, 초기 자원 85%, 나이 -2세',
-          color: '#95e1d3', 
-          totalMin: 256, 
-          totalMax: 265, 
-          max: 91 
-        };
-      case '범인':
-      default:
-        return { 
-          name: '범인', 
-          description: '평범한 인물', 
-          details: '최대 90, 보너스 3~5개',
-          penalty: '페널티 없음',
-          color: '#999', 
-          totalMin: 266, 
-          totalMax: 275, 
-          max: 90 
-        };
-    }
-  }
 
   function randomizeStats(type: 'random' | 'balanced' | 'commander' | 'warrior' | 'strategist' | 'administrator' | 'scholar' | 'general_warrior' | 'tactician' | 'diplomat' | 'charismatic' = 'random') {
     const { min } = statLimits;
@@ -591,7 +581,7 @@ export default function JoinPage() {
     const nation = formData.nation || 0;
 
     try {
-      const result = await SammoAPI.CreateGeneral({
+      const result = await SammoAPI.JoinCreateGeneral({
         name: formData.name,
         nation: nation,
         leadership: formData.leadership,
@@ -600,10 +590,10 @@ export default function JoinPage() {
         politics: formData.politics,
         charm: formData.charm,
         character: formData.character,
-        trait: formData.trait, // 트레잇 전송
-        pic: formData.pic ? true : undefined, // 전용 아이콘 사용 여부 (boolean)
-        city: formData.city || undefined, // 0이면 undefined (랜덤)
-        serverID: serverID,
+        trait: formData.trait,
+        pic: formData.pic ? true : undefined,
+        city: formData.city || undefined,
+        serverID,
       });
 
       if (result.result) {
@@ -622,419 +612,327 @@ export default function JoinPage() {
   }
 
   return (
-    <div className={styles.container}>
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
       <TopBackBar title="장수 생성" backUrl="/entrance" />
       
-      {/* 임관 권유문 테이블 */}
-      {nationList.length > 0 && (
-        <table className={styles.scoutTable}>
-          <thead>
-            <tr className="bg2">
-              <th style={{ width: '130px' }}>국가</th>
-              <th>임관 권유문</th>
-            </tr>
-          </thead>
-          <tbody>
-            {nationList.filter(n => n.nation !== 0).map((nation) => {
-              const bgColor = nation.color || '#000000';
-              const textColor = getTextColor(bgColor);
-              return (
-                <tr 
-                  key={nation.nation}
-                  style={{ 
-                    backgroundColor: bgColor,
-                    color: textColor
-                  }}
-                >
-                  <td style={{ fontWeight: 'bold', textAlign: 'center' }}>
-                    {nation.name}
-                  </td>
-                  <td style={{ padding: '0.5rem' }}>
-                    <div 
-                      style={{ maxHeight: '200px', overflow: 'hidden' }}
-                      dangerouslySetInnerHTML={{ __html: nation.scoutmsg || '-' }}
-                    />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
-      
-      {loading ? (
-        <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
-      ) : (
-        <form onSubmit={handleSubmit} className={styles.joinForm}>
-          <div className={styles.formGroup}>
-            <label>장수명</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="장수명을 입력하세요"
-              className={styles.input}
-              required
-            />
-          </div>
-
-          {allowJoinNation && (
-            <div className={styles.formGroup}>
-              <label>소속 국가</label>
-              <select
-                value={formData.nation}
-                onChange={(e) => setFormData({ ...formData, nation: Number(e.target.value) })}
-                className={styles.select}
-              >
-                <option value="0">재야</option>
-                {nationList.map((nation) => (
-                  <option key={nation.nation} value={nation.nation}>
-                    {nation.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          
-          {!allowJoinNation && (
-            <div className={styles.formGroup}>
-              <label>소속 국가</label>
-              <div style={{ padding: '0.75rem', background: 'rgba(251, 73, 52, 0.1)', borderRadius: '4px', color: '#fb4934' }}>
-                ⚠️ 이 서버는 재야로만 시작할 수 있습니다
-              </div>
-            </div>
-          )}
-
-          <div className={styles.formGroup}>
-            <label>트레잇 선택</label>
-            <select
-              value={formData.trait}
-              onChange={(e) => setFormData({ ...formData, trait: e.target.value })}
-              className={styles.select}
-            >
-              <option value="범인">범인 - 평범 (총합 266~275)</option>
-              <option value="수재">수재 - 뛰어남 (총합 256~265, 유산 200P)</option>
-              <option value="영재">영재 - 남다름 (총합 241~255, 유산 500P)</option>
-              <option value="천재">천재 - 천부적 (총합 220~240, 유산 1000P)</option>
-            </select>
-            {(() => {
-              const traitInfo = getTraitInfo(formData.trait);
-              return (
-                <div style={{ 
-                  marginTop: '0.5rem', 
-                  padding: '0.75rem', 
-                  background: 'rgba(0,0,0,0.3)', 
-                  borderRadius: '4px',
-                  borderLeft: `4px solid ${traitInfo.color}`
-                }}>
-                  <div>
-                    <span style={{ color: traitInfo.color, fontWeight: 'bold', fontSize: '1.1em' }}>✨ {traitInfo.name}</span>
-                    <span style={{ marginLeft: '0.5rem', fontSize: '0.9em', color: '#ccc' }}>
-                      - {traitInfo.description}
-                    </span>
-                  </div>
-                  <div style={{ marginTop: '0.5rem', fontSize: '0.85em' }}>
-                    <div style={{ color: '#8ec07c' }}>📈 {traitInfo.details}</div>
-                    <div style={{ color: '#fb4934', marginTop: '0.25rem' }}>⚠️ {traitInfo.penalty}</div>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>
-              능력치 (통/무/지/정/매) - 합계: {calculateTotalStats()}
-            </label>
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-              {(() => {
-                const traitMax = getTraitInfo(formData.trait).max;
-                return (
-                  <>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: '0.9em', color: '#aaa' }}>통솔</label>
-                      <input
-                        type="number"
-                        value={formData.leadership}
-                        readOnly
-                        className={styles.input}
-                        style={{ width: '100%', cursor: 'not-allowed', opacity: 0.7 }}
-                      />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: '0.9em', color: '#aaa' }}>무력</label>
-                      <input
-                        type="number"
-                        value={formData.strength}
-                        readOnly
-                        className={styles.input}
-                        style={{ width: '100%', cursor: 'not-allowed', opacity: 0.7 }}
-                      />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: '0.9em', color: '#aaa' }}>지력</label>
-                      <input
-                        type="number"
-                        value={formData.intel}
-                        readOnly
-                        className={styles.input}
-                        style={{ width: '100%', cursor: 'not-allowed', opacity: 0.7 }}
-                      />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: '0.9em', color: '#aaa' }}>정치</label>
-                      <input
-                        type="number"
-                        value={formData.politics}
-                        readOnly
-                        className={styles.input}
-                        style={{ width: '100%', cursor: 'not-allowed', opacity: 0.7 }}
-                      />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: '0.9em', color: '#aaa' }}>매력</label>
-                      <input
-                        type="number"
-                        value={formData.charm}
-                        readOnly
-                        className={styles.input}
-                        style={{ width: '100%', cursor: 'not-allowed', opacity: 0.7 }}
-                      />
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-            <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                onClick={() => randomizeStats('random')}
-                className={styles.statBtn}
-              >
-                🎲 랜덤
-              </button>
-              <button
-                type="button"
-                onClick={() => randomizeStats('balanced')}
-                className={styles.statBtn}
-              >
-                ⚖️ 균형
-              </button>
-              <button
-                type="button"
-                onClick={() => randomizeStats('commander')}
-                className={styles.statBtn}
-              >
-                👑 지휘관
-              </button>
-              <button
-                type="button"
-                onClick={() => randomizeStats('general_warrior')}
-                className={styles.statBtn}
-              >
-                ⚔️ 맹장
-              </button>
-              <button
-                type="button"
-                onClick={() => randomizeStats('warrior')}
-                className={styles.statBtn}
-              >
-                💪 무인
-              </button>
-              <button
-                type="button"
-                onClick={() => randomizeStats('tactician')}
-                className={styles.statBtn}
-              >
-                🎯 전략가
-              </button>
-              <button
-                type="button"
-                onClick={() => randomizeStats('strategist')}
-                className={styles.statBtn}
-              >
-                📜 모사
-              </button>
-              <button
-                type="button"
-                onClick={() => randomizeStats('scholar')}
-                className={styles.statBtn}
-              >
-                📚 학자
-              </button>
-              <button
-                type="button"
-                onClick={() => randomizeStats('administrator')}
-                className={styles.statBtn}
-              >
-                🏛️ 내정
-              </button>
-              <button
-                type="button"
-                onClick={() => randomizeStats('diplomat')}
-                className={styles.statBtn}
-              >
-                🤝 외교
-              </button>
-              <button
-                type="button"
-                onClick={() => randomizeStats('charismatic')}
-                className={styles.statBtn}
-              >
-                ✨ 군주
-              </button>
-            </div>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>성격</label>
-            <select
-              value={formData.character}
-              onChange={(e) => setFormData({ ...formData, character: e.target.value })}
-              className={styles.select}
-            >
-              <option value="Random">랜덤</option>
-              <option value="brave">용맹</option>
-              <option value="wise">현명</option>
-              <option value="loyal">충성</option>
-              <option value="ambitious">야망</option>
-            </select>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>출생 도시</label>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <select
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: Number(e.target.value) })}
-                className={styles.select}
-                style={{ flex: 1 }}
-              >
-                <option value="0">랜덤</option>
-                {cityList.map((city) => (
-                  <option key={city.id} value={city.id}>
-                    {city.name}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={() => {
-                  // 현재 선택된 국가에 속한 도시만 랜덤 선택
-                  const availableCities = formData.nation === 0 
-                    ? allCities // 재야면 모든 도시
-                    : allCities.filter(city => city.nation === formData.nation); // 선택한 국가의 도시만
-                  
-                  if (availableCities.length > 0) {
-                    const randomCity = availableCities[Math.floor(Math.random() * availableCities.length)];
-                    setFormData(prev => ({ ...prev, city: randomCity.id }));
-                  }
-                }}
-                className={styles.statBtn}
-                disabled={cityList.length === 0}
-              >
-                랜덤
-              </button>
-            </div>
-            {cityList.length === 0 && (
-              <div style={{ marginTop: '0.5rem', fontSize: '0.9em', color: '#999' }}>
-                도시 목록을 불러올 수 없습니다. 랜덤으로 선택됩니다.
-              </div>
-            )}
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>
-              <input
-                type="checkbox"
-                checked={formData.useCustomIcon}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setFormData({ ...formData, useCustomIcon: checked });
-                  if (!checked) {
-                    setIconPreview(null);
-                    setFormData(prev => ({ ...prev, pic: '' }));
-                  }
-                }}
-                style={{ marginRight: '0.5rem' }}
-              />
-              전용 아이콘 사용
-            </label>
-            
-            {formData.useCustomIcon && (
-              <div style={{ marginTop: '0.75rem' }}>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleIconUpload}
-                  disabled={uploading}
-                  className={styles.input}
-                  style={{ marginBottom: '0.5rem' }}
-                />
-                
-                <div style={{ 
-                  fontSize: '0.85em', 
-                  color: '#999', 
-                  marginBottom: '0.5rem' 
-                }}>
-                  권장 크기: 156x210px. 다른 크기는 중앙을 기준으로 잘립니다.
-                </div>
-                
-                {uploading && (
-                  <div style={{ 
-                    padding: '0.75rem', 
-                    background: 'rgba(251, 189, 8, 0.1)', 
-                    borderRadius: '4px', 
-                    color: '#fbbd08',
-                    marginBottom: '0.5rem'
-                  }}>
-                    업로드 중...
-                  </div>
-                )}
-                
-                {iconPreview && !uploading && (
-                  <div style={{ 
-                    marginTop: '0.5rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}>
-                    <div style={{
-                      width: '128px',
-                      height: '128px',
-                      border: '2px solid rgba(142, 192, 124, 0.5)',
-                      borderRadius: '8px',
-                      overflow: 'hidden',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: 'rgba(0, 0, 0, 0.3)'
-                    }}>
-                      <img
-                        src={iconPreview}
-                        alt="아이콘 미리보기"
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '100%',
-                          objectFit: 'cover'
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* 임관 권유문 테이블 */}
+        {nationList.length > 0 && (
+          <div className="bg-background-secondary/70 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-800/50 text-gray-300 border-b border-white/5">
+                    <th className="py-3 px-4 text-left w-[130px]">국가</th>
+                    <th className="py-3 px-4 text-left">임관 권유문</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {nationList.filter(n => n.nation !== 0).map((nation) => {
+                    const bgColor = nation.color || '#000000';
+                    const textColor = getTextColor(bgColor);
+                    return (
+                      <tr 
+                        key={nation.nation}
+                        style={{ 
+                          backgroundColor: bgColor,
+                          color: textColor
                         }}
-                      />
-                    </div>
-                    <div style={{ fontSize: '0.85em', color: '#8ec07c' }}>
-                      ✓ 업로드 완료
+                        className="border-b border-white/5 last:border-0"
+                      >
+                        <td className="py-3 px-4 font-bold text-center">
+                          {nation.name}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div 
+                            className="max-h-[200px] overflow-hidden whitespace-pre-wrap"
+                            dangerouslySetInnerHTML={{ __html: nation.scoutmsg || '-' }}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {joinSummaryCards.length > 0 && (
+          <div className="grid gap-4 md:grid-cols-3">
+            {joinSummaryCards.map((card) => (
+              <InfoSummaryCard key={card.label} dense {...card} />
+            ))}
+          </div>
+        )}
+
+        <HistoryTimeline
+          title="입장 절차"
+          subtitle="트레잇 · 능력치 · 국가"
+          events={entryTimelineEvents}
+          variant="compact"
+          highlightCategory={allowJoinNation ? 'nation' : 'system'}
+        />
+        
+        {loading ? (
+          <div className="flex justify-center items-center p-12">
+             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-white/5 bg-background-secondary/70 p-6 shadow-lg backdrop-blur">
+            
+            {/* 장수명 */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-400">장수명</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="장수명을 입력하세요"
+                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 transition-colors text-white placeholder-gray-600"
+                required
+              />
+            </div>
+
+            {/* 소속 국가 */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-400">소속 국가</label>
+              {allowJoinNation ? (
+                <select
+                  value={formData.nation}
+                  onChange={(e) => setFormData({ ...formData, nation: Number(e.target.value) })}
+                  className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 transition-colors text-white"
+                >
+                  <option value="0" className="bg-gray-900">재야</option>
+                  {nationList.map((nation) => (
+                    <option key={nation.nation} value={nation.nation} className="bg-gray-900">
+                      {nation.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+                  ⚠️ 이 서버는 재야로만 시작할 수 있습니다
+                </div>
+              )}
+            </div>
+
+            {/* 트레잇 */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-400">트레잇 선택</label>
+              <select
+                value={formData.trait}
+                onChange={(e) => setFormData({ ...formData, trait: e.target.value })}
+                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 transition-colors text-white"
+              >
+                <option value="범인" className="bg-gray-900">범인 - 평범 (총합 266~275)</option>
+                <option value="수재" className="bg-gray-900">수재 - 뛰어남 (총합 256~265, 유산 200P)</option>
+                <option value="영재" className="bg-gray-900">영재 - 남다름 (총합 241~255, 유산 500P)</option>
+                <option value="천재" className="bg-gray-900">천재 - 천부적 (총합 220~240, 유산 1000P)</option>
+              </select>
+              
+              {/* 트레잇 정보 카드 */}
+              <div 
+                className="mt-2 p-4 bg-black/20 rounded-lg border-l-4"
+                style={{ borderLeftColor: traitMetadata.color }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="font-bold text-lg" style={{ color: traitMetadata.color }}>✨ {traitMetadata.name}</span>
+                  <span className="text-sm text-gray-400">- {traitMetadata.description}</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                  <div className="text-green-400">📈 {traitMetadata.details}</div>
+                  <div className="text-red-400">⚠️ {traitMetadata.penalty}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 능력치 */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-end">
+                <label className="block text-sm font-medium text-gray-400">
+                  능력치 (통/무/지/정/매)
+                </label>
+                <span className="text-xs text-gray-500 font-mono">
+                  합계: <span className="text-white font-bold">{calculateTotalStats()}</span>
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { label: '통솔', value: formData.leadership, key: 'leadership' },
+                  { label: '무력', value: formData.strength, key: 'strength' },
+                  { label: '지력', value: formData.intel, key: 'intel' },
+                  { label: '정치', value: formData.politics, key: 'politics' },
+                  { label: '매력', value: formData.charm, key: 'charm' },
+                ].map((stat) => (
+                  <div key={stat.key} className="flex flex-col gap-1">
+                    <label className="text-xs text-center text-gray-500">{stat.label}</label>
+                    <div className="w-full bg-black/20 border border-white/5 rounded px-2 py-2 text-center text-white font-mono">
+                      {stat.value}
                     </div>
                   </div>
-                )}
+                ))}
               </div>
-            )}
-          </div>
 
-          <button type="submit" className={styles.submitButton}>
-            장수 생성
-          </button>
-        </form>
-      )}
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                {[
+                  { id: 'random', icon: '🎲', label: '랜덤' },
+                  { id: 'balanced', icon: '⚖️', label: '균형' },
+                  { id: 'commander', icon: '👑', label: '지휘관' },
+                  { id: 'general_warrior', icon: '⚔️', label: '맹장' },
+                  { id: 'warrior', icon: '💪', label: '무인' },
+                  { id: 'tactician', icon: '🎯', label: '전략가' },
+                  { id: 'strategist', icon: '📜', label: '모사' },
+                  { id: 'scholar', icon: '📚', label: '학자' },
+                  { id: 'administrator', icon: '🏛️', label: '내정' },
+                  { id: 'diplomat', icon: '🤝', label: '외교' },
+                  { id: 'charismatic', icon: '✨', label: '군주' },
+                ].map((btn) => (
+                  <button
+                    key={btn.id}
+                    type="button"
+                    onClick={() => randomizeStats(btn.id as any)}
+                    className="flex flex-col items-center justify-center gap-1 p-2 rounded bg-white/5 hover:bg-white/10 border border-white/5 transition-colors text-xs text-gray-300"
+                  >
+                    <span className="text-base">{btn.icon}</span>
+                    <span>{btn.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 성격 */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-400">성격</label>
+              <select
+                value={formData.character}
+                onChange={(e) => setFormData({ ...formData, character: e.target.value })}
+                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 transition-colors text-white"
+              >
+                <option value="Random" className="bg-gray-900">랜덤</option>
+                <option value="brave" className="bg-gray-900">용맹</option>
+                <option value="wise" className="bg-gray-900">현명</option>
+                <option value="loyal" className="bg-gray-900">충성</option>
+                <option value="ambitious" className="bg-gray-900">야망</option>
+              </select>
+            </div>
+
+            {/* 출생 도시 */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-400">출생 도시</label>
+              <div className="flex gap-2">
+                <select
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: Number(e.target.value) })}
+                  className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 transition-colors text-white"
+                >
+                  <option value="0" className="bg-gray-900">랜덤</option>
+                  {cityList.map((city) => (
+                    <option key={city.id} value={city.id} className="bg-gray-900">
+                      {city.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const availableCities = formData.nation === 0 
+                      ? allCities 
+                      : allCities.filter(city => city.nation === formData.nation);
+                    
+                    if (availableCities.length > 0) {
+                      const randomCity = availableCities[Math.floor(Math.random() * availableCities.length)];
+                      setFormData(prev => ({ ...prev, city: randomCity.id }));
+                    }
+                  }}
+                  disabled={cityList.length === 0}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white text-sm transition-colors disabled:opacity-50"
+                >
+                  랜덤
+                </button>
+              </div>
+              {cityList.length === 0 && (
+                <p className="text-xs text-gray-500">
+                  도시 목록을 불러올 수 없습니다. 랜덤으로 선택됩니다.
+                </p>
+              )}
+            </div>
+
+            {/* 전용 아이콘 */}
+            <div className="space-y-4 p-4 bg-black/20 rounded-lg border border-white/5">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.useCustomIcon}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setFormData({ ...formData, useCustomIcon: checked });
+                    if (!checked) {
+                      setIconPreview(null);
+                      setFormData(prev => ({ ...prev, pic: '' }));
+                    }
+                  }}
+                  className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
+                />
+                <span className="text-sm font-medium text-gray-300">전용 아이콘 사용</span>
+              </label>
+              
+              {formData.useCustomIcon && (
+                <div className="space-y-4 pl-6 border-l-2 border-white/10">
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleIconUpload}
+                      disabled={uploading}
+                      className="block w-full text-sm text-gray-400
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-xs file:font-semibold
+                        file:bg-blue-600 file:text-white
+                        hover:file:bg-blue-700
+                        cursor-pointer"
+                    />
+                    <p className="text-xs text-gray-500">
+                      권장 크기: 156x210px. 다른 크기는 중앙을 기준으로 잘립니다.
+                    </p>
+                  </div>
+                  
+                  {uploading && (
+                    <div className="flex items-center gap-2 text-yellow-500 text-sm bg-yellow-500/10 p-2 rounded">
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-yellow-500"></div>
+                      업로드 중...
+                    </div>
+                  )}
+                  
+                  {iconPreview && !uploading && (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-32 h-32 border-2 border-green-500/50 rounded-lg overflow-hidden bg-black/40 flex items-center justify-center">
+                        <img
+                          src={iconPreview}
+                          alt="아이콘 미리보기"
+                          className="max-w-full max-h-full object-cover"
+                        />
+                      </div>
+                      <span className="text-xs text-green-400 flex items-center gap-1">
+                        ✓ 업로드 완료
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <button 
+              type="submit" 
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:shadow-blue-500/20 transition-all transform hover:-translate-y-0.5"
+            >
+              장수 생성
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

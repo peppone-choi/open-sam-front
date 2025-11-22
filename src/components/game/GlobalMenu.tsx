@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import styles from './GlobalMenu.module.css';
 import type { ColorSystem } from '@/types/colorSystem';
+import { cn } from '@/lib/utils';
 
 export interface MenuItem {
   type?: 'item' | 'multi' | 'split' | 'line';
@@ -123,75 +123,84 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick, nationColor,
     }
   };
 
+  const buttonClass = "px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap flex items-center gap-1";
+  const defaultButtonStyle = {
+     backgroundColor: colorSystem?.buttonBg ?? 'rgba(59, 130, 246, 0.2)',
+     color: colorSystem?.buttonText ?? '#fff',
+     border: `1px solid ${colorSystem?.borderLight ?? 'rgba(255,255,255,0.1)'}`
+  };
+
   return (
-    <div 
-      className={styles.globalMenu}
-      style={{
-        '--button-bg': colorSystem?.buttonBg,
-        '--button-hover': colorSystem?.buttonHover,
-        '--button-text': colorSystem?.buttonText,
-        '--dropdown-bg': colorSystem?.pageBg,
-        '--dropdown-border': colorSystem?.border,
-        color: colorSystem?.text,
-      } as React.CSSProperties}
-    >
+    <div className="flex flex-wrap gap-2 items-center">
       {filteredMenu.length === 0 ? (
-        <div style={{ padding: '1rem', textAlign: 'center', color: '#666' }}>
+        <div className="w-full text-center text-sm text-foreground-muted py-2">
           메뉴를 불러올 수 없습니다.
         </div>
       ) : (
         <>
           {filteredMenu.map((item, idx) => {
             if (item.type === 'line') {
-              return <hr key={idx} className={styles.menuDivider} />;
+              return <div key={idx} className="w-px h-6 bg-white/10 mx-1" />;
             }
 
             if (item.type === 'item' || (!item.type && item.url)) {
               const href = normalizeUrl(item.url);
-              const content = (
-                <Link
-                  href={href}
-                  className={styles.menuButton}
-                  target={item.newTab ? '_blank' : undefined}
-                  onClick={(e) => handleMenuClick(e, item)}
-                >
-                  {item.name}
-                </Link>
+              return (
+                <div key={idx}>
+                  <Link
+                    href={href}
+                    className={cn(buttonClass, "hover:opacity-80 shadow-sm active:scale-95")}
+                    style={defaultButtonStyle}
+                    target={item.newTab ? '_blank' : undefined}
+                    onClick={(e) => handleMenuClick(e, item)}
+                  >
+                    {item.name}
+                  </Link>
+                </div>
               );
-              return <div key={idx} className={styles.menuItem}>{content}</div>;
             }
 
             if (item.type === 'multi' && item.subMenu) {
               const isOpen = openDropdowns.has(idx);
               return (
-                <div key={idx} className={styles.menuItem}>
+                <div key={idx} className="relative">
                   <button
-                    className={styles.menuButton}
+                    className={cn(buttonClass, "hover:opacity-80 shadow-sm active:scale-95 pr-2")}
+                    style={defaultButtonStyle}
                     onClick={() => toggleDropdown(idx)}
                   >
-                    {item.name} ▼
+                    {item.name}
+                    <span className="ml-1 text-[10px] opacity-70">▼</span>
                   </button>
                   {isOpen && (
-                    <div className={styles.dropdownMenu}>
-                      {item.subMenu.map((subItem, subIdx) => {
-                        if (subItem.type === 'line') {
-                          return <hr key={subIdx} className={styles.menuDivider} />;
-                        }
-                        const href = normalizeUrl(subItem.url);
-                        return (
-                          <Link
-                            key={subIdx}
-                            href={href}
-                            className={styles.dropdownItem}
-                            target={subItem.newTab ? '_blank' : undefined}
-                            onClick={(e) => handleMenuClick(e, subItem)}
-                            style={{ color: colorSystem?.text }}
-                          >
-                            {subItem.name}
-                          </Link>
-                        );
-                      })}
-                    </div>
+                    <>
+                       <div className="fixed inset-0 z-40" onClick={() => toggleDropdown(idx)} />
+                       <div 
+                          className="absolute top-full left-0 mt-1 z-50 min-w-[160px] bg-background-tertiary/95 backdrop-blur-md border border-white/10 rounded-lg shadow-xl py-1 animate-in fade-in zoom-in-95 duration-100"
+                          style={{ borderColor: colorSystem?.border }}
+                       >
+                        {item.subMenu.map((subItem, subIdx) => {
+                          if (subItem.type === 'line') {
+                            return <div key={subIdx} className="h-px bg-white/10 my-1" />;
+                          }
+                          const href = normalizeUrl(subItem.url);
+                          return (
+                            <Link
+                              key={subIdx}
+                              href={href}
+                              className="block w-full text-left px-4 py-2 text-sm hover:bg-primary hover:text-white transition-colors text-foreground-dim"
+                              target={subItem.newTab ? '_blank' : undefined}
+                              onClick={(e) => {
+                                handleMenuClick(e, subItem);
+                                toggleDropdown(idx);
+                              }}
+                            >
+                              {subItem.name}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </>
                   )}
                 </div>
               );
@@ -201,44 +210,50 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick, nationColor,
               const isOpen = openDropdowns.has(idx);
               const mainHref = normalizeUrl(item.main.url);
               return (
-                <div key={idx} className={styles.menuItem}>
-                  <div className={styles.splitButton}>
-                    <Link
-                      href={mainHref}
-                      className={styles.menuButton}
-                      target={item.main.newTab ? '_blank' : undefined}
-                      onClick={(e) => handleMenuClick(e, item.main!)}
-                    >
-                      {item.main.name}
-                    </Link>
-                    <button
-                      className={styles.splitToggle}
-                      onClick={() => toggleDropdown(idx)}
-                    >
-                      ▼
-                    </button>
-                  </div>
+                <div key={idx} className="relative flex rounded-md shadow-sm" style={defaultButtonStyle}>
+                  <Link
+                    href={mainHref}
+                    className="px-3 py-1.5 text-sm font-medium hover:opacity-80 active:scale-95 border-r border-white/10 rounded-l-md"
+                    target={item.main.newTab ? '_blank' : undefined}
+                    onClick={(e) => handleMenuClick(e, item.main!)}
+                  >
+                    {item.main.name}
+                  </Link>
+                  <button
+                    className="px-1.5 py-1.5 hover:opacity-80 active:scale-95 rounded-r-md"
+                    onClick={() => toggleDropdown(idx)}
+                  >
+                    <span className="text-[10px] opacity-70">▼</span>
+                  </button>
                   {isOpen && (
-                    <div className={styles.dropdownMenu}>
-                      {item.subMenu.map((subItem, subIdx) => {
-                        if (subItem.type === 'line') {
-                          return <hr key={subIdx} className={styles.menuDivider} />;
-                        }
-                        const href = normalizeUrl(subItem.url);
-                        return (
-                          <Link
-                            key={subIdx}
-                            href={href}
-                            className={styles.dropdownItem}
-                            target={subItem.newTab ? '_blank' : undefined}
-                            onClick={(e) => handleMenuClick(e, subItem)}
-                            style={{ color: colorSystem?.text }}
-                          >
-                            {subItem.name}
-                          </Link>
-                        );
-                      })}
-                    </div>
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => toggleDropdown(idx)} />
+                      <div 
+                          className="absolute top-full right-0 mt-1 z-50 min-w-[160px] bg-background-tertiary/95 backdrop-blur-md border border-white/10 rounded-lg shadow-xl py-1 animate-in fade-in zoom-in-95 duration-100"
+                          style={{ borderColor: colorSystem?.border }}
+                      >
+                        {item.subMenu.map((subItem, subIdx) => {
+                          if (subItem.type === 'line') {
+                            return <div key={subIdx} className="h-px bg-white/10 my-1" />;
+                          }
+                          const href = normalizeUrl(subItem.url);
+                          return (
+                            <Link
+                              key={subIdx}
+                              href={href}
+                              className="block w-full text-left px-4 py-2 text-sm hover:bg-primary hover:text-white transition-colors text-foreground-dim"
+                              target={subItem.newTab ? '_blank' : undefined}
+                              onClick={(e) => {
+                                handleMenuClick(e, subItem);
+                                toggleDropdown(idx);
+                              }}
+                            >
+                              {subItem.name}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </>
                   )}
                 </div>
               );
@@ -251,7 +266,3 @@ export default function GlobalMenu({ menu, globalInfo, onMenuClick, nationColor,
     </div>
   );
 }
-
-
-
-

@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 // 전역 소켓 인스턴스 (HMR 중에도 유지)
@@ -212,90 +212,61 @@ export function useSocket(options: UseSocketOptions = {}) {
     };
   }, [autoConnect, sessionId, getToken]);
 
+  const subscribe = useCallback((channel: string, callback: (data: any) => void) => {
+    const target = socketRef.current;
+    if (!target) {
+      return () => {};
+    }
+
+    target.on(channel, callback);
+    return () => {
+      target.off(channel, callback);
+    };
+  }, []);
+
+  const createNamespacedSubscriber = useCallback(
+    (namespace: string) => (event: string, callback: (data: any) => void) =>
+      subscribe(`${namespace}:${event}`, callback),
+    [subscribe]
+  );
+
   /**
    * 게임 이벤트 리스너 등록
    */
-  const onGameEvent = (event: string, callback: (data: any) => void) => {
-    if (!socket) return () => {};
-    
-    socket.on(`game:${event}`, callback);
-    
-    return () => {
-      socket.off(`game:${event}`, callback);
-    };
-  };
+  const onGameEvent = useMemo(() => createNamespacedSubscriber('game'), [createNamespacedSubscriber]);
 
   /**
    * 장수 이벤트 리스너 등록
    */
-  const onGeneralEvent = (event: string, callback: (data: any) => void) => {
-    if (!socket) return () => {};
-    
-    socket.on(`general:${event}`, callback);
-    
-    return () => {
-      socket.off(`general:${event}`, callback);
-    };
-  };
+  const onGeneralEvent = useMemo(() => createNamespacedSubscriber('general'), [createNamespacedSubscriber]);
 
   /**
    * 국가 이벤트 리스너 등록
    */
-  const onNationEvent = (event: string, callback: (data: any) => void) => {
-    if (!socket) return () => {};
-    
-    socket.on(`nation:${event}`, callback);
-    
-    return () => {
-      socket.off(`nation:${event}`, callback);
-    };
-  };
+  const onNationEvent = useMemo(() => createNamespacedSubscriber('nation'), [createNamespacedSubscriber]);
 
   /**
    * 전투 이벤트 리스너 등록
    */
-  const onBattleEvent = (event: string, callback: (data: any) => void) => {
-    if (!socket) return () => {};
-    
-    socket.on(`battle:${event}`, callback);
-    
-    return () => {
-      socket.off(`battle:${event}`, callback);
-    };
-  };
+  const onBattleEvent = useMemo(() => createNamespacedSubscriber('battle'), [createNamespacedSubscriber]);
 
   /**
    * 턴 완료 리스너
    */
-  const onTurnComplete = (callback: (data: { turnNumber: number; nextTurnAt: Date }) => void) => {
-    if (!socket) return () => {};
-    
-    socket.on('game:turn:complete', callback);
-    
-    return () => {
-      socket.off('game:turn:complete', callback);
-    };
-  };
+  const onTurnComplete = (callback: (data: { turnNumber: number; nextTurnAt: Date }) => void) =>
+    subscribe('game:turn:complete', callback);
 
   /**
    * 로그 업데이트 리스너
    */
-  const onLogUpdate = (callback: (data: { 
+  const onLogUpdate = (callback: (data: {
     sessionId: string;
     generalId: number;
     logType: 'action' | 'history';
     logId: number;
     logText: string;
     timestamp: Date;
-  }) => void) => {
-    if (!socket) return () => {};
-    
-    socket.on('log:updated', callback);
-    
-    return () => {
-      socket.off('log:updated', callback);
-    };
-  };
+  }) => void) => subscribe('log:updated', callback);
 
   return {
     socket,

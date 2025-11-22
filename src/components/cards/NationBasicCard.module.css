@@ -1,102 +1,151 @@
 .nationCardBasic {
     width: 100%;
     height: auto;
-    display: grid;
-    grid-template-columns: 4fr 21fr 4fr 21fr;
-    grid-template-rows: repeat(10, 18px);
-    border-bottom: solid 1px gray;
-    border-right: solid 1px gray;
-    border-left: solid 1px gray;
-    box-sizing: border-box;
-    gap: 1px;
-    padding: 4px;
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    background: rgba(30, 30, 35, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    color: #e0e0e0;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
 }
 
-.name {
-grid-column: 1 / span 4;
+.headerSection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nationNamePanel {
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.6rem;
+    padding: 0.75rem;
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.statsGrid::-webkit-scrollbar {
+    width: 4px;
+}
+
+.statsGrid::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+}
+
+.statsGrid::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.gPanel {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s;
+}
+
+.gPanel:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.gHead {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+}
+
+.gBody {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+.subValue {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: normal;
 }
 
 .clickable {
-  cursor: pointer;
-  text-decoration: underline;
-  text-decoration-style: dotted;
+    cursor: pointer;
+    transition: color 0.2s;
 }
 
 .clickable:hover {
-  opacity: 0.8;
+    color: #fff;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
-.typeBody {
-    grid-column: 2 / span 3;
+/* Full Width Panel for Type/Notice */
+.fullWidthPanel {
+    grid-column: 1 / -1;
 }
 
-.tbTitle {
-    text-align: center;
-    padding: 2px;
-    border-left: none;
-    border-top: none;
-    border-radius: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.875rem;
+/* Span Two Columns Panel */
+.spanTwoCols {
+    grid-column: span 2;
 }
 
-.tbHead {
-    border-left: none;
-    border-top: none;
-    text-align: center;
-    padding: 2px;
-    border-radius: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.875rem;
+.typeText {
+    font-size: 0.9rem;
+    line-height: 1.4;
 }
 
-.tbBody {
-    border-top: none;
-    padding: 2px;
-    text-align: center;
-    border-radius: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.875rem;
+/* Status Indicators */
+.statusIndicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.4rem;
 }
 
-.typeHead { grid-column: 1; grid-row: 2; }
-.typeBody { grid-column: 2 / span 3; grid-row: 2; }
-/* c12와 c11은 row 2가 아니라 row 3로 이동해야 함 (성향이 4칸을 차지하므로) */
-.c12Head { grid-column: 1; grid-row: 3; }
-.c12Body { grid-column: 2; grid-row: 3; }
-.c11Head { grid-column: 3; grid-row: 3; }
-.c11Body { grid-column: 4; grid-row: 3; }
-.popHead { grid-column: 1; grid-row: 4; }
-.popBody { grid-column: 2; grid-row: 4; }
-.crewHead { grid-column: 3; grid-row: 4; }
-.crewBody { grid-column: 4; grid-row: 4; }
-.goldHead { grid-column: 1; grid-row: 5; }
-.goldBody { grid-column: 2; grid-row: 5; }
-.riceHead { grid-column: 3; grid-row: 5; }
-.riceBody { grid-column: 4; grid-row: 5; }
-.billHead { grid-column: 1; grid-row: 6; }
-.billBody { grid-column: 2; grid-row: 6; }
-.taxRateHead { grid-column: 3; grid-row: 6; }
-.taxRateBody { grid-column: 4; grid-row: 6; }
-.cityCntHead { grid-column: 1; grid-row: 7; }
-.cityCntBody { grid-column: 2; grid-row: 7; }
-.genCntHead { grid-column: 3; grid-row: 7; }
-.genCntBody { grid-column: 4; grid-row: 7; }
-.powerHead { grid-column: 1; grid-row: 8; }
-.powerBody { grid-column: 2; grid-row: 8; }
-.techHead { grid-column: 3; grid-row: 8; }
-.techBody { grid-column: 4; grid-row: 8; }
-.strategicClgHead { grid-column: 1; grid-row: 9; }
-.strategicClgBody { grid-column: 2; grid-row: 9; }
-.diplomaticClgHead { grid-column: 3; grid-row: 9; }
-.diplomaticClgBody { grid-column: 4; grid-row: 9; }
-.prohibitScoutHead { grid-column: 1; grid-row: 10; }
-.prohibitScoutBody { grid-column: 2; grid-row: 10; }
-.prohibitWarHead { grid-column: 3; grid-row: 10; }
-.prohibitWarBody { grid-column: 4; grid-row: 10; }
+.statusOn {
+    background-color: #4CAF50;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+}
+
+.statusOff {
+    background-color: #F44336;
+    box-shadow: 0 0 8px rgba(244, 67, 54, 0.5);
+}
+
+@media (max-width: 640px) {
+    .statsGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .spanTwoCols {
+        grid-column: 1 / -1; /* 모바일에서는 전체 너비 */
+    }
+}

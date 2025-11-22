@@ -24,11 +24,11 @@ interface MapCityDetailProps {
   city: MapCity;
   isMyCity: boolean;
   isSelected?: boolean;
-  isFullWidth: boolean;
   hideCityName?: boolean;
   onMouseEnter?: (e: React.MouseEvent, city: MapCity) => void;
   onMouseLeave?: (e: React.MouseEvent) => void;
   onClick?: (e: React.MouseEvent, city: MapCity) => void;
+  onTouchStart?: (e: React.TouchEvent, city: MapCity) => void;
   onTouchEnd?: (e: React.TouchEvent, city: MapCity) => void;
   onToggleCityName?: () => void;
 }
@@ -40,22 +40,32 @@ export default function MapCityDetail({
   city,
   isMyCity,
   isSelected = false,
-  isFullWidth,
   hideCityName = false,
   onMouseEnter,
   onMouseLeave,
   onClick,
+  onTouchStart,
   onTouchEnd,
   onToggleCityName,
 }: MapCityDetailProps) {
   // 위치 계산 - 도시 아이콘 중심 맞추기
-  // 지도 크기: 700px → 740px (비율: 740/700 = 1.057)
-  // 돈황(x=10)이 맵 왼쪽에 보이도록 오프셋 조정
-  const LEFT_OFFSET = 10; // 돈황이 보이도록 조정
-  const SCALE_X = 740 / 700; // 가로 스케일 비율
-  const cityPos = isFullWidth
-    ? { left: `${(city.x - LEFT_OFFSET) * SCALE_X}px`, top: `${city.y - 15}px` }
-    : { left: `${(city.x - LEFT_OFFSET) * 0.714}px`, top: `${(city.y - 15) * 0.714}px` };
+  // 지도 크기: 1000px x 675px (표준 해상도)
+  // 데이터가 이미 1000x675 기준으로 변환되어 있음
+  
+  // 돈황 등 좌측 끝 도시가 잘리지 않도록 오프셋 조정 (10px * 1.428 ≈ 14px)
+  const LEFT_OFFSET = 14; 
+  // 상단 오프셋 조정 (15px * 1.35 ≈ 20px)
+  const TOP_OFFSET = 20;
+
+  // 반응형 좌표 계산 (백분율)
+  const xPercent = ((city.x - LEFT_OFFSET) / 1000) * 100;
+  const yPercent = ((city.y - TOP_OFFSET) / 675) * 100;
+
+  const cityPos = { 
+    left: `${xPercent}%`, 
+    top: `${yPercent}%`, 
+    zIndex: 1 + Math.floor(city.y) // z-index는 정수여야 함
+  };
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -77,11 +87,18 @@ export default function MapCityDetail({
     }
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (onTouchStart) {
+      onTouchStart(e, city);
+    }
+  };
+ 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (onTouchEnd) {
       onTouchEnd(e, city);
     }
   };
+
 
   // 도시 아이콘 이미지 크기 반환 (실제 이미지 크기)
   const getCityIconImgSize = (level: number): { width: string; height: string } => {
@@ -324,7 +341,11 @@ export default function MapCityDetail({
       <a
         className="city_link"
         href="#"
+        role="button"
+        tabIndex={city.clickable ? 0 : -1}
+        aria-label={`${city.name}, ${getCityLevelName(city.level)}급, ${city.nation || '무소속'}`}
         onClick={handleClick}
+        onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}

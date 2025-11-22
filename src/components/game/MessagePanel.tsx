@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SammoAPI } from '@/lib/api/sammo';
 import { useToast } from '@/contexts/ToastContext';
 import styles from './MessagePanel.module.css';
@@ -22,6 +22,8 @@ interface Message {
   type: string;
   src_general_id?: number;
   src_general_name?: string;
+  src_general_picture?: string;
+  src_general_imgsvr?: number;
   src_nation_id?: number;
   src_nation_name?: string;
   dest_general_id?: number;
@@ -39,6 +41,17 @@ interface Contact {
   name: string;
   color: number;
   general: Array<[number, string, number]>;
+}
+
+// 아이콘 경로 가져오기
+function getIconPath(imgsvr: number, picture: string): string {
+  if (!picture) return '';
+  // 실제 이미지 서버 경로 구성
+  // imgsvr이 있으면 해당 서버 사용, 없으면 기본 경로
+  if (imgsvr && imgsvr > 0) {
+    return `/api/general/icon/${imgsvr}/${picture}`;
+  }
+  return `/image/general/${picture}.png`;
 }
 
 export default function MessagePanel({
@@ -132,14 +145,13 @@ export default function MessagePanel({
     }
   }
 
-  const handleLoadMore = useCallback(() => {
+  const handleLoadMore = () => {
     if (!loadingMore && hasMore) {
       loadMessages(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadingMore, hasMore]);
+  };
 
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const element = e.currentTarget;
     const scrollTop = element.scrollTop;
     const scrollHeight = element.scrollHeight;
@@ -148,7 +160,7 @@ export default function MessagePanel({
     if (scrollHeight - scrollTop <= clientHeight + 50) {
       handleLoadMore();
     }
-  }, [handleLoadMore]);
+  };
 
   async function loadContacts() {
     try {
@@ -486,11 +498,19 @@ export default function MessagePanel({
                             backgroundColor: '#1a1a1a',
                             border: '1px solid ' + (colorSystem?.border || '#666'),
                             borderRadius: '2px',
-                            backgroundSize: 'cover',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'center',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
                           }}>
-                            {/* 장수 아이콘 영역 - 156x210 비율 유지 (약 1/3.33 크기) */}
+                            <img
+                              src={msg.src_general_picture ? getIconPath(msg.src_general_imgsvr || 0, msg.src_general_picture) : '/default_portrait.png'}
+                              alt={msg.src_general_name || '장수'}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = '/default_portrait.png';
+                              }}
+                            />
                           </div>
                         )}
                         <div style={{ flex: 1, minWidth: 0 }}>

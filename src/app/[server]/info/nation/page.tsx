@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import NationBasicCard from '@/components/cards/NationBasicCard';
-import styles from './page.module.css';
+import { cn } from '@/lib/utils';
 
 export default function NationInfoPage() {
   const params = useParams();
@@ -51,21 +51,24 @@ export default function NationInfoPage() {
   }
 
   return (
-    <div className={styles.container}>
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
       <TopBackBar title="세 력 정 보" reloadable onReload={loadNationData} />
+      
       {loading ? (
-        <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
+        <div className="flex justify-center items-center h-[50vh]">
+           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        </div>
       ) : nationData && globalData ? (
-        <div className={styles.content}>
-          <NationBasicCard nation={nationData} global={globalData} />
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
+            <NationBasicCard nation={nationData} global={globalData} />
+          </div>
         </div>
       ) : (
-        <div className="center" style={{ padding: '2rem' }}>세력 정보를 불러올 수 없습니다.</div>
+        <div className="flex justify-center items-center h-[50vh] text-gray-500">
+          세력 정보를 불러올 수 없습니다.
+        </div>
       )}
     </div>
   );
 }
-
-
-
-

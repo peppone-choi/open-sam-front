@@ -2,6 +2,8 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useSocket } from '@/hooks/useSocket';
+import { cn } from '@/lib/utils';
+import { LOGH_TEXT } from '@/constants/uiText';
 
 /**
  * LOGH Tactical Map Component
@@ -104,8 +106,10 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
     for (let i = 0; i < 100; i++) {
       const x = Math.random() * canvas.width;
       const y = Math.random() * canvas.height;
+      ctx.globalAlpha = Math.random() * 0.8 + 0.2;
       ctx.fillRect(x, y, 1, 1);
     }
+    ctx.globalAlpha = 1.0;
 
     // 그리드 (옵션)
     ctx.strokeStyle = '#222222';
@@ -178,7 +182,8 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
       // 함대 이름 (옵션)
       ctx.fillStyle = '#ffffff';
       ctx.font = '10px sans-serif';
-      ctx.fillText(fleet.fleetId.substring(0, 8), screenX + size + 5, screenY);
+      ctx.textAlign = 'center';
+      ctx.fillText(fleet.fleetId.substring(0, 8), screenX, screenY + size + 15);
     });
   }, [fleets, camera, selectedFleet]);
 
@@ -232,55 +237,72 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
-      <div className="relative">
-        {/* 닫기 버튼 */}
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 z-10"
-        >
-          전술 맵 닫기
-        </button>
-
-        {/* 캔버스 */}
-        <canvas
-          ref={canvasRef}
-          onClick={handleCanvasClick}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            handleCanvasClick(e as any);
-          }}
-          onWheel={handleWheel}
-          className="border border-gray-700 cursor-crosshair"
-        />
-
-        {/* 안내 텍스트 */}
-        <div className="absolute bottom-2 left-2 bg-black bg-opacity-80 text-white p-2 rounded text-sm">
-          <div>좌클릭: 함대 선택</div>
-          <div>우클릭: 이동 명령</div>
-          <div>휠: 확대/축소</div>
+    <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+      <div className="relative w-full max-w-6xl bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
+        {/* Header */}
+        <div className="flex justify-between items-center p-4 bg-gray-800 border-b border-gray-700">
+           <h3 className="text-lg font-bold text-white">전술 지도 (Tactical Map)</h3>
+           <button
+             onClick={onClose}
+             className="bg-red-600/80 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors"
+           >
+             전투 종료 / 닫기
+           </button>
         </div>
 
-        {/* 선택된 함대 정보 */}
-        {selectedFleet && (
-          <div className="absolute top-16 right-2 bg-black bg-opacity-90 text-white p-3 rounded">
-            <div className="font-bold mb-2">{selectedFleet.fleetId}</div>
-            <div className="text-sm space-y-1">
-              <div>함선: {selectedFleet.totalShips.toLocaleString()}</div>
-              <div>진형: {selectedFleet.formation}</div>
-              {selectedFleet.tacticalPosition && (
-                <div className="text-xs text-gray-400">
-                  ({Math.floor(selectedFleet.tacticalPosition.x)},{' '}
-                  {Math.floor(selectedFleet.tacticalPosition.y)})
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        <div className="relative">
+          {/* 캔버스 */}
+          <canvas
+            ref={canvasRef}
+            data-testid="tactical-map-canvas"
+            onClick={handleCanvasClick}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              handleCanvasClick(e as any);
+            }}
+            onWheel={handleWheel}
+            className="cursor-crosshair block w-full h-auto"
+            style={{
+               height: '600px',
+               backgroundColor: '#000000'
+            }}
+          />
 
-        {/* 줌 레벨 */}
-        <div className="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white px-2 py-1 rounded text-xs">
-          줌: {(camera.zoom * 100).toFixed(0)}%
+          {/* 안내 텍스트 */}
+          <div className="absolute bottom-4 left-4 bg-black/80 text-gray-300 p-3 rounded-lg text-xs border border-white/10 backdrop-blur-sm">
+            <div className="flex items-center gap-2"><span className="text-blue-400">{LOGH_TEXT.pointerGuide.leftClick.label}</span> {LOGH_TEXT.pointerGuide.leftClick.action}</div>
+            <div className="flex items-center gap-2"><span className="text-red-400">{LOGH_TEXT.pointerGuide.rightClick.label}</span> {LOGH_TEXT.pointerGuide.rightClick.action}</div>
+            <div className="flex items-center gap-2"><span className="text-yellow-400">{LOGH_TEXT.pointerGuide.wheel.label}</span> {LOGH_TEXT.pointerGuide.wheel.action}</div>
+          </div>
+
+          {/* 선택된 함대 정보 */}
+          {selectedFleet && (
+            <div className="absolute top-4 right-4 bg-black/90 text-white p-4 rounded-lg min-w-[200px] border border-blue-500/30 shadow-xl backdrop-blur-sm">
+              <div className="font-bold mb-2 text-blue-300 border-b border-white/10 pb-1">
+                 {selectedFleet.fleetId}
+              </div>
+              <div className="text-sm space-y-1.5">
+                <div className="flex justify-between">
+                   <span className="text-gray-400">함선</span>
+                   <span className="font-mono">{selectedFleet.totalShips.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                   <span className="text-gray-400">진형</span>
+                   <span className="text-yellow-400">{selectedFleet.formation}</span>
+                </div>
+                {selectedFleet.tacticalPosition && (
+                  <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-white/5 font-mono text-center">
+                    {LOGH_TEXT.positionLabel}: {Math.floor(selectedFleet.tacticalPosition.x)}, {Math.floor(selectedFleet.tacticalPosition.y)}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 줌 레벨 */}
+          <div className="absolute bottom-4 right-4 bg-black/80 text-white px-3 py-1.5 rounded-full text-xs border border-white/10 font-mono">
+            {LOGH_TEXT.zoomPrefix}: {(camera.zoom * 100).toFixed(0)}%
+          </div>
         </div>
       </div>
     </div>

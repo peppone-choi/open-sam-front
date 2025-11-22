@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
-import styles from './page.module.css';
+import { cn } from '@/lib/utils';
 
 function HallOfFameContent() {
   const params = useParams();
@@ -42,15 +42,21 @@ function HallOfFameContent() {
   }
 
   return (
-    <div className={styles.container}>
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
       <TopBackBar title="명 예 의 전 당" />
-      {loading ? (
-        <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
-      ) : (
-        <div className={styles.content}>
-          <div className={styles.filterSection}>
-            <label>
-              시나리오 검색:
+      
+      <div className="max-w-6xl mx-auto space-y-6">
+        {loading ? (
+          <div className="flex justify-center items-center h-[50vh]">
+             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          </div>
+        ) : (
+          <>
+            {/* Filter Section */}
+            <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-4 shadow-lg flex flex-col sm:flex-row items-center gap-4">
+              <label className="text-sm font-medium text-gray-300 whitespace-nowrap">
+                시나리오 검색
+              </label>
               <select
                 value={`${seasonIdx}_${scenarioIdx || ''}`}
                 onChange={(e) => {
@@ -66,34 +72,48 @@ function HallOfFameContent() {
                   }
                   window.location.href = url.toString();
                 }}
-                className={styles.select}
+                className="flex-1 w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 transition-colors text-white"
               >
                 {scenarioList.map((scenario) => (
-                  <option key={`${scenario.season}_${scenario.scenario}`} value={`${scenario.season}_${scenario.scenario}`}>
+                  <option key={`${scenario.season}_${scenario.scenario}`} value={`${scenario.season}_${scenario.scenario}`} className="bg-gray-900">
                     {scenario.name} ({scenario.cnt}회)
                   </option>
                 ))}
               </select>
-            </label>
-          </div>
-          <div className={styles.rankSection}>
-            {/* 명예의 전당 랭킹 표시 */}
-          </div>
-        </div>
-      )}
+            </div>
+
+            {/* Rank Section */}
+            <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-6 shadow-lg min-h-[400px]">
+              {/* 실제 데이터 렌더링은 백엔드 데이터 구조에 따라 구현 필요 */}
+              {hallOfFameData ? (
+                 <div className="space-y-4">
+                    {/* Placeholder for hall of fame data structure */}
+                    <pre className="text-xs text-gray-500 overflow-auto p-4 bg-black/30 rounded">
+                       {JSON.stringify(hallOfFameData, null, 2)}
+                    </pre>
+                 </div>
+              ) : (
+                 <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                    <div className="text-4xl mb-2">🏛️</div>
+                    <p>선택된 시나리오의 기록이 없습니다.</p>
+                 </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
 
 export default function HallOfFamePage() {
   return (
-    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-950 flex justify-center items-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+      </div>
+    }>
       <HallOfFameContent />
     </Suspense>
   );
 }
-
-
-
-
-

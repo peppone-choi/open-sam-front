@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import styles from './PartialReservedCommand.module.css';
@@ -52,7 +52,7 @@ export default function ChiefReservedCommand({ serverID, colorSystem }: ChiefRes
   const [editingTurnIndex, setEditingTurnIndex] = useState<number | null>(null);
   const [selectedTurns, setSelectedTurns] = useState<number[]>([]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -136,13 +136,12 @@ export default function ChiefReservedCommand({ serverID, colorSystem }: ChiefRes
     } finally {
       setLoading(false);
     }
-  };
+  }, [serverID]);
 
   useEffect(() => {
     if (!serverID) return;
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serverID]);
+  }, [loadData]);
 
   const openDialogForTurn = (idx: number) => {
     if (!isChief) {

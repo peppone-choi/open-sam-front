@@ -1,0 +1,56 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]: 시스템
+      - button "메신저" [ref=e6] [cursor=pointer]: 💬
+      - button "정보판" [ref=e7] [cursor=pointer]: ℹ️
+      - button "우편함" [ref=e8] [cursor=pointer]: ✉️
+      - button "로그아웃" [ref=e12] [cursor=pointer]: 🚪
+    - main [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - generic [ref=e16]: 796년
+          - generic [ref=e17]: 1월 1일 12:00
+        - generic [ref=e18]:
+          - generic [ref=e19]: "명령력: 120/120"
+          - generic [ref=e20]: "계급: 준장"
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - button "PERSONNEL (人事)" [ref=e24] [cursor=pointer]
+          - button "LOGISTICS (兵站)" [ref=e25] [cursor=pointer]
+          - button "FINANCE (財務)" [active] [ref=e26] [cursor=pointer]
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - generic [ref=e30]:
+              - generic [ref=e31]: TREASURY
+              - generic [ref=e32]: 150,000 Cr
+            - generic [ref=e33]:
+              - generic [ref=e34]: INCOME
+              - generic [ref=e35]: +5,000 / turn
+            - generic [ref=e36]:
+              - generic [ref=e37]: EXPENSE
+              - generic [ref=e38]: "-3,200 / turn"
+          - generic [ref=e39]:
+            - heading "FINANCIAL LOGS" [level=3] [ref=e40]
+            - generic [ref=e41]:
+              - generic [ref=e42]: "[796.01.01] Fleet Maintenance: -1,200 Cr"
+              - generic [ref=e43]: "[796.01.01] Tax Revenue (Odin): +3,500 Cr"
+              - generic [ref=e44]: "[795.12.31] Ship Construction: -50,000 Cr"
+      - generic:
+        - generic [ref=e45]:
+          - link "🗺️ 전략실" [ref=e46] [cursor=pointer]:
+            - /url: /game/strategy
+          - link "🏛️ 사령부" [ref=e47] [cursor=pointer]:
+            - /url: /game/office
+          - link "📡 통신실" [ref=e48] [cursor=pointer]:
+            - /url: /game/comm
+        - generic [ref=e53] [cursor=pointer]:
+          - generic [ref=e54]: 13th Fleet Commander
+          - generic [ref=e55]: Rear Admiral
+  - button "Open Next.js Dev Tools" [ref=e61] [cursor=pointer]:
+    - img [ref=e62]
+  - alert [ref=e65]
+```

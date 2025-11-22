@@ -1,8 +1,12 @@
-import type { NextConfig } from "next";
-
+import type { NextConfig } from 'next';
+ 
 const nextConfig: NextConfig = {
+
   reactCompiler: true,
   output: 'standalone', // Docker 최적화
+  turbopack: {
+    root: __dirname,
+  },
   async rewrites() {
     const backend = process.env.BACKEND_URL || 'http://localhost:8080';
     return [

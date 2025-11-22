@@ -1,38 +1,63 @@
 .commandPad {
-    border: 1px solid gray;
+    --prc-text-color: #ffffff;
+    --prc-muted-text: rgba(255, 255, 255, 0.7);
+    --prc-toolbar-bg: rgba(255, 255, 255, 0.03);
+    --prc-footer-bg: rgba(255, 255, 255, 0.02);
+    --prc-button-bg: rgba(255, 255, 255, 0.1);
+    --prc-button-hover: rgba(255, 255, 255, 0.2);
+    --prc-button-text: #ffffff;
+    --prc-button-border: rgba(255, 255, 255, 0.1);
+    --prc-divider-color: rgba(255, 255, 255, 0.05);
+    --prc-border-color: rgba(255, 255, 255, 0.1);
+    --prc-card-bg: rgba(0, 0, 0, 0.2);
+    --prc-clock-bg: rgba(0, 102, 204, 0.8);
+    --prc-clock-text: #ffffff;
+    --prc-turn-selected-bg: rgba(0, 102, 204, 0.5);
+    --prc-scrollbar-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--prc-border-color);
     padding: 0;
-    color: white;
+    color: var(--prc-text-color);
     font-size: 0.875rem;
-    height: 100%;
-    max-height: 100%;
+    /* 높이 제한 완전 제거 */
+    height: auto;
+    min-height: 100%;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    overflow: hidden;
+    overflow: visible;
+    background: var(--prc-card-bg);
+    border-radius: 8px;
 }
 
 .toolbar {
     display: flex;
-    gap: 0.25rem;
+    gap: 0.5rem;
     margin-bottom: 0;
     align-items: center;
     flex-wrap: wrap;
-    padding: 0.5rem;
+    padding: 0.75rem;
+    background: var(--prc-toolbar-bg);
+    border-bottom: 1px solid var(--prc-divider-color);
+    /* 툴바가 가려지지 않도록 z-index 설정 */
+    position: relative;
+    z-index: 2;
 }
 
 .toolbarButton {
-    padding: 0.25rem 0.5rem;
-    background-color: #444;
-    color: white;
-    border: 1px solid #666;
-    border-radius: 0.2rem;
+    padding: 0.35rem 0.75rem;
+    background-color: var(--prc-button-bg);
+    color: var(--prc-button-text);
+    border: 1px solid var(--prc-button-border);
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     white-space: nowrap;
+    transition: all 0.2s;
 }
 
 .toolbarButton:hover:not(:disabled) {
-    background-color: #555;
+    background-color: var(--prc-button-hover);
+    border-color: var(--prc-button-border);
 }
 
 .toolbarButton:disabled {
@@ -41,30 +66,30 @@
 }
 
 .toolbarButton.active {
-    background-color: #0066cc;
-    border-color: #0088ff;
+    background-color: var(--prc-button-hover);
+    border-color: var(--prc-button-border);
 }
 
 .clock {
     flex: 1;
     text-align: center;
-    padding: 0.25rem 0.5rem;
-    background-color: #0066cc;
-    color: white;
-    border-radius: 0.2rem;
-    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    background-color: var(--prc-clock-bg);
+    color: var(--prc-clock-text);
+    border-radius: 4px;
+    font-size: 0.8rem;
     min-width: 60px;
+    font-weight: bold;
 }
 
 .commandTableWrapper {
-    border: 1px solid gray;
-    margin-bottom: 1.1rem;
-    flex: 1 1 0;
     position: relative;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
+    height: auto;
+    flex: 1; /* 남은 공간 차지 */
 }
 
 .commandTableWrapper.noScroll {
@@ -72,11 +97,11 @@
 }
 
 .commandTableWrapper.scrollable {
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: visible;
+    height: auto;
 }
 
-/* 스크롤바 스타일 (오버레이) */
+/* 스크롤바 스타일 (오버레이) - 이제 사용 안 함 */
 .commandTableWrapper::-webkit-scrollbar {
     width: 8px;
 }
@@ -86,42 +111,34 @@
 }
 
 .commandTableWrapper::-webkit-scrollbar-thumb {
-    background: #555;
+    background: var(--prc-scrollbar-color);
     border-radius: 4px;
 }
 
 .commandTableWrapper::-webkit-scrollbar-thumb:hover {
-    background: #777;
+    background: var(--prc-button-hover);
 }
 
 .commandTableWrapper {
     scrollbar-width: thin;
-    scrollbar-color: #555 transparent;
+    scrollbar-color: var(--prc-scrollbar-color) transparent;
 }
 
 .commandTable {
     display: grid;
-    grid-template-columns: minmax(30px, 1fr) minmax(75px, 2.5fr) minmax(40px, 1fr) 5fr;
+    grid-template-columns: minmax(30px, 0.5fr) minmax(70px, 1.2fr) minmax(40px, 0.8fr) 4fr;
     gap: 0;
     width: 100%;
-    height: 100%;
+    height: auto;
     flex-shrink: 0;
 }
 
 .commandTable.isEditMode {
-    grid-template-columns: minmax(30px, 1fr) minmax(75px, 2.5fr) minmax(40px, 1fr) 5fr;
+    grid-template-columns: minmax(30px, 0.5fr) minmax(70px, 1.2fr) minmax(40px, 0.8fr) 4fr;
 }
 
 .commandTable:not(.isEditMode) {
-    grid-template-columns: minmax(20px, 0.8fr) minmax(75px, 2.4fr) minmax(40px, 0.9fr) 4.8fr minmax(28px, 0.8fr);
-}
-
-.commandTable.isEditMode {
-    grid-template-columns: minmax(30px, 1fr) minmax(75px, 2.5fr) minmax(40px, 1fr) 5fr;
-}
-
-.commandTable:not(.isEditMode) {
-    grid-template-columns: minmax(20px, 0.8fr) minmax(75px, 2.4fr) minmax(40px, 0.9fr) 4.8fr minmax(28px, 0.8fr);
+    grid-template-columns: minmax(30px, 0.5fr) minmax(70px, 1.2fr) minmax(40px, 0.8fr) 4fr minmax(40px, 0.5fr);
 }
 
 .turnNumberColumn,
@@ -131,7 +148,7 @@
 .actionColumn {
     display: flex;
     flex-direction: column;
-    gap: 0.5px;
+    gap: 1px; /* 셀 간격 */
 }
 
 .turnCell,
@@ -139,31 +156,32 @@
 .timeCell,
 .commandCell,
 .actionCell {
-    border-top: 1px solid gray;
-    border-left: 1px solid gray;
-    padding: 0.25rem;
+    border-bottom: 1px solid var(--prc-divider-color);
+    padding: 0.5rem 0.25rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 32.1px;
-    max-height: 32.1px;
-    height: 32.1px;
+    min-height: 36px; /* 높이 약간 증가 */
+    height: 36px;
     flex-shrink: 0;
     position: relative;
     z-index: 1;
+    font-size: 0.85rem;
 }
 
 .turnCell {
     cursor: pointer;
     user-select: none;
+    border-right: 1px solid var(--prc-divider-color);
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .turnCellEditable:hover {
-    opacity: 0.8;
+    background: var(--prc-button-hover) !important;
 }
 
 .turnCell.selected {
-    opacity: 1;
+    background: var(--prc-turn-selected-bg) !important;
     font-weight: bold;
 }
 
@@ -171,61 +189,65 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
+    border-right: 1px solid var(--prc-divider-color);
 }
 
 .timeCell {
-    background-color: black;
+    background-color: rgba(0, 0, 0, 0.3);
     white-space: nowrap;
     overflow: hidden;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
+    border-right: 1px solid var(--prc-divider-color);
 }
 
 .commandCell {
-    background-color: #1a1a1a;
+    background-color: rgba(255, 255, 255, 0.02);
     text-align: left;
-    padding-left: 0.5rem;
+    padding-left: 0.75rem;
+    justify-content: flex-start;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .commandCell:nth-child(even) {
-    background-color: #141414;
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.actionColumn {
+    border-left: 1px solid var(--prc-divider-color);
 }
 
 .editButton {
     width: 100%;
     height: 100%;
     padding: 0;
-    background-color: #444;
-    color: white;
-    border: 1px solid #666;
-    border-radius: 0.2rem;
+    background-color: transparent;
+    color: var(--prc-muted-text);
+    border: none;
     cursor: pointer;
     font-size: 1rem;
     position: relative;
     z-index: 2;
-    min-width: 28px;
-    min-height: 32.1px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: color 0.2s;
 }
 
 .editButton:hover:not(:disabled) {
-    background-color: #555;
+    color: var(--prc-button-text);
+    background-color: var(--prc-button-hover);
 }
 
 .editButton:disabled {
-    opacity: 0.5;
+    opacity: 0.3;
     cursor: not-allowed;
 }
 
-
-
 .content {
-    color: white;
+    color: var(--prc-text-color);
     padding: 0.5rem;
     text-align: center;
 }
@@ -237,31 +259,37 @@
     overflow: hidden;
     min-height: 0;
     height: 100%;
-    border: 1px solid gray;
-    margin-bottom: 1.1rem;
+    border-top: 1px solid var(--prc-divider-color);
 }
 
 .footer {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
     margin-top: auto;
-    padding: 0.5rem;
+    padding: 0.75rem;
+    border-top: 1px solid var(--prc-divider-color);
+    background: var(--prc-footer-bg);
+    /* 푸터가 가려지지 않도록 z-index 설정 */
+    position: relative;
+    z-index: 2;
 }
 
 .footerButton {
     flex: 1;
-    padding: 1rem;
-    background-color: #444;
-    color: white;
-    border: 1px solid #666;
-    border-radius: 0.2rem;
+    padding: 0.75rem;
+    background-color: var(--prc-button-bg);
+    color: var(--prc-button-text);
+    border: 1px solid var(--prc-button-border);
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: bold;
+    transition: all 0.2s;
 }
 
 .footerButton:hover:not(:disabled) {
-    background-color: #555;
+    background-color: var(--prc-button-hover);
+    transform: translateY(-1px);
 }
 
 .footerButton:disabled {
@@ -269,3 +297,10 @@
     cursor: not-allowed;
 }
 
+.header {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--prc-divider-color);
+    background: var(--prc-toolbar-bg);
+    font-weight: bold;
+    color: var(--prc-text-color);
+}

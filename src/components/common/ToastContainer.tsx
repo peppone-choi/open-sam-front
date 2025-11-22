@@ -3,6 +3,7 @@
 import React from 'react';
 import { useToast, ToastType } from '@/contexts/ToastContext';
 import styles from './Toast.module.css';
+import { COMMON_TEXT } from '@/constants/uiText';
 
 const iconMap: Record<ToastType, string> = {
   success: '✓',
@@ -30,7 +31,7 @@ export default function ToastContainer() {
           <button
             className={styles.closeButton}
             onClick={() => removeToast(toast.id)}
-            aria-label="Close"
+            aria-label={COMMON_TEXT.toastClose}
           >
             ×
           </button>

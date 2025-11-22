@@ -1,4 +1,4 @@
-import { BattleUnit } from '@/components/battle/BattleMap';
+import type { BattleUnit } from '@/components/battle/BattleMap';
 import { getAttackTypeByCrewtype as getAttackTypeByCrewtypeMapping } from './unitTypeMapping';
 
 export type AttackType = 'melee' | 'ranged' | 'magic';

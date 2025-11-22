@@ -1,0 +1,34 @@
+{
+  "pool": [
+    {
+      "no": 101,
+      "name": "문추",
+      "imgsvr": 0,
+      "picture": 3051,
+      "leadership": 78,
+      "strength": 82,
+      "intel": 48,
+      "nation": "위"
+    },
+    {
+      "no": 102,
+      "name": "방덕",
+      "imgsvr": 0,
+      "picture": 3052,
+      "leadership": 74,
+      "strength": 69,
+      "intel": 52,
+      "nation": "촉"
+    },
+    {
+      "no": 103,
+      "name": "감녕",
+      "imgsvr": 1,
+      "picture": 1881,
+      "leadership": 82,
+      "strength": 90,
+      "intel": 43,
+      "nation": "오"
+    }
+  ]
+}

@@ -124,7 +124,8 @@ export default function PeacefulCastleScene() {
     }
 
     // 업데이트 루프
-    app.ticker.add((delta) => {
+    app.ticker.add((ticker) => {
+      const delta = ticker.deltaTime;
       walkers.forEach((w) => {
         w.angle += (w.speed * delta) / 60;
         const a = w.angle + w.offset;

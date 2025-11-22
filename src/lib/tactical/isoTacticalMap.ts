@@ -468,8 +468,8 @@ function deriveTinySoldierOptions(
     weaponStyle: baseWeapon,
     armorStyle,
     headStyle,
-    hasShield,
-    hasBanner,
+    hasShield: !!hasShield,
+    hasBanner: !!hasBanner,
     isElite: visual.isElite && isFrontRow,
   };
 }
@@ -555,8 +555,8 @@ export class EffectsLayer {
 
     let elapsed = 0;
 
-    const ticker = (delta: number) => {
-      const dt = delta / 60;
+    const ticker = (tickerInstance: PIXI.Ticker) => {
+      const dt = tickerInstance.deltaTime / 60;
       elapsed += dt;
       const t = Math.min(elapsed / duration, 1);
 
@@ -590,8 +590,8 @@ export class EffectsLayer {
     let elapsed = 0;
     const duration = 0.25;
 
-    const ticker = (delta: number) => {
-      const dt = delta / 60;
+    const ticker = (tickerInstance: PIXI.Ticker) => {
+      const dt = tickerInstance.deltaTime / 60;
       elapsed += dt;
       const t = Math.min(elapsed / duration, 1);
       const radius = 4 + 8 * t;
@@ -774,8 +774,8 @@ export class IsoTacticalMapEngine {
 
     let elapsed = 0;
 
-    const ticker = (delta: number) => {
-      const dt = delta / 60;
+    const ticker = (tickerInstance: PIXI.Ticker) => {
+      const dt = tickerInstance.deltaTime / 60;
       elapsed += dt;
       const t = Math.min(elapsed / duration, 1);
 

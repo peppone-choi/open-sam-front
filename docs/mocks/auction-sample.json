@@ -1,0 +1,36 @@
+{
+  "events": [
+    {
+      "id": "auction-1",
+      "order": 1,
+      "category": "system",
+      "title": "유니크 무기 '청룡언월도' 경매 개시",
+      "description": "시작가 20,000금 · 즉시구매가 75,000금",
+      "timestamp": "2025-02-11T09:00:00+09:00"
+    },
+    {
+      "id": "auction-2",
+      "order": 2,
+      "category": "action",
+      "title": "곽가 35,000금 입찰",
+      "description": "입찰 시퀀스 #58",
+      "timestamp": "2025-02-11T09:05:00+09:00"
+    },
+    {
+      "id": "auction-3",
+      "order": 3,
+      "category": "action",
+      "title": "장료 45,000금 입찰",
+      "description": "선택된 최고가",
+      "timestamp": "2025-02-11T09:07:00+09:00"
+    },
+    {
+      "id": "auction-4",
+      "order": 4,
+      "category": "global",
+      "title": "경매 종료",
+      "description": "낙찰가 45,000금 · 구매자 장료",
+      "timestamp": "2025-02-11T09:10:00+09:00"
+    }
+  ]
+}

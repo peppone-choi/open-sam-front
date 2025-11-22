@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { TOAST_TEXT } from '@/constants/uiText';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -46,7 +47,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 export function useToast() {
   const context = useContext(ToastContext);
   if (!context) {
-    throw new Error('useToast must be used within ToastProvider');
+    throw new Error(TOAST_TEXT.hookUsageError);
   }
   return context;
 }

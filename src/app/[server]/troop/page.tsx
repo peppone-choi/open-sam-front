@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
-import styles from './page.module.css';
+import { cn } from '@/lib/utils';
 
 interface Troop {
   troopID: number;
@@ -150,76 +150,134 @@ export default function TroopPage() {
   }
 
   return (
-    <div className={styles.container}>
-      <TopBackBar title="부대 편성" reloadable onReload={loadTroops} />
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <TopBackBar title="부대 편성" reloadable onReload={loadTroops} />
 
-      {loading ? (
-        <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
-      ) : (
-        <>
-          <div className={styles.troopList}>
-            {troopList.map((troop) => (
-              <div key={troop.troopID} className={styles.troopItem}>
-                <div className={styles.troopInfo}>
-                  {troop.troopName}
-                </div>
-                <div className={styles.troopTurn}>
-                  【턴】 {troop.turnTime.slice(14, 19)}
-                </div>
-                <div className={styles.troopLeaderIcon}>
-                  <img
-                    width="64"
-                    height="64"
-                    src={`/api/general/icon/${troop.troopLeader.imgsvr}/${troop.troopLeader.picture}`}
-                    alt={troop.troopLeader.name}
-                  />
-                </div>
-                <div className={styles.troopLeaderName}>{troop.troopLeader.name}</div>
-                <div className={styles.troopReservedCommand}>
-                  {troop.reservedCommandBrief.map((brief, idx) => (
-                    <div key={idx}>{`${idx + 1}: ${brief}`}</div>
-                  ))}
-                </div>
-                <div className={styles.troopMembers}>
-                  {troop.members.map((member, idx) => (
-                    <span key={member.no}>
-                      {idx > 0 && ', '}
-                      {member.name}
-                    </span>
-                  ))}
-                  ({troop.members.length}명)
-                </div>
-                <div className={styles.troopAction}>
-                  <button type="button" onClick={() => joinTroop(troop.troopID)} className={styles.btn}>
-                    부대 탑승
-                  </button>
-                  <button type="button" onClick={exitTroop} className={styles.btn}>
-                    부대 탈퇴
-                  </button>
-                </div>
-              </div>
-            ))}
+        {loading ? (
+          <div className="min-h-[50vh] flex items-center justify-center">
+             <div className="animate-pulse text-gray-400 font-bold">로딩 중...</div>
           </div>
+        ) : (
+          <>
+             {/* Create Troop Section */}
+             <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-6 shadow-lg">
+                <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                   <span className="w-1 h-5 bg-green-500 rounded-full"></span>
+                   부대 창설
+                </h2>
+                <div className="flex gap-2 max-w-md">
+                   <input
+                     type="text"
+                     value={newTroopName}
+                     onChange={(e) => setNewTroopName(e.target.value)}
+                     placeholder="창설할 부대명 입력"
+                     className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-green-500/50 transition-colors"
+                   />
+                   <button 
+                     type="button" 
+                     onClick={makeTroop} 
+                     className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg text-sm transition-colors shadow-lg shadow-green-900/20"
+                   >
+                     창설
+                   </button>
+                </div>
+             </div>
 
-          <div className={styles.makeTroopSection}>
-            <div className={styles.makeTroopBox}>
-              <div className={styles.makeTroopTitle}>부대 창설</div>
-              <div className={styles.makeTroopForm}>
-                <input
-                  type="text"
-                  value={newTroopName}
-                  onChange={(e) => setNewTroopName(e.target.value)}
-                  placeholder="부대명"
-                  className={styles.input}
-                />
-                <button type="button" onClick={makeTroop} className={styles.btn}>
-                  부대 창설
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+             {/* Troop List Grid */}
+             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {troopList.map((troop) => (
+                  <div key={troop.troopID} className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg hover:border-white/20 transition-all duration-200 group">
+                    {/* Header */}
+                    <div className="bg-white/5 px-4 py-3 border-b border-white/5 flex justify-between items-center">
+                       <h3 className="font-bold text-blue-400 group-hover:text-blue-300 transition-colors">{troop.troopName}</h3>
+                       <div className="text-xs text-gray-500">
+                          턴: <span className="text-gray-300 font-mono">{troop.turnTime.slice(14, 19)}</span>
+                       </div>
+                    </div>
+
+                    <div className="p-4 space-y-4">
+                       {/* Leader Info */}
+                       <div className="flex items-center gap-4 bg-black/20 p-3 rounded-lg border border-white/5">
+                          <div className="w-12 h-12 bg-gray-800 rounded border border-white/10 overflow-hidden shrink-0">
+                             <img
+                               width="48"
+                               height="48"
+                               src={`/api/general/icon/${troop.troopLeader.imgsvr}/${troop.troopLeader.picture}`}
+                               alt={troop.troopLeader.name}
+                               className="w-full h-full object-cover"
+                               onError={(e) => {
+                                 (e.target as HTMLImageElement).src = '/default_portrait.png'; // Fallback
+                               }}
+                             />
+                          </div>
+                          <div>
+                             <div className="text-xs text-gray-500 uppercase">부대장</div>
+                             <div className="font-bold text-white">{troop.troopLeader.name}</div>
+                             <div className="text-xs text-gray-400">도시: {troop.troopLeader.city}</div>
+                          </div>
+                       </div>
+
+                       {/* Reserved Commands (if any) */}
+                       {troop.reservedCommandBrief.length > 0 && (
+                          <div className="text-xs text-gray-400 bg-black/20 p-2 rounded border border-white/5">
+                             {troop.reservedCommandBrief.map((brief, idx) => (
+                               <div key={idx} className="truncate">{idx + 1}: {brief}</div>
+                             ))}
+                          </div>
+                       )}
+
+                       {/* Members */}
+                       <div>
+                          <div className="text-xs font-bold text-gray-500 mb-2 flex justify-between">
+                             <span>부대원 목록</span>
+                             <span>({troop.members.length}명)</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                             {troop.members.map((member) => (
+                               <span 
+                                 key={member.no} 
+                                 className={cn(
+                                    "text-xs px-2 py-1 rounded border",
+                                    member.no === troop.troopID 
+                                       ? "bg-blue-900/30 border-blue-500/30 text-blue-300" 
+                                       : "bg-gray-800 border-gray-700 text-gray-300"
+                                 )}
+                               >
+                                 {member.name}
+                               </span>
+                             ))}
+                          </div>
+                       </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="bg-white/5 px-4 py-3 border-t border-white/5 flex gap-2">
+                       <button 
+                         onClick={() => joinTroop(troop.troopID)} 
+                         className="flex-1 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded text-xs font-bold transition-colors"
+                       >
+                         부대 탑승
+                       </button>
+                       <button 
+                         onClick={exitTroop} 
+                         className="flex-1 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 rounded text-xs font-bold transition-colors"
+                       >
+                         부대 탈퇴
+                       </button>
+                    </div>
+                  </div>
+                ))}
+                
+                {troopList.length === 0 && (
+                   <div className="col-span-full text-center py-12 text-gray-500 border border-dashed border-white/10 rounded-xl">
+                      개설된 부대가 없습니다.
+                   </div>
+                )}
+             </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

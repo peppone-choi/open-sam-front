@@ -1,70 +1,57 @@
-/* CSS Reset - 전체 리셋 적용 */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 15 23 42;
+    --foreground: 248 250 252;
+  }
+  
+  body {
+    @apply bg-background-main text-foreground min-h-screen bg-fixed;
+    background-image: 
+        radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%), 
+        radial-gradient(circle at 85% 30%, rgba(236, 72, 153, 0.08), transparent 25%);
+  }
 }
 
-html * {
-    max-height: 1000000px;
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors duration-200 font-medium shadow-lg shadow-primary/20;
+  }
+  
+  .btn-secondary {
+    @apply px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary-hover transition-colors duration-200 font-medium shadow-lg shadow-secondary/20;
+  }
+
+  .input-base {
+    @apply w-full px-4 py-2 bg-background-secondary border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder-foreground-dim transition-all duration-200;
+  }
+
+  .card-base {
+    @apply bg-background-secondary/50 backdrop-blur-md border border-white/10 rounded-xl shadow-xl;
+  }
 }
 
-html {
-    -webkit-text-size-adjust: 100%;
-    -moz-text-size-adjust: 100%;
-    text-size-adjust: 100%;
+/* Legacy Support Wrappers - minimizing global impact */
+.legacy-content {
+  /* Add specific legacy overrides here if needed */
 }
 
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic';
-    background-color: black;
-    color: white;
-    line-height: 1.3;
-    font-size: 14px;
-    background-position: center;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-/* 링크 리셋 */
-a,
-a:link,
-a:visited,
-a:hover,
-a:active,
-a:focus {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: none;
-    text-decoration-line: none;
-    text-decoration-color: transparent;
-    outline: none;
-    background-color: transparent;
-}
-
-/* 링크 내부 모든 요소 리셋 */
-a *,
-a img,
-a div,
-a span {
-    text-decoration: none !important;
-    border-bottom: none !important;
-    text-decoration-line: none !important;
-    text-decoration-color: transparent !important;
-}
-
-/* 도시명 배경색 예외 처리 - city_detail_name은 배경색 유지 */
-a .city_detail_name,
+/* Keeping game-specific logic classes */
+.city_detail_name,
 .city_base .city_detail_name,
 .world_map .city_detail_name {
-    background-color: rgba(0, 0, 0, 0.5) !important;
+    background-color: rgba(15, 23, 42, 0.85) !important;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    color: #f8fafc;
+    font-size: 0.75rem;
+    backdrop-filter: blur(4px);
 }
 
-/* city_base 컨테이너 크기 고정 - 전역 max-height 오버라이드 */
 .city_base {
     max-height: 30px !important;
     height: 30px !important;
@@ -74,348 +61,22 @@ a .city_detail_name,
     min-height: 30px !important;
 }
 
-/* 도시명 숨기기 (hide_cityname 클래스가 있을 때) */
-.world_map.hide_cityname .city_detail_name,
-.world_map.hide_cityname .city_base .city_detail_name,
-.world_map.hide_cityname .city_base > .city_detail_name,
 .hide_cityname .city_detail_name,
-.hide_cityname .city_base .city_detail_name,
-.hide_cityname .city_base > .city_detail_name {
+.world_map.hide_cityname .city_detail_name {
     display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
 }
 
-/* 이미지 리셋 */
-img {
-    border-style: none;
-    max-width: 100%;
-    height: auto;
-    display: block;
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
-
-/* 리스트 리셋 */
-ul,
-ol {
-    list-style: none;
-}
-
-/* 버튼 리셋 */
-button {
-    background: none;
-    border: none;
-    padding: 0;
-    font: inherit;
-    cursor: pointer;
-    outline: none;
-}
-
-/* 입력 필드 리셋 */
-input,
-textarea,
-select {
-    font: inherit;
-    margin: 0;
-    padding: 0;
-    border: none;
-    outline: none;
-}
-
-/* 테이블 리셋 */
-table {
-    border-collapse: collapse;
-    border-spacing: 0;
-}
-
-/* 제목 리셋 */
-h1, h2, h3, h4, h5, h6 {
-    font-size: inherit;
-    font-weight: inherit;
-    margin: 0;
-}
-
-/* 단락 리셋 */
-p {
-    margin: 0;
-}
-
-/* 인용 리셋 */
-blockquote,
-q {
-    quotes: none;
-}
-
-blockquote::before,
-blockquote::after,
-q::before,
-q::after {
-    content: '';
-    content: none;
-}
-
-/* 미디어 요소 리셋 */
-audio,
-video {
-    display: block;
-}
-
-/* SVG 리셋 */
-svg {
-    display: block;
-    vertical-align: middle;
-}
-
-input {
-    font-size: 14px;
-}
-
-.center {
-    text-align: center;
-}
-
-table.mimic_flex {
-    border-collapse: collapse;
-    border: none;
-    padding: 0;
-}
-
-.mimic_flex td,
-.mimic_flex th {
-    border: none !important;
-    padding: 0px;
-    word-break: break-all;
-}
-
-table.tb_layout {
-    border-collapse: collapse;
-    padding: 0px;
-    font-size: 14px;
-    word-break: break-all;
-}
-
-.tb_layout td,
-.tb_layout th {
-    border: solid 1px gray;
-    padding: 0px;
-    word-break: break-all;
-}
-
-div.bar_out {
-    position: relative;
-    border-top: solid 1px #888888;
-    border-bottom: solid 1px #333333;
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    overflow: hidden;
-}
-
-div.bar_out div {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-}
-
-div.bar_out div.bar_in {
-    width: 100%;
-}
-
-
-/* */
-
-.ev_warning {
-    color: orangered;
-}
-
-.ev_notice {
-    color: orangered;
-}
-
-.ev_succes {
-    color: lightgreen;
-}
-
-.ev_sell {
-    color: orange;
-}
-
-.ev_failed {
-    color: orangered;
-}
-
-.ev_highlight {
-    color: orangered;
-}
-
-
-/* TODO: 색상값이 아니라 의미에 따라 클래스 지정 */
-
-.o_bullet::before {
-    color: cyan;
-    content: "●";
-}
-
-.o_diamond::before {
-    color: orangered;
-    content: "◆";
-}
-
-.small_war_log {
-    display: inline-block;
-}
-
-.small_war_log .war_type_attack {
-    color: cyan;
-}
-
-.small_war_log .war_type_defense {
-    color: magenta;
-}
-
-.small_war_log .war_type_siege {
-    color: white;
-}
-
-.small_war_log .name_plate {
-    font-size: 0.75em;
-}
-
-.small_war_log .name_plate_cover {
-    color: yellow;
-}
-
-.small_war_log .crew_plate {
-    color: orangered;
-    font-size: 90%;
-}
-
-.t_date {
-    font-size: 0.75em;
-}
-
-.t_red {
-    color: red;
-}
-
-.t_blue {
-    color: blue;
-}
-
-.t_green {
-    color: green;
-}
-
-.t_magenta {
-    color: magenta;
-}
-
-.t_cyan {
-    color: cyan;
-}
-
-.t_limegreen {
-    color: limegreen;
-}
-
-.t_skyblue {
-    color: skyblue;
-}
-
-.t_orangered {
-    color: orangered;
-}
-
-.t_yellow {
-    color: yellow;
-}
-
-.t_white {
-    color: white;
-}
-
-.float_left {
-    float: left;
-}
-
-.tooltip {
-    font-size: 12.5px;
-}
-
-.tooltip_copyable_info .tooltiptext {
-    display: inline;
-    color: rgba(0, 0, 0, 0);
-    font-size: 0;
-}
-
-.tooltiptext {
-    display: none;
-}
-
-.hidden_but_copyable {
-    color: rgba(0, 0, 0, 0);
-    font-size: 0;
-}
-
-.btn-group-xs>.btn,
-.btn-xs {
-    padding: .25rem .4rem;
-    font-size: .875rem;
-    line-height: .5;
-    border-radius: .2rem;
-}
-
-.edit_form.viewer {
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.trumbowyg-box {
-    margin: 0;
-    border-left: none;
-    border-right: none;
-}
-
-.edit_form.trumbowyg-editor {
-    margin: 0;
-    padding: 0;
-}
-
-.compensatePositive {
-    color: skyblue;
-}
-
-.compensateNegative {
-    color: orange;
-}
-
-.commandBasic.commandImpossible {
-    background-color: red;
-    color: white;
-}
-
-.select2-selection--single.simple-select2-align-center .select2-selection__rendered {
-    text-align: center;
-}
-
-.select2-dropdown.simple-select2-align-center li.select2-results__option {
-    text-align: center;
-}
-
-.select2-container--bootstrap4 .select2-selection--single.text-secondary .select2-selection__rendered {
-    color: white;
-}
-
-.select2-container--bootstrap4 .text-secondary .select2-results__option[aria-selected=false] {
-    color: white;
-}
-
-.bg0 {
+::-webkit-scrollbar-track {
+    @apply bg-background-main;
 }
-
-.bg1 {
+::-webkit-scrollbar-thumb {
+    @apply bg-background-tertiary rounded-full;
 }
-
-.bg2 {
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-foreground-muted;
 }

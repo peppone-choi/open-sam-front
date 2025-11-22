@@ -1,3 +1,5 @@
+import type { RawUnitDefinition } from '@/stores/unitStore';
+
 // 클라이언트 사이드에서는 환경 변수 또는 기본 백엔드 URL 사용
 // 서버 사이드에서는 rewrites를 사용하므로 상대 경로 가능
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
@@ -21,6 +23,7 @@ export interface GetFrontInfoResponse {
       options: Record<string, number>;
     };
     turnterm: number;
+    turnTime: string;
     lastExecuted: string;
     lastVoteID: number;
     develCost: number;
@@ -46,11 +49,65 @@ export interface GetFrontInfoResponse {
     name: string;
     officerLevel: number;
     officerLevelText: string;
-    city: number;
-    permission: number;
-    reservedCommand: any[] | null;
+    injury?: number;
+    leadership?: number;
+    strength?: number;
+    intel?: number;
+    politics?: number;
+    charm?: number;
+    leadership_exp?: number;
+    strength_exp?: number;
+    intel_exp?: number;
+    politics_exp?: number;
+    charm_exp?: number;
+    lbonus?: number;
+    sbonus?: number;
+    ibonus?: number;
+    pbonus?: number;
+    cbonus?: number;
+    officer_city?: number;
+    turntime?: string | Date;
+    horse?: string;
+    weapon?: string;
+    book?: string;
+    item?: string;
+    gold?: number;
+    rice?: number;
+    crewtype?: string | number | { id: number; label: string };
+    crew?: number;
+    personal?: string;
+    train?: number;
+    atmos?: number;
+    specialDomestic?: string;
+    specialWar?: string;
+    explevel?: number;
+    experience?: number;
+    age?: number;
+    defence_train?: number;
+    killturn?: number;
+    troop?: any;
+    refreshScoreTotal?: number;
+    refreshScore?: number;
+    picture?: string;
+    imgsvr?: number;
+    unitStacks?: {
+      totalTroops: number;
+      stackCount: number;
+      averageTrain?: number;
+      averageMorale?: number;
+      stacks: Array<{
+        id: string;
+        crewTypeId: number;
+        crewTypeName?: string;
+        troops: number;
+        train: number;
+        morale: number;
+        updatedAt?: string;
+      }>;
+    } | null;
     [key: string]: any;
   };
+
   nation: {
     id: number;
     name: string;
@@ -77,10 +134,31 @@ export interface GetFrontInfoResponse {
     trade: number | null;
     officerList: Record<2 | 3 | 4, {
       officer_level: 2 | 3 | 4;
-      no: number;
+      no?: number;
       name: string;
       npc: number;
     } | null>;
+    defense?: {
+      wall: [number, number];
+      gate: [number, number];
+      towerLevel?: number;
+      repairRate?: number;
+      lastDamageAt?: string;
+      lastRepairAt?: string;
+    } | null;
+    garrison?: {
+      totalTroops: number;
+      stackCount: number;
+      stacks: Array<{
+        id: string;
+        crewTypeId: number;
+        crewTypeName?: string;
+        troops: number;
+        train: number;
+        morale: number;
+        updatedAt?: string;
+      }>;
+    };
   } | null;
   recentRecord: {
     history: ([number, string] | { id: number; text: string; timestamp: Date })[];  // [id, html text] or object
@@ -106,6 +184,63 @@ export interface GetMapResponse {
   year: number;
   month: number;
   version: number;
+  tileMap?: {
+    columns: number;
+    rows: number;
+    tileSize?: number;
+    tiles: Array<{
+      type: string;
+      variant?: number;
+      elevation?: number;
+      decoration?: string | null;
+    }>;
+  };
+}
+
+interface JoinCreateGeneralPayload {
+  name: string;
+  nation: number;
+  leadership: number;
+  strength: number;
+  intel: number;
+  politics: number;
+  charm: number;
+  character: string;
+  trait: string;
+  pic?: boolean;
+  city?: number;
+  serverID: string;
+}
+
+export interface JoinNationSummary {
+  nation: number;
+  name: string;
+  color: string;
+  scout?: string;
+  scoutmsg?: string;
+}
+
+export interface JoinCitySummary {
+  id: number;
+  name: string;
+  x: number;
+  y: number;
+  nation?: number;
+}
+
+export interface JoinStatLimits {
+  min: number;
+  max: number;
+  total: number;
+}
+
+export interface JoinNationsResponse {
+  result: boolean;
+  reason?: string;
+  allowJoinNation?: boolean;
+  nations?: JoinNationSummary[];
+  cities?: JoinCitySummary[];
+  statLimits?: JoinStatLimits;
 }
 
 export class SammoAPI {
@@ -133,7 +268,7 @@ export class SammoAPI {
     }
   }
 
-  private static async request<T>(
+  static async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
@@ -250,6 +385,7 @@ export class SammoAPI {
   static async LoginByID(params: {
     username: string;
     password: string;
+    otp?: string;
   }): Promise<{
     result: boolean;
     reqOTP: boolean;
@@ -307,6 +443,10 @@ export class SammoAPI {
   static async Register(params: {
     username: string;
     password: string;
+    nickname: string;
+    secret_agree: boolean;
+    secret_agree2: boolean;
+    third_use: boolean;
   }): Promise<{
     result: boolean;
     reason?: string;
@@ -342,11 +482,27 @@ export class SammoAPI {
   // Global API
   static async GlobalGetConst(): Promise<{
     result: boolean;
-    data: any;
+    data?: any;
   }> {
-    return this.request('/api/global/get-const', {
+    const response = await this.request<{
+      result: boolean;
+      data?: {
+        gameUnitConst?: Record<string, RawUnitDefinition>;
+      };
+    }>('/api/global/get-const', {
       method: 'GET',
     });
+
+    try {
+      const { setUnitDataFromApi } = await import('@/stores/unitStore');
+      if (response?.result && response.data?.gameUnitConst) {
+        setUnitDataFromApi(response.data.gameUnitConst);
+      }
+    } catch (error) {
+      console.warn('[SammoAPI] Failed to synchronize unit data store:', error);
+    }
+
+    return response;
   }
 
   static async GlobalGetMenu(params?: {
@@ -892,40 +1048,83 @@ export class SammoAPI {
   }
 
   // Betting API
-  static async BettingGetBettingList(): Promise<{
+  static async BettingGetBettingList(params?: {
+    session_id?: string;
+    serverID?: string;
+    req?: string;
+  }): Promise<{
     result: boolean;
-    bettings: any[];
+    success?: boolean;
+    bettings?: any[];
+    bettingList?: Record<string, any>;
+    reason?: string;
   }> {
+    const body: Record<string, any> = {};
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
+    if (params?.req) {
+      body.req = params.req;
+    }
     return this.request('/api/betting/get-list', {
       method: 'POST',
+      body: JSON.stringify(body),
     });
   }
 
   static async GetBettingDetail(params: {
     betting_id: number;
+    session_id?: string;
+    serverID?: string;
   }): Promise<{
     success: boolean;
     result: boolean;
     bettingDetail?: any;
     myBetting?: any;
+    bettingInfo?: any;
+    remainPoint?: number;
+    year?: number;
+    month?: number;
     reason?: string;
   }> {
-    return this.request(`/api/betting/get-betting-detail?betting_id=${params.betting_id}`, {
+    const query = new URLSearchParams();
+    query.append('betting_id', String(params.betting_id));
+    if (params.session_id) {
+      query.append('session_id', params.session_id);
+    } else if (params.serverID) {
+      query.append('session_id', params.serverID);
+    }
+    return this.request(`/api/betting/get-betting-detail?${query.toString()}`, {
       method: 'GET',
     });
   }
 
   static async BettingBet(params: {
     bettingID: number;
-    targetNationID: number;
-    gold: number;
+    bettingType: Array<string | number>;
+    amount: number;
+    session_id?: string;
+    serverID?: string;
   }): Promise<{
     result: boolean;
     reason?: string;
+    success?: boolean;
   }> {
+    const body: Record<string, any> = {
+      bettingID: params.bettingID,
+      bettingType: params.bettingType,
+      amount: params.amount,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
     return this.request('/api/betting/bet', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(body),
     });
   }
 
@@ -1015,6 +1214,51 @@ export class SammoAPI {
     token_valid_until: string | null;
   }> {
     return this.request('/api/gateway/get-user-info', {
+      method: 'POST',
+    });
+  }
+
+  static async ExpandLoginToken(): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/gateway/expand-login-token', {
+      method: 'POST',
+    });
+  }
+
+  static async DisallowThirdUse(): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/gateway/disallow-third-use', {
+      method: 'POST',
+    });
+  }
+
+  static async ChangeIcon(params: FormData): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    const url = `${this.baseURL}/api/gateway/change-icon`;
+    const response = await fetch(url, {
+      method: 'POST',
+      credentials: 'include',
+      body: params,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  static async DeleteIcon(): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/gateway/delete-icon', {
       method: 'POST',
     });
   }
@@ -1778,7 +2022,21 @@ export class SammoAPI {
     });
   }
 
+  static async JoinGetNations(serverID: string): Promise<any> {
+    return this.request(`/api/join/get-nations?serverID=${encodeURIComponent(serverID)}`, {
+      method: 'GET',
+    });
+  }
+
+  static async JoinCreateGeneral(params: JoinCreateGeneralPayload): Promise<any> {
+    return this.request('/api/join/create-general', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
   // Board API
+
   static async GetBoardArticles(params: {
     isSecret?: boolean;
     session_id?: string;
@@ -1873,24 +2131,49 @@ export class SammoAPI {
   }
 
   // NPC Control API
-  static async GetNPCControl(): Promise<{
+  static async GetNPCControl(params?: {
+    session_id?: string;
+    serverID?: string;
+  }): Promise<{
     result: boolean;
-    npcControl: any;
+    control?: any;
+    npcControl?: any;
+    reason?: string;
   }> {
+    const body: Record<string, any> = {};
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
     return this.request('/api/npc/get-control', {
       method: 'POST',
+      body: JSON.stringify(body),
     });
   }
 
   static async SetNPCControl(params: {
-    settings: any;
+    type: 'nationPolicy' | 'nationPriority' | 'generalPriority';
+    control: any;
+    session_id?: string;
+    serverID?: string;
   }): Promise<{
     result: boolean;
     reason?: string;
+    message?: string;
   }> {
+    const body: Record<string, any> = {
+      type: params.type,
+      control: params.control,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
     return this.request('/api/npc/set-control', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(body),
     });
   }
 
@@ -2055,12 +2338,23 @@ export class SammoAPI {
   }
 
   // Nation API (추가)
-  static async NationGetBetting(): Promise<{
+  static async NationGetBetting(params?: {
+    session_id?: string;
+    serverID?: string;
+  }): Promise<{
     result: boolean;
     bettings: any[];
+    reason?: string;
   }> {
+    const body: Record<string, any> = {};
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
     return this.request('/api/nation/betting', {
       method: 'POST',
+      body: JSON.stringify(body),
     });
   }
 
@@ -2110,27 +2404,40 @@ export class SammoAPI {
   }
 
   // Server Admin API
-  static async AdminGetDiplomacy(): Promise<{
+  static async AdminGetDiplomacy(params?: {
+    session_id?: string;
+  }): Promise<{
     result: boolean;
-    diplomacyList: any[];
+    diplomacyList: Array<{
+      no: number | string;
+      srcNationId: number;
+      destNationId: number;
+      brief: string;
+      status: string;
+      date: string;
+    }>;
   }> {
     return this.request('/api/admin/diplomacy', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
-  static async AdminGetGameInfo(): Promise<{
+  static async AdminGetGameInfo(params?: {
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     gameInfo: any;
   }> {
     return this.request('/api/admin/game-info', {
       method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 
   static async AdminUpdateGame(params: {
     action: string;
-    data: any;
+    data: Record<string, unknown>;
   }): Promise<{
     result: boolean;
     reason?: string;
@@ -2534,6 +2841,7 @@ export class SammoAPI {
     isChief?: boolean;
     serverID?: string;
     session_id?: string;
+    general_id?: number;
   }): Promise<{
     result: boolean;
     commandData: any;

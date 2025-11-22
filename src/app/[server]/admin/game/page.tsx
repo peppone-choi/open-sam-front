@@ -1,17 +1,76 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
-import styles from './page.module.css';
+import { cn } from '@/lib/utils';
+
+type ServerStatus = 'preparing' | 'running' | 'paused' | 'finished' | 'united' | string;
+type ServerStatusKey = 'preparing' | 'running' | 'paused' | 'finished' | 'united';
+
+type AdminAction =
+  | 'serverName'
+  | 'scenario'
+  | 'msg'
+  | 'log'
+  | 'starttime'
+  | 'maxgeneral'
+  | 'maxnation'
+  | 'startyear'
+  | 'allowNpcPossess'
+  | 'turnterm'
+  | 'status'
+  | 'resetScenario';
+
+type AdminActionValue = string | number | boolean | undefined;
+
+interface AdminGameSettings {
+  serverName?: string;
+  scenario?: string;
+  msg?: string;
+  log?: string;
+  starttime?: string;
+  turntime?: string;
+  maxgeneral?: number;
+  maxnation?: number;
+  startyear?: number;
+  year?: number;
+  month?: number;
+  allowNpcPossess?: boolean;
+  turnterm?: number;
+  status?: ServerStatus;
+}
+
+interface ScenarioTemplate {
+  id: string;
+  title: string;
+  startYear: number;
+  mapName: string;
+}
+
+interface AdminUpdatePayload extends Record<string, string | number | boolean | undefined> {
+  session_id: string;
+  serverName?: string;
+  scenario?: string;
+  msg?: string;
+  log?: string;
+  starttime?: string;
+  maxgeneral?: number;
+  maxnation?: number;
+  startyear?: number;
+  allowNpcPossess?: boolean;
+  turnterm?: number;
+  status?: ServerStatus;
+  scenarioId?: string;
+}
 
 export default function AdminGamePage() {
   const params = useParams();
   const serverID = params?.server as string;
 
   const [loading, setLoading] = useState(true);
-  const [settings, setSettings] = useState<any>({});
+  const [settings, setSettings] = useState<AdminGameSettings>({});
   
   // 폼 상태
   const [serverName, setServerName] = useState('');
@@ -25,35 +84,34 @@ export default function AdminGamePage() {
   const [allowNpcPossess, setAllowNpcPossess] = useState(false);
   
   // 시나리오 목록
-  const [scenarios, setScenarios] = useState<any[]>([]);
+  const [scenarios, setScenarios] = useState<ScenarioTemplate[]>([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState('');
 
-  // (서버별 페이지에서는 전역 세션을 관리하지 않음)
-
-  useEffect(() => {
-    loadSettings();
-    loadScenarios();
-  }, [serverID]);
-
-  async function loadScenarios() {
+  const loadScenarios = useCallback(async () => {
     try {
       const result = await SammoAPI.GetPhpScenarios();
       if (result.success) {
         setScenarios(result.data.scenarios);
+      } else {
+        setScenarios([]);
       }
-    } catch (err) {
-      console.error('시나리오 목록 로드 실패:', err);
+    } catch (error) {
+      console.error('시나리오 목록 로드 실패:', error);
+      setScenarios([]);
     }
-  }
+  }, []);
  
 
-  async function loadSettings() {
+  const loadSettings = useCallback(async () => {
+    if (!serverID) {
+      return;
+    }
+
     try {
       setLoading(true);
-      const result = await SammoAPI.AdminGetGameInfo();
+      const result = await SammoAPI.AdminGetGameInfo({ session_id: serverID });
       if (result.result) {
-        const data = result.gameInfo;
-        console.log('[Admin] Loaded game info:', { isunited: data.isunited, data });
+        const data = (result.gameInfo || {}) as AdminGameSettings;
         setSettings(data);
         setServerName(data.serverName || '');
         setScenario(data.scenario || '');
@@ -62,495 +120,377 @@ export default function AdminGamePage() {
         setMaxgeneral(data.maxgeneral || 300);
         setMaxnation(data.maxnation || 12);
         setStartyear(data.startyear || 220);
-        setAllowNpcPossess(data.allowNpcPossess || false);
+        setAllowNpcPossess(!!data.allowNpcPossess);
       }
-    } catch (err) {
-      console.error(err);
-      alert('설정을 불러오는데 실패했습니다.');
+    } catch (error) {
+      console.error(error);
+      // alert('설정을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
-  }
+  }, [serverID]);
 
-  async function handleSubmit(action: string, value?: any) {
+  useEffect(() => {
+    void loadSettings();
+    void loadScenarios();
+  }, [loadScenarios, loadSettings]);
+
+  const handleSubmit = useCallback(async (action: AdminAction, value?: AdminActionValue) => {
+    if (!serverID) {
+      alert('서버 정보가 없습니다.');
+      return;
+    }
+
     try {
-      let data: any = { session_id: serverID };
-      
+      const payload: AdminUpdatePayload = { session_id: serverID };
       switch (action) {
         case 'serverName':
-          data.serverName = serverName;
+          payload.serverName = serverName.trim();
           break;
         case 'scenario':
-          data.scenario = scenario;
+          payload.scenario = scenario.trim();
           break;
         case 'msg':
-          data.msg = msg;
+          payload.msg = msg;
           break;
         case 'log':
-          data.log = log;
+          payload.log = log;
           break;
         case 'starttime':
-          data.starttime = starttime;
+          payload.starttime = starttime;
           break;
         case 'maxgeneral':
-          data.maxgeneral = maxgeneral;
+          payload.maxgeneral = maxgeneral;
           break;
         case 'maxnation':
-          data.maxnation = maxnation;
+          payload.maxnation = maxnation;
           break;
         case 'startyear':
-          data.startyear = startyear;
+          payload.startyear = startyear;
           break;
         case 'allowNpcPossess':
-          data.allowNpcPossess = allowNpcPossess;
+          payload.allowNpcPossess = allowNpcPossess;
           break;
         case 'turnterm':
-          data.turnterm = value;
+          payload.turnterm = typeof value === 'number' ? value : Number(value ?? settings.turnterm ?? 60);
           break;
         case 'status':
-          data.status = value; // preparing, running, paused, finished, united
+          payload.status = (value as ServerStatus) || settings.status || 'running';
           break;
         case 'resetScenario':
-          data.scenarioId = value;
+          payload.scenarioId = (value as string) || selectedScenarioId;
+          if (!payload.scenarioId) {
+            alert('시나리오를 선택해주세요');
+            return;
+          }
+          payload.turnterm = settings.turnterm || 60;
+          break;
+        default:
           break;
       }
 
-      const result = await SammoAPI.AdminUpdateGame({ action, data });
+      const result = await SammoAPI.AdminUpdateGame({ action, data: payload });
       
       if (result.result) {
         alert('변경되었습니다');
-        if (action === 'log') setLog(''); // 로그는 초기화
-        
-        // 시나리오 리셋 후 자동 새로고침
+        if (action === 'log') {
+          setLog('');
+        }
         if (action === 'resetScenario') {
           alert('시나리오가 초기화되었습니다. 페이지를 새로고침합니다.');
           window.location.reload();
         } else {
-          loadSettings();
+          void loadSettings();
         }
       } else {
         alert(result.reason || '변경에 실패했습니다');
       }
-    } catch (err: any) {
-      console.error(err);
-      alert(err.message || '오류가 발생했습니다');
+    } catch (error: any) {
+      console.error(error);
+      alert(error.message || '오류가 발생했습니다');
     }
-  }
+  }, [allowNpcPossess, loadSettings, log, maxgeneral, maxnation, msg, scenario, selectedScenarioId, serverID, serverName, settings.status, settings.turnterm, starttime, startyear]);
 
-  async function handleChangeStatus(status: string) {
-    const statusLabels: Record<string, string> = {
+  const handleChangeStatus = useCallback((status: ServerStatusKey) => {
+    const statusLabels: Record<ServerStatusKey, string> = {
       preparing: '준비중 (테스트)',
       running: '운영중',
       paused: '폐쇄',
       finished: '종료',
       united: '천하통일'
     };
-    const statusText = statusLabels[status] || status;
-    console.log('[Admin] Changing server status:', { status, statusText });
+    const statusText = statusLabels[status];
     if (confirm(`서버를 "${statusText}" 상태로 변경하시겠습니까?`)) {
-      await handleSubmit('status', status);
+      void handleSubmit('status', status);
     }
-  }
+  }, [handleSubmit]);
 
-  async function handleResetScenario() {
+  const handleResetScenario = useCallback(() => {
     if (!selectedScenarioId) {
       alert('시나리오를 선택해주세요');
       return;
     }
     
-    const selectedScenario = scenarios.find(s => s.id === selectedScenarioId);
-    if (!selectedScenario) return;
+    const selectedScenario = scenarios.find((scenarioTemplate) => scenarioTemplate.id === selectedScenarioId);
+    if (!selectedScenario) {
+      alert('선택한 시나리오를 찾을 수 없습니다.');
+      return;
+    }
     
     if (confirm(`정말로 "${selectedScenario.title}" 시나리오로 서버를 초기화하시겠습니까?\n\n⚠️ 모든 장수/국가 데이터가 삭제됩니다!`)) {
-      // 현재 세션의 turnterm을 함께 전달
-      try {
-        const data = { 
-          session_id: serverID,
-          scenarioId: selectedScenarioId,
-          turnterm: settings.turnterm || 60  // 분 단위
-        };
-        const result = await SammoAPI.AdminUpdateGame({ action: 'resetScenario', data });
-        
-        if (result.result) {
-          alert('시나리오가 초기화되었습니다. 페이지를 새로고침합니다.');
-          window.location.reload();
-        } else {
-          alert(result.reason || '변경에 실패했습니다');
-        }
-      } catch (err: any) {
-        console.error(err);
-        alert(err.message || '오류가 발생했습니다');
-      }
+      void handleSubmit('resetScenario', selectedScenarioId);
     }
-  }
+  }, [handleSubmit, scenarios, selectedScenarioId]);
  
 
   if (loading) {
     return (
-      <div className={styles.container}>
+      <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
         <TopBackBar title="게 임 설 정" />
-        <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
+        <div className="flex justify-center items-center h-[50vh]">
+           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={styles.container}>
-      <TopBackBar title="게 임 설 정" />
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
+      <TopBackBar title="게 임 설 정" reloadable onReload={loadSettings} />
 
-      <table className={`tb_layout bg0`} style={{ width: '1000px', margin: '0 auto' }}>
-        <tbody>
-          <tr>
-            <td colSpan={4} className="bg2" style={{ textAlign: 'center', padding: '0.8rem', fontSize: '1.1em' }}>
-              ⚙️ 서버 상태 제어
-            </td>
-          </tr>
-          <tr>
-            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>서버 상태</td>
-            <td colSpan={3} style={{ padding: '0.5rem' }}>
-              <button
-                type="button"
-                onClick={() => handleChangeStatus('preparing')}
-                style={{ 
-                  marginRight: '0.5rem', 
-                  padding: '0.5rem 1rem', 
-                  backgroundColor: settings.status === 'preparing' ? '#9C27B0' : '#333', 
-                  color: 'white', 
-                  border: '1px solid #666', 
-                  cursor: 'pointer',
-                  fontWeight: settings.status === 'preparing' ? 'bold' : 'normal',
-                  fontSize: '0.9em'
-                }}
-              >
-                🔧 준비중
-              </button>
-              <button
-                type="button"
-                onClick={() => handleChangeStatus('running')}
-                style={{ 
-                  marginRight: '0.5rem', 
-                  padding: '0.5rem 1rem', 
-                  backgroundColor: settings.status === 'running' ? '#4CAF50' : '#333', 
-                  color: 'white', 
-                  border: '1px solid #666', 
-                  cursor: 'pointer',
-                  fontWeight: settings.status === 'running' ? 'bold' : 'normal',
-                  fontSize: '0.9em'
-                }}
-              >
-                ✅ 운영중
-              </button>
-              <button
-                type="button"
-                onClick={() => handleChangeStatus('paused')}
-                style={{ 
-                  marginRight: '0.5rem', 
-                  padding: '0.5rem 1rem', 
-                  backgroundColor: settings.status === 'paused' ? '#f44336' : '#333', 
-                  color: 'white', 
-                  border: '1px solid #666', 
-                  cursor: 'pointer',
-                  fontWeight: settings.status === 'paused' ? 'bold' : 'normal',
-                  fontSize: '0.9em'
-                }}
-              >
-                🔒 폐쇄
-              </button>
-              <button
-                type="button"
-                onClick={() => handleChangeStatus('finished')}
-                style={{ 
-                  marginRight: '0.5rem', 
-                  padding: '0.5rem 1rem', 
-                  backgroundColor: settings.status === 'finished' ? '#607D8B' : '#333', 
-                  color: 'white', 
-                  border: '1px solid #666', 
-                  cursor: 'pointer',
-                  fontWeight: settings.status === 'finished' ? 'bold' : 'normal',
-                  fontSize: '0.9em'
-                }}
-              >
-                🏁 종료
-              </button>
-              <button
-                type="button"
-                onClick={() => handleChangeStatus('united')}
-                style={{ 
-                  padding: '0.5rem 1rem', 
-                  backgroundColor: settings.status === 'united' ? '#FFD700' : '#333', 
-                  color: settings.status === 'united' ? '#000' : 'white', 
-                  border: '1px solid #666', 
-                  cursor: 'pointer',
-                  fontWeight: settings.status === 'united' ? 'bold' : 'normal',
-                  fontSize: '0.9em'
-                }}
-              >
-                👑 천하통일
-              </button>
-              <br />
-              <span style={{ marginTop: '0.5rem', display: 'inline-block', color: '#aaa', fontSize: '0.85em' }}>
-                현재: <strong style={{ color: '#fff' }}>
-                  {settings.status === 'preparing' && '🔧 준비중 (테스트 플레이 가능, 턴 진행 ❌)'}
-                  {settings.status === 'running' && '✅ 운영중 (정상 운영)'}
-                  {settings.status === 'paused' && '🔒 폐쇄 (접속 불가)'}
-                  {settings.status === 'finished' && '🏁 종료 (게임 완료)'}
-                  {settings.status === 'united' && '👑 천하통일 (게임 완료)'}
-                  {!settings.status && '알 수 없음'}
-                </strong>
-              </span>
-            </td>
-          </tr>
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Server Status Control */}
+        <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-6 shadow-lg">
+          <h2 className="text-xl font-bold text-white mb-4 border-b border-white/10 pb-2">⚙️ 서버 상태 제어</h2>
           
-          <tr>
-            <td colSpan={4} className="bg2" style={{ textAlign: 'center', padding: '0.8rem', fontSize: '1.1em' }}>
-              🎮 시나리오 초기화
-            </td>
-          </tr>
-          <tr>
-            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem', verticalAlign: 'top' }}>시나리오 선택</td>
-            <td colSpan={3} style={{ padding: '0.5rem' }}>
-              <select
-                value={selectedScenarioId}
-                onChange={(e) => setSelectedScenarioId(e.target.value)}
-                style={{ width: '500px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.5rem' }}
-              >
-                <option value="">-- 시나리오 선택 --</option>
-                {scenarios.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.title} ({s.startYear}년)
-                  </option>
-                ))}
-              </select>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {[
+              { key: 'preparing', label: '🔧 준비중', color: 'bg-purple-600 hover:bg-purple-700' },
+              { key: 'running', label: '✅ 운영중', color: 'bg-green-600 hover:bg-green-700' },
+              { key: 'paused', label: '🔒 폐쇄', color: 'bg-red-600 hover:bg-red-700' },
+              { key: 'finished', label: '🏁 종료', color: 'bg-gray-600 hover:bg-gray-700' },
+              { key: 'united', label: '👑 천하통일', color: 'bg-yellow-500 text-black hover:bg-yellow-400' },
+            ].map((btn) => (
               <button
+                key={btn.key}
                 type="button"
-                onClick={handleResetScenario}
-                style={{ 
-                  marginLeft: '0.5rem', 
-                  padding: '0.5rem 1.5rem', 
-                  backgroundColor: '#d32f2f', 
-                  color: 'white', 
-                  border: '1px solid #666', 
-                  cursor: 'pointer',
-                  fontWeight: 'bold'
-                }}
+                onClick={() => handleChangeStatus(btn.key as ServerStatusKey)}
+                className={cn(
+                  "px-4 py-2 rounded-lg font-medium transition-all text-sm shadow",
+                  settings.status === btn.key ? "ring-2 ring-white ring-offset-2 ring-offset-gray-900" : "opacity-80 hover:opacity-100",
+                  btn.color
+                )}
               >
-                ⚠️ 서버 초기화
+                {btn.label}
               </button>
-              <div style={{ marginTop: '0.5rem', color: '#ff6b6b', fontSize: '0.9em' }}>
-                ⚠️ 주의: 서버 초기화 시 모든 장수, 국가, 전쟁 데이터가 삭제되고 선택한 시나리오로 재설정됩니다.
-              </div>
-            </td>
-          </tr>
+            ))}
+          </div>
+          
+          <div className="text-sm text-gray-400">
+            현재 상태: <strong className="text-white">
+              {settings.status === 'preparing' && '🔧 준비중 (테스트 플레이 가능, 턴 진행 ❌)'}
+              {settings.status === 'running' && '✅ 운영중 (정상 운영)'}
+              {settings.status === 'paused' && '🔒 폐쇄 (접속 불가)'}
+              {settings.status === 'finished' && '🏁 종료 (게임 완료)'}
+              {settings.status === 'united' && '👑 천하통일 (게임 완료)'}
+              {!settings.status && '알 수 없음'}
+            </strong>
+          </div>
+        </div>
 
-          <tr>
-            <td colSpan={4} className="bg2" style={{ textAlign: 'center', padding: '0.8rem', fontSize: '1.1em' }}>
-              📝 서버 기본 정보
-            </td>
-          </tr>
-          <tr>
-            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>서버 이름</td>
-            <td colSpan={3} style={{ padding: '0.5rem' }}>
-              <input
-                type="text"
-                value={serverName}
-                onChange={(e) => setServerName(e.target.value)}
-                placeholder="서버 표시 이름 (예: OpenSAM, 삼국지 184년)"
-                style={{ width: '400px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem' }}
-              />
-              <button 
-                type="button" 
-                onClick={() => handleSubmit('serverName')}
-                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
-              >
-                변경
-              </button>
-            </td>
-          </tr>
-
-          <tr>
-            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>시나리오/설명</td>
-            <td colSpan={3} style={{ padding: '0.5rem' }}>
-              <input
-                type="text"
-                value={scenario}
-                onChange={(e) => setScenario(e.target.value)}
-                placeholder="시나리오 설명 (예: 황건적의 난, 관도대전)"
-                style={{ width: '400px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem' }}
-              />
-              <button 
-                type="button" 
-                onClick={() => handleSubmit('scenario')}
-                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
-              >
-                변경
-              </button>
-            </td>
-          </tr>
-
-          <tr>
-            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>운영자메세지</td>
-            <td colSpan={3} style={{ padding: '0.5rem' }}>
-              <input
-                type="text"
-                value={msg}
-                onChange={(e) => setMsg(e.target.value)}
-                style={{ width: '600px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem' }}
-              />
-              <button 
-                type="button" 
-                onClick={() => handleSubmit('msg')}
-                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
-              >
-                변경
-              </button>
-            </td>
-          </tr>
-
-          <tr>
-            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>중원정세추가</td>
-            <td colSpan={3} style={{ padding: '0.5rem' }}>
-              <input
-                type="text"
-                value={log}
-                onChange={(e) => setLog(e.target.value)}
-                maxLength={80}
-                placeholder="중원정세 로그..."
-                style={{ width: '600px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem' }}
-              />
-              <button 
-                type="button" 
-                onClick={() => handleSubmit('log')}
-                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
-              >
-                로그쓰기
-              </button>
-            </td>
-          </tr>
-
-          <tr>
-            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>시작시간변경</td>
-            <td style={{ padding: '0.5rem' }}>
-              <input
-                type="text"
-                value={starttime}
-                onChange={(e) => setStarttime(e.target.value)}
-                placeholder="YYYY-MM-DD HH:mm:ss"
-                style={{ width: '180px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem', textAlign: 'right' }}
-              />
-              <button 
-                type="button" 
-                onClick={() => handleSubmit('starttime')}
-                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
-              >
-                변경1
-              </button>
-            </td>
-            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>최근 갱신 시간</td>
-            <td style={{ padding: '0.5rem' }}>&nbsp;{settings.turntime || '-'}</td>
-          </tr>
-
-          <tr>
-            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>최대 장수</td>
-            <td style={{ padding: '0.5rem' }}>
-              <input
-                type="number"
-                value={maxgeneral}
-                onChange={(e) => setMaxgeneral(Number(e.target.value))}
-                style={{ width: '60px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem', textAlign: 'right' }}
-              />
-              <button 
-                type="button" 
-                onClick={() => handleSubmit('maxgeneral')}
-                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
-              >
-                변경2
-              </button>
-            </td>
-            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>최대 국가</td>
-            <td style={{ padding: '0.5rem' }}>
-              <input
-                type="number"
-                value={maxnation}
-                onChange={(e) => setMaxnation(Number(e.target.value))}
-                style={{ width: '60px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem', textAlign: 'right' }}
-              />
-              <button 
-                type="button" 
-                onClick={() => handleSubmit('maxnation')}
-                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
-              >
-                변경3
-              </button>
-            </td>
-          </tr>
-
-          <tr>
-            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>시작 년도</td>
-            <td style={{ padding: '0.5rem' }}>
-              <input
-                type="number"
-                value={startyear}
-                onChange={(e) => setStartyear(Number(e.target.value))}
-                style={{ width: '60px', backgroundColor: 'black', color: 'white', border: '1px solid #666', padding: '0.3rem', textAlign: 'right' }}
-              />
-              <button 
-                type="button" 
-                onClick={() => handleSubmit('startyear')}
-                style={{ marginLeft: '0.5rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
-              >
-                변경4
-              </button>
-            </td>
-            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>현재 년월</td>
-            <td style={{ padding: '0.5rem' }}>{settings.year || 220}년 {settings.month || 1}월</td>
-          </tr>
-
-          <tr>
-            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>턴시간</td>
-            <td colSpan={3} style={{ padding: '0.5rem' }}>
-              {[1, 2, 5, 10, 20, 30, 60, 120].map((term) => (
-                <button
-                  key={term}
-                  type="button"
-                  onClick={() => handleSubmit('turnterm', term)}
-                  style={{ marginRight: '0.3rem', padding: '0.3rem 0.8rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
-                >
-                  {term}분턴
-                </button>
+        {/* Scenario Reset */}
+        <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-6 shadow-lg border-l-4 border-l-red-500">
+          <h2 className="text-xl font-bold text-white mb-4 border-b border-white/10 pb-2">🎮 시나리오 초기화</h2>
+          
+          <div className="flex flex-col md:flex-row gap-4 items-start">
+            <select
+              value={selectedScenarioId}
+              onChange={(e) => setSelectedScenarioId(e.target.value)}
+              className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-red-500/50 transition-colors text-white w-full"
+            >
+              <option value="" className="bg-gray-900">-- 시나리오 선택 --</option>
+              {scenarios.map((s) => (
+                <option key={s.id} value={s.id} className="bg-gray-900">
+                  {s.title} ({s.startYear}년)
+                </option>
               ))}
-              <span style={{ marginLeft: '1rem', color: '#aaa' }}>
-                (현재: {settings.turnterm || 60}분)
-              </span>
-            </td>
-          </tr>
+            </select>
+            <button
+              type="button"
+              onClick={handleResetScenario}
+              className="px-6 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg shadow transition-colors whitespace-nowrap"
+            >
+              ⚠️ 서버 초기화
+            </button>
+          </div>
+          <p className="mt-3 text-sm text-red-400">
+            ⚠️ 주의: 서버 초기화 시 모든 장수, 국가, 전쟁 데이터가 삭제되고 선택한 시나리오로 재설정됩니다.
+          </p>
+        </div>
 
-          <tr>
-            <td style={{ width: '110px', textAlign: 'right', padding: '0.5rem' }}>오리지널 캐릭터 플레이</td>
-            <td colSpan={3} style={{ padding: '0.5rem' }}>
-              <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
+        {/* Basic Settings */}
+        <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-6 shadow-lg">
+          <h2 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-2">📝 서버 기본 정보</h2>
+          
+          <div className="space-y-4">
+            {[
+              { label: '서버 이름', value: serverName, setter: setServerName, action: 'serverName', ph: '서버 표시 이름' },
+              { label: '시나리오 설명', value: scenario, setter: setScenario, action: 'scenario', ph: '시나리오 설명' },
+              { label: '운영자 메시지', value: msg, setter: setMsg, action: 'msg', ph: '공지사항 등' },
+            ].map((field) => (
+              <div key={field.action} className="flex flex-col md:flex-row gap-2 md:items-center">
+                <label className="w-32 text-sm font-medium text-gray-400">{field.label}</label>
+                <div className="flex-1 flex gap-2">
+                  <input
+                    type="text"
+                    value={field.value}
+                    onChange={(e) => field.setter(e.target.value)}
+                    placeholder={field.ph}
+                    className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 transition-colors text-white"
+                  />
+                  <button 
+                    onClick={() => void handleSubmit(field.action as AdminAction)}
+                    className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
+                  >
+                    변경
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {/* Special Field: Log */}
+            <div className="flex flex-col md:flex-row gap-2 md:items-center">
+              <label className="w-32 text-sm font-medium text-gray-400">중원정세 추가</label>
+              <div className="flex-1 flex gap-2">
+                <input
+                  type="text"
+                  value={log}
+                  onChange={(e) => setLog(e.target.value)}
+                  maxLength={80}
+                  placeholder="중원정세 로그..."
+                  className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 transition-colors text-white"
+                />
+                <button 
+                  onClick={() => void handleSubmit('log')}
+                  className="px-4 py-2 bg-blue-600/50 hover:bg-blue-600 rounded-lg text-sm text-white transition-colors"
+                >
+                  로그쓰기
+                </button>
+              </div>
+            </div>
+
+            {/* Grid for numeric inputs */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-4">
+              <div className="flex flex-col md:flex-row gap-2 md:items-center">
+                <label className="w-32 text-sm font-medium text-gray-400">최대 장수</label>
+                <div className="flex-1 flex gap-2">
+                  <input
+                    type="number"
+                    value={maxgeneral}
+                    onChange={(e) => setMaxgeneral(Number(e.target.value))}
+                    className="w-24 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-right focus:outline-none focus:border-blue-500/50 transition-colors text-white"
+                  />
+                  <button 
+                    onClick={() => void handleSubmit('maxgeneral')}
+                    className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
+                  >
+                    변경
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col md:flex-row gap-2 md:items-center">
+                <label className="w-32 text-sm font-medium text-gray-400">최대 국가</label>
+                <div className="flex-1 flex gap-2">
+                  <input
+                    type="number"
+                    value={maxnation}
+                    onChange={(e) => setMaxnation(Number(e.target.value))}
+                    className="w-24 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-right focus:outline-none focus:border-blue-500/50 transition-colors text-white"
+                  />
+                  <button 
+                    onClick={() => void handleSubmit('maxnation')}
+                    className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
+                  >
+                    변경
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col md:flex-row gap-2 md:items-center">
+                <label className="w-32 text-sm font-medium text-gray-400">시작 연도</label>
+                <div className="flex-1 flex gap-2">
+                  <input
+                    type="number"
+                    value={startyear}
+                    onChange={(e) => setStartyear(Number(e.target.value))}
+                    className="w-24 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-right focus:outline-none focus:border-blue-500/50 transition-colors text-white"
+                  />
+                  <button 
+                    onClick={() => void handleSubmit('startyear')}
+                    className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
+                  >
+                    변경
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <label className="w-32 text-sm font-medium text-gray-400">현재 년월</label>
+                <div className="text-white font-mono">
+                  {settings.year || 220}년 {settings.month || 1}월
+                </div>
+              </div>
+            </div>
+
+            {/* Turn Time */}
+            <div className="pt-4 border-t border-white/5">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-gray-400 mb-1">
+                  턴 시간 설정 <span className="text-xs text-gray-500 font-normal">(현재: {settings.turnterm || 60}분)</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[1, 2, 5, 10, 20, 30, 60, 120].map((term) => (
+                    <button
+                      key={term}
+                      type="button"
+                      onClick={() => void handleSubmit('turnterm', term)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-sm transition-colors",
+                        settings.turnterm === term 
+                          ? "bg-blue-600 text-white" 
+                          : "bg-white/5 hover:bg-white/10 text-gray-300"
+                      )}
+                    >
+                      {term}분
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Allow NPC Possess */}
+            <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+              <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={allowNpcPossess}
                   onChange={(e) => setAllowNpcPossess(e.target.checked)}
-                  style={{ marginRight: '0.5rem', width: '16px', height: '16px', cursor: 'pointer' }}
+                  className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
                 />
-                <span>오리지널 캐릭터 플레이 허용</span>
+                <span className="text-sm font-medium text-white">오리지널 캐릭터 플레이 허용</span>
               </label>
               <button 
-                type="button" 
-                onClick={() => handleSubmit('allowNpcPossess')}
-                style={{ marginLeft: '1rem', padding: '0.3rem 1rem', backgroundColor: '#333', color: 'white', border: '1px solid #666', cursor: 'pointer' }}
+                onClick={() => void handleSubmit('allowNpcPossess')}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
               >
                 변경
               </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
-
-
-
-

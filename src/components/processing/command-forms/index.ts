@@ -20,4 +20,5 @@ export { default as NoAggressionProposalCommandForm } from './NoAggressionPropos
 export { default as PiJangPaJangCommandForm } from './PiJangPaJangCommandForm';
 export { default as MovePopulationCommandForm } from './MovePopulationCommandForm';
 export { default as RaiseArmyCommandForm } from './RaiseArmyCommandForm';
-
+export { default as ReassignUnitCommandForm } from './ReassignUnitCommandForm';
+export { default as SimpleCommandForm } from './SimpleCommandForm';

@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
-import { adjustColorForText } from '@/types/colorSystem';
-import styles from './page.module.css';
+import { isBrightColor } from '@/utils/isBrightColor';
+import { cn } from '@/lib/utils';
 
 interface OfficerData {
   meLevel: number;
@@ -41,6 +41,12 @@ interface OfficerData {
       npc: number;
     }>;
   }>;
+}
+
+interface OfficerResponse {
+  result: boolean;
+  officer?: OfficerData;
+  reason?: string;
 }
 
 const CITY_LEVELS = ['', '촌', '소', '중', '대', '도', '거', '요', '주', '기'];
@@ -79,25 +85,12 @@ function getOfficerLevelText(level: number, nationLevel: number): string {
   return levelNames[level] || '';
 }
 
-function newColor(bgColor: string): string {
-  if (!bgColor || bgColor === '#000000') return '#ffffff';
-  
-  const hex = bgColor.replace('#', '');
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-  
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return brightness > 150 ? '#000000' : '#ffffff';
-}
-
 export default function OfficerPage() {
   const params = useParams();
   const serverID = params?.server as string;
 
   const [loading, setLoading] = useState(true);
   const [officerData, setOfficerData] = useState<OfficerData | null>(null);
-  const [sortBy, setSortBy] = useState<'region' | 'level'>('region');
 
   useEffect(() => {
     loadOfficerData();
@@ -106,15 +99,18 @@ export default function OfficerPage() {
   async function loadOfficerData() {
     try {
       setLoading(true);
-      const result = await SammoAPI.GetOfficerInfo({ session_id: serverID });
-      if (result.result) {
+      const result = (await SammoAPI['request']('/api/nation/get-officer-info', { 
+          method: 'POST',
+          body: JSON.stringify({ session_id: serverID }) 
+      })) as OfficerResponse;
+      if (result.result && result.officer) {
         setOfficerData(result.officer);
       } else {
-        alert((result as any).reason || '장관 정보를 불러오는데 실패했습니다.');
+        // alert((result as any).reason || '장관 정보를 불러오는데 실패했습니다.');
       }
     } catch (err) {
       console.error(err);
-      alert('장관 정보를 불러오는데 실패했습니다.');
+      // alert('장관 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -122,27 +118,30 @@ export default function OfficerPage() {
 
   if (loading) {
     return (
-      <div className={styles.container}>
+      <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
         <TopBackBar title="인 사 부" reloadable onReload={loadOfficerData} />
-        <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
+        <div className="flex justify-center items-center h-[50vh]">
+           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        </div>
       </div>
     );
   }
 
   if (!officerData) {
     return (
-      <div className={styles.container}>
+      <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
         <TopBackBar title="인 사 부" reloadable onReload={loadOfficerData} />
-        <div className="center" style={{ padding: '2rem' }}>데이터 없음</div>
+        <div className="flex justify-center items-center h-[50vh] text-gray-500">
+          데이터 없음
+        </div>
       </div>
     );
   }
 
   const { nation, levelMap, tigers, eagles, cities, chiefMinLevel } = officerData;
   
-  // 밝은 색상이면 자동으로 어둡게 보정
-  const displayColor = adjustColorForText(nation.color);
-  const textColor = '#ffffff'; // 보정된 색상은 항상 어두우므로 흰색 글자
+  const displayColor = nation.color;
+  const textColor = isBrightColor(displayColor) ? '#111827' : '#ffffff';
 
   const renderOfficerRows = () => {
     const rows: React.ReactElement[] = [];
@@ -153,24 +152,22 @@ export default function OfficerPage() {
       const officer2 = levelMap[i2] || { name: '-', belong: '-' };
 
       rows.push(
-        <tr key={i}>
-          <td className={styles.officerTitle}>
+        <tr key={i} className="border-b border-white/5">
+          <td className="py-2 px-4 font-bold text-blue-300 bg-black/20">
             {getOfficerLevelText(i1, nation.level)}
           </td>
-          <td className={styles.officerIconCell}>
-            {/* 이미지 표시 생략 */}
+          <td className="py-2 px-4">
+            {officer1.name !== '-' ? (
+                <span className="text-white">{officer1.name} <span className="text-gray-500 text-xs">({officer1.belong}년)</span></span>
+            ) : <span className="text-gray-600">-</span>}
           </td>
-          <td className={styles.officerName}>
-            {officer1.name}({officer1.belong}년)
-          </td>
-          <td className={styles.officerTitle}>
+          <td className="py-2 px-4 font-bold text-blue-300 bg-black/20 border-l border-white/5">
             {getOfficerLevelText(i2, nation.level)}
           </td>
-          <td className={styles.officerIconCell}>
-            {/* 이미지 표시 생략 */}
-          </td>
-          <td className={styles.officerName}>
-            {officer2.name}({officer2.belong}년)
+          <td className="py-2 px-4">
+            {officer2.name !== '-' ? (
+                <span className="text-white">{officer2.name} <span className="text-gray-500 text-xs">({officer2.belong}년)</span></span>
+            ) : <span className="text-gray-600">-</span>}
           </td>
         </tr>
       );
@@ -191,152 +188,126 @@ export default function OfficerPage() {
     .sort((a, b) => a - b);
 
   return (
-    <div className={styles.container}>
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
       <TopBackBar title="인 사 부" reloadable onReload={loadOfficerData} />
 
-      <div className={styles.content}>
-        {/* 국가명 헤더 */}
-        <table className={styles.mainTable}>
-          <thead>
-            <tr>
-              <th
-                colSpan={6}
-                style={{
-                  color: textColor,
-                  backgroundColor: displayColor,
-                  fontSize: '1.5rem',
-                  padding: '0.5rem'
-                }}
-              >
-                【 {nation.name} 】
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {renderOfficerRows()}
-            <tr>
-              <td className={styles.labelCell}>오호장군【승전】</td>
-              <td colSpan={5} className={styles.rankList}>
-                {tigers.length > 0
-                  ? tigers.map((t, i) => (
-                      <span key={i}>
-                        {t.name}【{t.value.toLocaleString()}】
-                        {i < tigers.length - 1 ? ', ' : ''}
-                      </span>
-                    ))
-                  : '-'}
-              </td>
-            </tr>
-            <tr>
-              <td className={styles.labelCell}>건안칠자【계략】</td>
-              <td colSpan={5} className={styles.rankList}>
-                {eagles.length > 0
-                  ? eagles.map((e, i) => (
-                      <span key={i}>
-                        {e.name}【{e.value.toLocaleString()}】
-                        {i < eagles.length - 1 ? ', ' : ''}
-                      </span>
-                    ))
-                  : '-'}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div className="max-w-5xl mx-auto space-y-8">
+        {/* 중앙 관직 테이블 */}
+        <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
+          <div 
+            className="py-4 px-6 text-center font-bold text-xl"
+            style={{ backgroundColor: displayColor, color: textColor }}
+          >
+            【 {nation.name} 】 중앙 관직
+          </div>
+          <div className="overflow-x-auto">
+             <table className="w-full text-sm text-left">
+               <tbody>
+                 {renderOfficerRows()}
+                 <tr className="bg-black/30 border-t border-white/10">
+                   <td className="py-3 px-4 font-bold text-yellow-500 whitespace-nowrap">오호장군【승전】</td>
+                   <td colSpan={3} className="py-3 px-4 text-gray-300">
+                     {tigers.length > 0
+                       ? tigers.map((t, i) => (
+                           <span key={i}>
+                             {t.name}<span className="text-gray-500">【{t.value.toLocaleString()}】</span>
+                             {i < tigers.length - 1 ? ', ' : ''}
+                           </span>
+                         ))
+                       : '-'}
+                   </td>
+                 </tr>
+                 <tr className="bg-black/30 border-t border-white/5">
+                   <td className="py-3 px-4 font-bold text-green-500 whitespace-nowrap">건안칠자【계략】</td>
+                   <td colSpan={3} className="py-3 px-4 text-gray-300">
+                     {eagles.length > 0
+                       ? eagles.map((e, i) => (
+                           <span key={i}>
+                             {e.name}<span className="text-gray-500">【{e.value.toLocaleString()}】</span>
+                             {i < eagles.length - 1 ? ', ' : ''}
+                           </span>
+                         ))
+                       : '-'}
+                   </td>
+                 </tr>
+               </tbody>
+             </table>
+          </div>
+        </div>
 
-        {/* 도시 관직자 테이블 */}
-        <div style={{ marginTop: '1rem' }}>
-          <table className={styles.mainTable}>
-            <thead>
-              <tr>
-                <th colSpan={2} className={styles.headerCell}>
-                  도 시
-                </th>
-                <th className={styles.headerCell}>태 수 (사관) 【현재도시】</th>
-                <th className={styles.headerCell}>군 사 (사관) 【현재도시】</th>
-                <th className={styles.headerCell}>종 사 (사관) 【현재도시】</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedRegions.map((region) => {
-                const regionCities = groupedCities[region];
-                return (
-                  <React.Fragment key={region}>
-                    <tr>
-                      <td colSpan={5} className={styles.regionHeader}>
-                        <span style={{ color: 'skyblue', fontSize: '1.2rem' }}>
-                          {' '}
-                          【 {REGION_NAMES[region] || '기타'} 】{' '}
-                        </span>
-                      </td>
-                    </tr>
-                    {regionCities.map((city) => {
-                      const officer4 = city.officers[4];
-                      const officer3 = city.officers[3];
-                      const officer2 = city.officers[2];
+        {/* 지방 관직 테이블 */}
+        <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead>
+                <tr className="bg-gray-800/80 text-gray-300 border-b border-white/10">
+                  <th className="py-3 px-4 whitespace-nowrap" colSpan={2}>도시</th>
+                  <th className="py-3 px-4 whitespace-nowrap">태 수 (사관) 【현재도시】</th>
+                  <th className="py-3 px-4 whitespace-nowrap">군 사 (사관) 【현재도시】</th>
+                  <th className="py-3 px-4 whitespace-nowrap">종 사 (사관) 【현재도시】</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {sortedRegions.map((region) => {
+                  const regionCities = groupedCities[region];
+                  return (
+                    <React.Fragment key={region}>
+                      <tr className="bg-gray-800/30">
+                        <td colSpan={5} className="py-2 px-4 font-bold text-blue-400 border-b border-white/5">
+                          【 {REGION_NAMES[region] || '기타'} 】
+                        </td>
+                      </tr>
+                      {regionCities.map((city) => {
+                        const officer4 = city.officers[4];
+                        const officer3 = city.officers[3];
+                        const officer2 = city.officers[2];
 
-                      const isOfficerSet = (level: number) => {
-                        const mask = 1 << level;
-                        return (city.officer_set & mask) !== 0;
-                      };
+                        const isOfficerSet = (level: number) => {
+                          const mask = 1 << level;
+                          return (city.officer_set & mask) !== 0;
+                        };
 
-                      return (
-                        <tr key={city.city}>
-                          <td
-                            className={styles.cityLevel}
-                            style={{
-                              color: textColor,
-                              backgroundColor: displayColor
-                            }}
-                          >
-                            【{CITY_LEVELS[city.level] || '-'}】
-                          </td>
-                          <td
-                            className={styles.cityName}
-                            style={{
-                              color: textColor,
-                              backgroundColor: displayColor
-                            }}
-                          >
-                            {city.name}
-                          </td>
-                          <td
-                            className={styles.officerCell}
-                            style={{ color: isOfficerSet(4) ? 'orange' : 'white' }}
-                          >
-                            {officer4
-                              ? `${officer4.name}(${officer4.belong}년) 【${officer4.cityName}】`
-                              : '-'}
-                          </td>
-                          <td
-                            className={styles.officerCell}
-                            style={{ color: isOfficerSet(3) ? 'orange' : 'white' }}
-                          >
-                            {officer3
-                              ? `${officer3.name}(${officer3.belong}년) 【${officer3.cityName}】`
-                              : '-'}
-                          </td>
-                          <td
-                            className={styles.officerCell}
-                            style={{ color: isOfficerSet(2) ? 'orange' : 'white' }}
-                          >
-                            {officer2
-                              ? `${officer2.name}(${officer2.belong}년) 【${officer2.cityName}】`
-                              : '-'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </React.Fragment>
-                );
-              })}
-              <tr>
-                <td colSpan={5} className={styles.noteCell}>
-                  ※ <span style={{ color: 'orange' }}>노란색</span>은 변경 불가능,
-                  하얀색은 변경 가능 관직입니다.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                        return (
+                          <tr key={city.city} className="hover:bg-white/5">
+                            <td 
+                                className="py-3 px-4 text-center w-12 font-bold"
+                                style={{ backgroundColor: displayColor, color: textColor }}
+                            >
+                                {CITY_LEVELS[city.level] || '-'}
+                            </td>
+                            <td 
+                                className="py-3 px-4 font-medium"
+                                style={{ backgroundColor: displayColor, color: textColor }}
+                            >
+                                {city.name}
+                            </td>
+                            <td className={cn("py-3 px-4", isOfficerSet(4) ? "text-orange-400" : "text-gray-300")}>
+                              {officer4
+                                ? `${officer4.name}(${officer4.belong}년) 【${officer4.cityName}】`
+                                : '-'}
+                            </td>
+                            <td className={cn("py-3 px-4", isOfficerSet(3) ? "text-orange-400" : "text-gray-300")}>
+                              {officer3
+                                ? `${officer3.name}(${officer3.belong}년) 【${officer3.cityName}】`
+                                : '-'}
+                            </td>
+                            <td className={cn("py-3 px-4", isOfficerSet(2) ? "text-orange-400" : "text-gray-300")}>
+                              {officer2
+                                ? `${officer2.name}(${officer2.belong}년) 【${officer2.cityName}】`
+                                : '-'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="p-3 bg-black/20 text-xs text-center border-t border-white/5">
+             <span className="text-orange-400">※ 노란색</span>은 변경 불가능, <span className="text-gray-400">회색</span>은 변경 가능 관직입니다.
+          </div>
         </div>
       </div>
     </div>

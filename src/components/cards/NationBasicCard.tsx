@@ -68,13 +68,6 @@ export default function NationBasicCard({ nation, global, cityConstMap, colorSys
   const displayColor = hasNation ? nation.color : '#FFFFFF';
   const textColor = isBrightColor(displayColor) ? 'black' : 'white';
   
-  // 속성 헤더 공통 스타일
-  const labelStyle = {
-    backgroundColor: colorSystem?.borderLight,
-    color: colorSystem?.text,
-    fontWeight: '500' as const,
-  };
-
   // 기술력 계산 (간단한 버전)
   const tech = nation.tech || 0;
   const currentTechLevel = Math.floor(tech / 1000) || 0; // 임시 계산
@@ -88,30 +81,24 @@ export default function NationBasicCard({ nation, global, cityConstMap, colorSys
 
   return (
     <div 
-      className={`${styles.nationCardBasic} bg2`}
+      className={styles.nationCardBasic}
       style={{
         borderColor: colorSystem?.border,
-        color: colorSystem?.text,
-        backgroundColor: colorSystem?.pageBg,
       }}
     >
       <div
-        className={`${styles.name} ${styles.tbTitle}`}
+        className={styles.headerSection}
         style={{
           backgroundColor: displayColor,
-          color: textColor,
-          fontWeight: 'bold',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
         }}
       >
+        <div className={styles.nationNamePanel} style={{ color: textColor }}>
         {hasNation ? (
           <span 
             className={styles.clickable}
             onClick={() => window.location.href = `/nation/${nation.id}`}
             title="국가 상세 정보"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
             <NationFlag 
               nation={{
@@ -122,143 +109,173 @@ export default function NationBasicCard({ nation, global, cityConstMap, colorSys
                 flagBgColor: nation.flagBgColor,
                 flagBorderColor: nation.flagBorderColor,
               }} 
-              size={20} 
+                size={24} 
             />
           </span>
         ) : (
           <span>{nation.name}</span>
         )}
       </div>
-      <div className={`${styles.typeHead} ${styles.tbHead} bg1`} style={labelStyle}>성향</div>
-      <div className={`${styles.typeBody} ${styles.tbBody}`}>
+      </div>
+
+      <div className={styles.statsGrid}>
+        {/* 성향 및 공지 (전체 너비) */}
+        <div className={`${styles.gPanel} ${styles.fullWidthPanel}`}>
+          <div className={styles.gHead}>성향</div>
+          <div className={styles.typeText}>
         {hasNation && nation.type ? (
           <>
-            {nation.type.name || '-'}
-            {(nation.type.pros || nation.type.cons) && ' ('}
-            {nation.type.pros && <span style={{ color: colorSystem?.success || 'cyan' }}>{nation.type.pros}</span>}
-            {nation.type.pros && nation.type.cons && ' / '}
-            {nation.type.cons && <span style={{ color: colorSystem?.error || 'red' }}>{nation.type.cons}</span>}
-            {(nation.type.pros || nation.type.cons) && ')'}
+                <span style={{ fontWeight: 'bold', marginRight: '0.5rem' }}>{nation.type.name || '-'}</span>
+                <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>
+                  {nation.type.pros && <span style={{ color: colorSystem?.success || '#4CAF50', marginRight: '0.5rem' }}>{nation.type.pros}</span>}
+                  {nation.type.cons && <span style={{ color: colorSystem?.error || '#F44336' }}>{nation.type.cons}</span>}
+                </span>
           </>
         ) : '-'}
       </div>
-      <div className={`${styles.c12Head} ${styles.tbHead} bg1`} style={labelStyle}>
-        {hasNation ? formatOfficerLevelText(12, nation.level, cityConstMap?.officerTitles) : '-'}
+        </div>
+
+        {/* 군주 */}
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>
+            {hasNation ? formatOfficerLevelText(12, nation.level, cityConstMap?.officerTitles) : '군주'}
       </div>
-      <div className={`${styles.c12Body} ${styles.tbBody}`}>
-        {hasNation ? (
-          nation.topChiefs?.[12] ? (
+          <div className={styles.gBody}>
+            {hasNation && nation.topChiefs?.[12] ? (
             <span 
               className={styles.clickable}
               onClick={() => window.location.href = `/general/${nation.topChiefs?.[12]?.no || 0}`}
-              title="장수 상세 정보"
               style={{ color: nation.topChiefs[12].npc === 0 ? colorSystem?.text : (getNPCColor(nation.topChiefs[12].npc) || colorSystem?.info) }}
             >
               {nation.topChiefs[12].name}
             </span>
-          ) : '-'
         ) : '-'}
       </div>
-      <div className={`${styles.c11Head} ${styles.tbHead} bg1`} style={labelStyle}>
-        {hasNation ? formatOfficerLevelText(11, nation.level, cityConstMap?.officerTitles) : '-'}
+        </div>
+
+        {/* 승상 */}
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>
+            {hasNation ? formatOfficerLevelText(11, nation.level, cityConstMap?.officerTitles) : '승상'}
       </div>
-      <div className={`${styles.c11Body} ${styles.tbBody}`}>
-        {hasNation ? (
-          nation.topChiefs?.[11] ? (
+          <div className={styles.gBody}>
+            {hasNation && nation.topChiefs?.[11] ? (
             <span 
               className={styles.clickable}
               onClick={() => window.location.href = `/general/${nation.topChiefs?.[11]?.no || 0}`}
-              title="장수 상세 정보"
               style={{ color: nation.topChiefs[11].npc === 0 ? colorSystem?.text : (getNPCColor(nation.topChiefs[11].npc) || colorSystem?.info) }}
             >
               {nation.topChiefs[11].name}
             </span>
-          ) : '-'
         ) : '-'}
       </div>
-      <div className={`${styles.popHead} ${styles.tbHead} bg1`} style={labelStyle}>총 주민</div>
-      <div className={`${styles.popBody} ${styles.tbBody}`}>
+        </div>
+
+        {/* 인구 */}
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>총 주민</div>
+          <div className={styles.gBody}>
         {hasNation && nation.population 
-          ? `${(nation.population.now || 0).toLocaleString()} / ${(nation.population.max || 0).toLocaleString()}`
-          : '해당 없음'}
+              ? (nation.population.now || 0).toLocaleString()
+              : '-'}
+            <span className={styles.subValue}>
+              / {hasNation && nation.population ? (nation.population.max || 0).toLocaleString() : '-'}
+            </span>
+          </div>
       </div>
-      <div className={`${styles.crewHead} ${styles.tbHead} bg1`} style={labelStyle}>총 병사</div>
-      <div className={`${styles.crewBody} ${styles.tbBody}`}>
+
+        {/* 병사 */}
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>총 병사</div>
+          <div className={styles.gBody}>
         {hasNation && nation.crew 
-          ? `${(nation.crew.now || 0).toLocaleString()} / ${(nation.crew.max || 0).toLocaleString()}`
-          : '해당 없음'}
+              ? (nation.crew.now || 0).toLocaleString()
+              : '-'}
+            <span className={styles.subValue}>
+              / {hasNation && nation.crew ? (nation.crew.max || 0).toLocaleString() : '-'}
+            </span>
+          </div>
+        </div>
+
+        {/* 국고 */}
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>국고</div>
+          <div className={styles.gBody}>
+            {hasNation ? (nation.gold || 0).toLocaleString() : '-'}
+          </div>
+        </div>
+
+        {/* 병량 */}
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>병량</div>
+          <div className={styles.gBody}>
+            {hasNation ? (nation.rice || 0).toLocaleString() : '-'}
+          </div>
+        </div>
+
+        {/* 국력 */}
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>국력</div>
+          <div className={styles.gBody}>
+            {hasNation ? (typeof nation.power === 'number' ? nation.power.toLocaleString() : '-') : '-'}
+          </div>
+        </div>
+
+        {/* 기술력 */}
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>기술력</div>
+          <div className={styles.gBody}>
+            {hasNation ? (
+              <>
+                Lv.{currentTechLevel}
+                <span className={styles.subValue}>({Math.floor(tech).toLocaleString()})</span>
+              </>
+            ) : '-'}
       </div>
-      <div className={`${styles.goldHead} ${styles.tbHead} bg1`} style={labelStyle}>국고</div>
-      <div className={`${styles.goldBody} ${styles.tbBody}`}>
-        {hasNation ? (nation.gold || 0).toLocaleString() : '해당 없음'}
       </div>
-      <div className={`${styles.riceHead} ${styles.tbHead} bg1`} style={labelStyle}>병량</div>
-      <div className={`${styles.riceBody} ${styles.tbBody}`}>
-        {hasNation ? (nation.rice || 0).toLocaleString() : '해당 없음'}
+
+        {/* 속령/장수 */}
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>속령 / 장수</div>
+          <div className={styles.gBody}>
+            {hasNation && nation.population ? (nation.population.cityCnt || 0).toLocaleString() : '-'}
+            <span className={styles.subValue}> / </span>
+            {hasNation && nation.crew ? (nation.crew.generalCnt || 0).toLocaleString() : '-'}
       </div>
-      <div className={`${styles.billHead} ${styles.tbHead} bg1`} style={labelStyle}>지급률</div>
-      <div className={`${styles.billBody} ${styles.tbBody}`}>
-        {hasNation ? `${nation.bill || 0}%` : '해당 없음'}
       </div>
-      <div className={`${styles.taxRateHead} ${styles.tbHead} bg1`} style={labelStyle}>세율</div>
-      <div className={`${styles.taxRateBody} ${styles.tbBody}`}>
-        {hasNation ? `${nation.taxRate || 10}%` : '해당 없음'}
+
+        {/* 세율/지급률 */}
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>세율 / 지급률</div>
+          <div className={styles.gBody}>
+            {hasNation ? `${nation.taxRate || 10}%` : '-'}
+            <span className={styles.subValue}> / </span>
+            {hasNation ? `${nation.bill || 0}%` : '-'}
       </div>
-      <div className={`${styles.cityCntHead} ${styles.tbHead} bg1`} style={labelStyle}>속령</div>
-      <div className={`${styles.cityCntBody} ${styles.tbBody}`}>
-        {hasNation && nation.population ? (nation.population.cityCnt || 0).toLocaleString() : '해당 없음'}
       </div>
-      <div className={`${styles.genCntHead} ${styles.tbHead} bg1`} style={labelStyle}>장수</div>
-      <div className={`${styles.genCntBody} ${styles.tbBody}`}>
-        {hasNation && nation.crew ? (nation.crew.generalCnt || 0).toLocaleString() : '해당 없음'}
+
+        {/* 상태 정보 (전략/외교/임관/전쟁) - 2칸 차지 */}
+        <div className={`${styles.gPanel} ${styles.spanTwoCols}`}>
+          <div className={styles.gHead}>상태</div>
+          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <span className={`${styles.statusIndicator} ${!strategicLimit ? styles.statusOn : styles.statusOff}`}></span>
+              <span>전략 {strategicLimit ? `${strategicLimit}턴` : '가능'}</span>
       </div>
-      <div className={`${styles.powerHead} ${styles.tbHead} bg1`} style={labelStyle}>국력</div>
-      <div className={`${styles.powerBody} ${styles.tbBody}`}>
-        {hasNation ? (typeof nation.power === 'number' ? nation.power.toLocaleString() : '-') : '해당 없음'}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <span className={`${styles.statusIndicator} ${!nation.diplomaticLimit ? styles.statusOn : styles.statusOff}`}></span>
+              <span>외교 {nation.diplomaticLimit ? `${nation.diplomaticLimit}턴` : '가능'}</span>
       </div>
-      <div className={`${styles.techHead} ${styles.tbHead} bg1`} style={labelStyle}>기술력</div>
-      <div className={`${styles.techBody} ${styles.tbBody}`}>
-        {hasNation ? `${currentTechLevel}등급 / ${Math.floor(tech).toLocaleString()}` : '해당 없음'}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <span className={`${styles.statusIndicator} ${!nation.prohibitScout ? styles.statusOn : styles.statusOff}`}></span>
+              <span>임관 {nation.prohibitScout ? '금지' : '허가'}</span>
       </div>
-      <div className={`${styles.strategicClgHead} ${styles.tbHead} bg1`} style={labelStyle}>전략</div>
-      <div className={`${styles.strategicClgBody} ${styles.tbBody}`}>
-        {hasNation ? (
-          strategicLimit ? (
-            <span style={{ color: colorSystem?.error || 'red' }}>{String(strategicLimit)}턴</span>
-          ) : (
-            <span style={{ color: colorSystem?.success || 'limegreen' }}>가능</span>
-          )
-        ) : '해당 없음'}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <span className={`${styles.statusIndicator} ${!nation.prohibitWar ? styles.statusOn : styles.statusOff}`}></span>
+              <span>전쟁 {nation.prohibitWar ? '금지' : '허가'}</span>
       </div>
-      <div className={`${styles.diplomaticClgHead} ${styles.tbHead} bg1`} style={labelStyle}>외교</div>
-      <div className={`${styles.diplomaticClgBody} ${styles.tbBody}`}>
-        {hasNation ? (
-          nation.diplomaticLimit ? (
-            <span style={{ color: colorSystem?.error || 'red' }}>{String(nation.diplomaticLimit)}턴</span>
-          ) : (
-            <span style={{ color: colorSystem?.success || 'limegreen' }}>가능</span>
-          )
-        ) : '해당 없음'}
       </div>
-      <div className={`${styles.prohibitScoutHead} ${styles.tbHead} bg1`} style={labelStyle}>임관</div>
-      <div className={`${styles.prohibitScoutBody} ${styles.tbBody}`}>
-        {hasNation ? (
-          nation.prohibitScout ? (
-            <span style={{ color: colorSystem?.error || 'red' }}>금지</span>
-          ) : (
-            <span style={{ color: colorSystem?.success || 'limegreen' }}>허가</span>
-          )
-        ) : '해당 없음'}
       </div>
-      <div className={`${styles.prohibitWarHead} ${styles.tbHead} bg1`} style={labelStyle}>전쟁</div>
-      <div className={`${styles.prohibitWarBody} ${styles.tbBody}`}>
-        {hasNation ? (
-          nation.prohibitWar ? (
-            <span style={{ color: colorSystem?.error || 'red' }}>금지</span>
-          ) : (
-            <span style={{ color: colorSystem?.success || 'limegreen' }}>허가</span>
-          )
-        ) : '해당 없음'}
       </div>
     </div>
   );

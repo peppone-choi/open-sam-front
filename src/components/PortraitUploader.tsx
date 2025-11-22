@@ -5,6 +5,7 @@
 
 import React, { useState, useCallback } from 'react';
 import PortraitCropper from './PortraitCropper';
+import { COMMON_TEXT, PORTRAIT_TEXT } from '@/constants/uiText';
 
 interface PortraitUploaderProps {
   generalId: number;
@@ -50,15 +51,15 @@ export const PortraitUploader: React.FC<PortraitUploaderProps> = ({
       });
 
       if (!response.ok) {
-        throw new Error('Upload failed');
+        throw new Error(PORTRAIT_TEXT.uploadFailed);
       }
 
       const data = await response.json();
       onUploadSuccess(data.portraitUrl);
       setImageSrc(null);
     } catch (error: any) {
-      console.error('Upload error:', error);
-      onUploadError?.(error.message);
+      console.error(`${PORTRAIT_TEXT.uploadErrorLog}:`, error);
+      onUploadError?.(PORTRAIT_TEXT.uploadFailed);
     } finally {
       setUploading(false);
     }
@@ -82,7 +83,7 @@ export const PortraitUploader: React.FC<PortraitUploaderProps> = ({
             <div className="mb-4">
               <img
                 src={currentPortrait}
-                alt="Current portrait"
+                alt={COMMON_TEXT.characterAlt}
                 className="w-[156px] h-[210px] object-cover rounded border-2 border-gray-600"
               />
             </div>

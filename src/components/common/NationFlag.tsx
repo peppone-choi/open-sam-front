@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { adjustColorForText } from '@/types/colorSystem';
 import styles from './NationFlag.module.css';
 
 interface NationFlagProps {

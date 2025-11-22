@@ -4,7 +4,6 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
-import styles from './page.module.css';
 
 function DiplomacyProcessContent() {
   const params = useParams();
@@ -23,7 +22,7 @@ function DiplomacyProcessContent() {
   const letterNo = searchParams?.get('letterNo') ? Number(searchParams.get('letterNo')) : 0;
 
   async function loadDiplomacyData() {
-    if (!action || !letterNo) {
+    if (!letterNo) {
       return;
     }
 
@@ -71,24 +70,61 @@ function DiplomacyProcessContent() {
   }
 
   return (
-    <div className={styles.container}>
-      <TopBackBar title="외교 처리" />
-      {loading ? (
-        <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
-      ) : (
-        <div className={styles.content}>
-          <div className={styles.diplomacyForm}>
-            {/* 외교 처리 폼 */}
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <TopBackBar title="외교 처리" />
+        
+        {loading ? (
+          <div className="min-h-[200px] flex items-center justify-center">
+             <div className="animate-pulse text-gray-400 font-bold">로딩 중...</div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-6 shadow-lg">
+            {diplomacyData ? (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                   <h3 className="text-lg font-bold text-white">외교 문서 #{diplomacyData.no}</h3>
+                   <div className="flex gap-4 text-sm text-gray-400">
+                      <span>보낸 국가: {diplomacyData.fromNation}</span>
+                      <span>받는 국가: {diplomacyData.toNation}</span>
+                   </div>
+                </div>
+                
+                <div className="bg-black/20 p-4 rounded-lg border border-white/5 text-sm text-gray-300 leading-relaxed">
+                   {diplomacyData.brief}
+                </div>
+                
+                {/* TODO: Implement specific forms based on 'action' type if needed */}
+                <div className="flex justify-end gap-2">
+                   <button 
+                     onClick={() => handleSubmit({})} 
+                     className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-sm transition-colors shadow-lg shadow-blue-900/20"
+                   >
+                     확인
+                   </button>
+                   <button 
+                     onClick={() => router.back()} 
+                     className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg text-sm transition-colors"
+                   >
+                     취소
+                   </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                해당 외교 문서를 찾을 수 없습니다.
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
 export default function DiplomacyProcessPage() {
   return (
-    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-gray-950 flex items-center justify-center text-gray-500">로딩 중...</div>}>
       <DiplomacyProcessContent />
     </Suspense>
   );

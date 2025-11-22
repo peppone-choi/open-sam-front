@@ -1,10 +1,12 @@
 'use client';
-
-import React, { useState, useEffect } from 'react';
+ 
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { cn } from '@/lib/utils';
 import styles from './page.module.css';
+
 
 export default function AdminTimeControlPage() {
   const params = useParams();
@@ -15,11 +17,36 @@ export default function AdminTimeControlPage() {
   const [minute, setMinute] = useState('');
   const [minute2, setMinute2] = useState('');
 
-  useEffect(() => {
-    loadTimeData();
-  }, [serverID]);
+  const isLocked = Boolean(timeData?.plock > 0);
 
-  async function loadTimeData() {
+  const statusCards = useMemo(() => {
+    return [
+      {
+        label: '턴 진행',
+        value: timeData?.turntime ?? '-',
+        caption: '최종 갱신 기준 시간',
+        badge: isLocked ? '동결 중' : '가동 중',
+        tone: isLocked ? 'danger' as const : 'success' as const,
+      },
+      {
+        label: '토너먼트',
+        value: timeData?.tnmt_time ?? '-',
+        caption: '토너먼트 진행 시간',
+        badge: 'TNMT',
+        tone: 'warn' as const,
+      },
+      {
+        label: '락 상태',
+        value: isLocked ? '관리자 락 ON' : '관리자 락 OFF',
+        caption: isLocked ? '명령 처리 차단됨' : '명령 처리 가능',
+        badge: isLocked ? 'LOCKED' : 'LIVE',
+        tone: isLocked ? 'danger' as const : 'success' as const,
+      },
+    ];
+  }, [isLocked, timeData]);
+ 
+  const loadTimeData = useCallback(async () => {
+
     try {
       setLoading(true);
       const result = await SammoAPI.AdminGetTimeControl();
@@ -32,7 +59,12 @@ export default function AdminTimeControlPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    void loadTimeData();
+  }, [loadTimeData]);
+
 
   async function handleTimeControl(action: string) {
     try {
@@ -73,14 +105,40 @@ export default function AdminTimeControlPage() {
 
   return (
     <div className={styles.container}>
-      <TopBackBar title="시간 조정" />
+      <TopBackBar title="시간 조정" reloadable onReload={loadTimeData} />
       {loading ? (
-        <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
+        <div className="flex min-h-[40vh] items-center justify-center text-gray-400">
+          <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-white" />
+        </div>
       ) : (
         <div className={styles.content}>
+          <div className={styles.statusGrid}>
+            {statusCards.map((card) => (
+              <div key={card.label} className={styles.statCard}>
+                <p className={styles.statLabel}>{card.label}</p>
+                <p className={styles.statValue}>{card.value}</p>
+                <p className={styles.statMeta}>{card.caption}</p>
+                {card.badge && (
+                  <span
+                    className={cn(styles.badge, {
+                      [styles.badgeSuccess]: card.tone === 'success',
+                      [styles.badgeWarn]: card.tone === 'warn',
+                      [styles.badgeDanger]: card.tone === 'danger',
+                    })}
+                  >
+                    {card.badge}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+
           <div className={styles.timeControlForm}>
             <div className={styles.formRow}>
-              <label>시간조정 (분)</label>
+              <div>
+                <label>시간조정 (분)</label>
+                <p className={styles.metaText}>최종 갱신: {timeData?.turntime || '-'}</p>
+              </div>
               <input
                 type="number"
                 value={minute}
@@ -94,10 +152,12 @@ export default function AdminTimeControlPage() {
               <button type="button" onClick={() => handleTimeControl('backward')} className={styles.button}>
                 분지연
               </button>
-              <span>최종갱신: {timeData?.turntime || '-'}</span>
             </div>
             <div className={styles.formRow}>
-              <label>토너먼트 시간조정 (분)</label>
+              <div>
+                <label>토너먼트 시간조정 (분)</label>
+                <p className={styles.metaText}>토너먼트 기준: {timeData?.tnmt_time || '-'}</p>
+              </div>
               <input
                 type="number"
                 value={minute2}
@@ -111,9 +171,9 @@ export default function AdminTimeControlPage() {
               <button type="button" onClick={() => handleTimeControl('tnmt_backward')} className={styles.button}>
                 토너분지연
               </button>
-              <span>토너먼트: {timeData?.tnmt_time || '-'}</span>
             </div>
             <div className={styles.formRow}>
+              <label>보상 지급</label>
               <button type="button" onClick={() => handleTimeControl('gold_payment')} className={styles.button}>
                 금지급
               </button>
@@ -122,13 +182,18 @@ export default function AdminTimeControlPage() {
               </button>
             </div>
             <div className={styles.formRow}>
+              <div>
+                <label>관리자 락</label>
+                <p className={cn(styles.lockState, isLocked ? styles.lockStateActive : styles.lockStateIdle)}>
+                  현재: {isLocked ? '동결중' : '가동중'}
+                </p>
+              </div>
               <button type="button" onClick={() => handleTimeControl('lock')} className={styles.button}>
                 락걸기
               </button>
               <button type="button" onClick={() => handleTimeControl('unlock')} className={styles.button}>
                 락풀기
               </button>
-              <span>현재: {timeData?.plock > 0 ? '동결중' : '가동중'}</span>
             </div>
           </div>
         </div>

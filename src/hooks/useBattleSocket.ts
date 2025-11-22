@@ -61,6 +61,8 @@ interface UseBattleSocketOptions {
   token?: string | null;
 }
 
+const BATTLE_LOG_LIMIT = 60;
+
 export function useBattleSocket(options: UseBattleSocketOptions) {
   const { battleId, generalId, token } = options;
   const { socket, isConnected, onBattleEvent } = useSocket({ token, autoConnect: true });
@@ -71,6 +73,32 @@ export function useBattleSocket(options: UseBattleSocketOptions) {
   const [logs, setLogs] = useState<string[]>([]);
   
   const joinedRef = useRef(false);
+  const pendingStateRef = useRef<BattleState | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+
+  const pushLog = useCallback((message: string) => {
+    setLogs((prev) => {
+      const next = [...prev, message];
+      if (next.length > BATTLE_LOG_LIMIT) {
+        return next.slice(next.length - BATTLE_LOG_LIMIT);
+      }
+      return next;
+    });
+  }, []);
+
+  const scheduleBattleStateUpdate = useCallback(() => {
+    if (animationFrameRef.current !== null) {
+      return;
+    }
+
+    animationFrameRef.current = requestAnimationFrame(() => {
+      animationFrameRef.current = null;
+      if (pendingStateRef.current) {
+        setBattleState(pendingStateRef.current);
+        pendingStateRef.current = null;
+      }
+    });
+  }, []);
 
   /**
    * 전투 참가
@@ -190,24 +218,25 @@ export function useBattleSocket(options: UseBattleSocketOptions) {
       console.log('[BattleSocket] 전투 참가 성공:', data);
       setIsJoined(true);
       setBattleState(data);
-      setLogs(prev => [...prev, `전투에 참가했습니다: ${data.battleId}`]);
+      pushLog(`전투에 참가했습니다: ${data.battleId}`);
     });
 
     // 실시간 상태 업데이트 (20 tick/s)
     const unsubState = onBattleEvent('state', (state: BattleState) => {
-      setBattleState(state);
+      pendingStateRef.current = state;
+      scheduleBattleStateUpdate();
     });
 
     // 명령 확인
     const unsubCommandAck = onBattleEvent('command_acknowledged', (data: any) => {
       console.log('[BattleSocket] 명령 확인:', data);
-      setLogs(prev => [...prev, `명령 확인: ${data.command}`]);
+      pushLog(`명령 확인: ${data.command}`);
     });
 
     // 전투 종료
     const unsubEnded = onBattleEvent('ended', (data: any) => {
       console.log('[BattleSocket] 전투 종료:', data);
-      setLogs(prev => [...prev, `전투 종료! 승자: ${data.winner}`]);
+      pushLog(`전투 종료! 승자: ${data.winner}`);
       setIsJoined(false);
       joinedRef.current = false;
     });
@@ -216,16 +245,16 @@ export function useBattleSocket(options: UseBattleSocketOptions) {
     const unsubError = onBattleEvent('error', (data: any) => {
       console.error('[BattleSocket] 에러:', data);
       setError(data.message);
-      setLogs(prev => [...prev, `오류: ${data.message}`]);
+      pushLog(`오류: ${data.message}`);
     });
 
     // 플레이어 참가/나가기
     const unsubPlayerJoined = onBattleEvent('player_joined', (data: any) => {
-      setLogs(prev => [...prev, `장수 ${data.generalId} 참가`]);
+      pushLog(`장수 ${data.generalId} 참가`);
     });
 
     const unsubPlayerLeft = onBattleEvent('player_left', (data: any) => {
-      setLogs(prev => [...prev, `장수 ${data.generalId} 퇴장`]);
+      pushLog(`장수 ${data.generalId} 퇴장`);
     });
 
     return () => {
@@ -236,8 +265,13 @@ export function useBattleSocket(options: UseBattleSocketOptions) {
       unsubError();
       unsubPlayerJoined();
       unsubPlayerLeft();
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      pendingStateRef.current = null;
     };
-  }, [socket, isConnected, onBattleEvent]);
+  }, [socket, isConnected, onBattleEvent, pushLog, scheduleBattleStateUpdate]);
 
   // 자동 참가
   useEffect(() => {

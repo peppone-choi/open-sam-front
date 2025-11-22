@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import GeneralBasicCard from '@/components/cards/GeneralBasicCard';
-import styles from './page.module.css';
+import { cn } from '@/lib/utils';
 
 export default function MyBossInfoPage() {
   const params = useParams();
@@ -49,26 +49,29 @@ export default function MyBossInfoPage() {
   }
 
   return (
-    <div className={styles.container}>
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
       <TopBackBar title="내 상관 정보" reloadable onReload={loadBossData} />
+      
       {loading ? (
-        <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
+        <div className="flex justify-center items-center h-[50vh]">
+           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        </div>
       ) : bossData && nationData ? (
-        <div className={styles.content}>
-          <GeneralBasicCard
-            general={bossData}
-            nation={nationData}
-            troopInfo={bossData.troopInfo}
-            turnTerm={0}
-          />
+        <div className="max-w-4xl mx-auto">
+           <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg p-4">
+              <GeneralBasicCard
+                general={bossData}
+                nation={nationData}
+                troopInfo={bossData.troopInfo}
+                turnTerm={0}
+              />
+           </div>
         </div>
       ) : (
-        <div className="center" style={{ padding: '2rem' }}>상관 정보를 불러올 수 없습니다.</div>
+        <div className="flex justify-center items-center h-[50vh] text-gray-500">
+          상관 정보를 불러올 수 없습니다.
+        </div>
       )}
     </div>
   );
 }
-
-
-
-

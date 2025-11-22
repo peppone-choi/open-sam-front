@@ -68,6 +68,7 @@ src/components/logh/
 ### 완료
 - ✅ `/logh/game/page.tsx` - 메인 게임 화면
 - ✅ `/logh/info/me/page.tsx` - 내 제독 정보
+- ✅ 실시간 전투 맵 requestAnimationFrame 스로틀 + 소켓 구독 안정화 (모바일 멀티터치 포함)
 
 ### 진행 중
 - 🔄 나머지 핵심 페이지 생성

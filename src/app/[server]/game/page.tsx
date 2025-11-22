@@ -1,79 +1,48 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SammoAPI, type GetFrontInfoResponse, type GetMapResponse } from '@/lib/api/sammo';
-import MapViewer from '@/components/game/MapViewer';
+import GameViewTabs from '@/components/game/GameViewTabs';
+import GeneralBasicCard from '@/components/cards/GeneralBasicCard';
 import CityBasicCard from '@/components/cards/CityBasicCard';
 import NationBasicCard from '@/components/cards/NationBasicCard';
-import GeneralBasicCard from '@/components/cards/GeneralBasicCard';
-import MainControlBar from '@/components/game/MainControlBar';
 import PartialReservedCommand from '@/components/game/PartialReservedCommand';
-import GameInfoPanel from '@/components/game/GameInfoPanel';
 import MessagePanel from '@/components/game/MessagePanel';
-import GlobalMenu from '@/components/game/GlobalMenu';
 import GameBottomBar from '@/components/game/GameBottomBar';
 import VersionModal from '@/components/game/VersionModal';
-import GameViewTabs from '@/components/game/GameViewTabs';
+import GlobalMenu from '@/components/game/GlobalMenu';
 import { useSocket } from '@/hooks/useSocket';
 import { convertLog } from '@/utils/convertLog';
-import styles from './page.module.css';
 import '@/styles/log.css';
 import { makeAccentColors } from '@/types/colorSystem';
+import { cn } from '@/lib/utils';
 
-// ColorSystem 유틸리티 함수들
-function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : null;
-}
-
-function rgbToHex(r: number, g: number, b: number): string {
-  return "#" + [r, g, b].map(x => {
-    const hex = Math.round(Math.max(0, Math.min(255, x))).toString(16);
-    return hex.length === 1 ? "0" + hex : hex;
-  }).join('');
-}
-
-function calculateLuminance(hex: string): number {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return 0.5;
-  
-  const rsRGB = rgb.r / 255;
-  const gsRGB = rgb.g / 255;
-  const bsRGB = rgb.b / 255;
-  
-  const r = rsRGB <= 0.03928 ? rsRGB / 12.92 : Math.pow((rsRGB + 0.055) / 1.055, 2.4);
-  const g = gsRGB <= 0.03928 ? gsRGB / 12.92 : Math.pow((gsRGB + 0.055) / 1.055, 2.4);
-  const b = bsRGB <= 0.03928 ? bsRGB / 12.92 : Math.pow((bsRGB + 0.055) / 1.055, 2.4);
-  
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
-function darkenColor(hex: string, amount: number): string {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return hex;
-  
-  return rgbToHex(
-    rgb.r * (1 - amount),
-    rgb.g * (1 - amount),
-    rgb.b * (1 - amount)
-  );
-}
-
-function adjustColorForText(hex: string): string {
-  const luminance = calculateLuminance(hex);
-  
-  if (luminance > 0.5) {
-    const darkenAmount = 0.3 + (luminance - 0.5) * 0.6;
-    return darkenColor(hex, darkenAmount);
+// --- Color Utilities ---
+function normalizeHexColor(hex?: string): string {
+  if (!hex) return '#2563EB';
+  let value = hex.trim();
+  if (!value.startsWith('#')) value = `#${value}`;
+  if (value.length === 4) {
+    value = `#${value[1]}${value[1]}${value[2]}${value[2]}${value[3]}${value[3]}`;
   }
-  
-  return hex;
+  return value.toUpperCase();
+}
+
+function withAlpha(hex: string, alpha: number): string {
+  const normalized = normalizeHexColor(hex).slice(1);
+  const a = Math.round(Math.min(1, Math.max(0, alpha)) * 255).toString(16).padStart(2, '0');
+  return `#${normalized}${a}`;
+}
+
+function isBright(hex: string): boolean {
+  const c = normalizeHexColor(hex).substring(1);
+  const rgb = parseInt(c, 16);
+  const r = (rgb >> 16) & 0xff;
+  const g = (rgb >>  8) & 0xff;
+  const b = (rgb >>  0) & 0xff;
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) > 128;
 }
 
 export default function GamePage() {
@@ -81,30 +50,27 @@ export default function GamePage() {
   const router = useRouter();
   const serverID = params?.server as string;
 
+  // --- State ---
   const [frontInfo, setFrontInfo] = useState<GetFrontInfoResponse | null>(null);
   const [mapData, setMapData] = useState<GetMapResponse | null>(null);
   const [globalMenu, setGlobalMenu] = useState<any[]>([]);
   const [gameConst, setGameConst] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
+  const [reservedReloadKey, setReservedReloadKey] = useState(0);
 
-  // Socket.IO 연결 (옵션 메모이제이션)
-  const socketOptions = React.useMemo(
-    () => ({ sessionId: serverID, autoConnect: !!serverID }),
-    [serverID]
-  );
-  const { socket, isConnected, onGameEvent, onGeneralEvent, onTurnComplete, onLogUpdate } = useSocket(socketOptions);
+  const loadingRef = useRef(false);
 
-  // 로딩 중복 방지 Ref
-  const loadingRef = React.useRef(false);
+  // --- Socket.IO ---
+  const socketOptions = useMemo(() => ({ sessionId: serverID, autoConnect: !!serverID }), [serverID]);
+  const { socket, isConnected, onGameEvent, onGeneralEvent, onTurnComplete } = useSocket(socketOptions);
 
-  // 데이터 로드 함수
+  // --- Data Loading ---
   const loadData = useCallback(async () => {
-    if (loadingRef.current) return; // 중복 호출 방지
+    if (loadingRef.current) return;
     loadingRef.current = true;
-    
+
     try {
       setLoading(true);
       setError(null);
@@ -113,834 +79,327 @@ export default function GamePage() {
         SammoAPI.GeneralGetFrontInfo({
           serverID,
           lastNationNoticeDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
-          lastGeneralRecordID: 0, // 장수동향
-          lastPersonalHistoryID: 0, // 개인기록
-          lastGlobalHistoryID: 0, // 중원정세
+          lastGeneralRecordID: 0,
+          lastPersonalHistoryID: 0,
+          lastGlobalHistoryID: 0,
         }),
-        SammoAPI.GlobalGetMap({ 
-          serverID,
-          neutralView: 0,
-          showMe: 1,
-        }),
+        SammoAPI.GlobalGetMap({ serverID, neutralView: 0, showMe: 1 }),
         SammoAPI.GlobalGetMenu({ serverID }).catch(() => ({ success: true, menu: [] })),
         SammoAPI.GlobalGetConst().catch(() => ({ result: false, data: null })),
       ]);
 
-      // 캐릭터가 없으면 에러 메시지 표시
-      if (!frontInfoData.success || !frontInfoData.general || !frontInfoData.general.no) {
-        setError('캐릭터가 없습니다. 캐릭터를 생성해주세요.');
-        return;
+      if (!frontInfoData.success || !frontInfoData.general?.no) {
+        throw new Error('캐릭터 정보를 불러올 수 없습니다.');
       }
-
-      // 디버깅: recentRecord 확인
-      console.log('[GamePage] recentRecord:', frontInfoData.recentRecord);
 
       setFrontInfo(frontInfoData);
       setMapData(mapDataResponse);
-      if (menuData && menuData.success) {
-        setGlobalMenu(menuData.menu || []);
-      }
-      if (constData && constData.result && constData.data) {
-        setGameConst(constData.data.gameConst || constData.data.gameSettings);
-      }
+      if (menuData?.success) setGlobalMenu(menuData.menu || []);
+      if (constData?.result) setGameConst(constData.data.gameConst || constData.data.gameSettings);
+
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '데이터를 불러오는 중 오류가 발생했습니다.';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : '데이터 로드 실패');
     } finally {
-      loadingRef.current = false;
       setLoading(false);
+      loadingRef.current = false;
     }
   }, [serverID]);
 
-  // 새로고침 함수 (모든 데이터 재로드 + 웹소켓 재연결)
-  const handleReload = useCallback(async () => {
-    if (loadingRef.current) return;
-    
-    // 웹소켓 재연결
-    if (socket) {
-      socket.disconnect();
-      socket.connect();
-    }
-    
-    // 모든 데이터 재로드
+  const reloadAllData = useCallback(async () => {
     await loadData();
-  }, [socket, loadData]);
+    setReservedReloadKey(prev => prev + 1);
+  }, [loadData]);
 
-  // 초기 데이터 로드
   useEffect(() => {
-    if (!serverID) return;
-    loadData();
+    if (serverID) loadData();
   }, [serverID, loadData]);
 
-  // Ref로 최신 값 추적 (useEffect 의존성 최적화)
-  const generalIdRef = React.useRef<number | null>(null);
-  const loadDataRef = React.useRef(loadData);
-  const frontInfoRef = React.useRef<GetFrontInfoResponse | null>(null);
-
-  useEffect(() => {
-    generalIdRef.current = frontInfo?.general?.no ?? null;
-    frontInfoRef.current = frontInfo;
-  }, [frontInfo?.general?.no, frontInfo]);
-
-  // Socket.IO 이벤트 리스너 (의존성 최소화)
+  // --- Socket Events ---
   useEffect(() => {
     if (!socket || !isConnected) return;
-
-    // 턴 완료 이벤트 (디바운스 적용, 더 긴 시간으로 깜빡임 방지)
-    let turnCompleteTimeout: NodeJS.Timeout | null = null;
-    const cleanupTurnComplete = onTurnComplete(() => {
-      if (turnCompleteTimeout) clearTimeout(turnCompleteTimeout);
-      turnCompleteTimeout = setTimeout(() => {
-        loadDataRef.current?.();
-      }, 2000); // 2초 디바운스로 깜빡임 방지
+    const cleanupTurn = onTurnComplete(() => setTimeout(reloadAllData, 2000));
+    const cleanupMonth = onGameEvent('month:changed', (data) => {
+        setFrontInfo(prev => prev ? ({...prev, global: {...prev.global, year: data.year, month: data.month}}) : null);
+        setTimeout(reloadAllData, 3000);
     });
-
-    // 월 변경 이벤트 (디바운스 적용, 더 긴 시간으로 깜빡임 방지)
-    let monthChangedTimeout: NodeJS.Timeout | null = null;
-    const cleanupMonthChanged = onGameEvent('month:changed', (data) => {
-      // 년/월만 부분 업데이트 (전체 로드 방지)
-      if (data.year !== undefined && data.month !== undefined) {
-        setFrontInfo(prev => {
-          if (!prev) return prev;
-          // 값이 동일하면 업데이트하지 않음
-          if (prev.global.year === data.year && prev.global.month === data.month) {
-            return prev;
-          }
-          return {
-            ...prev,
-            global: {
-              ...prev.global,
-              year: data.year,
-              month: data.month
-            }
-          };
-        });
-      }
-      // 전체 데이터는 더 긴 디바운스 후 로드
-      if (monthChangedTimeout) clearTimeout(monthChangedTimeout);
-      monthChangedTimeout = setTimeout(() => {
-        loadDataRef.current?.();
-      }, 3000); // 3초 디바운스로 깜빡임 방지
-    });
-
-    // 장수 업데이트 이벤트 (부분 업데이트만, 년/월 업데이트 포함)
-    let generalUpdateTimeout: NodeJS.Timeout | null = null;
-    const cleanupGeneralUpdate = onGeneralEvent('updated', (data) => {
-      console.log('[GamePage] 장수 업데이트 이벤트:', data);
-      if (generalIdRef.current === data.generalId) {
-        // 부분 업데이트만 수행 (전체 로드 대신)
-        if (data.updates && frontInfoRef.current) {
-          console.log('[GamePage] 장수 정보 부분 업데이트:', data.updates);
-          setFrontInfo(prev => {
-            if (!prev || !prev.general) return prev;
-            return {
-              ...prev,
-              general: {
-                ...prev.general,
-                ...data.updates
-              }
-            };
-          });
-        } else {
-          // 업데이트 데이터가 없으면 디바운스 후 전체 로드
-          console.log('[GamePage] 장수 정보 전체 로드 예약 (2초 후)');
-          if (generalUpdateTimeout) clearTimeout(generalUpdateTimeout);
-          generalUpdateTimeout = setTimeout(() => {
-            loadDataRef.current?.();
-          }, 2000); // 2초 디바운스로 깜빡임 방지
+    const cleanupGen = onGeneralEvent('updated', (data) => {
+        if (frontInfo?.general?.no === data.generalId) {
+            if(data.updates) setFrontInfo(prev => prev ? ({...prev, general: {...prev.general!, ...data.updates}}) : null);
+            else setTimeout(reloadAllData, 1000);
         }
-      }
     });
-    
-    // 게임 상태 업데이트 이벤트 (전역 년/월은 유지, 장수별 년/월은 general 업데이트로 처리)
-    // lastExecuted는 턴 실행 시점이므로 고정되어야 함 (Socket 이벤트로 업데이트하지 않음)
-    const cleanupGameStatus = onGameEvent('status', (data) => {
-      setFrontInfo(prev => {
-        if (!prev) return prev;
-        // 값이 동일하면 업데이트하지 않음 (무한 루프 방지)
-        if (
-          prev.global.year === data.year &&
-          prev.global.month === data.month
-        ) {
-          return prev;
-        }
-        return {
-          ...prev,
-          global: {
-            ...prev.global,
-            year: data.year,
-            month: data.month
-            // lastExecuted는 업데이트하지 않음 (고정된 턴 실행 시점)
-          }
-        };
-      });
-    });
+    return () => { cleanupTurn(); cleanupMonth(); cleanupGen(); };
+  }, [socket, isConnected, onTurnComplete, onGameEvent, onGeneralEvent, reloadAllData, frontInfo?.general?.no]);
 
-    // 로그 업데이트 이벤트 (실시간 로그 추가)
-    const cleanupLogUpdate = onLogUpdate((data) => {
-      console.log('[GamePage] 로그 업데이트:', data);
-      
-      // 장수동향, 개인기록, 중원정세에 실시간으로 추가
-      setFrontInfo(prev => {
-        if (!prev) return prev;
-        
-        // convertLog는 표시할 때만 적용 (데이터는 원본 그대로 저장)
-        const newLog = {
-          id: data.logId,
-          text: data.logText,
-          timestamp: data.timestamp
-        };
-        
-        // 로그 타입에 따라 적절한 배열에 추가
-        if (data.logType === 'action') {
-          // 개인기록 (general_id가 현재 장수와 일치, log_type = 'action')
-          if (data.generalId === generalIdRef.current) {
-            return {
-              ...prev,
-              recentRecord: {
-                ...prev.recentRecord,
-                history: [newLog, ...(prev.recentRecord?.history || [])].slice(0, 20)
-              }
-            };
-          }
-        } else if (data.logType === 'history') {
-          if (data.generalId === 0) {
-            // 장수동향 (general_id = 0, log_type = 'history')
-            return {
-              ...prev,
-              recentRecord: {
-                ...prev.recentRecord,
-                general: [newLog, ...(prev.recentRecord?.general || [])].slice(0, 20) // 최대 20개
-              }
-            };
-          }
-        }
-        
-        return prev;
-      });
-    });
-
-    return () => {
-      cleanupTurnComplete();
-      cleanupMonthChanged();
-      cleanupGeneralUpdate();
-      cleanupGameStatus();
-      cleanupLogUpdate();
-      // 타임아웃 클리어
-      if (turnCompleteTimeout) clearTimeout(turnCompleteTimeout);
-      if (monthChangedTimeout) clearTimeout(monthChangedTimeout);
-      if (generalUpdateTimeout) clearTimeout(generalUpdateTimeout);
-    };
-    }, [socket, isConnected, onTurnComplete, onGameEvent, onGeneralEvent, onLogUpdate]);
-
-  // 메모이제이션으로 불필요한 재계산 방지 (조건부 렌더링 전에 호출해야 함)
-  const showSecret = useMemo(() => {
-    if (!frontInfo?.general) return false;
-    return frontInfo.general.permission >= 1 || frontInfo.general.officerLevel >= 2;
-  }, [frontInfo?.general?.permission, frontInfo?.general?.officerLevel]);
-
-  const lastExecutedDate = useMemo(() => {
-    if (!frontInfo?.global?.lastExecuted) return new Date();
-    return new Date(frontInfo.global.lastExecuted);
-  }, [frontInfo?.global?.lastExecuted]);
-
-  // 국가색 기반 색상 시스템 (조건부 렌더링 전에 배치)
-  // 통일된 디자인: 배경(30) < 테두리(80) < 버튼(A0) < 버튼호버(C0) < 액티브(FF)
-  const nationColor = frontInfo?.nation?.color;
+  // --- Color System ---
   const colorSystem = useMemo(() => {
-    // 기본 다크 테마 (국가색 없음 혹은 안전한 기본값)
-    if (!nationColor) {
-      return {
-        // 배경
-        pageBg: '#050814',
-        // 테두리
-        border: '#4b5563',
-        borderLight: '#374151',
-        // 버튼
-        buttonBg: '#2563eb',
-        buttonHover: '#1d4ed8',
-        buttonActive: '#1e40af',
-        buttonText: '#f9fafb',
-        activeBg: '#1e40af',
-        // 글자색
-        text: '#e5e7eb',
-        textMuted: '#9ca3af',
-        textDim: '#6b7280',
-        // 강조색
-        accent: '#38bdf8',
-        accentBright: '#0ea5e9',
-        success: '#22c55e',
-        warning: '#facc15',
-        error: '#ef4444',
-        info: '#38bdf8',
-        special: '#a855f7',
-      };
-    }
-
-    // 국가색 기반 강조색 생성
-    const accentColors = makeAccentColors(nationColor);
-    const luminance = calculateLuminance(nationColor);
-
-    // 흰색/아주 밝은 국가색: 어두운 배경 고정, 국가색은 포인트로만
-    if (luminance >= 0.85) {
-      const textBase = '#e5e7eb';
-      const buttonBgColor = adjustColorForText(nationColor);
-
-      return {
-        pageBg: '#050814',
-        border: '#4b5563',
-        borderLight: '#374151',
-        buttonBg: `${buttonBgColor}E6`,
-        buttonHover: `${buttonBgColor}F2`,
-        buttonActive: `${buttonBgColor}FF`,
-        buttonText: '#f9fafb',
-        activeBg: `${buttonBgColor}FF`,
-        text: textBase,
-        textMuted: '#9ca3af',
-        textDim: '#6b7280',
-        accent: nationColor,
-        accentBright: accentColors.accentBright,
-        success: accentColors.success,
-        warning: accentColors.warning,
-        error: accentColors.error,
-        info: accentColors.info,
-        special: accentColors.special,
-      };
-    }
-
-    // 검은색/아주 어두운 국가색: 밝은 배경 고정, 국가색은 포인트로만
-    if (luminance <= 0.15) {
-      const textBase = '#111827';
-      const buttonBgColor = adjustColorForText(nationColor);
-
-      return {
-        pageBg: '#f5f5f7',
-        border: '#9ca3af',
-        borderLight: '#d1d5db',
-        buttonBg: `${buttonBgColor}E6`,
-        buttonHover: `${buttonBgColor}F2`,
-        buttonActive: `${buttonBgColor}FF`,
-        buttonText: '#f9fafb',
-        activeBg: `${buttonBgColor}FF`,
-        text: textBase,
-        textMuted: '#6b7280',
-        textDim: '#9ca3af',
-        accent: nationColor,
-        accentBright: accentColors.accentBright,
-        success: accentColors.success,
-        warning: accentColors.warning,
-        error: accentColors.error,
-        info: accentColors.info,
-        special: accentColors.special,
-      };
-    }
-
-    // 일반 국가색: 기존 로직을 기반으로 하되 과도한 밝기/채도는 adjustColorForText에 맡김
-    const textColor = adjustColorForText(nationColor);
-    const buttonBgColor = adjustColorForText(nationColor);
-
-    return {
-      pageBg: `${nationColor}30`,
-      border: `${nationColor}80`,
-      borderLight: `${nationColor}60`,
-      buttonBg: `${buttonBgColor}A0`,
-      buttonHover: `${buttonBgColor}C0`,
-      buttonActive: `${buttonBgColor}FF`,
-      buttonText: luminance > 0.5 ? '#111827' : '#f9fafb',
-      activeBg: `${buttonBgColor}FF`,
-      text: textColor,
-      textMuted: `${textColor}C0`,
-      textDim: `${textColor}80`,
-      accent: nationColor,
-      accentBright: accentColors.accentBright,
-      success: accentColors.success,
-      warning: accentColors.warning,
-      error: accentColors.error,
-      info: accentColors.info,
-      special: accentColors.special,
+    const nationColor = frontInfo?.nation?.color || '#000000';
+    const base = normalizeHexColor(nationColor);
+    const isBrightColor = isBright(base);
+    const accents = makeAccentColors(base);
+    
+    // 기본 색상 시스템 생성
+    const system = {
+      base, 
+      isBright: isBrightColor,
+      pageBg: '#000000',
+      border: withAlpha(base, 0.5),
+      borderLight: withAlpha(base, 0.3),
+      
+      buttonBg: base,
+      buttonHover: withAlpha(base, 0.8),
+      buttonActive: base,
+      buttonText: isBrightColor ? '#000000' : '#ffffff',
+      activeBg: base,
+      
+      text: '#ffffff',
+      textMuted: '#a3a3a3', // neutral-400
+      textDim: '#737373', // neutral-500
+      
+      accent: base,
+      ...accents,
+      
+      // Legacy support
+      bg: withAlpha(base, 0.1),
     };
-  }, [nationColor]);
-
-  const gameInfoPanelProps = useMemo(() => {
-    if (!frontInfo) return null;
-    // 세션 이름이 있으면 사용, 없으면 serverID 사용
-    const displayServerName = frontInfo.global.serverName || serverID;
-    return {
-      frontInfo,
-      serverName: displayServerName,
-      serverLocked: frontInfo.global.isLocked,
-      lastExecuted: lastExecutedDate,
-      nationColor: frontInfo.nation?.color,
-      colorSystem
-    };
-  }, [frontInfo, serverID, lastExecutedDate, colorSystem]);
-
-  const mainControlBarProps = useMemo(() => {
-    if (!frontInfo?.general || !frontInfo?.nation) return null;
-    return {
-      permission: frontInfo.general.permission,
-      showSecret,
-      myLevel: frontInfo.general.officerLevel,
-      nationLevel: frontInfo.nation.level,
-      nationId: frontInfo.nation.id,
-      nationColor: frontInfo.nation.color,
-      isTournamentApplicationOpen: frontInfo.global.isTournamentApplicationOpen,
-      isBettingActive: frontInfo.global.isBettingActive,
-      colorSystem
-    };
-  }, [
-    frontInfo?.general?.permission,
-    showSecret,
-    frontInfo?.general?.officerLevel,
-    frontInfo?.nation?.level,
-    frontInfo?.nation?.id,
-    frontInfo?.nation?.color,
-    frontInfo?.global?.isTournamentApplicationOpen,
-    frontInfo?.global?.isBettingActive
-  ]);
-
-  function handleCityClick(cityId: number) {
-    if (serverID && cityId > 0) {
-      const url = `/${serverID}/info/current-city?cityId=${cityId}`;
-      router.push(url);
-    }
-  }
-
-  const handleToggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+    
+    return system;
+  }, [frontInfo?.nation?.color]);
 
   const handleMenuClick = (funcCall: string) => {
-    if (funcCall === 'showVersion') {
-      setIsVersionModalOpen(true);
-    }
+    if (funcCall === 'showVersion') setIsVersionModalOpen(true);
   };
 
-  // body와 html 배경색 설정 (페이지 양쪽 여백도 국가색으로)
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      document.body.style.backgroundColor = colorSystem.pageBg;
-      document.documentElement.style.backgroundColor = colorSystem.pageBg;
-      return () => {
-        document.body.style.backgroundColor = '';
-        document.documentElement.style.backgroundColor = '';
-      };
-    }
-  }, [colorSystem.pageBg]);
+  const handleCityClick = (cityId: number) => {
+    if (serverID && cityId > 0) router.push(`/${serverID}/info/current-city?cityId=${cityId}`);
+  };
 
-  if (error || !frontInfo) {
-    return (
-      <div className={styles.container}>
-        <div className="center" style={{ padding: '2rem', color: 'red' }}>
-          <div style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
-            ⚠️ {error || '데이터를 불러올 수 없습니다.'}
-          </div>
-          <div style={{ marginBottom: '1.5rem', fontSize: '0.9rem', color: '#666' }}>
-            {error?.includes('서버') && '서버 연결 상태를 확인해주세요.'}
-            {error?.includes('네트워크') && '인터넷 연결을 확인해주세요.'}
-            {error?.includes('인증') && '다시 로그인이 필요할 수 있습니다.'}
-          </div>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <button
-              onClick={handleReload}
-              disabled={loading}
-              style={{
-                padding: '0.75rem 1.5rem',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                fontWeight: 'bold',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.6 : 1
-              }}
-            >
-              {loading ? '재시도 중...' : '다시 시도'}
-            </button>
-            {(error?.includes('캐릭터') || error?.includes('장수')) && (
-              <Link 
-                href={`/${serverID}/join`}
-                style={{
-                  display: 'inline-block',
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#28a745',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: '4px',
-                  fontWeight: 'bold'
-                }}
-              >
-                캐릭터 생성하기
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const mainControlProps = useMemo(() => {
+    if (!frontInfo?.general || !frontInfo?.nation || !frontInfo?.global) return null;
+    
+    return {
+      permission: frontInfo.general.permission || 0,
+      showSecret: (frontInfo.general.officerLevel || 0) >= 5, // 5등급 이상 (가정)
+      myLevel: frontInfo.general.officerLevel || 0,
+      nationLevel: frontInfo.nation.level || 0,
+      nationId: frontInfo.nation.id || 0,
+      nationColor: frontInfo.nation.color,
+      isTournamentApplicationOpen: frontInfo.global.isTournamentApplicationOpen || false,
+      isBettingActive: frontInfo.global.isBettingActive || false,
+      colorSystem,
+    };
+  }, [frontInfo, colorSystem]);
+
+  if (error) return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">{error}</div>;
+  if (!frontInfo) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">로딩 중...</div>;
 
   return (
-    <div 
-      className={styles.container}
-    >
-      {/* 페이지 상단 컨트롤 바 */}
-      <div 
-        className={styles.pageControls}
-        style={{
-          borderColor: colorSystem.border,
-        }}
-      >
-        <div className={styles.pageControlsLeft}>
-          <button
-            type="button"
-            onClick={handleReload}
-            className={styles.refreshBtn}
-            style={{
-              backgroundColor: colorSystem.buttonBg,
-              borderColor: colorSystem.border,
-              color: colorSystem.buttonText,
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colorSystem.buttonHover}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colorSystem.buttonBg}
-            disabled={loading}
-          >
-            {loading ? '갱신 중...' : '갱신'}
-          </button>
-        </div>
-        <div className={styles.pageControlsRight}>
-          <Link
-            href="/entrance"
-            className={styles.lobbyBtn}
-            style={{
-              backgroundColor: colorSystem.buttonBg,
-              borderColor: colorSystem.border,
-              color: colorSystem.buttonText,
-            }}
-          >
-            로비
-          </Link>
-        </div>
+    <div className="min-h-screen bg-background-main text-foreground flex flex-col font-sans selection:bg-primary selection:text-white">
+      {/* Top Bar */}
+      <header className="w-full bg-black/60 backdrop-blur border-b border-white/10 shadow-sm px-4 py-2 flex justify-between items-center z-40">
+         <div className="flex items-center gap-4">
+            <div className="flex flex-col">
+               <span className="text-lg font-bold text-white" style={{ color: colorSystem.base }}>
+                  {frontInfo.global.year}년 {frontInfo.global.month}월
+               </span>
+               <span className="text-xs text-gray-400">
+                  턴 {frontInfo.global.turnterm}분 / {frontInfo.global.turnTime}
+               </span>
+            </div>
+            <div className="h-8 w-px bg-white/10 mx-2" />
+            <div className="flex flex-col">
+               <span className="text-xs text-gray-400">{frontInfo.global.serverName}</span>
+               <span className={cn("text-sm font-bold", frontInfo.global.isLocked ? "text-red-400" : "text-green-400")}>
+                  {frontInfo.global.isLocked ? '정지' : '정상'}
+               </span>
+            </div>
+         </div>
+         <div className="flex items-center gap-2">
+            <button onClick={reloadAllData} disabled={loading} className="px-3 py-1.5 text-xs font-bold rounded bg-white/10 hover:bg-white/20 text-white transition-colors">
+               갱신
+            </button>
+            <Link href="/entrance" className="px-3 py-1.5 text-xs font-bold rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 transition-colors">
+               나가기
+            </Link>
+         </div>
+      </header>
+
+      {/* Main Layout Grid */}
+      <div className="flex-1 w-full max-w-[1920px] mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 pb-20">
+         
+         {/* Left Column: Map + Info (9 cols) */}
+         <div className="lg:col-span-9 flex flex-col gap-4">
+            {/* 1. Map Section */}
+            <div className="min-h-[600px] rounded-xl border border-white/10 bg-black/60 shadow-2xl relative flex flex-col">
+               {/* Map Header Overlay */}
+               <div className="absolute top-0 left-0 right-0 z-10 p-3 flex justify-between pointer-events-none">
+                  <div className="bg-black/60 backdrop-blur px-3 py-1.5 rounded-lg border border-white/10 pointer-events-auto shadow-lg">
+                     <span className="text-xs text-gray-400 mr-2">현재 위치</span>
+                     <span className="text-base font-bold text-white">{frontInfo.city?.name}</span>
+                  </div>
+                  {frontInfo.nation?.notice && (
+                     <div className="bg-yellow-900/90 backdrop-blur px-4 py-2 rounded-lg border border-yellow-500/30 max-w-lg pointer-events-auto shadow-lg">
+                        <div className="text-[10px] font-bold text-yellow-400 mb-0.5 uppercase tracking-wider">국가 방침</div>
+                        <div className="text-sm text-white leading-snug" dangerouslySetInnerHTML={{__html: frontInfo.nation.notice.msg}} />
+                     </div>
+                  )}
+               </div>
+               
+               <div className="flex-1 relative overflow-hidden rounded-xl">
+                  {mapData && frontInfo.general && (
+                     <GameViewTabs
+                       serverID={serverID}
+                       generalId={frontInfo.general.no}
+                       cityId={frontInfo.general.city}
+                       cityName={frontInfo.city?.name}
+                       mapData={mapData}
+                       onCityClick={handleCityClick}
+                     />
+                  )}
+               </div>
+            </div>
+
+            {/* 2. Info & Logs Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[600px]">
+                {/* Info Column */}
+                <div className="flex flex-col gap-4">
+                   {/* General Card */}
+                   {frontInfo.general && frontInfo.nation && (
+                      <div className="rounded-xl border border-white/10 bg-background-secondary/40 backdrop-blur shadow-lg overflow-hidden h-fit">
+                         <GeneralBasicCard
+                           general={frontInfo.general}
+                           nation={frontInfo.nation}
+                           colorSystem={colorSystem}
+                           troopInfo={frontInfo.general.troop}
+                           turnTerm={frontInfo.global.turnterm}
+                         />
+                      </div>
+                   )}
+                   
+                   {/* City Card */}
+                   {frontInfo.city && (
+                      <div className="rounded-xl border border-white/10 bg-background-secondary/40 backdrop-blur shadow-lg overflow-hidden h-fit">
+                         <CityBasicCard 
+                           city={frontInfo.city} 
+                           cityConstMap={frontInfo.cityConstMap}
+                           colorSystem={colorSystem}
+                         />
+                      </div>
+                   )}
+
+                   {/* Nation Card */}
+                   {frontInfo.nation && (
+                      <div className="rounded-xl border border-white/10 bg-background-secondary/40 backdrop-blur shadow-lg overflow-hidden h-fit">
+                         <NationBasicCard
+                           nation={frontInfo.nation}
+                           global={frontInfo.global}
+                           cityConstMap={frontInfo.cityConstMap}
+                           colorSystem={colorSystem}
+                         />
+                      </div>
+                   )}
+                </div>
+
+                {/* Logs Column */}
+                <div className="flex flex-col gap-4 h-full">
+                   {/* Messages */}
+                   <div className="rounded-xl border border-white/10 bg-background-secondary/40 backdrop-blur shadow-lg overflow-hidden flex flex-col flex-1 min-h-[300px]">
+                      <div className="px-4 py-2 bg-white/5 border-b border-white/5 flex justify-between items-center">
+                         <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            메시지
+                         </h3>
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                         <MessagePanel
+                            generalID={frontInfo.general?.no || 0}
+                            generalName={frontInfo.general?.name || ''}
+                            nationID={frontInfo.nation?.id || 0}
+                            permissionLevel={frontInfo.general?.permission || 0}
+                            nationColor={frontInfo.nation?.color}
+                            colorSystem={{...colorSystem, accent: colorSystem.base}}
+                         />
+                      </div>
+                   </div>
+
+                   {/* Logs */}
+                   <div className="rounded-xl border border-white/10 bg-background-secondary/40 backdrop-blur shadow-lg overflow-hidden flex flex-col flex-1 min-h-[300px]">
+                      <div className="px-4 py-2 bg-white/5 border-b border-white/5">
+                         <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                            실시간 로그
+                         </h3>
+                      </div>
+                      <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-4">
+                         <div>
+                            <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
+                               <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> 장수 동향
+                            </div>
+                            <div className="space-y-1.5">
+                               {frontInfo.recentRecord?.general?.slice(0, 10).map((log: any, i: number) => (
+                                  <div key={i} className="text-xs text-gray-300 leading-relaxed border-l border-white/10 pl-2" dangerouslySetInnerHTML={{__html: convertLog(log.text)}} />
+                               ))}
+                            </div>
+                         </div>
+                         <div>
+                            <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
+                               <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> 중원 정세
+                            </div>
+                            <div className="space-y-1.5">
+                               {frontInfo.recentRecord?.global?.slice(0, 5).map((log: any, i: number) => (
+                                  <div key={i} className="text-xs text-gray-300 leading-relaxed border-l border-white/10 pl-2" dangerouslySetInnerHTML={{__html: convertLog(log.text)}} />
+                               ))}
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+            </div>
+         </div>
+
+         {/* Right Column: Command (3 cols) */}
+         <div className="lg:col-span-3 flex flex-col h-full">
+            <div className="rounded-xl border border-white/10 bg-background-secondary/60 backdrop-blur shadow-xl flex flex-col h-full min-h-[850px]">
+               <div className="px-4 py-3 bg-white/5 border-b border-white/5 flex justify-between items-center">
+                  <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                     명령 예약
+                  </h3>
+                  <span className="text-[10px] text-gray-500 bg-black/20 px-2 py-0.5 rounded">Auto-Sync</span>
+               </div>
+               <div className="flex-1 p-0">
+                  {frontInfo.general && (
+                     <PartialReservedCommand
+                       generalID={frontInfo.general.no}
+                       serverID={serverID}
+                       nationColor={frontInfo.nation?.color}
+                       colorSystem={colorSystem}
+                       reloadKey={reservedReloadKey}
+                       onGlobalReload={reloadAllData}
+                     />
+                  )}
+               </div>
+            </div>
+         </div>
+
       </div>
 
-      {/* 헤더 패널 */}
-      <div 
-        className={styles.headerPanel}
-        style={{
-          borderColor: colorSystem.border,
-          color: colorSystem.text,
-        }}
-      >
-        <div 
-          className={styles.commonToolbar}
-          style={{
-            borderColor: colorSystem.border,
-          }}
-        >
-          {globalMenu.length > 0 && (
-          <GlobalMenu
-            menu={globalMenu}
-            globalInfo={frontInfo.global}
-            onMenuClick={handleMenuClick}
-            nationColor={nationColor}
-            colorSystem={colorSystem}
-          />
-          )}
-        </div>
-        {gameInfoPanelProps && <GameInfoPanel {...gameInfoPanelProps} />}
-        
-        {/* 접속 중인 국가 및 접속자 정보 */}
-        {frontInfo.global.onlineNations && (
-          <div 
-            className={styles.onlineNations} 
-            style={{ 
-              borderTop: `1px solid ${colorSystem.border}`, 
-              padding: '0.5rem 1rem',
-              color: colorSystem.text,
-            }}
-          >
-            접속중인 국가: {frontInfo.global.onlineNations}
-          </div>
-        )}
-        {frontInfo.nation && (
-          <div 
-            className={styles.onlineUsers} 
-            style={{ 
-              borderTop: `1px solid ${colorSystem.border}`, 
-              padding: '0.5rem 1rem',
-              color: colorSystem.text,
-            }}
-          >
-            【 접속자 】 {frontInfo.nation.onlineGen || 0}
-          </div>
-        )}
-        
-        {/* 국가방침 */}
-        {frontInfo.nation && frontInfo.nation.notice && (
-          <div 
-            className={styles.nationNotice} 
-            style={{ 
-              borderTop: `1px solid ${colorSystem.border}`, 
-              padding: '0.5rem 0',
-              color: colorSystem.text,
-            }}
-          >
-            <div style={{ padding: '0 1rem' }}>【 국가방침 】</div>
-            <div 
-              className={styles.nationNoticeBody}
-              style={{ padding: '0.5rem 1rem', color: colorSystem.text }}
-              dangerouslySetInnerHTML={{ __html: frontInfo.nation.notice.msg || '' }}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* 메인 게임 보드 */}
-      <div 
-        className={styles.contentWrapper}
-        style={{
-          borderColor: colorSystem.border,
-        }}
-      >
-        <div className={styles.ingameBoardWrapper}>
-          <div id="ingameBoard" className={styles.ingameBoard}>
-        <div className={styles.mapView}>
-          {mapData && frontInfo.general && (
-            <GameViewTabs
-              serverID={serverID}
-              generalId={frontInfo.general.no}
-              cityId={frontInfo.general.city}
-              cityName={frontInfo.city?.name}
-              mapData={mapData}
-              onCityClick={handleCityClick}
-            />
-          )}
-        </div>
-
-        <div id="reservedCommandPanel" className={styles.reservedCommandZone}>
-          {frontInfo.general ? (
-            <PartialReservedCommand
-              generalID={frontInfo.general.no}
-              serverID={serverID}
-              nationColor={frontInfo.nation?.color}
-              colorSystem={colorSystem}
-            />
-          ) : (
-            <div className={styles.commandPadPlaceholder}>
-              <div className={styles.header}>
-                <h4>명령 목록</h4>
-              </div>
-              <div className={styles.content}>
-                <div>장수 정보를 불러오는 중...</div>
-              </div>
-            </div>
-          )}
-        </div>
-
-
-
-        {frontInfo.general && frontInfo.nation && (
-          <div 
-            className={styles.generalInfo}
-            style={{
-              borderColor: colorSystem.border,
-            }}
-          >
-            <GeneralBasicCard
-              general={frontInfo.general}
-              nation={frontInfo.nation}
-              troopInfo={frontInfo.general.reservedCommand ? undefined : undefined}
-              turnTerm={frontInfo.global.turnterm}
-              colorSystem={colorSystem}
-            />
-          </div>
-        )}
-
-        {frontInfo.city && (
-          <div 
-            className={styles.cityInfo}
-            style={{
-              borderColor: colorSystem.border,
-            }}
-          >
-            <CityBasicCard city={frontInfo.city} cityConstMap={frontInfo.cityConstMap} colorSystem={colorSystem} />
-          </div>
-        )}
-
-        {frontInfo.nation && (
-          <div 
-            className={styles.nationInfo}
-            style={{
-              borderColor: colorSystem.border,
-            }}
-          >
-            <NationBasicCard 
-              nation={frontInfo.nation} 
-              global={frontInfo.global} 
-              cityConstMap={frontInfo.cityConstMap}
-              colorSystem={colorSystem}
-            />
-          </div>
-        )}
-
-        <div className={`${styles.generalCommandToolbar} ${isMenuOpen ? styles.menuOpen : styles.menuClosed}`}>
-          {frontInfo.general && frontInfo.nation && mainControlBarProps && (
-            <MainControlBar {...mainControlBarProps} />
-          )}
-        </div>
-
-
-        </div>
-      </div>
-      </div>
-
-      {/* 로그/기록 섹션 */}
-      {frontInfo.recentRecord && (
-        <div 
-          className={styles.recordZone}
-          style={{
-            borderColor: colorSystem.border,
-            color: colorSystem.text,
-          }}
-        >
-          <div 
-            className={styles.recordColumn}
-            style={{
-              borderColor: colorSystem.border,
-            }}
-          >
-            <div 
-              className={`${styles.recordHeader} bg1`}
-              style={{
-                borderColor: colorSystem.border,
-                backgroundColor: colorSystem.buttonBg,
-                color: colorSystem.buttonText,
-                fontWeight: 'bold',
-              }}
-            >
-              장수 동향
-            </div>
-            <div className={styles.recordList} style={{ color: colorSystem.text, backgroundColor: colorSystem.pageBg }}>
-              {frontInfo.recentRecord.general && frontInfo.recentRecord.general.length > 0 ? (
-                frontInfo.recentRecord.general.map((item, index: number) => {
-                  const [id, text] = Array.isArray(item) ? item : [item.id, item.text];
-                  return (
-                    <div key={id ?? `general-${index}`} className={styles.recordItem} style={{ color: colorSystem.text }} dangerouslySetInnerHTML={{ __html: convertLog(text) }} />
-                  );
-                })
-              ) : (
-                <div className={styles.recordEmpty} style={{ color: colorSystem.textMuted }}>아직 기록이 없습니다. 게임을 진행하면 다른 장수들의 활동이 여기에 표시됩니다.</div>
-              )}
-            </div>
-          </div>
-          <div 
-            className={styles.recordColumn}
-            style={{
-              borderColor: colorSystem.border,
-            }}
-          >
-            <div 
-              className={`${styles.recordHeader} bg1`}
-              style={{
-                borderColor: colorSystem.border,
-                backgroundColor: colorSystem.buttonBg,
-                color: colorSystem.buttonText,
-                fontWeight: 'bold',
-              }}
-            >
-              개인 기록
-            </div>
-            <div className={styles.recordList} style={{ color: colorSystem.text, backgroundColor: colorSystem.pageBg }}>
-              {frontInfo.recentRecord.history && frontInfo.recentRecord.history.length > 0 ? (
-                frontInfo.recentRecord.history.map((item, index: number) => {
-                  const [id, text] = Array.isArray(item) ? item : [item.id, item.text];
-                  return (
-                    <div key={id ?? `history-${index}`} className={styles.recordItem} style={{ color: colorSystem.text }} dangerouslySetInnerHTML={{ __html: convertLog(text) }} />
-                  );
-                })
-              ) : (
-                <div className={styles.recordEmpty} style={{ color: colorSystem.textMuted }}>아직 기록이 없습니다. 명령을 실행하면 여기에 결과가 표시됩니다.</div>
-              )}
-            </div>
-          </div>
-          <div 
-            className={styles.recordColumn}
-            style={{
-              borderColor: colorSystem.border,
-            }}
-          >
-            <div 
-              className={`${styles.recordHeader} bg1`}
-              style={{
-                borderColor: colorSystem.border,
-                backgroundColor: colorSystem.buttonBg,
-                color: colorSystem.buttonText,
-                fontWeight: 'bold',
-              }}
-            >
-              중원 정세
-            </div>
-            <div className={styles.recordList} style={{ color: colorSystem.text, backgroundColor: colorSystem.pageBg }}>
-              {frontInfo.recentRecord.global && frontInfo.recentRecord.global.length > 0 ? (
-                frontInfo.recentRecord.global.map((item, index: number) => {
-                  const [id, text] = Array.isArray(item) ? item : [item.id, item.text];
-                  return (
-                    <div key={id ?? `global-${index}`} className={styles.recordItem} style={{ color: colorSystem.text }} dangerouslySetInnerHTML={{ __html: convertLog(text) }} />
-                  );
-                })
-              ) : (
-                <div className={styles.recordEmpty} style={{ color: colorSystem.textMuted }}>아직 기록이 없습니다. 주요 사건이 발생하면 여기에 표시됩니다.</div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-
-
-      {/* 메시지 패널 */}
-      <div className={styles.messagePanelZone}>
-        <MessagePanel
-          generalID={frontInfo.general.no}
-          generalName={frontInfo.general.name}
-          nationID={frontInfo.nation?.id || 0}
-          permissionLevel={frontInfo.general.permission}
-          nationColor={frontInfo.nation?.color}
-          colorSystem={colorSystem}
-        />
-      </div>
-
-      {/* 메시지 패널 후 commonToolbar */}
-      <div 
-        className={styles.commonToolbar}
-        style={{
-          borderColor: colorSystem.border,
-        }}
-      >
-        {globalMenu.length > 0 && (
-          <GlobalMenu
-            menu={globalMenu}
-            globalInfo={frontInfo.global}
-            onMenuClick={handleMenuClick}
-            nationColor={nationColor}
-            colorSystem={colorSystem}
-          />
-        )}
-      </div>
-
-      {/* 모바일 전용 하단 바 */}
-      <GameBottomBar
-        onRefresh={handleReload}
-        onToggleMenu={handleToggleMenu}
+      <GameBottomBar 
+        onRefresh={reloadAllData}
         isLoading={loading}
-        nationColor={nationColor}
+        nationColor={frontInfo.nation?.color}
+        colorSystem={{...colorSystem, accent: colorSystem.base}}
+        globalMenu={globalMenu}
+        globalInfo={frontInfo.global}
+        onMenuClick={handleMenuClick}
+        mainControlProps={mainControlProps}
       />
-
-      {/* 버전 모달 */}
+      
       <VersionModal
         isOpen={isVersionModalOpen}
         onClose={() => setIsVersionModalOpen(false)}
         gameConst={gameConst}
-        version="0.1.0"
+        version="1.0.0"
       />
     </div>
   );

@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import SammoBar from '../game/SammoBar';
 import NationFlag from '../common/NationFlag';
 import { getNPCColor } from '@/utils/getNPCColor';
 import { isBrightColor } from '@/utils/isBrightColor';
-import { adjustColorForText } from '@/types/colorSystem';
 import styles from './CityBasicCard.module.css';
 import type { ColorSystem } from '@/types/colorSystem';
+import { getUnitDataFromStore } from '@/stores/unitStore';
 
 interface CityBasicCardProps {
   city: {
@@ -30,10 +30,31 @@ interface CityBasicCardProps {
     trade: number | null;
     officerList: Record<2 | 3 | 4, {
       officer_level: 2 | 3 | 4;
-      no: number;
+      no?: number;
       name: string;
       npc: number;
     } | null>;
+    defense?: {
+      wall: [number, number];
+      gate: [number, number];
+      towerLevel?: number;
+      repairRate?: number;
+      lastDamageAt?: string;
+      lastRepairAt?: string;
+    } | null;
+    garrison?: {
+      totalTroops: number;
+      stackCount: number;
+      stacks: Array<{
+        id: string;
+        crewTypeId: number;
+        crewTypeName?: string;
+        troops: number;
+        train: number;
+        morale: number;
+        updatedAt?: string;
+      }>;
+    };
   };
   cityConstMap?: {
     region?: Record<number | string, string | { id?: number; name?: string; label?: string }>;
@@ -43,23 +64,33 @@ interface CityBasicCardProps {
 }
 
 function CityBasicCard({ city, cityConstMap, colorSystem }: CityBasicCardProps) {
+  const [showGarrison, setShowGarrison] = useState(false);
   // 공백지(재야)는 흰색, 국가 소속은 국가 색상
   const nationColor = (city.nationInfo?.id && city.nationInfo.id > 0) 
     ? (city.nationInfo.color || '#808080')
     : '#FFFFFF';
   
-  // 도시 이름 패널: 밝은 색상은 어둡게 보정 + 흰 글자
-  const displayColor = adjustColorForText(nationColor);
-  const cityTitleTextColor = '#FFFFFF';
+  // 도시 이름 패널: 국가색을 그대로 사용
+  const displayColor = nationColor;
+  const cityTitleTextColor = isBrightColor(displayColor) ? '#111827' : '#FFFFFF';
 
   // 지배 국가 패널: 국가색을 그대로 배경으로 쓰되, 밝기에 따라 글자색 자동 선택
   const nationTextColor = isBrightColor(nationColor) ? '#000000' : '#FFFFFF';
   
-  // 속성 헤더 공통 스타일
-  const labelStyle = {
-    backgroundColor: colorSystem?.borderLight,
-    color: colorSystem?.text,
-    fontWeight: '500' as const,
+  const defense = city.defense;
+  const garrison = city.garrison;
+  const unitConst = useMemo(() => getUnitDataFromStore(), []);
+
+  const garrisonSummary = garrison
+    ? `${garrison.totalTroops.toLocaleString()}명 · ${garrison.stackCount}개 부대`
+    : null;
+
+  const handleToggleGarrison = () => setShowGarrison((prev) => !prev);
+
+  const getCrewTypeLabel = (stack: { crewTypeId: number; crewTypeName?: string }) => {
+    if (stack.crewTypeName) return stack.crewTypeName;
+    const lookup = unitConst?.[String(stack.crewTypeId)];
+    return lookup?.name || `병종 ${stack.crewTypeId}`;
   };
   
   // 지역명 가져오기
@@ -80,183 +111,287 @@ function CityBasicCard({ city, cityConstMap, colorSystem }: CityBasicCardProps) 
 
   return (
     <div 
-      className={`${styles.cityCardBasic} bg2`}
+      className={styles.cityCardBasic}
       style={{
         borderColor: colorSystem?.border,
-        color: colorSystem?.text,
-        backgroundColor: colorSystem?.pageBg,
       }}
     >
-      <div
-        className={styles.cityNamePanel}
-        style={{
-          color: cityTitleTextColor,
-          backgroundColor: displayColor,
-        }}
-      >
-        <div>
-          【 {cityRegionText} | {cityLevelText} 】 
-          <span 
-            className={styles.clickable}
-            onClick={() => window.location.href = `/city/${city.id}`}
-            title="도시 상세 정보"
-          >
-            {city.name}
-          </span>
-        </div>
-      </div>
-      <div
-        className={styles.nationNamePanel}
-        style={{
-          color: nationTextColor,
-          backgroundColor: nationColor,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-        }}
-      >
-        {city.nationInfo?.id ? (
-          <>
-            지배 국가 【 
-            <NationFlag 
-              nation={{
-                name: city.nationInfo.name,
-                color: city.nationInfo.color,
-              }} 
-              size={16} 
-            />
-             】
-          </>
-        ) : (
-          '공 백 지'
-        )}
-      </div>
-      <div className={`${styles.gPanel} ${styles.popPanel}`}>
-        <div className={`${styles.gHead} bg1`} style={labelStyle}>주민</div>
-        <div className={styles.gBody}>
-          <SammoBar height={7} percent={(city.pop[0] / city.pop[1]) * 100} barColor={nationColor} />
-          <div className={styles.cellText}>
-            {city.pop[0].toLocaleString()} / {city.pop[1].toLocaleString()}
-          </div>
-        </div>
-      </div>
-      <div className={`${styles.gPanel} ${styles.trustPanel}`}>
-        <div className={`${styles.gHead} bg1`} style={labelStyle}>민심</div>
-        <div className={styles.gBody}>
-          <SammoBar height={7} percent={city.trust} barColor={nationColor} />
-          <div className={styles.cellText}>{city.trust.toLocaleString(undefined, { maximumFractionDigits: 1 })}</div>
-        </div>
-      </div>
-      <div className={`${styles.gPanel} ${styles.agriPanel}`}>
-        <div className={`${styles.gHead} bg1`} style={labelStyle}>농업</div>
-        <div className={styles.gBody}>
-          <SammoBar height={7} percent={(city.agri[0] / city.agri[1]) * 100} barColor={nationColor} />
-          <div className={styles.cellText}>
-            {city.agri[0].toLocaleString()} / {city.agri[1].toLocaleString()}
-          </div>
-        </div>
-      </div>
-      <div className={`${styles.gPanel} ${styles.commPanel}`}>
-        <div className={`${styles.gHead} bg1`} style={labelStyle}>상업</div>
-        <div className={styles.gBody}>
-          <SammoBar height={7} percent={(city.comm[0] / city.comm[1]) * 100} barColor={nationColor} />
-          <div className={styles.cellText}>
-            {city.comm[0].toLocaleString()} / {city.comm[1].toLocaleString()}
-          </div>
-        </div>
-      </div>
-      <div className={`${styles.gPanel} ${styles.secuPanel}`}>
-        <div className={`${styles.gHead} bg1`} style={labelStyle}>치안</div>
-        <div className={styles.gBody}>
-          <SammoBar height={7} percent={(city.secu[0] / city.secu[1]) * 100} barColor={nationColor} />
-          <div className={styles.cellText}>
-            {city.secu[0].toLocaleString()} / {city.secu[1].toLocaleString()}
-          </div>
-        </div>
-      </div>
-      <div className={`${styles.gPanel} ${styles.defPanel}`}>
-        <div className={`${styles.gHead} bg1`} style={labelStyle}>수비</div>
-        <div className={styles.gBody}>
-          <SammoBar height={7} percent={(city.def[0] / city.def[1]) * 100} barColor={nationColor} />
-          <div className={styles.cellText}>
-            {city.def[0].toLocaleString()} / {city.def[1].toLocaleString()}
-          </div>
-        </div>
-      </div>
-      <div className={`${styles.gPanel} ${styles.wallPanel}`}>
-        <div className={`${styles.gHead} bg1`} style={labelStyle}>성벽</div>
-        <div className={styles.gBody}>
-          <SammoBar height={7} percent={(city.wall[0] / city.wall[1]) * 100} barColor={nationColor} />
-          <div className={styles.cellText}>
-            {city.wall[0].toLocaleString()} / {city.wall[1].toLocaleString()}
-          </div>
-        </div>
-      </div>
-      <div className={`${styles.gPanel} ${styles.tradePanel}`}>
-        <div className={`${styles.gHead} bg1`} style={labelStyle}>시세</div>
-        <div className={styles.gBody}>
-          <SammoBar height={7} percent={tradeBarPercent} altText={tradeAltText} barColor={nationColor} />
-          <div className={styles.cellText}>{tradeAltText}</div>
-        </div>
-      </div>
-      <div className={`${styles.gPanel} ${styles.officer4Panel}`}>
-        <div className={`${styles.gHead} bg1`} style={labelStyle}>태수</div>
-        <div className={`${styles.gBody} ${styles.cellTextOnly}`} style={{ color: getNPCColor(city.officerList[4]?.npc ?? 0) }}>
-          {city.officerList[4] ? (
+      <div className={styles.headerSection}>
+        <div
+          className={styles.cityNamePanel}
+          style={{
+            color: cityTitleTextColor,
+            backgroundColor: displayColor,
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+            <span style={{ fontSize: '0.75rem', opacity: 0.8, fontWeight: 'normal', marginBottom: '0.2rem' }}>
+              {cityRegionText} | {cityLevelText}
+            </span>
             <span 
               className={styles.clickable}
-              onClick={() => window.location.href = `/general/${city.officerList[4]?.no || 0}`}
-              title="장수 상세 정보"
+              onClick={() => window.location.href = `/city/${city.id}`}
+              title="도시 상세 정보"
             >
-              {city.officerList[4]?.name}
+              {city.name}
             </span>
-          ) : '-'}
+          </div>
+          {garrisonSummary && (
+            <div className={styles.garrisonSummary}>
+              <span>{garrisonSummary}</span>
+              <button
+                type="button"
+                className={styles.toggleButton}
+                onClick={handleToggleGarrison}
+              >
+                {showGarrison ? '부대 닫기' : '부대 열기'}
+              </button>
+            </div>
+          )}
+        </div>
+        <div
+          className={styles.nationNamePanel}
+          style={{
+            color: nationTextColor,
+            backgroundColor: nationColor,
+          }}
+        >
+          {city.nationInfo?.id ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <NationFlag 
+                nation={{
+                  name: city.nationInfo.name,
+                  color: city.nationInfo.color,
+                }} 
+                size={20} 
+              />
+            </div>
+          ) : (
+            '공 백 지'
+          )}
         </div>
       </div>
-      <div className={`${styles.gPanel} ${styles.officer3Panel}`}>
-        <div className={`${styles.gHead} bg1`} style={labelStyle}>군사</div>
-        <div className={`${styles.gBody} ${styles.cellTextOnly}`} style={{ color: getNPCColor(city.officerList[3]?.npc ?? 0) }}>
-          {city.officerList[3] ? (
-            <span 
-              className={styles.clickable}
-              onClick={() => window.location.href = `/general/${city.officerList[3]?.no || 0}`}
-              title="장수 상세 정보"
-            >
-              {city.officerList[3]?.name}
-            </span>
-          ) : '-'}
+
+      <div className={styles.statsGrid}>
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>
+            <span>주민</span>
+            <span className={styles.statSubValue}>{((city.pop[0] / city.pop[1]) * 100).toFixed(1)}%</span>
+          </div>
+          <div className={styles.gBody}>
+            <div className={styles.statValue}>
+              {city.pop[0].toLocaleString()} <span className={styles.statSubValue}>/ {city.pop[1].toLocaleString()}</span>
+            </div>
+            <SammoBar height={7} percent={(city.pop[0] / city.pop[1]) * 100} barColor={nationColor} />
+          </div>
+        </div>
+
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>
+            <span>민심</span>
+          </div>
+          <div className={styles.gBody}>
+            <div className={styles.statValue}>{city.trust.toFixed(1)}</div>
+            <SammoBar height={7} percent={city.trust} barColor={nationColor} />
+          </div>
+        </div>
+
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>
+            <span>농업</span>
+            <span className={styles.statSubValue}>{((city.agri[0] / city.agri[1]) * 100).toFixed(1)}%</span>
+          </div>
+          <div className={styles.gBody}>
+            <div className={styles.statValue}>
+              {city.agri[0].toLocaleString()} <span className={styles.statSubValue}>/ {city.agri[1].toLocaleString()}</span>
+            </div>
+            <SammoBar height={7} percent={(city.agri[0] / city.agri[1]) * 100} barColor={nationColor} />
+          </div>
+        </div>
+
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>
+            <span>상업</span>
+            <span className={styles.statSubValue}>{((city.comm[0] / city.comm[1]) * 100).toFixed(1)}%</span>
+          </div>
+          <div className={styles.gBody}>
+            <div className={styles.statValue}>
+              {city.comm[0].toLocaleString()} <span className={styles.statSubValue}>/ {city.comm[1].toLocaleString()}</span>
+            </div>
+            <SammoBar height={7} percent={(city.comm[0] / city.comm[1]) * 100} barColor={nationColor} />
+          </div>
+        </div>
+
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>
+            <span>치안</span>
+            <span className={styles.statSubValue}>{((city.secu[0] / city.secu[1]) * 100).toFixed(1)}%</span>
+          </div>
+          <div className={styles.gBody}>
+            <div className={styles.statValue}>
+              {city.secu[0].toLocaleString()} <span className={styles.statSubValue}>/ {city.secu[1].toLocaleString()}</span>
+            </div>
+            <SammoBar height={7} percent={(city.secu[0] / city.secu[1]) * 100} barColor={nationColor} />
+          </div>
+        </div>
+
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>
+            <span>수비</span>
+            <span className={styles.statSubValue}>{((city.def[0] / city.def[1]) * 100).toFixed(1)}%</span>
+          </div>
+          <div className={styles.gBody}>
+            <div className={styles.statValue}>
+              {city.def[0].toLocaleString()} <span className={styles.statSubValue}>/ {city.def[1].toLocaleString()}</span>
+            </div>
+            <SammoBar height={7} percent={(city.def[0] / city.def[1]) * 100} barColor={nationColor} />
+          </div>
+        </div>
+
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>
+            <span>성벽</span>
+            <span className={styles.statSubValue}>{((city.wall[0] / Math.max(city.wall[1], 1)) * 100).toFixed(1)}%</span>
+          </div>
+          <div className={styles.gBody}>
+            <div className={styles.statValue}>
+              {city.wall[0].toLocaleString()} <span className={styles.statSubValue}>/ {city.wall[1].toLocaleString()}</span>
+            </div>
+            <SammoBar height={7} percent={(city.wall[0] / Math.max(city.wall[1], 1)) * 100} barColor={nationColor} />
+          </div>
+        </div>
+
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>
+            <span>성문</span>
+            {defense?.gate && defense.gate[1] > 0 && (
+              <span className={styles.statSubValue}>{((defense.gate[0] / Math.max(defense.gate[1], 1)) * 100).toFixed(1)}%</span>
+            )}
+          </div>
+          <div className={styles.gBody}>
+            {defense?.gate && defense.gate[1] > 0 ? (
+              <>
+                <div className={styles.statValue}>
+                  {defense.gate[0].toLocaleString()} <span className={styles.statSubValue}>/ {defense.gate[1].toLocaleString()}</span>
+                </div>
+                <div className={styles.statSubValue} style={{ fontSize: '0.7rem', marginTop: '0.1rem' }}>
+                  {defense.towerLevel ? `포탑 Lv.${defense.towerLevel}` : '포탑 없음'}
+                </div>
+                <SammoBar height={7} percent={(defense.gate[0] / Math.max(defense.gate[1], 1)) * 100} barColor={nationColor} />
+              </>
+            ) : (
+              <div className={styles.statValue} style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem' }}>문 없음</div>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>
+            <span>시세</span>
+          </div>
+          <div className={styles.gBody}>
+            <div className={styles.statValue}>{tradeAltText}</div>
+            <SammoBar height={7} percent={tradeBarPercent} altText={tradeAltText} barColor={nationColor} />
+          </div>
+        </div>
+
+        {/* 관직 분리 */}
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>
+            <span>태수</span>
+          </div>
+          <div className={styles.gBody}>
+            <div className={styles.officerName} style={{ color: getNPCColor(city.officerList[4]?.npc ?? 0) }}>
+              {city.officerList[4] ? (
+                <span 
+                  className={styles.clickable}
+                  onClick={() => window.location.href = `/general/${city.officerList[4]?.no || 0}`}
+                >
+                  {city.officerList[4]?.name}
+                </span>
+              ) : '-'}
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>
+            <span>군사</span>
+          </div>
+          <div className={styles.gBody}>
+            <div className={styles.officerName} style={{ color: getNPCColor(city.officerList[3]?.npc ?? 0) }}>
+              {city.officerList[3] ? (
+                <span 
+                  className={styles.clickable}
+                  onClick={() => window.location.href = `/general/${city.officerList[3]?.no || 0}`}
+                >
+                  {city.officerList[3]?.name}
+                </span>
+              ) : '-'}
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.gPanel}>
+          <div className={styles.gHead}>
+            <span>종사</span>
+          </div>
+          <div className={styles.gBody}>
+            <div className={styles.officerName} style={{ color: getNPCColor(city.officerList[2]?.npc ?? 0) }}>
+              {city.officerList[2] ? (
+                <span 
+                  className={styles.clickable}
+                  onClick={() => window.location.href = `/general/${city.officerList[2]?.no || 0}`}
+                >
+                  {city.officerList[2]?.name}
+                </span>
+              ) : '-'}
+            </div>
+          </div>
         </div>
       </div>
-      <div className={`${styles.gPanel} ${styles.officer2Panel}`}>
-        <div className={`${styles.gHead} bg1`} style={labelStyle}>종사</div>
-        <div className={`${styles.gBody} ${styles.cellTextOnly}`} style={{ color: getNPCColor(city.officerList[2]?.npc ?? 0) }}>
-          {city.officerList[2] ? (
-            <span 
-              className={styles.clickable}
-              onClick={() => window.location.href = `/general/${city.officerList[2]?.no || 0}`}
-              title="장수 상세 정보"
-            >
-              {city.officerList[2]?.name}
+
+      {garrison && showGarrison && (
+        <div className={styles.garrisonPanel}>
+          <div className={styles.garrisonHeader}>
+            <span>주둔군</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 'normal', opacity: 0.8 }}>
+              총 {garrison.totalTroops.toLocaleString()}명
             </span>
-          ) : '-'}
+          </div>
+          <div className={styles.garrisonBody}>
+            {garrison.stacks.length > 0 ? (
+              <div className={styles.garrisonList}>
+                <div className={`${styles.garrisonRow} ${styles.headerRow}`}>
+                  <span>병종</span>
+                  <span>병력</span>
+                  <span>훈련</span>
+                  <span>사기</span>
+                </div>
+                {garrison.stacks.map((stack) => (
+                  <div key={stack.id} className={styles.garrisonRow}>
+                    <span>{getCrewTypeLabel(stack)}</span>
+                    <span>{stack.troops.toLocaleString()}</span>
+                    <span>{Math.round(stack.train).toLocaleString()}</span>
+                    <span>{Math.round(stack.morale).toLocaleString()}</span>
+                  </div>
+                ))}
+                {garrison.stackCount > garrison.stacks.length && (
+                  <div style={{ textAlign: 'center', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.5rem' }}>
+                    + {garrison.stackCount - garrison.stacks.length}개 부대 더 있음
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.5)', padding: '1rem' }}>
+                주둔 병력이 없습니다.
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
-export default React.memo(CityBasicCard, (prevProps, nextProps) => {
-  // 깊은 비교로 불필요한 리렌더링 방지
-  return (
-    prevProps.city.id === nextProps.city.id &&
-    prevProps.city.name === nextProps.city.name &&
-    prevProps.city.level === nextProps.city.level &&
-    prevProps.city.trust === nextProps.city.trust &&
-    prevProps.city.pop[0] === nextProps.city.pop[0] &&
-    prevProps.city.pop[1] === nextProps.city.pop[1] &&
-    prevProps.city.nationInfo?.id === nextProps.city.nationInfo?.id &&
-    prevProps.city.nationInfo?.name === nextProps.city.nationInfo?.name &&
-    prevProps.city.nationInfo?.color === nextProps.city.nationInfo?.color
-  );
-});
+export default CityBasicCard;

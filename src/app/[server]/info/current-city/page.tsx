@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import CityBasicCard from '@/components/cards/CityBasicCard';
-import styles from './page.module.css';
+import { cn } from '@/lib/utils';
 
 const cityConstMap = {
   region: {
@@ -102,18 +102,27 @@ function CurrentCityContent() {
   };
 
   return (
-    <div className={styles.container}>
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
       <TopBackBar title={title} reloadable onReload={handleReload} />
+      
       {loading ? (
-        <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
+        <div className="flex justify-center items-center h-[50vh]">
+           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        </div>
       ) : error ? (
-        <div className="center" style={{ padding: '2rem', color: 'red' }}>{error}</div>
+        <div className="flex justify-center items-center h-[50vh] text-red-400">
+           {error}
+        </div>
       ) : cityData ? (
-        <div className={styles.content}>
-          <CityBasicCard city={cityData} cityConstMap={cityConstMap} />
+        <div className="max-w-4xl mx-auto">
+           <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
+              <CityBasicCard city={cityData} cityConstMap={cityConstMap} />
+           </div>
         </div>
       ) : (
-        <div className="center" style={{ padding: '2rem' }}>도시 정보를 불러올 수 없습니다.</div>
+        <div className="flex justify-center items-center h-[50vh] text-gray-500">
+          도시 정보를 불러올 수 없습니다.
+        </div>
       )}
     </div>
   );
@@ -121,13 +130,12 @@ function CurrentCityContent() {
 
 export default function CurrentCityPage() {
   return (
-    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-950 flex justify-center items-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+      </div>
+    }>
       <CurrentCityContent />
     </Suspense>
   );
 }
-
-
-
-
-

@@ -24,7 +24,7 @@ export default function IsoTacticalBattleMap({
   width,
   height,
   units,
-  selectedUnitId, // eslint-disable-line @typescript-eslint/no-unused-vars
+  selectedUnitId,
   onUnitClick,
   onCellClick,
 }: IsoTacticalBattleMapProps) {

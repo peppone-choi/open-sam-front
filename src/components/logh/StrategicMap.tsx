@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useSocket } from '@/hooks/useSocket';
+import { cn } from '@/lib/utils';
 
 /**
  * LOGH Strategic Map Component
@@ -207,58 +208,63 @@ export default function StrategicMap({ sessionId, onFleetClick, onCellClick }: P
   );
 
   return (
-    <div className="relative">
+    <div className="relative bg-black overflow-hidden rounded-lg">
       <canvas
         ref={canvasRef}
         onClick={handleCanvasClick}
         onMouseMove={handleCanvasMouseMove}
         onMouseLeave={() => setHoveredCell(null)}
-        className="border border-gray-700 cursor-pointer"
+        className="cursor-pointer block"
         style={{
           imageRendering: 'pixelated',
+          width: '100%',
+          height: '100%',
           maxWidth: '100%',
-          height: 'auto',
+          maxHeight: '100%',
         }}
       />
 
       {/* 정보 패널 */}
       {hoveredCell && (
-        <div className="absolute top-2 left-2 bg-black bg-opacity-80 text-white p-2 rounded text-sm">
+        <div className="absolute top-2 left-2 bg-black/80 text-white p-2 rounded text-sm font-mono border border-white/10 pointer-events-none">
           좌표: ({hoveredCell.x}, {hoveredCell.y})
         </div>
       )}
 
       {/* 선택된 함대 정보 */}
       {selectedFleet && (
-        <div className="absolute top-2 right-2 bg-black bg-opacity-90 text-white p-3 rounded min-w-[200px]">
-          <div className="font-bold text-lg mb-2">{selectedFleet.name}</div>
+        <div className="absolute top-2 right-2 bg-black/90 text-white p-3 rounded-lg min-w-[200px] border border-white/20 shadow-xl">
+          <div className="font-bold text-lg mb-2 border-b border-white/10 pb-1">{selectedFleet.name}</div>
           <div className="text-sm space-y-1">
             <div>
               진영:{' '}
               <span
-                className={
+                className={cn(
+                  "font-bold",
                   selectedFleet.faction === 'empire' ? 'text-yellow-400' : 'text-cyan-400'
-                }
+                )}
               >
                 {selectedFleet.faction === 'empire' ? '제국' : '동맹'}
               </span>
             </div>
-            <div>함선: {selectedFleet.totalShips.toLocaleString()}</div>
-            <div>상태: {selectedFleet.status}</div>
+            <div>함선: <span className="font-mono text-blue-300">{selectedFleet.totalShips.toLocaleString()}</span></div>
+            <div>상태: <span className="text-gray-300">{selectedFleet.status}</span></div>
             {selectedFleet.isInCombat && (
-              <div className="text-red-500 font-bold">⚔️ 전투 중</div>
+              <div className="text-red-500 font-bold animate-pulse">⚔️ 전투 중</div>
             )}
           </div>
         </div>
       )}
 
       {/* 연결 상태 */}
-      <div
-        className={`absolute bottom-2 left-2 px-2 py-1 rounded text-xs ${
-          isConnected ? 'bg-green-600' : 'bg-red-600'
-        }`}
-      >
-        {isConnected ? '🟢 연결됨' : '🔴 연결 끊김'}
+      <div className="absolute bottom-2 right-2">
+        <div className={cn(
+          "px-2 py-1 rounded text-xs font-bold flex items-center gap-1",
+          isConnected ? "bg-green-900/80 text-green-400 border border-green-500/30" : "bg-red-900/80 text-red-400 border border-red-500/30"
+        )}>
+          <span className={cn("w-2 h-2 rounded-full", isConnected ? "bg-green-500" : "bg-red-500")}></span>
+          {isConnected ? 'LIVE' : 'OFFLINE'}
+        </div>
       </div>
     </div>
   );

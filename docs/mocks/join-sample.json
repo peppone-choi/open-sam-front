@@ -1,0 +1,12 @@
+{
+  "trait": "영재",
+  "statLimits": { "min": 15, "max": 92, "total": 255 },
+  "totalStats": 248,
+  "allowJoinNation": true,
+  "selectedNationName": "위",
+  "hasCustomIcon": true,
+  "treatmentThreshold": 40,
+  "autoNationTurn": 1,
+  "defenceTrain": true,
+  "useCustomIcon": true
+}

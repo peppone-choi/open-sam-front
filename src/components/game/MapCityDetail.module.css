@@ -9,7 +9,6 @@
     max-height: 30px !important;
     overflow: visible !important;
     display: block !important;
-    /* z-index 없음 - stacking context를 자연스럽게 사용 */
     font-size: 0 !important;
     line-height: 1 !important;
     font-family: initial !important;
@@ -20,10 +19,7 @@
     text-size-adjust: 100% !important;
     -webkit-font-smoothing: antialiased !important;
     contain: none !important;
-    /* isolation 제거 - 도시명이 같은 stacking context에 있도록 */
-    /* 전역 max-height 오버라이드 - globals.css의 html * { max-height: 1000000px; } 무시 */
     max-height: 30px !important;
-    /* 전역 스타일 상속 완전 차단 */
 }
 
 /* city_bg - 국가 색상 배경 (원형 그라디언트) */
@@ -78,7 +74,7 @@
     text-decoration-color: transparent !important;
     outline: none !important;
     position: static;
-    z-index: 0;
+    z-index: 2;
 }
 
 /* city_link 내부 모든 요소의 링크 스타일 제거 */

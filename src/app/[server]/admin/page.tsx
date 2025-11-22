@@ -4,7 +4,7 @@ import React from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import TopBackBar from '@/components/common/TopBackBar';
-import styles from './page.module.css';
+import { cn } from '@/lib/utils';
 
 export default function AdminMainPage() {
   const params = useParams();
@@ -56,24 +56,29 @@ export default function AdminMainPage() {
   ];
 
   return (
-    <div className={styles.container}>
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
       <TopBackBar 
         title="관 리 자  패 널" 
         backUrl="/entrance"
       />
       
-      <div className={styles.menuGrid}>
-        {adminMenus.map((menu) => (
-          <Link
-            key={menu.href}
-            href={menu.href}
-            className={styles.menuCard}
-          >
-            <div className={styles.menuIcon}>{menu.icon}</div>
-            <div className={styles.menuTitle}>{menu.title}</div>
-            <div className={styles.menuDescription}>{menu.description}</div>
-          </Link>
-        ))}
+      <div className="max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {adminMenus.map((menu) => (
+            <Link
+              key={menu.href}
+              href={menu.href}
+              className={cn(
+                "flex flex-col items-center text-center p-6 rounded-xl border border-white/5 bg-gray-900/50 backdrop-blur-sm shadow-lg",
+                "hover:bg-gray-800/80 hover:border-blue-500/30 hover:-translate-y-1 transition-all duration-200 group"
+              )}
+            >
+              <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">{menu.icon}</div>
+              <div className="font-bold text-lg text-white mb-2">{menu.title}</div>
+              <div className="text-sm text-gray-400">{menu.description}</div>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

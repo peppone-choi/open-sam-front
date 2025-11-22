@@ -1,0 +1,66 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - paragraph [ref=e6]: GIN7 모드
+      - heading "은하영웅전설Ⅶ · 전략/전술 통합 UI" [level=1] [ref=e7]
+      - paragraph [ref=e8]: Chapter2~4 화면 구성과 조작계를 Next.js 다크 UI로 재현
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - paragraph [ref=e12]: 세션
+        - paragraph [ref=e13]: s2-main
+        - paragraph [ref=e14]: 평균 틱 —ms · 최대 —ms
+      - generic [ref=e15]:
+        - paragraph [ref=e16]: 알림 채널
+        - paragraph [ref=e17]: galaxy:ops-alerts
+        - paragraph [ref=e18]: Webhook 미설정 (console fallback) · 임계값 3500ms · 최근 알림 없음
+      - generic [ref=e19]:
+        - paragraph [ref=e20]: 텔레메트리
+        - paragraph [ref=e21]: 수집 대기
+        - paragraph [ref=e22]: 전략 루프 평균 —ms
+        - button "QA 로그 템플릿 복사" [ref=e23] [cursor=pointer]
+    - generic [ref=e24]:
+      - generic [ref=e25]:
+        - generic [ref=e26]: GIN7 세션 정보를 불러오는 중...
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - paragraph [ref=e29]: OPERATION BOARD
+            - heading "作戦計画 · Command Planner" [level=2] [ref=e30]
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - generic [ref=e33]:
+                - text: 作戦目的
+                - combobox "作戦目的" [ref=e34]:
+                  - option "占領作戦" [selected]
+                  - option "防衛作戦"
+                  - option "掃討作戦"
+              - generic [ref=e35]:
+                - text: 状態
+                - combobox "状態" [ref=e36]:
+                  - option "準備中" [selected]
+                  - option "発令"
+            - generic [ref=e37]:
+              - text: 目標星系
+              - textbox "目標星系" [ref=e38]: オーディン
+            - generic [ref=e39]:
+              - text: 参加艦艇
+              - textbox "参加艦艇" [ref=e40]: 라인하르트, 미터마이어
+            - generic [ref=e41]:
+              - text: 発動予定時期
+              - textbox "発動予定時期" [ref=e42]
+            - generic [ref=e43]:
+              - text: 備考 / 作戦撤回条件
+              - textbox "備考 / 作戦撤回条件" [ref=e44]: 30日以内に全惑星を掌握
+            - button "作戦登録" [ref=e45] [cursor=pointer]
+      - generic [ref=e47]: 戦術 HUD を初期화 중...
+  - button "Open Next.js Dev Tools" [ref=e53] [cursor=pointer]:
+    - generic [ref=e56]:
+      - text: Compiling
+      - generic [ref=e57]:
+        - generic [ref=e58]: .
+        - generic [ref=e59]: .
+        - generic [ref=e60]: .
+  - alert [ref=e61]
+```

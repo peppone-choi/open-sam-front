@@ -1,0 +1,111 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.stackFilter {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.stackFilter button {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 0.35rem;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  color: #fff;
+}
+
+.stackFilter button.active {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.stackList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.stackCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(255,255,255,0.25);
+  background-color: rgba(255,255,255,0.04);
+  cursor: pointer;
+}
+
+.stackCard.selected {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 1px rgba(13,110,253,0.4);
+  background-color: rgba(13,110,253,0.08);
+}
+
+.stackMain {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+}
+
+.stackMeta {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.7);
+  display: flex;
+  gap: 0.75rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.formGrid label {
+  font-size: 0.85rem;
+  margin-bottom: 0.35rem;
+  display: block;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.splitInput {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  background-color: #495057;
+  border: 1px solid #6c757d;
+  border-radius: 0.35rem;
+  color: #fff;
+}
+
+.citySelect {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.35rem;
+}
+
+.helperText {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.75);
+}

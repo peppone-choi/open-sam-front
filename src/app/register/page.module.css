@@ -1,141 +1,232 @@
+/* Register Page - Premium Redesign */
 .container {
   min-height: 100vh;
-  background-color: black;
-  color: white;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  /* Background handled by global body style, but we add an overlay here */
+  background: radial-gradient(circle at center, transparent 0%, var(--bg-main) 100%);
+}
+
+/* Animated Background Elements */
+.container::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+  /* Pink tint for register */
+  animation: rotate 60s linear infinite reverse;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .navbar {
   position: fixed;
   top: 0;
   width: 100%;
-  background-color: #333;
-  padding: 1rem;
+  padding: 1.5rem 2rem;
   z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.8) 0%, transparent 100%);
 }
 
 .navbarBrand {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: white;
-  text-decoration: none;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
 }
 
 .mainContainer {
-  margin-top: 120px;
+  flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
   padding: 2rem;
+  position: relative;
+  z-index: 1;
+  margin-top: 40px;
 }
 
 .title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 3rem;
+  font-weight: 800;
   text-align: center;
   margin-bottom: 2rem;
+  background: linear-gradient(135deg, #fff 0%, #fbcfe8 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+  filter: drop-shadow(0 0 20px rgba(236, 72, 153, 0.3));
 }
 
 .registerCard {
-  background-color: black;
-  border: 1px solid gray;
-  max-width: 450px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-highlight);
+  border-radius: var(--radius-lg);
+  padding: 0;
   width: 100%;
+  max-width: 480px;
+  box-shadow: var(--shadow-lg), 0 0 20px rgba(236, 72, 153, 0.2);
+  overflow: hidden;
+  transition: transform var(--transition-normal);
+}
+
+.registerCard:hover {
+  transform: translateY(-2px);
 }
 
 .cardHeader {
-  background-color: #333;
-  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1.5rem;
   text-align: center;
   margin: 0;
-  border-bottom: 1px solid gray;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: 0.02em;
 }
 
 .registerForm {
-  padding: 1.5rem;
+  padding: 2rem;
 }
 
 .formGroup {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .formGroup label {
   display: block;
   margin-bottom: 0.5rem;
-  font-size: 14px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-left: 0.25rem;
 }
 
 .input {
   width: 100%;
-  padding: 0.5rem;
-  background-color: black;
-  color: white;
-  border: 1px solid gray;
-  font-size: 14px;
+  padding: 0.875rem 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  font-size: 1rem;
+  transition: all var(--transition-fast);
   box-sizing: border-box;
 }
 
 .input:focus {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: var(--secondary);
+  box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
   outline: none;
-  border-color: #0cf;
 }
 
 .error {
-  color: red;
-  margin-bottom: 1rem;
-  font-size: 14px;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  color: #fca5a5;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .submitButton {
   width: 100%;
-  padding: 0.75rem;
-  background-color: #333;
+  padding: 0.875rem;
+  background: var(--secondary);
   color: white;
-  border: 1px solid #666;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  font-size: 16px;
+  transition: all var(--transition-fast);
   margin-top: 1rem;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
 }
 
 .submitButton:hover:not(:disabled) {
-  background-color: #444;
+  background: #db2777;
+  /* Pink 600 */
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(236, 72, 153, 0.4);
 }
 
 .submitButton:disabled {
-  opacity: 0.5;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .loginLink {
-  padding: 1rem 1.5rem;
+  padding: 1.5rem;
   text-align: center;
-  border-top: 1px solid gray;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--border-color);
 }
 
 .loginLinkText {
-  color: #0cf;
+  color: var(--secondary);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color var(--transition-fast);
 }
 
 .loginLinkText:hover {
+  color: #fbcfe8;
+  /* Pink 200 */
   text-decoration: underline;
 }
 
 .footer {
   text-align: center;
   padding: 2rem;
-  margin-top: 2rem;
-  color: #999;
-  font-size: 12px;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  position: relative;
+  z-index: 1;
 }
 
 .footer a {
-  color: #0cf;
+  color: var(--text-muted);
   text-decoration: none;
+  transition: color var(--transition-fast);
 }
 
 .footer a:hover {
-  text-decoration: underline;
+  color: var(--secondary);
 }
-
-
-
-

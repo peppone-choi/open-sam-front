@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSocket } from '@/hooks/useSocket';
+import { SammoAPI } from '@/lib/api/sammo';
 import styles from './TacticalMapPanel.module.css';
 import { ThreeTacticalMapEngine } from '@/lib/tactical/threeTacticalMap';
 import type { UnitInstance, UnitVisualConfig } from '@/lib/tactical/isoTacticalMap';
@@ -67,6 +69,7 @@ interface Props {
 }
 
 export default function TacticalMapPanel({ serverID, generalId, cityId, cityName }: Props) {
+  const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const threeCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const threeEngineRef = useRef<ThreeTacticalMapEngine | null>(null);
@@ -76,6 +79,8 @@ export default function TacticalMapPanel({ serverID, generalId, cityId, cityName
 
   const [isInBattle, setIsInBattle] = useState(false);
   const [recentLogs, setRecentLogs] = useState<LogEntry[]>([]);
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
   
   const canvasWidth = 740;
   const canvasHeight = 500;
@@ -264,7 +269,7 @@ export default function TacticalMapPanel({ serverID, generalId, cityId, cityName
     }, 5000);
   };
 
-  // 캔버스 렌더링
+  // 캔버스 렌더링 (평시: 평화로운 성, 전투 중: three 캔버스 사용)
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -275,178 +280,44 @@ export default function TacticalMapPanel({ serverID, generalId, cityId, cityName
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
 
-    // 검은 배경만 표시
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }, []);
-
-  // 평화로운 성 그리기 (쿼터뷰)
-  const drawPeacefulCity = (ctx: CanvasRenderingContext2D, width: number, height: number, cityName?: string) => {
-    // 배경 그라디언트 (하늘)
-    const skyGradient = ctx.createLinearGradient(0, 0, 0, height * 0.7);
-    skyGradient.addColorStop(0, '#87CEEB');
-    skyGradient.addColorStop(1, '#B0E2FF');
-    ctx.fillStyle = skyGradient;
-    ctx.fillRect(0, 0, width, height);
-
-    // 땅 (쿼터뷰 원근감)
-    const groundY = height * 0.65;
-    ctx.fillStyle = '#8FBC8F';
-    ctx.beginPath();
-    ctx.moveTo(0, groundY);
-    ctx.lineTo(width, groundY);
-    ctx.lineTo(width, height);
-    ctx.lineTo(0, height);
-    ctx.closePath();
-    ctx.fill();
-
-    // 성벽 (쿼터뷰 사각형)
-    const centerX = width / 2;
-    const centerY = height * 0.5;
-    const wallWidth = 250;
-    const wallHeight = 150;
-    const wallDepth = 80; // 쿼터뷰 깊이
-
-    // 성벽 앞면 (밝은 색)
-    ctx.fillStyle = '#A0826D';
-    ctx.beginPath();
-    ctx.moveTo(centerX - wallWidth / 2, centerY);
-    ctx.lineTo(centerX + wallWidth / 2, centerY);
-    ctx.lineTo(centerX + wallWidth / 2, centerY + wallHeight);
-    ctx.lineTo(centerX - wallWidth / 2, centerY + wallHeight);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = '#654321';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // 성벽 오른쪽 면 (어두운 색)
-    ctx.fillStyle = '#8B7355';
-    ctx.beginPath();
-    ctx.moveTo(centerX + wallWidth / 2, centerY);
-    ctx.lineTo(centerX + wallWidth / 2 + wallDepth / 2, centerY - wallDepth / 3);
-    ctx.lineTo(centerX + wallWidth / 2 + wallDepth / 2, centerY + wallHeight - wallDepth / 3);
-    ctx.lineTo(centerX + wallWidth / 2, centerY + wallHeight);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // 성벽 윗면
-    ctx.fillStyle = '#B8956A';
-    ctx.beginPath();
-    ctx.moveTo(centerX - wallWidth / 2, centerY);
-    ctx.lineTo(centerX + wallWidth / 2, centerY);
-    ctx.lineTo(centerX + wallWidth / 2 + wallDepth / 2, centerY - wallDepth / 3);
-    ctx.lineTo(centerX - wallWidth / 2 + wallDepth / 2, centerY - wallDepth / 3);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // 성문
-    const gateWidth = 60;
-    const gateHeight = 80;
-    ctx.fillStyle = '#4A3728';
-    ctx.fillRect(centerX - gateWidth / 2, centerY + wallHeight - gateHeight, gateWidth, gateHeight);
-    ctx.strokeRect(centerX - gateWidth / 2, centerY + wallHeight - gateHeight, gateWidth, gateHeight);
-
-    // 성문 상단 아치
-    ctx.beginPath();
-    ctx.arc(centerX, centerY + wallHeight - gateHeight, gateWidth / 2, 0, Math.PI, true);
-    ctx.fill();
-    ctx.stroke();
-
-    // 망루 (좌)
-    const towerSize = 50;
-    const towerX1 = centerX - wallWidth / 2 - 20;
-    const towerY1 = centerY - 20;
-    
-    // 망루 앞면
-    ctx.fillStyle = '#A0826D';
-    ctx.fillRect(towerX1 - towerSize / 2, towerY1, towerSize, towerSize * 1.5);
-    ctx.strokeRect(towerX1 - towerSize / 2, towerY1, towerSize, towerSize * 1.5);
-    
-    // 망루 오른쪽 면
-    ctx.fillStyle = '#8B7355';
-    ctx.beginPath();
-    ctx.moveTo(towerX1 + towerSize / 2, towerY1);
-    ctx.lineTo(towerX1 + towerSize / 2 + 20, towerY1 - 15);
-    ctx.lineTo(towerX1 + towerSize / 2 + 20, towerY1 + towerSize * 1.5 - 15);
-    ctx.lineTo(towerX1 + towerSize / 2, towerY1 + towerSize * 1.5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // 망루 지붕 (삼각)
-    ctx.fillStyle = '#CD5C5C';
-    ctx.beginPath();
-    ctx.moveTo(towerX1, towerY1 - 30);
-    ctx.lineTo(towerX1 - towerSize / 2 - 5, towerY1);
-    ctx.lineTo(towerX1 + towerSize / 2 + 5, towerY1);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // 망루 (우)
-    const towerX2 = centerX + wallWidth / 2 + 20;
-    
-    ctx.fillStyle = '#A0826D';
-    ctx.fillRect(towerX2 - towerSize / 2, towerY1, towerSize, towerSize * 1.5);
-    ctx.strokeRect(towerX2 - towerSize / 2, towerY1, towerSize, towerSize * 1.5);
-    
-    ctx.fillStyle = '#8B7355';
-    ctx.beginPath();
-    ctx.moveTo(towerX2 + towerSize / 2, towerY1);
-    ctx.lineTo(towerX2 + towerSize / 2 + 20, towerY1 - 15);
-    ctx.lineTo(towerX2 + towerSize / 2 + 20, towerY1 + towerSize * 1.5 - 15);
-    ctx.lineTo(towerX2 + towerSize / 2, towerY1 + towerSize * 1.5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = '#CD5C5C';
-    ctx.beginPath();
-    ctx.moveTo(towerX2, towerY1 - 30);
-    ctx.lineTo(towerX2 - towerSize / 2 - 5, towerY1);
-    ctx.lineTo(towerX2 + towerSize / 2 + 5, towerY1);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // 깃발 (왼쪽 망루)
-    ctx.strokeStyle = '#654321';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(towerX1, towerY1 - 30);
-    ctx.lineTo(towerX1, towerY1 - 70);
-    ctx.stroke();
-
-    ctx.fillStyle = '#FF4444';
-    ctx.beginPath();
-    ctx.moveTo(towerX1, towerY1 - 70);
-    ctx.lineTo(towerX1 + 30, towerY1 - 60);
-    ctx.lineTo(towerX1, towerY1 - 50);
-    ctx.closePath();
-    ctx.fill();
-
-    // 도시 이름
-    if (cityName) {
-      ctx.fillStyle = '#000000';
-      ctx.font = 'bold 28px serif';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-      ctx.shadowBlur = 4;
-      ctx.fillText(cityName, centerX, centerY - 100);
-      ctx.shadowBlur = 0;
+    if (!isInBattle) {
+      drawPeacefulCity(ctx, canvasWidth, canvasHeight, cityName);
     }
+  }, [isInBattle, canvasWidth, canvasHeight, cityName]);
 
-    // 평화 문구
-    ctx.fillStyle = '#228B22';
-    ctx.font = 'bold 22px serif';
-    ctx.textAlign = 'center';
-    ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
-    ctx.shadowBlur = 3;
-    ctx.fillText('🕊️ 평화로운 시기입니다 🕊️', width / 2, height - 40);
-    ctx.shadowBlur = 0;
+  // 평시 전술맵: 삼6 전투 맵 이미지를 등각 배경으로 사용
+  const drawPeacefulCity = (ctx: CanvasRenderingContext2D, width: number, height: number, cityName?: string) => {
+    ctx.clearRect(0, 0, width, height);
+
+    const img = new Image();
+    img.src = '/images/tactical/sam6-city-1.png';
+
+    img.onload = () => {
+      // 배경 톤
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, width, height);
+
+      // 이미지 비율 유지하면서 중앙에 배치
+      const scale = Math.min(width / img.width, height / img.height) * 0.95;
+      const drawW = img.width * scale;
+      const drawH = img.height * scale;
+      const x = (width - drawW) / 2;
+      const y = (height - drawH) / 2 + 10;
+
+      ctx.drawImage(img, x, y, drawW, drawH);
+
+      // 도시 이름 / 상태 텍스트
+      ctx.textAlign = 'center';
+      if (cityName) {
+        ctx.fillStyle = '#e5e7eb';
+        ctx.font = '700 20px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.fillText(cityName, width / 2, 32);
+      }
+
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = '500 13px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.fillText('전투가 없는 평시 상태입니다.', width / 2, 52);
+    };
   };
 
   // 전투 상황 그리기 (쿼터뷰 좌표 기반)
@@ -762,6 +633,42 @@ export default function TacticalMapPanel({ serverID, generalId, cityId, cityName
           )}
         </div>
       )}
+
+      {!isInBattle && cityId && (
+        <div className={styles.info}>
+          <button
+            type="button"
+            className={styles.joinBattleBtn}
+            disabled={joining || !generalId}
+            onClick={async () => {
+              if (!generalId) return;
+              try {
+                setJoinError(null);
+                setJoining(true);
+                const result = await SammoAPI.GetBattleCenter({ serverID });
+                const battles = result.battles || [];
+                const active = battles.find((b: any) => b.targetCityId === cityId && b.status !== 'completed');
+                if (!active) {
+                  setJoinError('이 도시에 진행 중인 전투가 없습니다.');
+                  return;
+                }
+                const battleId = active.battleId || active.id;
+                router.push(`/${serverID}/battle/${battleId}/three?generalId=${generalId}`);
+              } catch (error: any) {
+                console.error('[TacticalMap] 전투 참가 실패:', error);
+                setJoinError('전투 정보를 불러오는 데 실패했습니다.');
+              } finally {
+                setJoining(false);
+              }
+            }}
+          >
+            {joining ? '전투방 확인 중...' : '현재 도시 전술 전투 참가'}
+          </button>
+          {joinError && (
+            <div className={styles.errorText}>{joinError}</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -808,6 +715,27 @@ const formatLogText = (text: string): string => {
 const TACTICAL_LOGICAL_WIDTH = 40;
 const TACTICAL_LOGICAL_HEIGHT = 40;
 
+function worldToGrid(
+  position: { x: number; y: number } | undefined,
+  side: 'attacker' | 'defender',
+  mapWidth: number,
+  mapHeight: number,
+): { row: number; col: number } {
+  const safeWidth = mapWidth > 0 ? mapWidth : 1;
+  const safeHeight = mapHeight > 0 ? mapHeight : 1;
+
+  const defaultX = side === 'attacker' ? safeWidth * 0.25 : safeWidth * 0.75;
+  const defaultY = side === 'attacker' ? safeHeight * 0.25 : safeHeight * 0.75;
+
+  const wx = clamp01(((position?.x ?? defaultX) / safeWidth));
+  const wy = clamp01(((position?.y ?? defaultY) / safeHeight));
+
+  const col = Math.floor(wx * TACTICAL_LOGICAL_WIDTH);
+  const row = Math.floor(wy * TACTICAL_LOGICAL_HEIGHT);
+
+  return { row, col };
+}
+
 function mapBattleStateToUnitInstances(state: BattleState): UnitInstance[] {
   const instances: UnitInstance[] = [];
   const mapWidth = state.map?.width ?? 800;
@@ -815,13 +743,7 @@ function mapBattleStateToUnitInstances(state: BattleState): UnitInstance[] {
 
   const convert = (u: BattleUnit): UnitInstance => {
     // world position -> grid
-    const defaultX = u.side === 'attacker' ? mapWidth * 0.25 : mapWidth * 0.75;
-    const defaultY = u.side === 'attacker' ? mapHeight * 0.25 : mapHeight * 0.75;
-    const wx = clamp01((u.position?.x ?? defaultX) / mapWidth);
-    const wy = clamp01((u.position?.y ?? defaultY) / mapHeight);
-
-    const col = Math.floor(wx * TACTICAL_LOGICAL_WIDTH);
-    const row = Math.floor(wy * TACTICAL_LOGICAL_HEIGHT);
+    const { row, col } = worldToGrid(u.position, u.side, mapWidth, mapHeight);
 
     const role = mapUnitTypeToRole(u.unitType);
     const visual: UnitVisualConfig = {

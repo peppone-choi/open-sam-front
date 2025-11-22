@@ -3,7 +3,6 @@
 import { useParams } from 'next/navigation';
 import TopBackBar from '@/components/common/TopBackBar';
 import PureTacticalMap, { type PureTacticalUnit } from '@/components/battle/PureTacticalMap';
-import styles from '../battle-simulator/page.module.css';
 
 export default function TacticalSandboxPage() {
   const params = useParams();
@@ -19,24 +18,26 @@ export default function TacticalSandboxPage() {
   ];
 
   return (
-    <div className={styles.container}>
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
       <TopBackBar title={`전술맵 샌드박스 (${serverID})`} />
-      <div className={styles.content}>
-        <p style={{ marginBottom: '1rem', fontSize: '0.9rem', color: '#9ca3af' }}>
+      <div className="p-4">
+        <p className="mb-4 text-sm text-gray-400">
           완전히 독립된 Pixi 전술맵 컴포넌트입니다. 12x12 그리드 위에 세 개의 네모가
           올라가 있고, 칸을 클릭하면 좌표만 콜백으로 넘어갑니다.
         </p>
-        <PureTacticalMap
-          logicalWidth={logicalWidth}
-          logicalHeight={logicalHeight}
-          units={units}
-          onCellClick={(x, y) => {
-            console.log('[TacticalSandbox] cell click', x, y);
-          }}
-          onUnitClick={(id) => {
-            console.log('[TacticalSandbox] unit click', id);
-          }}
-        />
+        <div className="border border-white/10 rounded-lg overflow-hidden bg-black/40">
+          <PureTacticalMap
+            logicalWidth={logicalWidth}
+            logicalHeight={logicalHeight}
+            units={units}
+            onCellClick={(x, y) => {
+              console.log('[TacticalSandbox] cell click', x, y);
+            }}
+            onUnitClick={(id) => {
+              console.log('[TacticalSandbox] unit click', id);
+            }}
+          />
+        </div>
       </div>
     </div>
   );

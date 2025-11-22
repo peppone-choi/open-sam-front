@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/contexts/ToastContext';
 import styles from './PartialReservedCommand.module.css';
@@ -14,6 +14,8 @@ interface PartialReservedCommandProps {
   serverID: string;
   nationColor?: string;
   colorSystem?: ColorSystem;
+  reloadKey?: number;
+  onGlobalReload?: () => Promise<void> | void;
 }
 
 interface ReservedCommand {
@@ -39,7 +41,66 @@ interface CommandTableCategory {
   }>;
 }
 
-export default function PartialReservedCommand({ generalID, serverID, nationColor, colorSystem }: PartialReservedCommandProps) {
+function applyAlpha(color?: string, alpha = 1): string | undefined {
+  if (!color) return undefined;
+  const normalized = color.trim();
+
+  if (normalized.startsWith('#')) {
+    const hex = normalized.slice(1);
+    const expanded = hex.length === 3
+      ? hex.split('').map((char) => char + char).join('')
+      : hex;
+    if (expanded.length !== 6) {
+      return normalized;
+    }
+    const r = parseInt(expanded.slice(0, 2), 16);
+    const g = parseInt(expanded.slice(2, 4), 16);
+    const b = parseInt(expanded.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  const rgbMatch = normalized.match(/^rgba?\(([^)]+)\)$/i);
+  if (rgbMatch) {
+    const [r = '0', g = '0', b = '0'] = rgbMatch[1]
+      .split(',')
+      .map((value) => value.trim());
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  return normalized;
+}
+
+function buildThemeVars(system?: ColorSystem): React.CSSProperties {
+  if (!system) {
+    return {};
+  }
+
+  const vars: React.CSSProperties = {};
+  const assignVar = (key: string, value?: string) => {
+    if (!value) return;
+    (vars as any)[key] = value;
+  };
+
+  assignVar('--prc-text-color', system.text);
+  assignVar('--prc-muted-text', system.textMuted);
+  assignVar('--prc-button-text', system.buttonText);
+  assignVar('--prc-button-bg', applyAlpha(system.buttonBg, 0.9) ?? system.buttonBg);
+  assignVar('--prc-button-hover', applyAlpha(system.buttonHover, 0.95) ?? system.buttonHover);
+  assignVar('--prc-button-border', system.border);
+  assignVar('--prc-border-color', system.border);
+  assignVar('--prc-divider-color', system.borderLight ?? system.border);
+  assignVar('--prc-toolbar-bg', applyAlpha(system.pageBg, 0.9) ?? system.pageBg);
+  assignVar('--prc-footer-bg', applyAlpha(system.pageBg, 0.9) ?? system.pageBg);
+  assignVar('--prc-card-bg', applyAlpha(system.pageBg, 0.95) ?? system.pageBg);
+  assignVar('--prc-clock-bg', system.buttonBg);
+  assignVar('--prc-clock-text', system.buttonText);
+  assignVar('--prc-turn-selected-bg', applyAlpha(system.buttonHover, 0.8) ?? system.buttonHover);
+  assignVar('--prc-scrollbar-color', applyAlpha(system.border, 0.4) ?? system.border);
+
+  return vars;
+}
+
+export default function PartialReservedCommand({ generalID, serverID, nationColor, colorSystem, reloadKey, onGlobalReload }: PartialReservedCommandProps) {
   const router = useRouter();
   const { showToast } = useToast();
   const [reservedCommands, setReservedCommands] = useState<ReservedCommand[]>([]);
@@ -60,10 +121,11 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
 
   const MAX_TURN = 50;
   const FLIPPED_MAX_TURN = 30;
+  const commandPadStyle = useMemo(() => buildThemeVars(colorSystem), [colorSystem]);
 
   useEffect(() => {
     loadData();
-  }, [generalID, serverID]);
+  }, [generalID, serverID, reloadKey]);
 
   const loadData = async () => {
     try {
@@ -313,7 +375,11 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
       });
 
       if (response.success) {
-        await loadData();
+        if (onGlobalReload) {
+          await onGlobalReload();
+        } else {
+          await loadData();
+        }
         setSelectedTurnIndices(new Set());
         showToast('명령을 당겼습니다.', 'success');
       } else {
@@ -346,7 +412,11 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
       });
 
       if (response.success) {
-        await loadData();
+        if (onGlobalReload) {
+          await onGlobalReload();
+        } else {
+          await loadData();
+        }
         setSelectedTurnIndices(new Set());
         showToast('명령을 미뤘습니다.', 'success');
       } else {
@@ -385,7 +455,11 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
       });
 
       if (response.success) {
-        await loadData();
+        if (onGlobalReload) {
+          await onGlobalReload();
+        } else {
+          await loadData();
+        }
         setSelectedTurnIndices(new Set());
         showToast('명령을 삭제했습니다.', 'success');
       } else {
@@ -464,7 +538,11 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
       });
 
       if (response.success) {
-        await loadData();
+        if (onGlobalReload) {
+          await onGlobalReload();
+        } else {
+          await loadData();
+        }
         setSelectedTurnIndices(new Set());
         setBatchCommand(null);
         showToast(`${selectedTurnIndices.size}개 턴에 명령이 일괄 적용되었습니다.`, 'success');
@@ -495,22 +573,12 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
     return (
       <div 
         className={styles.commandPad}
-        style={{
-          borderColor: colorSystem?.border,
-          backgroundColor: colorSystem?.pageBg,
-        }}
+        style={commandPadStyle}
       >
-        <div className={styles.header} style={{ 
-          backgroundColor: colorSystem?.buttonBg,
-          color: colorSystem?.buttonText,
-          fontWeight: 'bold',
-        }}>
+        <div className={styles.header}>
           <h4>명령 목록</h4>
         </div>
-        <div className={styles.content} style={{ 
-          color: colorSystem?.textMuted,
-          backgroundColor: colorSystem?.pageBg,
-        }}>
+        <div className={styles.content}>
           <div>로딩 중...</div>
         </div>
       </div>
@@ -520,11 +588,7 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
   return (
     <div 
       className={styles.commandPad}
-      style={{
-        borderColor: colorSystem?.border,
-        color: colorSystem?.text,
-        backgroundColor: colorSystem?.pageBg,
-      }}
+      style={commandPadStyle}
     >
       <div className={styles.toolbar}>
         <div className={styles.clock}>
@@ -602,9 +666,6 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
         <div className={`${styles.commandTableWrapper} ${viewMaxTurn === MAX_TURN ? styles.scrollable : styles.noScroll}`}>
           <div 
             className={`${styles.commandTable} ${isEditMode || isBatchMode ? styles.isEditMode : ''}`}
-            style={{
-              backgroundColor: colorSystem?.pageBg,
-            }}
           >
             {/* 턴 번호 */}
             <div className={styles.turnNumberColumn}>
@@ -612,11 +673,6 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
                 <div
                   key={idx}
                   className={`${styles.turnCell} ${isEditMode || isBatchMode ? styles.turnCellEditable : ''} ${selectedTurnIndices.has(idx) ? styles.selected : ''}`}
-                  style={{
-                    backgroundColor: selectedTurnIndices.has(idx) ? colorSystem?.buttonHover : 'transparent',
-                    color: colorSystem?.text,
-                    borderColor: colorSystem?.border,
-                  }}
                   onClick={(e) => handleTurnClick(idx, e)}
                 >
                   {idx + 1}
@@ -633,11 +689,6 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
                   <div 
                     key={idx} 
                     className={styles.yearMonthCell}
-                    style={{
-                      backgroundColor: 'transparent',
-                      color: colorSystem?.text,
-                      borderColor: colorSystem?.border,
-                    }}
                   >
                     {yearText} {monthText}
                   </div>
@@ -651,11 +702,6 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
                 <div 
                   key={idx} 
                   className={styles.timeCell}
-                  style={{
-                    backgroundColor: 'transparent',
-                    color: colorSystem?.text,
-                    borderColor: colorSystem?.border,
-                  }}
                 >
                   {typeof cmd.time === 'string' ? cmd.time : '-'}
                 </div>
@@ -674,12 +720,7 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
                     key={idx}
                     className={styles.commandCell}
                     title={tooltipText}
-                    style={{
-                      ...(cmd as ReservedCommand).style,
-                      backgroundColor: 'transparent',
-                      color: colorSystem?.text,
-                      borderColor: colorSystem?.border,
-                    }}
+                    style={(cmd as ReservedCommand).style}
                     dangerouslySetInnerHTML={{ __html: briefText }}
                   />
                 );
@@ -693,21 +734,12 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
                   <div 
                     key={idx} 
                     className={styles.actionCell}
-                    style={{
-                      backgroundColor: 'transparent',
-                      borderColor: colorSystem?.border,
-                    }}
                   >
                     <button
                       type="button"
                       className={styles.editButton}
                       disabled={false}
                       title="명령 수정"
-                      style={{
-                        backgroundColor: colorSystem?.buttonBg,
-                        color: colorSystem?.buttonText,
-                        borderColor: colorSystem?.border,
-                      }}
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -814,7 +846,11 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
 
                   if (response.success) {
                     // 데이터 다시 로드 (서버에서 최신 데이터 가져오기)
-                    await loadData();
+                    if (onGlobalReload) {
+                      await onGlobalReload();
+                    } else {
+                      await loadData();
+                    }
                   } else {
                     alert(`명령 예약 실패: ${response.reason || '알 수 없는 오류'}`);
                   }
@@ -834,7 +870,13 @@ export default function PartialReservedCommand({ generalID, serverID, nationColo
         <div className={styles.footer}>
           <button
             className={styles.footerButton}
-            onClick={() => loadData()}
+            onClick={async () => {
+              if (onGlobalReload) {
+                await onGlobalReload();
+              } else {
+                await loadData();
+              }
+            }}
             title="갱신"
           >
             갱신

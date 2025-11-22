@@ -268,28 +268,6 @@ export class ThreeTacticalMapEngine {
   }
 
 
-    // 속도 기반으로 X축을 약간 기울여 돌격/이동 느낌 표현
-    const speed = (instance as any).speed as number | undefined;
-    const maxTilt = instance.visual.role === 'cavalry' ? 0.35 : 0.2; // 라디안
-    if (typeof speed === 'number' && speed > 0) {
-      const k = Math.min(1, speed / 100); // 임시 정규화
-      object.rotation.x = -maxTilt * k;
-    } else {
-      object.rotation.x = 0;
-    }
-  }
-
-
-
-
-  private startLoop(): void {
-    const renderLoop = () => {
-      this.renderer.render(this.scene, this.camera);
-      this.animationId = requestAnimationFrame(renderLoop);
-    };
-
-    this.animationId = requestAnimationFrame(renderLoop);
-  }
 }
 
 function clamp(value: number, min: number, max: number): number {

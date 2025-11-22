@@ -1,49 +1,38 @@
-.container {
-  max-width: 1100px;
-  width: 1100px;
-  margin: 0 auto;
-  padding: 0;
-  background-color: black;
-  color: white;
-  min-height: 100vh;
-}
-
-.content {
-  padding: 1rem;
-}
+@import '../page.module.css';
 
 .timeControlForm {
-  border: 1px solid gray;
-  padding: 1.5rem;
-}
-
-.formRow {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.input {
-  padding: 0.5rem;
-  background-color: black;
-  color: white;
-  border: 1px solid gray;
-  width: 60px;
+.formRow:nth-of-type(1) {
+  border-left-color: rgba(52, 211, 153, 0.65);
 }
 
-.button {
-  padding: 0.5rem 1rem;
-  background-color: #333;
-  color: white;
-  border: 1px solid #666;
-  cursor: pointer;
+.formRow:nth-of-type(2) {
+  border-left-color: rgba(129, 140, 248, 0.65);
 }
 
-.button:hover {
-  background-color: #444;
+.formRow:nth-of-type(3),
+.formRow:nth-of-type(4) {
+  border-left-color: rgba(248, 113, 113, 0.6);
 }
 
+.metaText {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
 
+.lockState {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
 
+.lockStateActive {
+  color: #f87171;
+}
 
+.lockStateIdle {
+  color: #34d399;
+}

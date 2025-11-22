@@ -3,10 +3,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import styles from './MainControlBar.module.css';
 import type { ColorSystem } from '@/types/colorSystem';
+import { cn } from '@/lib/utils';
+import { CONTROL_BAR_TEXT } from '@/constants/uiText';
 
-interface MainControlBarProps {
+export interface MainControlBarProps {
   permission: number;
   showSecret: boolean;
   myLevel: number;
@@ -56,173 +57,128 @@ export default function MainControlBar({
     };
   }, []);
 
-  const handleDisabledClick = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const buttonBaseClass = "relative flex items-center justify-center w-full px-3 py-3 text-sm font-medium transition-all duration-200 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none active:scale-95";
+
+  const activeClass = "bg-background-tertiary/80 hover:bg-background-secondary hover:text-white border-white/10 text-foreground hover:border-primary/30 hover:shadow-md shadow-black/20";
+  const disabledClass = "bg-background-tertiary/30 text-foreground-muted/40 border-white/5 cursor-not-allowed grayscale";
+  const highlightClass = "border-accent/50 text-accent shadow-accent/10 bg-accent/5 hover:bg-accent/10";
+
+  const renderButton = (href: string, label: string, enabled: boolean, isHighlight: boolean = false, target: string = "_self") => {
+    if (enabled) {
+      return (
+        <Link
+          href={href}
+          target={target}
+          className={cn(buttonBaseClass, activeClass, isHighlight && highlightClass)}
+          style={isHighlight ? undefined : { color: colorSystem?.text }}
+        >
+          {label}
+          {isHighlight && <span className="absolute top-1 right-1 flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span></span>}
+        </Link>
+      );
+    }
+    return (
+      <span className={cn(buttonBaseClass, disabledClass)}>
+        {label}
+      </span>
+    );
   };
 
   return (
-    <div 
-      className={styles.controlBar}
-      style={{
-        borderColor: colorSystem?.border,
-        color: colorSystem?.text,
-      }}
+    <div
+      className="flex flex-col gap-2 p-2 rounded-xl bg-background-secondary/40 backdrop-blur-md border border-white/10 shadow-inner h-full"
+      style={{ borderColor: colorSystem?.border }}
     >
-      {/* 회의실: myLevel >= 1 (nationLevel 무관) */}
-      {!isRonin && myLevel >= 1 ? (
-        <Link href={`${basePath}/board`} className={styles.btn}>
-          회 의 실
-        </Link>
-      ) : (
-        <span className={`${styles.btn} ${styles.disabled}`}>회 의 실</span>
-      )}
-      {permission >= 2 ? (
-        <Link href={`${basePath}/board?isSecret=true`} className={styles.btn}>
-          기 밀 실
-        </Link>
-      ) : (
-        <span className={`${styles.btn} ${styles.disabled}`}>기 밀 실</span>
-      )}
-      {hasNationAccess && myLevel >= 1 ? (
-        <Link href={`${basePath}/troop`} className={styles.btn}>
-          부대 편성
-        </Link>
-      ) : (
-        <span className={`${styles.btn} ${styles.disabled}`}>부대 편성</span>
-      )}
-      {hasNationAccess && showSecret ? (
-        <Link href={`${basePath}/diplomacy`} className={styles.btn}>
-          외 교 부
-        </Link>
-      ) : (
-        <span className={`${styles.btn} ${styles.disabled}`}>외 교 부</span>
-      )}
-      {/* 인사부: myLevel >= 1 (nationLevel 무관) */}
-      {!isRonin && myLevel >= 1 ? (
-        <Link href={`${basePath}/info/officer`} className={styles.btn}>
-          인 사 부
-        </Link>
-      ) : (
-        <span className={`${styles.btn} ${styles.disabled}`}>인 사 부</span>
-      )}
-      {hasNationAccess && showSecret ? (
-        <Link href={`${basePath}/nation/stratfinan`} className={styles.btn}>
-          내 무 부
-        </Link>
-      ) : (
-        <span className={`${styles.btn} ${styles.disabled}`}>내 무 부</span>
-      )}
-      {hasNationAccess && showSecret ? (
-        <Link href={`${basePath}/chief`} className={styles.btn}>
-          사 령 부
-        </Link>
-      ) : (
-        <span className={`${styles.btn} ${styles.disabled}`}>사 령 부</span>
-      )}
-      {hasNationAccess && showSecret ? (
-        <Link href={`${basePath}/npc-control`} className={styles.btn}>
-          NPC 정책
-        </Link>
-      ) : (
-        <span className={`${styles.btn} ${styles.disabled}`}>NPC 정책</span>
-      )}
-      {/* 암행부: showSecret만 체크 (nationLevel 무관) */}
-      {showSecret ? (
-        <Link href={`${basePath}/info/generals`} target="_blank" className={styles.btn}>
-          암 행 부
-        </Link>
-      ) : (
-        <span className={`${styles.btn} ${styles.disabled}`}>암 행 부</span>
-      )}
-      <Link
-        href={`${basePath}/tournament`}
-        target="_blank"
-        className={`${styles.btn} ${isTournamentApplicationOpen ? styles.highlight : ''}`}
-      >
-        토 너 먼 트
-      </Link>
-      {/* 세력 정보: myLevel >= 1 (nationLevel 무관) */}
-      {!isRonin && myLevel >= 1 ? (
-        <Link href={`${basePath}/info/nation`} className={styles.btn}>
-          세력 정보
-        </Link>
-      ) : (
-        <span className={`${styles.btn} ${styles.disabled}`}>세력 정보</span>
-      )}
-      {hasNationAccess && myLevel >= 1 ? (
-        <Link href={`${basePath}/info/city`} className={styles.btn}>
-          세력 도시
-        </Link>
-      ) : (
-        <span className={`${styles.btn} ${styles.disabled}`}>세력 도시</span>
-      )}
-      {/* 세력 장수: myLevel >= 1 (nationLevel 무관) */}
-      {!isRonin && myLevel >= 1 ? (
-        <Link href={`${basePath}/nation/generals`} className={styles.btn}>
-          세력 장수
-        </Link>
-      ) : (
-        <span className={`${styles.btn} ${styles.disabled}`}>세력 장수</span>
-      )}
-      <Link href={`${basePath}/world`} className={styles.btn}>
-        중원 정보
-      </Link>
-      <Link href={`${basePath}/info/current-city`} className={styles.btn}>
-        현재 도시
-      </Link>
-      {hasNationAccess && showSecret ? (
-        <Link href={`${basePath}/battle-center`} target="_blank" className={styles.btn}>
-          감 찰 부
-        </Link>
-      ) : (
-        <span className={`${styles.btn} ${styles.disabled}`}>감 찰 부</span>
-      )}
-      <Link href={`${basePath}/inherit`} className={styles.btn}>
-        유산 관리
-      </Link>
-      <Link href={`${basePath}/info/me`} className={styles.btn}>
-        내 정보&amp;설정
-      </Link>
-      <div className={styles.btnGroup} ref={auctionDropdownRef}>
-        <Link href={`${basePath}/auction`} target="_blank" className={styles.btn}>
-          경 매 장
-        </Link>
-        <button
-          type="button"
-          className={styles.btnSplit}
-          onClick={() => setAuctionDropdownOpen(!auctionDropdownOpen)}
-          aria-expanded={auctionDropdownOpen}
-        >
-          <span className={styles.visuallyHidden}>Toggle Dropdown</span>
-        </button>
-        {auctionDropdownOpen && (
-          <div className={styles.dropdownMenu}>
-            <Link
-              href={`${basePath}/auction`}
-              target="_blank"
-              className={styles.dropdownItem}
-              onClick={() => setAuctionDropdownOpen(false)}
-            >
-              금/쌀 경매장
-            </Link>
-            <Link
-              href={`${basePath}/auction?type=unique`}
-              target="_blank"
-              className={styles.dropdownItem}
-              onClick={() => setAuctionDropdownOpen(false)}
-            >
-              유니크 경매장
-            </Link>
-          </div>
-        )}
+      <div className="text-xs font-bold text-foreground-muted uppercase tracking-wider px-2 py-1 mb-1 border-b border-white/5">
+        {CONTROL_BAR_TEXT.title}
       </div>
-      <Link
-        href={`${basePath}/betting`}
-        target="_blank"
-        className={`${styles.btn} ${isBettingActive ? styles.highlight : ''}`}
-      >
-        베 팅 장
-      </Link>
+
+      <div className="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar flex-1 pr-1">
+        {/* 1. 내정 관련 */}
+        <div className="space-y-1">
+          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1">{CONTROL_BAR_TEXT.sections.domestic}</div>
+          {renderButton(`${basePath}/board`, "회 의 실", !isRonin && myLevel >= 1)}
+          {renderButton(`${basePath}/board?isSecret=true`, "기 밀 실", permission >= 2)}
+          {renderButton(`${basePath}/my-boss-info`, "인 사 부", !isRonin && myLevel >= 1)}
+          {renderButton(`${basePath}/nation/stratfinan`, "내 무 부", hasNationAccess && showSecret)}
+        </div>
+
+        <div className="space-y-1">
+          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1">{CONTROL_BAR_TEXT.sections.military}</div>
+          {renderButton(`${basePath}/troop`, "부대 편성", hasNationAccess && myLevel >= 1)}
+          {renderButton(`${basePath}/chief`, "사 령 부", hasNationAccess && showSecret)}
+          {renderButton(`${basePath}/battle-center`, "감 찰 부", hasNationAccess && showSecret, false, "_blank")}
+        </div>
+
+        <div className="space-y-1">
+          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1">{CONTROL_BAR_TEXT.sections.diplomacy}</div>
+          {renderButton(`${basePath}/diplomacy`, "외 교 부", hasNationAccess && showSecret)}
+          {renderButton(`${basePath}/npc-control`, "NPC 정책", hasNationAccess && showSecret)}
+        </div>
+
+        <div className="space-y-1">
+          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1">{CONTROL_BAR_TEXT.sections.information}</div>
+          {renderButton(`${basePath}/info/nation`, "세력 정보", !isRonin && myLevel >= 1)}
+          {renderButton(`${basePath}/info/city`, "세력 도시", hasNationAccess && myLevel >= 1)}
+          {renderButton(`${basePath}/nation/generals`, "세력 장수", !isRonin && myLevel >= 1)}
+          {renderButton(`${basePath}/world`, "중원 정보", true)}
+          {renderButton(`${basePath}/info/current-city`, "현재 도시", true)}
+          {renderButton(`${basePath}/info/generals`, "암 행 부", showSecret, false, "_blank")}
+        </div>
+
+        <div className="space-y-1">
+          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1">{CONTROL_BAR_TEXT.sections.personal}</div>
+          {renderButton(`${basePath}/inherit`, "유산 관리", true)}
+          {renderButton(`${basePath}/info/me`, "내 정보 설정", true)}
+        </div>
+
+        <div className="space-y-1">
+          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1">{CONTROL_BAR_TEXT.sections.special}</div>
+          {renderButton(`${basePath}/tournament`, "토너먼트", true, isTournamentApplicationOpen, "_blank")}
+          {renderButton(`${basePath}/betting`, "베 팅 장", true, isBettingActive, "_blank")}
+
+          {/* 경매장 드롭다운 */}
+          <div className="relative" ref={auctionDropdownRef}>
+            <div className="flex w-full">
+              <Link
+                href={`${basePath}/auction`}
+                target="_blank"
+                className={cn(buttonBaseClass, activeClass, "rounded-r-none border-r-0 w-full text-left justify-start")}
+              >
+                경 매 장
+              </Link>
+              <button
+                type="button"
+                className={cn(buttonBaseClass, activeClass, "rounded-l-none w-10 px-0 flex items-center justify-center")}
+                onClick={() => setAuctionDropdownOpen(!auctionDropdownOpen)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("transition-transform", auctionDropdownOpen ? "rotate-180" : "")}><path d="m6 9 6 6 6-6" /></svg>
+              </button>
+            </div>
+
+            {auctionDropdownOpen && (
+              <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-background-tertiary border border-white/10 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                <Link
+                  href={`${basePath}/auction`}
+                  target="_blank"
+                  className="block w-full text-left px-4 py-2 text-xs hover:bg-primary hover:text-white transition-colors"
+                  onClick={() => setAuctionDropdownOpen(false)}
+                >
+                  금/쌀 경매장
+                </Link>
+                <Link
+                  href={`${basePath}/auction?type=unique`}
+                  target="_blank"
+                  className="block w-full text-left px-4 py-2 text-xs hover:bg-primary hover:text-white transition-colors border-t border-white/5"
+                  onClick={() => setAuctionDropdownOpen(false)}
+                >
+                  유니크 경매장
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

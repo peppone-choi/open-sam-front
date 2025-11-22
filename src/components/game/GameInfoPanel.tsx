@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import type { GetFrontInfoResponse } from '@/lib/api/sammo';
 import type { ColorSystem } from '@/types/colorSystem';
-import styles from './GameInfoPanel.module.css';
+import { cn } from '@/lib/utils';
 
 interface GameInfoPanelProps {
   frontInfo: GetFrontInfoResponse;
@@ -23,14 +23,15 @@ function GameInfoPanel({
   colorSystem
 }: GameInfoPanelProps) {
   const global = frontInfo.global;
-  const nation = frontInfo.nation;
   
   // 디버깅: 년월 확인
-  console.log('[GameInfoPanel] 현재 년월:', {
-    year: global.year,
-    month: global.month,
-    turnterm: global.turnterm
-  });
+  useEffect(() => {
+    console.log('[GameInfoPanel] 현재 년월:', {
+      year: global.year,
+      month: global.month,
+      turnterm: global.turnterm
+    });
+  }, [global.year, global.month, global.turnterm]);
 
   // 다음 턴까지 남은 시간 계산
   const [timeUntilNextTurn, setTimeUntilNextTurn] = useState<string>('계산 중...');
@@ -38,10 +39,9 @@ function GameInfoPanel({
   useEffect(() => {
     const calculateTimeLeft = () => {
       try {
-        // lastExecuted를 기준으로 다음 턴 시각 계산
         const turnterm = global.turnterm || 60; // 분
         const lastExec = lastExecuted.getTime();
-        const nextTurnTime = lastExec + (turnterm * 60 * 1000); // 분을 밀리초로 변환
+        const nextTurnTime = lastExec + (turnterm * 60 * 1000);
         const now = Date.now();
         const diff = nextTurnTime - now;
 
@@ -65,99 +65,124 @@ function GameInfoPanel({
   }, [lastExecuted, global.turnterm]);
 
   const formatTime = useMemo(() => (date: Date) => {
-    // 한국 시간대(Asia/Seoul, UTC+9)로 변환
     const kstDate = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
-    const year = kstDate.getFullYear();
-    const month = String(kstDate.getMonth() + 1).padStart(2, '0');
-    const day = String(kstDate.getDate()).padStart(2, '0');
     const hours = String(kstDate.getHours()).padStart(2, '0');
     const minutes = String(kstDate.getMinutes()).padStart(2, '0');
     const seconds = String(kstDate.getSeconds()).padStart(2, '0');
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    return `${hours}:${minutes}:${seconds}`;
   }, []);
-
-  const calcTournamentTerm = useMemo(() => (turnterm: number) => {
-    return Math.floor(turnterm / 2);
-  }, []);
-
+ 
+  // 기타 설정 텍스트
+  const otherTextInfo = useMemo(() => {
+    const parts: string[] = [];
+    if (global.joinMode === 'onlyRandom') parts.push('랜덤 임관');
+    if (global.autorunUser?.limit_minutes && global.autorunUser.limit_minutes > 0) {
+      parts.push(`자동턴 ${global.autorunUser.limit_minutes}분`);
+    }
+    return parts.length > 0 ? parts.join(', ') : '표준';
+  }, [global.joinMode, global.autorunUser?.limit_minutes]);
+ 
   // NPC 모드 텍스트
-  const npcModeText = useMemo(() => ['불가능', '가능', '선택 생성'][global.npcMode || 0], [global.npcMode]);
+  const npcModeText = useMemo(() => {
+    const map = ['불가', '가능', '선택생성'] as const;
+    const value = global.npcMode ?? 0;
+    return map[value] ?? '불가';
+  }, [global.npcMode]);
 
-  // 서버 이름: 세션 이름 (예: "삼국지 서버")
-  // session.name이 설정되어 있으면 사용, 없으면 null
+  // 서버 이름 / 시나리오 이름 처리
   const hasCustomServerName = global.serverName && global.serverName !== serverName;
   const displayServerName = hasCustomServerName ? global.serverName : null;
-  
-  // 시나리오 이름: 게임 데이터의 시나리오 텍스트 (예: "삼국지")
   const scenarioName = global.scenarioText || '게임';
   
-  // 표시 형식: "서버이름 기수기" 또는 "시나리오 기수기" (예: "삼국지 서버 1기" 또는 "삼국지 1기")
   const serverTitle = useMemo(() => {
     const parts: string[] = [];
-    
-    // 서버 이름이 설정되어 있으면 사용, 없으면 시나리오 이름 사용
     if (displayServerName) {
       parts.push(displayServerName);
     } else {
       parts.push(scenarioName);
     }
-    
-    // 기수 추가
     if (global.serverCnt > 0) {
       parts.push(`${global.serverCnt}기`);
     }
-    
     return parts.join(' ');
   }, [displayServerName, scenarioName, global.serverCnt]);
   
   return (
     <div 
-      className={styles.gameInfoPanel}
-      style={{
-        borderColor: colorSystem?.border || '#555',
-      }}
+      className="w-full rounded-xl bg-background-secondary/80 backdrop-blur-md border border-white/10 shadow-lg overflow-hidden transition-all hover:border-primary/30"
+      style={{ borderColor: colorSystem?.border }}
     >
-      <h3 className={styles.scenarioName}>
-        <span className={styles.avoidWrap} style={{ color: colorSystem?.info || 'cyan' }}>
-          {serverTitle || '게임'}
-        </span>
-      </h3>
-      <div className={styles.gameInfo} style={{ color: colorSystem?.text }}>
-        <div className={`${styles.infoRow} ${styles.subScenarioName}`}>
-          <span style={{ color: colorSystem?.info || 'cyan' }}>{global.scenarioText}</span>
+      <div className="bg-background-tertiary/50 px-4 py-2 border-b border-white/5 flex justify-between items-center">
+        <h3 className="font-bold text-lg truncate flex items-center gap-2">
+           <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px] shadow-primary"></span>
+           <span style={{ color: colorSystem?.info }}>{serverTitle}</span>
+        </h3>
+        <div className="text-xs text-foreground-muted flex gap-2">
+           <span>{global.isFiction ? '가상' : '사실'}</span>
+           <span className="text-white/20">|</span>
+           <span>{global.extendedGeneral ? '장수확장' : '기본'}</span>
         </div>
-        <div className={`${styles.infoRow} ${styles.subNPCType}`}>
-          <span style={{ color: colorSystem?.info || 'cyan' }}>
-            NPC 수, 상성: {global.extendedGeneral ? '확장' : '표준'} {global.isFiction ? '가상' : '사실'}
-          </span>
-        </div>
-        <div className={`${styles.infoRow} ${styles.subNPCMode}`}>
-          <span style={{ color: colorSystem?.info || 'cyan' }}>NPC선택: {npcModeText}</span>
-        </div>
-        <div className={`${styles.infoRow} ${styles.subYearMonth}`}>
-          현재: <span style={{ color: colorSystem?.warning || 'yellow', fontWeight: 'bold' }}>{global.year}年 {global.month}月</span> ({global.turnterm}분 턴)
-        </div>
-        <div className={`${styles.infoRow} ${styles.subNextTurn}`}>
-          다음 턴: <span style={{ color: colorSystem?.success || 'lime', fontWeight: 'bold' }}>{timeUntilNextTurn}</span>
-        </div>
-        <div className={`${styles.infoRow} ${styles.subOnlineUserCnt}`}>
-          접속자: {(global.onlineUserCnt || 0).toLocaleString()}명
-        </div>
-        <div className={`${styles.infoRow} ${styles.subLastExecuted}`} style={{ color: serverLocked ? (colorSystem?.special || 'magenta') : (colorSystem?.info || 'cyan'), fontSize: '0.9em' }}>
-          최종 처리: {formatTime(lastExecuted).substring(11)} {/* 시:분:초만 표시 */}
-        </div>
-        {global.isTournamentActive && (
-          <div className={`${styles.infoRow} ${styles.subTournamentState}`}>
-            <span style={{ color: colorSystem?.info || 'cyan' }}>토너먼트 진행 중</span>
+      </div>
+
+      <div className="p-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
+        {/* 1. 현재 시간 (가장 중요) */}
+        <div className="col-span-2 md:col-span-2 lg:col-span-2 bg-background-main/50 rounded-lg p-3 border border-white/5 flex flex-col justify-center items-center relative group overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent opacity-50"></div>
+          <span className="text-xs text-foreground-muted mb-1">현재 년월 (턴: {global.turnterm}분)</span>
+          <div className="text-2xl font-bold tabular-nums tracking-tight" style={{ color: colorSystem?.warning || '#facc15' }}>
+            {global.year}年 {global.month}月
           </div>
-        )}
+        </div>
+
+        {/* 2. 다음 턴 (가장 중요) */}
+        <div className="col-span-2 md:col-span-2 lg:col-span-2 bg-background-main/50 rounded-lg p-3 border border-white/5 flex flex-col justify-center items-center relative group overflow-hidden">
+           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-50"></div>
+           <span className="text-xs text-foreground-muted mb-1">다음 턴까지</span>
+           <div className="text-2xl font-bold tabular-nums tracking-tight" style={{ color: colorSystem?.success || '#4ade80' }}>
+             {timeUntilNextTurn}
+           </div>
+        </div>
+
+        {/* 3. 상세 정보들 (작은 카드) */}
+        <div className="col-span-1 flex flex-col justify-center items-center p-2 rounded bg-white/5">
+           <span className="text-xs text-foreground-muted">전쟁 개시</span>
+           <span className="font-medium" style={{ color: colorSystem?.warning || 'orange' }}>{(global.startyear ?? 184) + 3}年~</span>
+        </div>
+
+        <div className="col-span-1 flex flex-col justify-center items-center p-2 rounded bg-white/5">
+           <span className="text-xs text-foreground-muted">접속자</span>
+           <span className="font-medium">{(global.onlineUserCnt || 0).toLocaleString()}명</span>
+        </div>
+
+        <div className="col-span-1 flex flex-col justify-center items-center p-2 rounded bg-white/5">
+           <span className="text-xs text-foreground-muted">NPC 빙의</span>
+           <span className="font-medium" style={{ color: colorSystem?.info }}>{npcModeText}</span>
+        </div>
+
+        <div className="col-span-1 flex flex-col justify-center items-center p-2 rounded bg-white/5">
+           <span className="text-xs text-foreground-muted">최종 처리</span>
+           <span className="font-medium tabular-nums" style={{ color: serverLocked ? (colorSystem?.special || '#e879f9') : (colorSystem?.info || '#22d3ee') }}>
+             {formatTime(lastExecuted)}
+           </span>
+        </div>
+
+        <div className="col-span-2 md:col-span-4 lg:col-span-6 flex gap-2 justify-center items-center text-xs text-foreground-dim bg-black/20 rounded py-1 mt-1">
+           <span>{global.scenarioText}</span>
+           <span>•</span>
+           <span>{otherTextInfo}</span>
+           {global.isTournamentActive && (
+             <>
+                <span>•</span>
+                <span className="text-cyan-400 font-bold animate-pulse">토너먼트 진행 중</span>
+             </>
+           )}
+        </div>
       </div>
     </div>
   );
 }
 
 export default React.memo(GameInfoPanel, (prevProps, nextProps) => {
-  // 필요한 필드만 비교하여 불필요한 리렌더링 방지
   return (
     prevProps.serverName === nextProps.serverName &&
     prevProps.serverLocked === nextProps.serverLocked &&
@@ -172,7 +197,3 @@ export default React.memo(GameInfoPanel, (prevProps, nextProps) => {
     prevProps.frontInfo.nation?.notice?.msg === nextProps.frontInfo.nation?.notice?.msg
   );
 });
-
-
-
-

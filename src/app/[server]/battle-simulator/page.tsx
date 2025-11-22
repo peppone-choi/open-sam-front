@@ -4,9 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
-import BattleMap, { BattleUnit } from '@/components/battle/BattleMap';
 import IsoTacticalBattleMap from '@/components/battle/IsoTacticalBattleMap';
-import styles from './page.module.css';
+import { BattleUnit } from '@/components/battle/BattleMap';
+import { cn } from '@/lib/utils';
 
 export default function BattleSimulatorPage() {
   const params = useParams();
@@ -172,74 +172,101 @@ export default function BattleSimulatorPage() {
   }
 
   return (
-    <div className={styles.container}>
-      <TopBackBar title="전투 시뮬레이터" />
-      {loading ? (
-        <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
-      ) : (
-        <div className={styles.content}>
-          <div className={styles.globalSettings}>
-            <h2>전역 설정</h2>
-            <div className={styles.settingsForm}>
-              <div className={styles.formRow}>
-                <label>연도:</label>
-                <input type="number" className={styles.input} defaultValue={200} />
-              </div>
-              <div className={styles.formRow}>
-                <label>월:</label>
-                <input type="number" className={styles.input} defaultValue={1} min={1} max={12} />
-              </div>
-              <div className={styles.formRow}>
-                <label>시드:</label>
-                <input type="text" className={styles.input} placeholder="랜덤" />
-              </div>
-              <div className={styles.formRow}>
-                <label>반복 횟수:</label>
-                <select className={styles.select}>
-                  <option value={1}>1회 (로그 표기)</option>
-                  <option value={1000}>1000회 (요약 표기)</option>
-                </select>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
+      <div className="max-w-[1600px] mx-auto space-y-6">
+        <TopBackBar title="전투 시뮬레이터" />
+        
+        {loading ? (
+          <div className="min-h-[50vh] flex items-center justify-center">
+             <div className="animate-pulse text-gray-400 font-bold">로딩 중...</div>
           </div>
-
-          <div className={styles.battleMapSection}>
-            <h2>전술 전투맵 (등각)</h2>
-            <div className={styles.mapWrapper}>
-              <IsoTacticalBattleMap
-                width={40}
-                height={40}
-                units={units}
-                selectedUnitId={selectedUnitId}
-                onUnitClick={handleUnitClick}
-                onCellClick={handleCellClick}
-              />
-            </div>
-          </div>
-
-          <div className={styles.unitControls}>
-            <h3>유닛 목록</h3>
-            <div className={styles.unitList}>
-              {units.map((unit) => (
-                <div
-                  key={unit.id}
-                  className={`${styles.unitItem} ${selectedUnitId === unit.id ? styles.selected : ''}`}
-                  onClick={() => handleUnitClick(unit)}
-                >
-                  <div className={styles.unitName}>{unit.name}</div>
-                  <div className={styles.unitInfo}>
-                    위치: ({unit.x}, {unit.y}) | 병력: {unit.crew?.toLocaleString() || 0}
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Column: Settings & Unit List */}
+            <div className="lg:col-span-3 space-y-6">
+               {/* Global Settings */}
+               <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-5 shadow-lg">
+                  <h2 className="text-sm font-bold text-gray-300 mb-4 border-b border-white/5 pb-2">전역 설정</h2>
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-500 uppercase font-bold">연도</label>
+                      <input type="number" className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm focus:border-blue-500/50 outline-none transition-colors" defaultValue={200} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-500 uppercase font-bold">월</label>
+                      <input type="number" className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm focus:border-blue-500/50 outline-none transition-colors" defaultValue={1} min={1} max={12} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-500 uppercase font-bold">시드</label>
+                      <input type="text" className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm focus:border-blue-500/50 outline-none transition-colors" placeholder="랜덤" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-500 uppercase font-bold">반복 횟수</label>
+                      <select className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm focus:border-blue-500/50 outline-none transition-colors appearance-none">
+                        <option value={1}>1회 (로그 표기)</option>
+                        <option value={1000}>1000회 (요약 표기)</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
-              ))}
+                  <button 
+                    type="button" 
+                    onClick={handleSimulate} 
+                    className="w-full mt-6 py-2.5 bg-red-600 hover:bg-red-500 text-white text-sm font-bold rounded-lg shadow-lg shadow-red-900/20 transition-colors"
+                  >
+                    시뮬레이션 실행
+                  </button>
+               </div>
+
+                {/* 유닛 목록 */}
+
+               <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-5 shadow-lg max-h-[600px] overflow-y-auto custom-scrollbar">
+                  <h3 className="text-sm font-bold text-gray-300 mb-4 border-b border-white/5 pb-2">유닛 목록</h3>
+                  <div className="space-y-2">
+                    {units.map((unit) => (
+                      <div
+                        key={unit.id}
+                        className={cn(
+                           "p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:bg-white/5",
+                           selectedUnitId === unit.id 
+                              ? "bg-blue-900/20 border-blue-500/50" 
+                              : "bg-black/20 border-white/5",
+                           unit.type === 'attacker' ? "border-l-2 border-l-red-500" : "border-l-2 border-l-blue-500"
+                        )}
+                        onClick={() => handleUnitClick(unit)}
+                      >
+                        <div className="font-bold text-sm text-white mb-1">{unit.name}</div>
+                        <div className="text-xs text-gray-400 font-mono">
+                          위치: ({unit.x}, {unit.y}) | 병력: {unit.crew?.toLocaleString() || 0}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+               </div>
+            </div>
+
+             {/* 우측 컬럼: 전투 지도 */}
+             <div className="lg:col-span-9">
+                <div className="bg-black/60 border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col items-center p-4 h-[800px]">
+                   <div className="w-full flex justify-between items-center mb-4 px-2">
+                     <h2 className="text-lg font-bold text-white">전술 전투맵 (등각)</h2>
+                     <div className="text-xs text-gray-500">40x40 등각 뷰</div>
+                   </div>
+
+                  <div className="w-full h-full border border-white/5 rounded-lg overflow-hidden bg-[#1a1a1a] relative">
+                    <IsoTacticalBattleMap
+                      width={40}
+                      height={40}
+                      units={units}
+                      selectedUnitId={selectedUnitId}
+                      onUnitClick={handleUnitClick}
+                      onCellClick={handleCellClick}
+                    />
+                  </div>
+               </div>
             </div>
           </div>
-
-          <button type="button" onClick={handleSimulate} className={styles.simulateButton}>
-            시뮬레이션 실행
-          </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
