@@ -6,6 +6,7 @@ import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import TipTapEditor from '@/components/editor/TipTapEditor';
 import { cn } from '@/lib/utils';
+import GamePageLayout from '@/components/layout/GamePageLayout';
 
 interface BoardArticle {
   no: number;
@@ -47,11 +48,11 @@ function BoardContent() {
   async function loadArticles() {
     try {
       setLoading(true);
-       const result = await SammoAPI.GetBoardArticles({ isSecret, session_id: serverID });
+      const result = await SammoAPI.GetBoardArticles({ isSecret, session_id: serverID });
       if (result.result) {
         // articles가 객체일 수도 있고 배열일 수도 있음
-        const articlesArray = Array.isArray(result.articles) 
-          ? result.articles 
+        const articlesArray = Array.isArray(result.articles)
+          ? result.articles
           : Object.values(result.articles || {});
         setArticles(articlesArray);
       }
@@ -63,12 +64,12 @@ function BoardContent() {
     }
   }
 
-   async function submitArticle() {
+  async function submitArticle() {
     if (!newArticle.title || !newArticle.text) {
       alert('제목과 내용을 입력해주세요.');
       return;
     }
- 
+
     try {
       const result = await SammoAPI.PostBoardArticle({
         isSecret,
@@ -76,7 +77,7 @@ function BoardContent() {
         text: newArticle.text,
         session_id: serverID,
       });
- 
+
       if (result.result) {
         setNewArticle({ title: '', text: '' });
         setIsWriting(false);
@@ -121,7 +122,7 @@ function BoardContent() {
   const title = isSecret ? '기밀실' : '회의실';
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
+    <div className="font-sans h-full">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between bg-gray-900/80 backdrop-blur-md border border-white/10 rounded-xl p-4 shadow-lg sticky top-4 z-10">
@@ -130,13 +131,13 @@ function BoardContent() {
             {title}
           </h1>
           <div className="flex items-center gap-2">
-            <button 
-              onClick={loadArticles} 
+            <button
+              onClick={loadArticles}
               className="px-3 py-1.5 text-xs font-bold rounded bg-white/10 hover:bg-white/20 text-white transition-colors"
             >
               갱신
             </button>
-            <button 
+            <button
               onClick={() => setIsWriting(!isWriting)}
               className="px-3 py-1.5 text-xs font-bold rounded bg-blue-600 hover:bg-blue-500 text-white transition-colors"
             >
@@ -175,9 +176,9 @@ function BoardContent() {
                 </div>
               </div>
               <div className="flex justify-end pt-2">
-                <button 
-                  type="button" 
-                  onClick={submitArticle} 
+                <button
+                  type="button"
+                  onClick={submitArticle}
                   className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-sm transition-colors shadow-lg shadow-blue-900/20"
                 >
                   등록하기
@@ -200,73 +201,73 @@ function BoardContent() {
               <div key={article.no} className="group bg-gray-900/40 backdrop-blur-sm border border-white/5 hover:border-white/10 rounded-xl overflow-hidden transition-all duration-200 shadow-md hover:shadow-lg">
                 {/* Article Header */}
                 <div className="bg-white/[0.02] px-4 py-3 border-b border-white/5 flex justify-between items-center">
-                   <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded bg-gray-800 border border-white/10 overflow-hidden shrink-0">
-                         <img
-                           src={article.author_icon || '/default_portrait.png'}
-                           alt={article.author}
-                           className="w-full h-full object-cover"
-                           onError={(e) => {
-                             (e.target as HTMLImageElement).src = '/default_portrait.png';
-                           }}
-                         />
-                      </div>
-                      <div>
-                         <div className="text-sm font-bold text-gray-200">{article.author}</div>
-                         <div className="text-[10px] text-gray-500">{article.date}</div>
-                      </div>
-                   </div>
-                   <div className="text-xs text-gray-500">#{article.no}</div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded bg-gray-800 border border-white/10 overflow-hidden shrink-0">
+                      <img
+                        src={article.author_icon || '/default_portrait.png'}
+                        alt={article.author}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/default_portrait.png';
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-gray-200">{article.author}</div>
+                      <div className="text-[10px] text-gray-500">{article.date}</div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500">#{article.no}</div>
                 </div>
 
                 {/* Article Content */}
                 <div className="p-5">
-                   <h3 className="text-lg font-bold text-white mb-4 leading-tight">{article.title}</h3>
-                   <div className="text-gray-300 text-sm leading-relaxed space-y-2 break-words prose prose-invert max-w-none prose-sm" dangerouslySetInnerHTML={{ __html: article.text }} />
+                  <h3 className="text-lg font-bold text-white mb-4 leading-tight">{article.title}</h3>
+                  <div className="text-gray-300 text-sm leading-relaxed space-y-2 break-words prose prose-invert max-w-none prose-sm" dangerouslySetInnerHTML={{ __html: article.text }} />
                 </div>
 
                 {/* Comments Section */}
                 <div className="bg-black/20 border-t border-white/5">
-                   {article.comment && article.comment.length > 0 && (
-                     <div className="divide-y divide-white/5">
-                       {article.comment.map((comment: BoardComment) => (
-                         <div key={comment.no} className="px-5 py-3 flex gap-3 hover:bg-white/[0.02] transition-colors">
-                           <div className="flex-1">
-                             <div className="flex items-baseline justify-between mb-1">
-                               <span className="text-xs font-bold text-blue-400">{comment.author}</span>
-                               <span className="text-[10px] text-gray-600">{comment.date.slice(5, 16)}</span>
-                             </div>
-                             <div className="text-sm text-gray-400 leading-snug whitespace-pre-wrap break-words">{comment.text}</div>
-                           </div>
-                         </div>
-                       ))}
-                     </div>
-                   )}
-                   
-                   {/* Comment Input */}
-                   <div className="p-3 flex gap-2 bg-black/10">
-                     <input
-                       type="text"
-                       placeholder="댓글을 입력하세요..."
-                       value={newComments[article.no] || ''}
-                       onChange={(e) =>
-                         setNewComments((prev) => ({ ...prev, [article.no]: e.target.value }))
-                       }
-                       onKeyDown={(e) => {
-                         if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
-                           submitComment(article.no);
-                         }
-                       }}
-                       className="flex-1 bg-gray-800/50 border border-white/10 rounded px-3 py-2 text-sm focus:outline-none focus:bg-gray-800 focus:border-blue-500/50 transition-colors placeholder-gray-600"
-                     />
-                     <button
-                       type="button"
-                       onClick={() => submitComment(article.no)}
-                       className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold rounded transition-colors"
-                     >
-                       등록
-                     </button>
-                   </div>
+                  {article.comment && article.comment.length > 0 && (
+                    <div className="divide-y divide-white/5">
+                      {article.comment.map((comment: BoardComment) => (
+                        <div key={comment.no} className="px-5 py-3 flex gap-3 hover:bg-white/[0.02] transition-colors">
+                          <div className="flex-1">
+                            <div className="flex items-baseline justify-between mb-1">
+                              <span className="text-xs font-bold text-blue-400">{comment.author}</span>
+                              <span className="text-[10px] text-gray-600">{comment.date.slice(5, 16)}</span>
+                            </div>
+                            <div className="text-sm text-gray-400 leading-snug whitespace-pre-wrap break-words">{comment.text}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Comment Input */}
+                  <div className="p-3 flex gap-2 bg-black/10">
+                    <input
+                      type="text"
+                      placeholder="댓글을 입력하세요..."
+                      value={newComments[article.no] || ''}
+                      onChange={(e) =>
+                        setNewComments((prev) => ({ ...prev, [article.no]: e.target.value }))
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                          submitComment(article.no);
+                        }
+                      }}
+                      className="flex-1 bg-gray-800/50 border border-white/10 rounded px-3 py-2 text-sm focus:outline-none focus:bg-gray-800 focus:border-blue-500/50 transition-colors placeholder-gray-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => submitComment(article.no)}
+                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold rounded transition-colors"
+                    >
+                      등록
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
@@ -280,9 +281,11 @@ function BoardContent() {
 
 export default function BoardPage() {
   return (
-    <Suspense fallback={<div className="center" style={{ padding: '2rem' }}>로딩 중...</div>}>
-      <BoardContent />
-    </Suspense>
+    <GamePageLayout>
+      <Suspense fallback={<div className="p-8 text-center text-white">로딩 중...</div>}>
+        <BoardContent />
+      </Suspense>
+    </GamePageLayout>
   );
 }
 
