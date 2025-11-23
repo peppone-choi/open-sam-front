@@ -21,16 +21,23 @@ The following pages are still using legacy `page.module.css` and need to be mode
 - Vote (`src/app/[server]/vote/page.tsx`)
 - Auction (`src/app/[server]/auction/page.tsx`)
 - Chief (`src/app/[server]/chief/**`)
+- Info & Archives (Session B - 2025-11-23):
+  - `src/app/[server]/info/page.tsx`
+  - `src/app/[server]/archive/page.tsx`
+  - `src/app/[server]/history/page.tsx`
+  - `src/app/[server]/world/page.tsx`
+  - `src/app/[server]/my-gen-info/page.tsx`
+  - `src/app/[server]/my-boss-info/page.tsx`
 
 ## Remaining Pages
 
 ### Info & Archives
-- [ ] `src/app/[server]/info/page.tsx` (and sub-pages)
-- [ ] `src/app/[server]/archive/page.tsx` (and sub-pages)
-- [x] `src/app/[server]/history/page.tsx`
-- [x] `src/app/[server]/world/page.tsx`
-- [ ] `src/app/[server]/my-gen-info/page.tsx`
-- [ ] `src/app/[server]/my-boss-info/page.tsx`
+- [x] `src/app/[server]/info/page.tsx` ✅ Session B
+- [x] `src/app/[server]/archive/page.tsx` ✅ Session B
+- [x] `src/app/[server]/history/page.tsx` ✅ Previous
+- [x] `src/app/[server]/world/page.tsx` ✅ Previous
+- [x] `src/app/[server]/my-gen-info/page.tsx` ✅ Session B
+- [x] `src/app/[server]/my-boss-info/page.tsx` ✅ Session B
 
 ### Game Entry & Setup
 - [ ] `src/app/[server]/join/page.tsx`

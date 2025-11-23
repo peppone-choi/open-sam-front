@@ -1,0 +1,42 @@
+
+> open-sam-front@0.1.0 dev
+> next dev -p 3000
+
+   ▲ Next.js 16.0.0 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.251:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1827ms
+ ○ Compiling / ...
+ GET / 200 in 7.6s (compile: 7.4s, render: 239ms)
+ ○ Compiling /logh/info/me ...
+ GET /admin 200 in 4.2s (compile: 2.7s, render: 1488ms)
+ GET /admin/error-log 200 in 5.1s (compile: 3.5s, render: 1560ms)
+ GET /logh/info/me 200 in 5.1s (compile: 3.8s, render: 1296ms)
+ GET /logh/game 200 in 5.4s (compile: 4.5s, render: 955ms)
+ GET /logh/commands 200 in 1717ms (compile: 1559ms, render: 159ms)
+ GET /logh/fleet 200 in 2.0s (compile: 1542ms, render: 490ms)
+ GET /logh/battle/test-battle-1 200 in 4.2s (compile: 3.9s, render: 297ms)
+ ○ Compiling /game/tactics/[battleId] ...
+ GET /logh/info/galaxy 200 in 2.1s (compile: 1895ms, render: 161ms)
+ GET /game/tactics/battle-1 200 in 4.0s (compile: 3.8s, render: 219ms)
+
+thread 'tokio-runtime-worker' (2346732) panicked at /Users/jj/dev/actions-runner/_work/next.js/next.js/turbopack/crates/turbo-tasks-backend/src/backend/operation/mod.rs:452:9:
+Item already exists
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+ GET /admin 200 in 670ms (compile: 7ms, render: 663ms)
+ GET /admin/error-log 200 in 750ms (compile: 344ms, render: 406ms)
+ GET /logh/info/me 200 in 812ms (compile: 11ms, render: 801ms)
+ GET /logh/game 200 in 656ms (compile: 17ms, render: 639ms)
+ GET /admin 200 in 667ms (compile: 153ms, render: 514ms)
+ GET /admin/error-log 200 in 579ms (compile: 86ms, render: 493ms)
+ GET /logh/commands 200 in 131ms (compile: 4ms, render: 128ms)
+ GET /logh/fleet 200 in 619ms (compile: 11ms, render: 607ms)
+ GET /logh/battle/test-battle-1 200 in 599ms (compile: 15ms, render: 583ms)
+ GET /logh/info/galaxy 200 in 599ms (compile: 45ms, render: 554ms)
+ GET /game/tactics/battle-1 200 in 167ms (compile: 15ms, render: 152ms)
+(node:9033) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[?25h

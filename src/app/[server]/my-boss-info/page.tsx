@@ -308,7 +308,7 @@ function PersonnelTables({
               <button
                 type="button"
                 className={`px-3 py-1.5 text-xs font-bold rounded transition-colors border border-white/10 ${
-                  isProcessing ? "bg-gray-700 text-gray-400" : "bg-primary/70 hover:bg-primary"
+                  isProcessing ? "bg-gray-700 text-gray-400" : "bg-blue-600 hover:bg-blue-500"
                 }`}
                 onClick={() => onAppoint(level)}
                 disabled={isProcessing}
