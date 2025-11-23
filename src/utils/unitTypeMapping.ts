@@ -109,3 +109,23 @@ export function getAttackTypeByCrewtype(crewtype: number): AttackStyle {
 export function getUnitTypeName(crewtype: number): string {
   return getUnitTypeInfo(crewtype).name;
 }
+
+export function getCrewTypeDisplayName(
+  crewtype?: number | null,
+  fallbackName?: string | null
+): string {
+  if (fallbackName && fallbackName.trim().length > 0) {
+    return fallbackName;
+  }
+
+  if (crewtype === null || crewtype === undefined || Number.isNaN(crewtype)) {
+    return '병종';
+  }
+
+  const mappedName = getUnitTypeName(crewtype);
+  if (mappedName) {
+    return mappedName;
+  }
+
+  return `병종 ${crewtype}`;
+}

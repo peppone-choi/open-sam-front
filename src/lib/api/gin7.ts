@@ -9,6 +9,7 @@ import {
   Gin7TelemetrySample,
   Gin7SessionSnapshot,
   Gin7StrategySnapshot,
+  Gin7CommandExecutionResult,
 } from '@/types/gin7';
 import { resolveGin7SessionId } from '@/config/gin7';
 
@@ -111,6 +112,24 @@ export const gin7Api = {
     return request<void, Gin7TelemetryPayload>(withSession('/telemetry', sessionId), {
       method: 'POST',
       body: payload,
+    });
+  },
+
+  executeCommand(params: {
+    sessionId?: string;
+    cardId: string;
+    commandCode: string;
+    characterId: string;
+    args?: Record<string, unknown>;
+  }): Promise<Gin7CommandExecutionResult> {
+    const sessionId = resolveGin7SessionId(params.sessionId);
+    const path = `/authority/sessions/${sessionId}/cards/${encodeURIComponent(params.cardId)}/commands/${encodeURIComponent(params.commandCode)}/execute`;
+    return request<Gin7CommandExecutionResult, { characterId: string; args?: Record<string, unknown> }>(path, {
+      method: 'POST',
+      body: {
+        characterId: params.characterId,
+        args: params.args,
+      },
     });
   },
 };

@@ -23,7 +23,7 @@ function GeneralInfoContent() {
   async function loadGeneralData() {
     try {
       setLoading(true);
-      const result = await SammoAPI.GetGeneralInfo({ generalID });
+      const result = await SammoAPI.GetGeneralInfo({ generalID, serverID });
       if (result.result) {
         setGeneralData(result.general);
       }

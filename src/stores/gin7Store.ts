@@ -10,6 +10,7 @@ import {
   Gin7SessionSnapshot,
   Gin7StrategySnapshot,
   Gin7TelemetrySample,
+  Gin7CommandCatalog,
 } from '@/types/gin7';
 import { Coordinates } from '@/types/logh';
 import { useGameStore } from '@/stores/gameStore';
@@ -19,6 +20,7 @@ interface Gin7StoreState {
   loading: boolean;
   sessionId: string;
   session: Gin7SessionOverview | null;
+  commandCatalog: Gin7CommandCatalog | null;
   strategic: Gin7StrategicState | null;
   plans: Gin7CommandPlan[];
   tactical: Gin7TacticalState | null;
@@ -43,6 +45,7 @@ export const useGin7Store = create<Gin7StoreState>((set, get) => ({
   loading: true,
   sessionId: DEFAULT_SESSION_ID,
   session: null,
+  commandCatalog: null,
   strategic: null,
   plans: [],
   tactical: null,
@@ -72,6 +75,7 @@ export const useGin7Store = create<Gin7StoreState>((set, get) => ({
       set({
         sessionId: resolvedSessionId,
         session: bundle.session,
+        commandCatalog: bundle.session.commandCatalog,
         strategic: bundle.strategic,
         plans: bundle.plans,
         tactical: bundle.tactical,

@@ -27,14 +27,54 @@ export interface Gin7CommandShortcut {
   label: string;
   description: string;
   type: CommandType;
+  commandCode?: string;
+  context?: string;
+}
+
+export interface Gin7CommandMeta {
+  code: string;
+  label: string;
+  group: string;
+  cpType?: 'PCP' | 'MCP';
+  cpCost?: number | string;
+  description?: string;
+  manualRef?: string;
+}
+
+export interface Gin7AuthorityTemplate {
+  templateId: string;
+  title: string;
+  description: string;
+  factionScope: string[];
+  commandGroups: string[];
+  commandCodes: string[];
+  manualRef: string;
+  maxHolders?: number;
+  metadata?: Record<string, unknown>;
+  organizationId?: string;
+  positionId?: string;
+  minRank?: string;
+  maxRank?: string;
+}
+
+export interface Gin7CommandCatalog {
+  version: string;
+  source: string;
+  generatedAt: string;
+  commands: Record<string, Gin7CommandMeta>;
+  authorityCards: Gin7AuthorityTemplate[];
+  shortcuts: Gin7CommandShortcut[];
 }
 
 export interface Gin7AuthorityCard {
   id: string;
+  templateId: string;
   title: string;
   rank: string;
   faction: Gin7Faction;
   commands: CommandType[];
+  commandCodes: string[];
+  commandMeta: Gin7CommandMeta[];
   shortcuts: Gin7CommandShortcut[];
 }
 
@@ -96,6 +136,7 @@ export interface Gin7SessionOverview {
   profile: UserProfile;
   cpRegenSeconds: number;
   cards: Gin7AuthorityCard[];
+  commandCatalog: Gin7CommandCatalog;
 }
 
 export interface Gin7ApiBundle {
@@ -104,6 +145,14 @@ export interface Gin7ApiBundle {
   plans: Gin7CommandPlan[];
   tactical: Gin7TacticalState;
   chat: Gin7ChatMessage[];
+}
+
+export interface Gin7CommandExecutionResult {
+  success: boolean;
+  message: string;
+  cardId: string;
+  commandCode: string;
+  cpSpent?: { pcp?: number; mcp?: number };
 }
 
 export interface Gin7TelemetrySample {

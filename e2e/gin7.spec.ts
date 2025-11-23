@@ -1,6 +1,16 @@
 import { test, expect } from '@playwright/test';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { CommandType } from '../src/types/logh';
+import { fullGin7Catalog, sampleAuthorityCardViews } from '../src/mocks/fullGin7Catalog';
+
+const e2eJobCards = sampleAuthorityCardViews.slice(0, 4).map((card) => ({
+  id: card.templateId,
+  title: card.title,
+  rankReq: card.rank,
+  commands: card.commandCodes as CommandType[],
+  commandCodes: card.commandCodes,
+}));
 
 const mockSession = {
   data: {
@@ -13,24 +23,11 @@ const mockSession = {
       mcp: 120,
       maxPcp: 120,
       maxMcp: 150,
-      jobCards: [
-        { id: 'card-1', title: '第13艦隊', rankReq: 'Rear Admiral', commands: ['warp', 'move', 'attack'] },
-      ],
+      jobCards: e2eJobCards,
     },
     cpRegenSeconds: 300,
-    cards: [
-      {
-        id: 'card-1',
-        title: '第13艦隊',
-        rank: '准将',
-        faction: 'alliance',
-        commands: ['warp', 'move', 'attack'],
-        shortcuts: [
-          { key: 'f', label: '移動', description: 'グリッド移動', type: 'move' },
-          { key: 'r', label: '攻撃', description: '射撃', type: 'attack' },
-        ],
-      },
-    ],
+    cards: sampleAuthorityCardViews,
+    commandCatalog: fullGin7Catalog,
   },
 };
 

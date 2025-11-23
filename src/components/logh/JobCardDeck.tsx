@@ -5,6 +5,27 @@ import { useGameStore } from '@/stores/gameStore';
 import JobCard from './JobCard';
 import { CommandType } from '@/types/logh';
 import { useCommandExecution } from '@/hooks/useCommandExecution';
+import { Gin7CommandMeta } from '@/types/gin7';
+import type { JobCard as JobCardType } from '@/types/logh';
+
+function resolveCommandMeta(card: JobCardType, commandCode: CommandType): Gin7CommandMeta {
+  const normalizedCode = String(commandCode);
+  const rawMeta = card.commandMeta?.find((meta) => meta.code === normalizedCode);
+  if (rawMeta) {
+    return {
+      code: rawMeta.code,
+      label: rawMeta.label ?? rawMeta.code,
+      group: rawMeta.group ?? 'personal',
+      cpType: rawMeta.cpType,
+      cpCost: rawMeta.cpCost,
+    };
+  }
+  return {
+    code: normalizedCode,
+    label: normalizedCode,
+    group: 'personal',
+  };
+}
 
 export default function JobCardDeck() {
   const { userProfile } = useGameStore();
@@ -13,13 +34,16 @@ export default function JobCardDeck() {
 
   if (!userProfile) return null;
 
-  const handleCommand = (cardId: string, cmd: CommandType) => {
-    // For prototype, we mock the target selection as "Current Selection"
-    // In P.27 "Command Flow", a target selection modal would appear here.
-    const target = { gridX: 0, gridY: 0 }; 
-    
-    if (confirm(`Execute ${cmd} using card ${cardId}?`)) {
-        execute(cardId, cmd, target);
+  const handleCommand = (card: JobCardType, cmd: CommandType) => {
+    const target = { gridX: 0, gridY: 0 };
+    if (confirm(`Execute ${cmd} using card ${card.id}?`)) {
+      const commandMeta = resolveCommandMeta(card, cmd);
+      void execute({
+        cardId: card.id,
+        templateId: card.id,
+        command: commandMeta,
+        args: target,
+      });
     }
   };
 
@@ -32,7 +56,7 @@ export default function JobCardDeck() {
               faction={userProfile.faction as any}
               isActive={activeCardId === card.id}
               onSelect={() => setActiveCardId(card.id)}
-              onCommand={(cmd) => handleCommand(card.id, cmd)}
+              onCommand={(cmd) => handleCommand(card, cmd)}
             />
          </div>
        ))}

@@ -11,7 +11,8 @@ import { formatOfficerLevelText } from '@/utils/formatOfficerLevelText';
 import { TroopIconDisplay } from '../common/TroopIconDisplay';
 import styles from './GeneralBasicCard.module.css';
 import type { ColorSystem } from '@/types/colorSystem';
-import { getUnitDataFromStore } from '@/stores/unitStore';
+import { getCrewTypeDisplayName } from '@/utils/unitTypeMapping';
+import { useUnitConst } from '@/hooks/useUnitConst';
 
 interface GeneralBasicCardProps {
   general: {
@@ -92,7 +93,7 @@ interface GeneralBasicCardProps {
       reservedCommand?: any;
     };
     name: string;
-  };
+  } | number | string | null;
   turnTerm?: number;
   gameConst?: {
     chiefStatMin?: number;
@@ -154,33 +155,44 @@ function getCrewtypeId(crewtype: GeneralBasicCardProps['general']['crewtype']): 
 
 function formatCrewtypeLabel(
   crewtype: GeneralBasicCardProps['general']['crewtype'],
-  unitConst?: Record<string, { name?: string }>
+  unitConst?: Record<string, { name?: string }>,
+  extraFallbackName?: string
 ): string {
   if (!crewtype || crewtype === 'None') {
     return '미편성';
   }
+
   const crewtypeId = getCrewtypeId(crewtype);
-  if (crewtypeId && unitConst?.[String(crewtypeId)]?.name) {
-    return unitConst[String(crewtypeId)]!.name || `병종 ${crewtypeId}`;
+  const fallbackLabel = typeof crewtype === 'object' && crewtype !== null
+    ? (('label' in crewtype && crewtype.label) ? String(crewtype.label) : ('name' in crewtype && crewtype.name ? String(crewtype.name) : undefined))
+    : undefined;
+  const combinedFallback = fallbackLabel ?? extraFallbackName;
+
+  if (crewtypeId !== null && crewtypeId !== undefined) {
+    const matchedName = unitConst?.[String(crewtypeId)]?.name;
+    if (matchedName) {
+      return matchedName;
+    }
+    return getCrewTypeDisplayName(crewtypeId, combinedFallback);
   }
-  if (typeof crewtype === 'object' && crewtype !== null && 'label' in crewtype && crewtype.label) {
-    return String(crewtype.label);
+
+  if (combinedFallback) {
+    return combinedFallback;
   }
+
   return getItemName(crewtype);
 }
 
 function resolveStackLabel(
   crewTypeId: number,
-  fallbackName: string | undefined,
+  fallbackName?: string,
   unitConst?: Record<string, { name?: string }>
 ) {
-  if (unitConst?.[String(crewTypeId)]?.name) {
-    return unitConst[String(crewTypeId)]!.name || `병종 ${crewTypeId}`;
+  const matchedName = unitConst?.[String(crewTypeId)]?.name;
+  if (matchedName) {
+    return matchedName;
   }
-  if (fallbackName) {
-    return fallbackName;
-  }
-  return `병종 ${crewTypeId}`;
+  return getCrewTypeDisplayName(crewTypeId, fallbackName);
 }
 
 // 아이콘 경로 가져오기
@@ -204,6 +216,27 @@ export default function GeneralBasicCard({
   colorSystem
 }: GeneralBasicCardProps) {
   const [showStacks, setShowStacks] = useState(false);
+  const normalizedTroopInfo = useMemo(() => {
+    if (troopInfo && typeof troopInfo === 'object' && 'name' in troopInfo) {
+      return troopInfo as { name: string; leader?: { city?: number; reservedCommand?: any[] } };
+    }
+    return null;
+  }, [troopInfo]);
+  const fallbackTroopName = useMemo(() => {
+    if (!troopInfo) return null;
+    if (typeof troopInfo === 'string') return troopInfo;
+    if (typeof troopInfo === 'number') {
+      return troopInfo > 0 ? `부대 ${troopInfo}` : null;
+    }
+    if (typeof troopInfo === 'object' && troopInfo !== null && 'name' in troopInfo) {
+      return (troopInfo as any).name;
+    }
+    return null;
+  }, [troopInfo]);
+  const troopLeaderInfo = normalizedTroopInfo?.leader;
+  const troopLeaderCity = troopLeaderInfo?.city;
+  const troopReserved = Array.isArray(troopLeaderInfo?.reservedCommand) ? troopLeaderInfo!.reservedCommand : null;
+  const firstReservedCommand = troopReserved?.[0];
   // 재야는 흰색, 국가는 국가 색상
   const nationColor = (nation && nation.id !== 0) ? (nation?.color ?? "#666") : "#FFFFFF";
   const displayColor = nationColor;
@@ -271,9 +304,10 @@ export default function GeneralBasicCard({
   const hasStackDetail = Boolean(unitStacks && unitStacks.stacks && unitStacks.stacks.length);
   const visibleStacks = hasStackDetail ? unitStacks!.stacks.slice(0, 3) : [];
   const hasExtraStacks = hasStackDetail && unitStacks!.stacks.length > visibleStacks.length;
-  const unitConst = useMemo(() => getUnitDataFromStore() || undefined, []);
+  const unitConst = useUnitConst();
   const crewtypeId = getCrewtypeId(general.crewtype);
-  const crewtypeLabel = formatCrewtypeLabel(general.crewtype, unitConst);
+  const primaryStackName = unitStacks?.stacks?.[0]?.crewTypeName;
+  const crewtypeLabel = formatCrewtypeLabel(general.crewtype, unitConst ?? undefined, primaryStackName);
   const soldierSummary = typeof totalStackTroops === 'number'
     ? `${totalStackTroops.toLocaleString()}명${totalStackCount ? ` · ${totalStackCount.toLocaleString()}부대` : ''}`
     : `${(general.crew || 0).toLocaleString()}명`;
@@ -321,9 +355,7 @@ export default function GeneralBasicCard({
                     <div key={stack.id} className={styles.miniStackBadge}>
                       <TroopIconDisplay crewtype={stack.crewTypeId} size={14} />
                       <span className={styles.miniStackLabel}>
-                        {stack.crewTypeName
-                          || unitConst?.[String(stack.crewTypeId)]?.name
-                          || `병종 ${stack.crewTypeId}`}
+                        {resolveStackLabel(stack.crewTypeId, stack.crewTypeName, unitConst ?? undefined)}
                       </span>
                       <span className={styles.miniStackTroops}>{stack.troops.toLocaleString()}</span>
                     </div>
@@ -534,32 +566,35 @@ export default function GeneralBasicCard({
           <div>{nextExecuteMinute}분 남음</div>
 
           <div className="bg1">부대</div>
-          {!troopInfo ? (
-            <div className={styles.generalTroop}>-</div>
-          ) : (
-            <div className={styles.generalTroop}>
-              {troopInfo.leader.reservedCommand && troopInfo.leader.reservedCommand[0]?.action !== 'che_집합' ? (
-                <s style={{ color: 'gray' }}>{troopInfo.name}</s>
-              ) : troopInfo.leader.city === general.city ? (
-                <span 
+          <div className={styles.generalTroop}>
+            {!normalizedTroopInfo && !fallbackTroopName ? (
+              '-'
+            ) : normalizedTroopInfo ? (
+              firstReservedCommand && firstReservedCommand.action !== 'che_집합' ? (
+                <s style={{ color: 'gray' }}>{normalizedTroopInfo.name}</s>
+              ) : troopLeaderCity && troopLeaderCity === general.city ? (
+                <span
                   className={styles.clickable}
                   onClick={() => window.location.href = '/troop'}
                   title="부대 정보"
                 >
-                  {troopInfo.name}
+                  {normalizedTroopInfo.name}
                 </span>
               ) : (
-                <span 
+                <span
                   className={styles.clickable}
                   style={{ color: colorSystem?.warning || 'orange' }}
                   onClick={() => window.location.href = '/troop'}
                   title="부대 정보"
                 >
-                  {troopInfo.name}({cityConst?.[troopInfo.leader.city]?.name || troopInfo.leader.city})
+                  {normalizedTroopInfo.name}
+                  {troopLeaderCity ? `(${cityConst?.[troopLeaderCity]?.name || troopLeaderCity})` : ''}
                 </span>
-              )}
-            </div>
-          )}
+              )
+            ) : (
+              <span>{fallbackTroopName}</span>
+            )}
+          </div>
 
           <div className="bg1">벌점</div>
           <div className={styles.generalRefreshScoreTotal}>
@@ -600,7 +635,7 @@ export default function GeneralBasicCard({
                 <div key={stack.id} className={styles.unitStackCard}>
                   <div className={styles.unitStackCrewType}>
                     <TroopIconDisplay crewtype={stack.crewTypeId} size={24} />
-                    <span>{stack.crewTypeName || `병종 ${stack.crewTypeId}`}</span>
+                    <span>{resolveStackLabel(stack.crewTypeId, stack.crewTypeName, unitConst ?? undefined)}</span>
                   </div>
                   <div className={styles.unitStackStat}>
                     <span>병력</span>

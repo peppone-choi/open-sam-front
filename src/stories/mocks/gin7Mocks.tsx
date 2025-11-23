@@ -8,6 +8,8 @@ import {
   Gin7StrategySnapshot,
   Gin7TelemetrySample,
 } from '@/types/gin7';
+import { CommandType } from '@/types/logh';
+import { fullGin7Catalog, sampleAuthorityCardViews } from '@/mocks/fullGin7Catalog';
 
 const strategicCells = Array.from({ length: 96 }).map((_, index) => {
   const x = index % 12;
@@ -22,6 +24,14 @@ const strategicCells = Array.from({ length: 96 }).map((_, index) => {
   } as const;
 });
 
+const mockJobCards = sampleAuthorityCardViews.slice(0, 4).map((card) => ({
+  id: card.templateId,
+  title: card.title,
+  rankReq: card.rank,
+  commands: card.commandCodes as CommandType[],
+  commandCodes: card.commandCodes,
+}));
+
 const gin7MockBundle: Gin7ApiBundle = {
   session: {
     profile: {
@@ -33,24 +43,12 @@ const gin7MockBundle: Gin7ApiBundle = {
       mcp: 10,
       maxPcp: 18,
       maxMcp: 22,
-      jobCards: [
-        { id: 'card.personal.basic', title: '개인 카드', rankReq: 'Officer', commands: ['move', 'chat'] },
-      ],
+      jobCards: mockJobCards,
       sessionId: 's2-story',
     },
     cpRegenSeconds: 660,
-    cards: [
-      {
-        id: 'card.personal.basic',
-        title: '개인 카드',
-        rank: 'Officer',
-        faction: 'alliance',
-        commands: ['move', 'chat'],
-        shortcuts: [
-          { key: 'w', label: 'Warp Jump', description: '高速移動', type: 'move' },
-        ],
-      },
-    ],
+    cards: sampleAuthorityCardViews,
+    commandCatalog: fullGin7Catalog,
   },
   strategic: {
     gridWidth: 12,
@@ -133,7 +131,7 @@ const gin7MockBundle: Gin7ApiBundle = {
 };
 
 const gin7SessionSnapshotMock: Gin7SessionSnapshot = {
-  schemaVersion: '2025-11-21.session.1',
+  schemaVersion: '2025-11-22.session.2',
   session: {
     sessionId: 's2-story',
     title: 'LOGH Session 2',
@@ -201,7 +199,7 @@ const gin7SessionSnapshotMock: Gin7SessionSnapshot = {
 };
 
 const gin7StrategySnapshotMock: Gin7StrategySnapshot = {
-  schemaVersion: '2025-11-21.strategy.1',
+  schemaVersion: '2025-11-22.strategy.2',
   session: { sessionId: 's2-story', title: 'LOGH Session 2', status: 'running' },
   clock: {
     phase: 'strategic',
@@ -285,6 +283,7 @@ export function Gin7StoryProvider({ children }: { children: ReactNode }) {
       loading: false,
       sessionId: 's2-story',
       session: gin7MockBundle.session,
+      commandCatalog: gin7MockBundle.session.commandCatalog,
       strategic: gin7MockBundle.strategic,
       plans: gin7MockBundle.plans,
       tactical: gin7MockBundle.tactical,

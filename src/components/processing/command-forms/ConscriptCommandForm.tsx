@@ -5,6 +5,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './CommandForm.module.css';
 import crewStyles from './ConscriptCommandForm.module.css';
+import { getCrewTypeDisplayName } from '@/utils/unitTypeMapping';
 
 interface CrewTypeItem {
   id: number;
@@ -411,7 +412,7 @@ export default function ConscriptCommandForm({
                 const stackTroops = resolveStackTroops(stack);
                 return (
                   <option key={stack.id} value={stack.id}>
-                    {stack.crewTypeName || `병종 ${stack.crewTypeId}`} ({formatNumber(stackTroops)}명)
+                    {getCrewTypeDisplayName(stack.crewTypeId, stack.crewTypeName)} ({formatNumber(stackTroops)}명)
                   </option>
                 );
               })}

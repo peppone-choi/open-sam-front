@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import SammoBar from '../game/SammoBar';
 import NationFlag from '../common/NationFlag';
 import { getNPCColor } from '@/utils/getNPCColor';
 import { isBrightColor } from '@/utils/isBrightColor';
 import styles from './CityBasicCard.module.css';
 import type { ColorSystem } from '@/types/colorSystem';
-import { getUnitDataFromStore } from '@/stores/unitStore';
+import { getCrewTypeDisplayName } from '@/utils/unitTypeMapping';
 
 interface CityBasicCardProps {
   city: {
@@ -79,7 +79,6 @@ function CityBasicCard({ city, cityConstMap, colorSystem }: CityBasicCardProps) 
   
   const defense = city.defense;
   const garrison = city.garrison;
-  const unitConst = useMemo(() => getUnitDataFromStore(), []);
 
   const garrisonSummary = garrison
     ? `${garrison.totalTroops.toLocaleString()}명 · ${garrison.stackCount}개 부대`
@@ -88,9 +87,7 @@ function CityBasicCard({ city, cityConstMap, colorSystem }: CityBasicCardProps) 
   const handleToggleGarrison = () => setShowGarrison((prev) => !prev);
 
   const getCrewTypeLabel = (stack: { crewTypeId: number; crewTypeName?: string }) => {
-    if (stack.crewTypeName) return stack.crewTypeName;
-    const lookup = unitConst?.[String(stack.crewTypeId)];
-    return lookup?.name || `병종 ${stack.crewTypeId}`;
+    return getCrewTypeDisplayName(stack.crewTypeId, stack.crewTypeName);
   };
   
   // 지역명 가져오기

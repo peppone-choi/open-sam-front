@@ -52,9 +52,11 @@ export interface JobCard {
   title: string; // e.g., "Fleet Commander"
   rankReq: string;
   commands: CommandType[]; // e.g., ['warp', 'attack']
+  commandCodes?: string[];
+  commandMeta?: Array<{ code: string; label: string; group?: string; cpType?: 'PCP' | 'MCP'; cpCost?: number | string }>;
 }
 
-export type CommandType = 'warp' | 'move' | 'attack' | 'supply' | 'personnel' | 'tactics';
+export type CommandType = string;
 
 // User Profile (P.13)
 export interface UserProfile {

@@ -20,7 +20,7 @@ export default function NationGeneralsPage() {
   async function loadGenerals() {
     try {
       setLoading(true);
-      const result = await SammoAPI.NationGetGenerals();
+      const result = await SammoAPI.NationGetGenerals({ serverID });
       if (result.result && result.generals) {
         setGenerals(result.generals);
       }

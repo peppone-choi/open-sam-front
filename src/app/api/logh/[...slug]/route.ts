@@ -143,16 +143,22 @@ interface MockResult {
   status?: number;
 }
 
-export async function GET(req: NextRequest, context: { params: { slug?: string[] } }) {
-  return handleRequest(req, context);
+type RouteParams = { slug?: string[] };
+
+type RouteContext = { params: Promise<RouteParams> };
+
+export async function GET(req: NextRequest, context: RouteContext) {
+  const params = await context.params;
+  return handleRequest(req, params);
 }
 
-export async function POST(req: NextRequest, context: { params: { slug?: string[] } }) {
-  return handleRequest(req, context);
+export async function POST(req: NextRequest, context: RouteContext) {
+  const params = await context.params;
+  return handleRequest(req, params);
 }
 
-async function handleRequest(req: NextRequest, context: { params: { slug?: string[] } }) {
-  const slug = (context.params.slug ?? []).join('/');
+async function handleRequest(req: NextRequest, params: RouteParams) {
+  const slug = (params.slug ?? []).join('/');
   if (USE_QA_MOCKS) {
     const mock = getMockResponse(slug, req);
     if (mock) {
@@ -254,10 +260,10 @@ async function proxyToBackend(req: NextRequest, slug: string) {
   const headers = new Headers(req.headers);
   headers.set('host', target.host);
 
-  let body: Buffer | undefined;
+  let body: ArrayBuffer | undefined;
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     const buffer = await req.arrayBuffer();
-    body = buffer.byteLength ? Buffer.from(buffer) : undefined;
+    body = buffer.byteLength ? buffer : undefined;
   }
 
   const response = await fetch(target, {

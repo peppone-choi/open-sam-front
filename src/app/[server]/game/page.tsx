@@ -13,6 +13,7 @@ import MessagePanel from '@/components/game/MessagePanel';
 import GameBottomBar from '@/components/game/GameBottomBar';
 import VersionModal from '@/components/game/VersionModal';
 import GlobalMenu from '@/components/game/GlobalMenu';
+import GameInfoPanel from '@/components/game/GameInfoPanel';
 import { useSocket } from '@/hooks/useSocket';
 import { convertLog } from '@/utils/convertLog';
 import '@/styles/log.css';
@@ -137,34 +138,81 @@ export default function GamePage() {
     const base = normalizeHexColor(nationColor);
     const isBrightColor = isBright(base);
     const accents = makeAccentColors(base);
-    
-    // 기본 색상 시스템 생성
-    const system = {
-      base, 
+
+    return {
+      base,
       isBright: isBrightColor,
       pageBg: '#000000',
-      border: withAlpha(base, 0.5),
-      borderLight: withAlpha(base, 0.3),
-      
+      border: withAlpha(base, isBrightColor ? 0.35 : 0.5),
+      borderLight: withAlpha(base, isBrightColor ? 0.2 : 0.3),
+
       buttonBg: base,
-      buttonHover: withAlpha(base, 0.8),
+      buttonHover: withAlpha(base, 0.85),
       buttonActive: base,
-      buttonText: isBrightColor ? '#000000' : '#ffffff',
+      buttonText: isBrightColor ? '#111827' : '#ffffff',
       activeBg: base,
-      
-      text: '#ffffff',
-      textMuted: '#a3a3a3', // neutral-400
-      textDim: '#737373', // neutral-500
-      
+
+      text: '#f5f5f5',
+      textMuted: '#a3a3a3',
+      textDim: '#737373',
+
       accent: base,
       ...accents,
-      
+
       // Legacy support
       bg: withAlpha(base, 0.1),
     };
-    
-    return system;
   }, [frontInfo?.nation?.color]);
+
+  const lastExecutedDate = useMemo(() => {
+    if (!frontInfo?.global?.lastExecuted) return null;
+    const normalized = frontInfo.global.lastExecuted.replace(' ', 'T');
+    const parsed = new Date(normalized);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }, [frontInfo?.global?.lastExecuted]);
+
+  const nextTurnTimeLabel = useMemo(() => {
+    if (!lastExecutedDate) return '-';
+    const term = frontInfo?.global?.turnterm || 0;
+    if (!term) return '-';
+    const next = new Date(lastExecutedDate.getTime() + term * 60000);
+    return next.toLocaleTimeString('ko-KR', { hour12: false });
+  }, [lastExecutedDate, frontInfo?.global?.turnterm]);
+
+  const extractLogText = useCallback((entry: any) => {
+    if (!entry) return '';
+    if (typeof entry === 'string') return entry;
+    if (Array.isArray(entry)) return entry[1] || '';
+    if (typeof entry === 'object' && 'text' in entry) {
+      return typeof entry.text === 'string' ? entry.text : '';
+    }
+    return String(entry);
+  }, []);
+
+  const renderLogList = useCallback((logs: any[] = [], limit = 10) => {
+    if (!logs || logs.length === 0) {
+      return <div className="text-xs text-gray-500 border-l border-white/10 pl-2">기록이 없습니다.</div>;
+    }
+    const items: React.ReactNode[] = [];
+    const max = Math.min(logs.length, limit);
+    for (let i = 0; i < max; i += 1) {
+      const log = logs[i];
+      const text = extractLogText(log);
+      if (!text) continue;
+      const key = Array.isArray(log) ? (log[0] ?? i) : i;
+      items.push(
+        <div
+          key={key}
+          className="text-xs text-gray-300 leading-relaxed border-l border-white/10 pl-2"
+          dangerouslySetInnerHTML={{ __html: convertLog(text) }}
+        />
+      );
+    }
+    if (items.length === 0) {
+      return <div className="text-xs text-gray-500 border-l border-white/10 pl-2">기록이 없습니다.</div>;
+    }
+    return items;
+  }, [extractLogText]);
 
   const handleMenuClick = (funcCall: string) => {
     if (funcCall === 'showVersion') setIsVersionModalOpen(true);
@@ -193,6 +241,10 @@ export default function GamePage() {
   if (error) return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">{error}</div>;
   if (!frontInfo) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">로딩 중...</div>;
 
+  const generalLogs = frontInfo.recentRecord?.general ?? [];
+  const personalLogs = frontInfo.recentRecord?.history ?? [];
+  const globalLogs = frontInfo.recentRecord?.global ?? [];
+
   return (
     <div className="min-h-screen bg-background-main text-foreground flex flex-col font-sans selection:bg-primary selection:text-white">
       {/* Top Bar */}
@@ -202,9 +254,10 @@ export default function GamePage() {
                <span className="text-lg font-bold text-white" style={{ color: colorSystem.base }}>
                   {frontInfo.global.year}년 {frontInfo.global.month}월
                </span>
-               <span className="text-xs text-gray-400">
-                  턴 {frontInfo.global.turnterm}분 / {frontInfo.global.turnTime}
-               </span>
+                <span className="text-xs text-gray-400">
+                  턴 {frontInfo.global.turnterm}분 / 다음 {nextTurnTimeLabel}
+                </span>
+
             </div>
             <div className="h-8 w-px bg-white/10 mx-2" />
             <div className="flex flex-col">
@@ -229,6 +282,14 @@ export default function GamePage() {
          
          {/* Left Column: Map + Info (9 cols) */}
          <div className="lg:col-span-9 flex flex-col gap-4">
+            <GameInfoPanel
+              frontInfo={frontInfo}
+              serverName={frontInfo.global.serverName || ''}
+              serverLocked={frontInfo.global.isLocked}
+              lastExecuted={lastExecutedDate || new Date()}
+              nationColor={frontInfo.nation?.color}
+              colorSystem={colorSystem}
+            />
             {/* 1. Map Section */}
             <div className="min-h-[600px] rounded-xl border border-white/10 bg-black/60 shadow-2xl relative flex flex-col">
                {/* Map Header Overlay */}
@@ -331,26 +392,31 @@ export default function GamePage() {
                          </h3>
                       </div>
                       <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-4">
-                         <div>
-                            <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
-                               <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> 장수 동향
-                            </div>
-                            <div className="space-y-1.5">
-                               {frontInfo.recentRecord?.general?.slice(0, 10).map((log: any, i: number) => (
-                                  <div key={i} className="text-xs text-gray-300 leading-relaxed border-l border-white/10 pl-2" dangerouslySetInnerHTML={{__html: convertLog(log.text)}} />
-                               ))}
-                            </div>
-                         </div>
-                         <div>
-                            <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
-                               <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> 중원 정세
-                            </div>
-                            <div className="space-y-1.5">
-                               {frontInfo.recentRecord?.global?.slice(0, 5).map((log: any, i: number) => (
-                                  <div key={i} className="text-xs text-gray-300 leading-relaxed border-l border-white/10 pl-2" dangerouslySetInnerHTML={{__html: convertLog(log.text)}} />
-                               ))}
-                            </div>
-                         </div>
+                      <div>
+                             <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> 장수 동향
+                             </div>
+                             <div className="space-y-1.5">
+                                {renderLogList(generalLogs, 10)}
+                             </div>
+                          </div>
+                          <div>
+                             <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 내 기록
+                             </div>
+                             <div className="space-y-1.5">
+                                {renderLogList(personalLogs, 10)}
+                             </div>
+                          </div>
+                          <div>
+                             <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> 중원 정세
+                             </div>
+                             <div className="space-y-1.5">
+                                {renderLogList(globalLogs, 5)}
+                             </div>
+                          </div>
+
                       </div>
                    </div>
                 </div>

@@ -23,7 +23,7 @@ export interface GetFrontInfoResponse {
       options: Record<string, number>;
     };
     turnterm: number;
-    turnTime: string;
+    turnTime?: string;
     lastExecuted: string;
     lastVoteID: number;
     develCost: number;
@@ -85,7 +85,14 @@ export interface GetFrontInfoResponse {
     age?: number;
     defence_train?: number;
     killturn?: number;
-    troop?: any;
+    troop?: number;
+    troopInfo?: {
+      name: string;
+      leader?: {
+        city?: number;
+        reservedCommand?: Array<any> | null;
+      };
+    };
     refreshScoreTotal?: number;
     refreshScore?: number;
     picture?: string;
@@ -827,12 +834,36 @@ export class SammoAPI {
   }
 
   // Nation API
-  static async NationGetNationInfo(): Promise<{
+  static async NationGetNationInfo(params?: {
+    session_id?: string;
+    serverID?: string;
+    general_id?: number;
+    generalID?: number;
+    full?: boolean;
+  }): Promise<{
     result: boolean;
     nation: any;
   }> {
+    const body: Record<string, any> = {};
+
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
+
+    const generalId = params?.general_id ?? params?.generalID;
+    if (typeof generalId !== 'undefined') {
+      body.general_id = generalId;
+    }
+
+    if (typeof params?.full !== 'undefined') {
+      body.full = params.full;
+    }
+
     return this.request('/api/nation/info', {
       method: 'POST',
+      body: JSON.stringify(body),
     });
   }
 
@@ -1456,12 +1487,68 @@ export class SammoAPI {
     });
   }
 
-  static async GetMyBossInfo(): Promise<{
+  static async GetMyBossInfo(params?: {
+    serverID?: string;
+    session_id?: string;
+    generalID?: number;
+    general_id?: number;
+  }): Promise<{
     result: boolean;
     bossInfo: any;
   }> {
-    return this.request('/api/general/get-boss-info', {
+    const query = new URLSearchParams();
+
+    if (params?.session_id) {
+      query.append('session_id', params.session_id);
+    } else if (params?.serverID) {
+      query.append('session_id', params.serverID);
+    }
+
+    const generalId = params?.general_id ?? params?.generalID;
+    if (typeof generalId !== 'undefined') {
+      query.append('general_id', String(generalId));
+    }
+
+    const qs = query.toString();
+    const endpoint = `/api/general/get-boss-info${qs ? `?${qs}` : ''}`;
+
+    return this.request(endpoint, {
       method: 'GET',
+    });
+  }
+
+  static async OfficerAppoint(params: {
+    serverID?: string;
+    session_id?: string;
+    officerLevel: number;
+    destGeneralID?: number;
+    destCityID?: number;
+  }): Promise<{
+    result: boolean;
+    message?: string;
+    reason?: string;
+  }> {
+    const body: Record<string, any> = {
+      officerLevel: params.officerLevel,
+    };
+
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+
+    if (typeof params.destGeneralID !== 'undefined') {
+      body.destGeneralID = params.destGeneralID;
+    }
+
+    if (typeof params.destCityID !== 'undefined') {
+      body.destCityID = params.destCityID;
+    }
+
+    return this.request('/api/game/officer/appoint', {
+      method: 'POST',
+      body: JSON.stringify(body),
     });
   }
 
@@ -2369,9 +2456,16 @@ export class SammoAPI {
     troops?: any[];
     message?: string;
   }> {
+    const body: Record<string, any> = {};
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
+
     return this.request('/api/nation/generals', {
       method: 'POST',
-      body: JSON.stringify(params || {}),
+      body: JSON.stringify(body),
     });
   }
 
@@ -2720,15 +2814,33 @@ export class SammoAPI {
     });
   }
 
-  static async GetGeneralInfo(params: {
+  static async GetGeneralInfo(params?: {
     generalID?: number;
+    general_id?: number;
+    session_id?: string;
+    serverID?: string;
   }): Promise<{
     result: boolean;
     general: any;
   }> {
+    const body: Record<string, any> = {};
+
+    const generalId = params?.general_id ?? params?.generalID;
+    if (typeof generalId !== 'undefined') {
+      // API는 generalID/general_id 둘 다 허용하므로 둘 다 포함
+      body.generalID = generalId;
+      body.general_id = generalId;
+    }
+
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
+
     return this.request('/api/info/general', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(body),
     });
   }
 

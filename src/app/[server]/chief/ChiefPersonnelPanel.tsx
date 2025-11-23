@@ -24,8 +24,8 @@ export default function ChiefPersonnelPanel({ serverID, chiefData, onUpdate }: C
     try {
       setLoading(true);
       const result = await SammoAPI.NationGetGenerals({ serverID });
-      if (result.result && result.list) {
-        setGenerals(result.list);
+      if (result.result) {
+        setGenerals(result.generals ?? result.list ?? []);
       }
     } catch (e) {
       console.error(e);

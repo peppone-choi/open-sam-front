@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './CommandForm.module.css';
 import localStyles from './ReassignUnitCommandForm.module.css';
+import { getCrewTypeDisplayName } from '@/utils/unitTypeMapping';
 
 interface UnitStackItem {
   id: string;
@@ -30,7 +31,8 @@ interface ReassignUnitCommandFormProps {
 }
 
 function formatStackLabel(stack: UnitStackItem) {
-  return `${stack.crewTypeName || `병종 ${stack.crewTypeId}`} · ${stack.troops.toLocaleString()}명 (${stack.stackCount}스택)`;
+  const crewName = getCrewTypeDisplayName(stack.crewTypeId, stack.crewTypeName);
+  return `${crewName} · ${stack.troops.toLocaleString()}명 (${stack.stackCount}스택)`;
 }
 
 export default function ReassignUnitCommandForm({

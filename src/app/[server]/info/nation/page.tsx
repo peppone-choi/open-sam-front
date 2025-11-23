@@ -23,15 +23,17 @@ export default function NationInfoPage() {
     try {
       setLoading(true);
       
-      const [nationResult, frontInfoResult] = await Promise.all([
-        SammoAPI.NationGetNationInfo().catch(() => null),
-        SammoAPI.GeneralGetFrontInfo({
-          serverID: serverID || '',
-          lastNationNoticeDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
-          lastGeneralRecordID: 0,
-          lastGlobalHistoryID: 0,
-        }).catch(() => null),
-      ]);
+      const frontInfoResult = await SammoAPI.GeneralGetFrontInfo({
+        serverID: serverID || '',
+        lastNationNoticeDate: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        lastGeneralRecordID: 0,
+        lastGlobalHistoryID: 0,
+      }).catch(() => null);
+
+      const nationResult = await SammoAPI.NationGetNationInfo({
+        serverID,
+        generalID: frontInfoResult?.general?.no,
+      }).catch(() => null);
 
       if (nationResult?.result) {
         setNationData(nationResult.nation);
