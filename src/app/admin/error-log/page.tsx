@@ -58,6 +58,7 @@ function ErrorLogContent() {
     <div className="min-h-screen bg-gray-950 px-4 py-10 text-gray-100">
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <TopBackBar title="에러 로그" />
+        <h1 className="sr-only">에러 로그</h1>
 
         <section className="rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl">
           <div className="flex flex-col gap-4 border-b border-white/10 pb-4 md:flex-row md:items-center md:justify-between">

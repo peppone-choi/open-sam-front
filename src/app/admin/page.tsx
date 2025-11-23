@@ -52,9 +52,9 @@ export default function AdminPage() {
   }
 
   const renderState = (message: string, tone: 'default' | 'error' = 'default') => (
-    <div className="min-h-screen bg-gray-950 text-gray-100 px-4 py-10">
-      <div className="mx-auto flex w-full max-w-5xl items-center justify-center rounded-2xl border border-white/10 bg-black/40 p-8 text-center shadow-2xl">
-        <p className={tone === 'error' ? 'text-lg font-semibold text-red-400' : 'text-lg text-gray-200'}>{message}</p>
+    <div className="min-h-screen bg-background-main text-foreground px-4 py-10" role="alert" aria-live="polite">
+      <div className="mx-auto flex w-full max-w-5xl items-center justify-center rounded-2xl border border-white/10 bg-background-secondary p-8 text-center shadow-2xl">
+        <p className={tone === 'error' ? 'text-lg font-semibold text-hud-alert' : 'text-lg text-foreground'}>{message}</p>
       </div>
     </div>
   );
@@ -68,94 +68,97 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-950 to-black px-4 py-10 text-gray-100">
+    <div className="min-h-screen bg-background-main px-4 py-10 text-foreground">
       <div className="mx-auto w-full max-w-6xl space-y-10">
-        <div className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-black/40 p-6 text-white shadow-2xl lg:flex-row lg:items-center lg:justify-between">
+        <header className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-background-secondary p-6 text-foreground shadow-2xl lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-orange-400/70">시스템 콘솔</p>
-            <h1 className="mt-2 text-3xl font-bold">관리자 패널</h1>
+            <p className="text-sm uppercase tracking-[0.3em] text-accent/70">시스템 콘솔</p>
+            <h1 className="mt-2 text-3xl font-bold font-serif text-empire-gold">관리자 패널</h1>
             {userInfo && (
-              <p className="mt-1 text-sm text-gray-400">
-                접속 계정: <span className="font-semibold text-white">{userInfo.name}</span>
+              <p className="mt-1 text-sm text-foreground-muted">
+                접속 계정: <span className="font-semibold text-foreground">{userInfo.name}</span>
               </p>
             )}
           </div>
           <Link
             href="/entrance"
-            className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm font-medium text-gray-200 transition hover:border-orange-400/60 hover:bg-orange-500/10"
+            aria-label="메인 화면으로 돌아가기"
+            className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm font-medium text-foreground transition hover:border-accent/60 hover:bg-accent/10 focus:ring-2 focus:ring-accent focus:outline-none"
           >
             ← 돌아가기
           </Link>
-        </div>
+        </header>
 
-        <section className="space-y-6 rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl">
+        <section className="space-y-6 rounded-3xl border border-white/10 bg-background-secondary p-6 shadow-2xl" aria-labelledby="server-section-title">
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-orange-400/70">서버</p>
-              <h2 className="text-2xl font-semibold text-white">서버별 관리</h2>
+              <p className="text-sm uppercase tracking-[0.3em] text-accent/70">서버</p>
+              <h2 id="server-section-title" className="text-2xl font-semibold text-foreground">서버별 관리</h2>
             </div>
-            <span className="text-sm text-gray-400">총 {serverList.length}개</span>
+            <span className="text-sm text-foreground-muted">총 {serverList.length}개</span>
           </div>
 
           {serverList.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list">
               {serverList.map((server) => (
-                <Link
-                  key={server.name}
-                  href={`/${server.name}/admin`}
-                  data-testid={`server-card-${server.name}`}
-                  className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:-translate-y-1 hover:border-orange-400/60 hover:bg-white/[0.08]"
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-lg font-bold text-orange-400">{server.korName}</p>
-                    <span className="text-xs uppercase tracking-[0.2em] text-gray-500">{server.name}</span>
-                  </div>
-                  <div className="mt-4 flex items-center justify-between text-sm">
-                    <span className="text-gray-400">상태</span>
-                    <span className={server.enable ? 'text-emerald-400' : 'text-red-400'}>
-                      {server.enable ? '🟢 활성' : '🔴 비활성'}
-                    </span>
-                  </div>
-                </Link>
+                <div role="listitem" key={server.name}>
+                  <Link
+                    href={`/${server.name}/admin`}
+                    data-testid={`server-card-${server.name}`}
+                    className="block group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:-translate-y-1 hover:border-accent/60 hover:bg-white/[0.08] focus:ring-2 focus:ring-accent focus:outline-none"
+                    aria-label={`${server.korName} 서버 관리 페이지로 이동. 상태: ${server.enable ? '활성' : '비활성'}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="text-lg font-bold text-accent">{server.korName}</p>
+                      <span className="text-xs uppercase tracking-[0.2em] text-foreground-muted">{server.name}</span>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between text-sm">
+                      <span className="text-foreground-muted">상태</span>
+                      <span className={server.enable ? 'text-hud-success' : 'text-hud-alert'} aria-hidden="true">
+                        {server.enable ? '🟢 활성' : '🔴 비활성'}
+                      </span>
+                    </div>
+                  </Link>
+                </div>
               ))}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-10 text-center text-gray-400">
+            <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-10 text-center text-foreground-muted">
               서버가 없습니다.
             </div>
           )}
         </section>
 
-        <section className="space-y-4 rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl">
+        <section className="space-y-4 rounded-3xl border border-white/10 bg-background-secondary p-6 shadow-2xl" aria-labelledby="global-section-title">
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-orange-400/70">전역</p>
-              <h2 className="text-2xl font-semibold text-white">전역 관리</h2>
+              <p className="text-sm uppercase tracking-[0.3em] text-accent/70">전역</p>
+              <h2 id="global-section-title" className="text-2xl font-semibold text-foreground">전역 관리</h2>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <nav className="flex flex-wrap gap-3" aria-label="전역 관리 메뉴">
             <Link
               href="/admin/userlist"
               data-testid="global-admin-link"
-              className="inline-flex flex-1 min-w-[180px] items-center justify-center rounded-2xl border border-white/10 bg-orange-500/90 px-5 py-3 text-center text-sm font-semibold text-white shadow hover:bg-orange-400"
+              className="inline-flex flex-1 min-w-[180px] items-center justify-center rounded-2xl border border-white/10 bg-accent/90 px-5 py-3 text-center text-sm font-semibold text-white shadow hover:bg-accent focus:ring-2 focus:ring-white focus:outline-none"
             >
               사용자 관리
             </Link>
             <Link
               href="/admin/error-log"
               data-testid="global-admin-link"
-              className="inline-flex flex-1 min-w-[180px] items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-center text-sm font-semibold text-gray-100 transition hover:border-orange-400/60 hover:bg-orange-400/10"
+              className="inline-flex flex-1 min-w-[180px] items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-center text-sm font-semibold text-foreground transition hover:border-accent/60 hover:bg-accent/10 focus:ring-2 focus:ring-accent focus:outline-none"
             >
               에러 로그
             </Link>
             <Link
               href="/admin/sessions"
               data-testid="global-admin-link"
-              className="inline-flex flex-1 min-w-[180px] items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-center text-sm font-semibold text-gray-100 transition hover:border-orange-400/60 hover:bg-orange-400/10"
+              className="inline-flex flex-1 min-w-[180px] items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-center text-sm font-semibold text-foreground transition hover:border-accent/60 hover:bg-accent/10 focus:ring-2 focus:ring-accent focus:outline-none"
             >
               세션 관리
             </Link>
-          </div>
+          </nav>
         </section>
       </div>
     </div>

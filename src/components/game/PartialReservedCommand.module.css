@@ -41,6 +41,270 @@
     /* 툴바가 가려지지 않도록 z-index 설정 */
     position: relative;
     z-index: 2;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.toolbarRow {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.toolbarMeta {
+    font-size: 0.75rem;
+    color: var(--prc-muted-text);
+}
+
+.selectionSummary {
+    font-size: 0.75rem;
+    margin-left: auto;
+    color: var(--prc-muted-text);
+}
+
+.permissionWarning {
+    font-size: 0.75rem;
+    color: #f87171;
+}
+
+.inlineControl {
+    flex: 1;
+    min-width: 260px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--prc-divider-color);
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.inlineControlHeader {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--prc-muted-text);
+}
+
+.inlineControlBody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.inlineControlSlider {
+    width: 100%;
+    accent-color: #38bdf8;
+}
+
+.inlineControlActions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.inlineControlHint {
+    font-size: 0.7rem;
+    color: #f97316;
+}
+
+.stepButtons {
+    display: flex;
+    gap: 0.3rem;
+}
+
+.stepButtons button {
+    padding: 0.15rem 0.6rem;
+    font-size: 0.75rem;
+    background: var(--prc-button-bg);
+    border: 1px solid var(--prc-button-border);
+    color: var(--prc-button-text);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.stepButtons button:hover:not(:disabled) {
+    background: var(--prc-button-hover);
+}
+
+.selectionGroup {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.5rem;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 6px;
+}
+
+.selectionLabel {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--prc-muted-text);
+}
+
+.selectionButton {
+    padding: 0.25rem 0.6rem;
+    background-color: transparent;
+    border: 1px solid var(--prc-button-border);
+    color: var(--prc-button-text);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.selectionButton:hover:not(:disabled) {
+    background-color: var(--prc-button-hover);
+}
+
+.stepSelector {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding-left: 0.5rem;
+    border-left: 1px solid var(--prc-divider-color);
+}
+
+.stepInput {
+    width: 60px;
+    padding: 0.2rem 0.4rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--prc-button-border);
+    color: var(--prc-text-color);
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+.macroPanel {
+    width: 100%;
+    border: 1px solid var(--prc-divider-color);
+    border-radius: 8px;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.015);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.macroHeader {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.macroHeader p {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.macroHeader span {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--prc-muted-text);
+}
+
+.macroSaveRow {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.macroSaveRow input {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid var(--prc-button-border);
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--prc-text-color);
+    font-size: 0.85rem;
+}
+
+.macroSaveRow button {
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    border: 1px solid var(--prc-button-border);
+    background: var(--prc-button-bg);
+    color: var(--prc-button-text);
+    cursor: pointer;
+}
+
+.macroSaveRow button:disabled,
+.macroItemButtons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.macroEmpty {
+    font-size: 0.8rem;
+    color: var(--prc-muted-text);
+}
+
+.macroList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.macroItem {
+    border: 1px solid var(--prc-divider-color);
+    border-radius: 6px;
+    padding: 0.6rem;
+    background: rgba(255, 255, 255, 0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.macroItemHeader {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--prc-muted-text);
+}
+
+.macroItemHeader strong {
+    color: var(--prc-text-color);
+}
+
+.macroItemActions {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.macroChip {
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    font-size: 0.7rem;
+    color: #bae6fd;
+}
+
+.macroItemButtons {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.macroItemButtons button {
+    padding: 0.3rem 0.8rem;
+    border-radius: 6px;
+    border: 1px solid var(--prc-button-border);
+    background: var(--prc-button-bg);
+    color: var(--prc-button-text);
+    cursor: pointer;
 }
 
 .toolbarButton {
@@ -303,4 +567,96 @@
     background: var(--prc-toolbar-bg);
     font-weight: bold;
     color: var(--prc-text-color);
+}
+
+.rosterPanel {
+    margin-top: 1rem;
+    border-top: 1px solid var(--prc-divider-color);
+    padding-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.rosterHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.85rem;
+    color: var(--prc-muted-text);
+}
+
+.rosterHeader p {
+    margin: 0;
+    font-weight: 600;
+    color: var(--prc-text-color);
+}
+
+.rosterGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+}
+
+.rosterCard {
+    border: 1px solid var(--prc-divider-color);
+    border-radius: 8px;
+    padding: 0.6rem;
+    background: rgba(255, 255, 255, 0.015);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.rosterCardActive {
+    border-color: rgba(56, 189, 248, 0.6);
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+}
+
+.rosterCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.rosterCardHeader strong {
+    font-size: 1rem;
+    color: var(--prc-text-color);
+}
+
+.rosterBadge {
+    font-size: 0.7rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid var(--prc-divider-color);
+    color: var(--prc-muted-text);
+}
+
+.rosterList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.rosterListItem {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    gap: 0.5rem;
+    color: var(--prc-text-color);
+}
+
+.rosterTime {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    color: var(--prc-muted-text);
+    width: 60px;
+}
+
+.rosterBrief {
+    flex: 1;
+    text-align: right;
 }

@@ -5,6 +5,103 @@ import type { RawUnitDefinition } from '@/stores/unitStore';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
   (typeof window !== 'undefined' ? 'http://localhost:8080' : '');
 
+type NationPolicyResponse = {
+  policy?: {
+    rate: number;
+    bill: number;
+    secretLimit: number;
+    blockWar: boolean;
+    blockScout: boolean;
+  };
+  warSettingCnt?: {
+    remain: number;
+    inc: number;
+    max: number;
+  };
+  notices?: {
+    nation?: any;
+    scout?: string;
+  };
+};
+
+export interface ChiefFinanceStat {
+  current: number;
+  income: number;
+  outcome: number;
+  net: number;
+  breakdown: Record<string, number>;
+}
+
+export interface ChiefFinancePayload {
+  gold: ChiefFinanceStat;
+  rice: ChiefFinanceStat;
+}
+
+export interface ChiefPolicyPayload {
+  rate: number;
+  bill: number;
+  secretLimit: number;
+  blockWar: boolean;
+  blockScout: boolean;
+}
+
+export interface ChiefNoticePayload {
+  nation?: {
+    msg?: string;
+    author?: string;
+    authorID?: number;
+    date?: string;
+  } | null;
+  scout?: string;
+}
+
+export interface ChiefWarSettingPayload {
+  remain: number;
+  inc: number;
+  max: number;
+}
+
+export interface ChiefTimelinePayload {
+  year: number;
+  month: number;
+  turnTerm: number;
+  maxChiefTurn: number;
+}
+
+export interface ChiefCenterPayload {
+  nation: {
+    id: number;
+    name: string;
+    level: number;
+    color?: string;
+    capital?: number;
+    type?: string;
+    cityCount?: number;
+    generalCount?: number;
+  };
+  chief: {
+    generalId: number | null;
+    name: string;
+    officerLevel: number;
+  };
+  powers: {
+    gold: number;
+    rice: number;
+    tech: number;
+  };
+  policy?: ChiefPolicyPayload;
+  warSettingCnt?: ChiefWarSettingPayload;
+  notices?: ChiefNoticePayload;
+  finance?: ChiefFinancePayload;
+  timeline?: ChiefTimelinePayload;
+}
+
+export interface ChiefCenterResponse {
+  result: boolean;
+  center?: ChiefCenterPayload;
+  reason?: string;
+}
+
 export interface GetFrontInfoResponse {
   success: boolean;
   result: boolean;
@@ -652,7 +749,7 @@ export class SammoAPI {
   }): Promise<{
     result: boolean;
     reason?: string;
-  }> {
+  } & NationPolicyResponse> {
     return this.request('/api/command/push', {
       method: 'POST',
       body: JSON.stringify(params),
@@ -690,6 +787,7 @@ export class SammoAPI {
     commandList: any;
     mapName: string;
     unitSet: string;
+    maxChiefTurn?: number;
     message?: string;
   }> {
     const query = new URLSearchParams();
@@ -867,73 +965,158 @@ export class SammoAPI {
     });
   }
 
-  static async NationSetNotice(msg: string): Promise<{
+  static async NationSetNotice(params: {
+    msg: string;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     reason?: string;
-  }> {
+  } & NationPolicyResponse> {
+    const body: Record<string, any> = {
+      msg: params.msg,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
     return this.request('/api/nation/set-notice', {
       method: 'POST',
-      body: JSON.stringify({ msg }),
+      body: JSON.stringify(body),
     });
   }
 
-  static async NationSetScoutMsg(msg: string): Promise<{
+  static async NationSetScoutMsg(params: {
+    msg: string;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     reason?: string;
-  }> {
+  } & NationPolicyResponse> {
+    const body: Record<string, any> = {
+      msg: params.msg,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
     return this.request('/api/nation/set-scout-msg', {
       method: 'POST',
-      body: JSON.stringify({ msg }),
+      body: JSON.stringify(body),
     });
   }
 
-  static async NationSetRate(amount: number): Promise<{
+  static async NationSetRate(params: {
+    amount: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     reason?: string;
-  }> {
+  } & NationPolicyResponse> {
+    const body: Record<string, any> = {
+      amount: params.amount,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
     return this.request('/api/nation/set-rate', {
       method: 'POST',
-      body: JSON.stringify({ amount }),
+      body: JSON.stringify(body),
     });
   }
 
-  static async NationSetBill(amount: number): Promise<{
+  static async NationSetBill(params: {
+    amount: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     reason?: string;
-  }> {
+  } & NationPolicyResponse> {
+    const body: Record<string, any> = {
+      amount: params.amount,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
     return this.request('/api/nation/set-bill', {
       method: 'POST',
-      body: JSON.stringify({ amount }),
+      body: JSON.stringify(body),
     });
   }
 
-  static async NationSetSecretLimit(amount: number): Promise<{
+  static async NationSetSecretLimit(params: {
+    amount: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     reason?: string;
-  }> {
+    availableCnt?: number;
+  } & NationPolicyResponse> {
+    const body: Record<string, any> = {
+      amount: params.amount,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
     return this.request('/api/nation/set-secret-limit', {
       method: 'POST',
-      body: JSON.stringify({ amount }),
+      body: JSON.stringify(body),
     });
   }
 
-  static async NationSetBlockWar(value: boolean): Promise<{
+  static async NationSetBlockWar(params: {
+    value: boolean;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     reason?: string;
-  }> {
+  } & NationPolicyResponse> {
+    const body: Record<string, any> = {
+      value: params.value,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
     return this.request('/api/nation/set-block-war', {
       method: 'POST',
-      body: JSON.stringify({ value }),
+      body: JSON.stringify(body),
     });
   }
 
-  static async NationSetBlockScout(value: boolean): Promise<{
+  static async NationSetBlockScout(params: {
+    value: boolean;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     reason?: string;
   }> {
+    const body: Record<string, any> = {
+      value: params.value,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
     return this.request('/api/nation/set-block-scout', {
       method: 'POST',
-      body: JSON.stringify({ value }),
+      body: JSON.stringify(body),
     });
   }
 
@@ -2110,8 +2293,12 @@ export class SammoAPI {
   }
 
   static async JoinGetNations(serverID: string): Promise<any> {
-    return this.request(`/api/join/get-nations?serverID=${encodeURIComponent(serverID)}`, {
-      method: 'GET',
+    return this.request('/api/join/get-nations', {
+      method: 'POST',
+      body: JSON.stringify({
+        serverID,
+        session_id: serverID,
+      }),
     });
   }
 
@@ -2284,11 +2471,7 @@ export class SammoAPI {
   static async GetChiefCenter(params?: {
     serverID?: string;
     session_id?: string;
-  }): Promise<{
-    result: boolean;
-    center?: any;
-    reason?: string;
-  }> {
+  }): Promise<ChiefCenterResponse> {
     const body: any = { ...(params || {}) };
 
     // serverID를 session_id로 매핑
@@ -2488,12 +2671,22 @@ export class SammoAPI {
     });
   }
 
-  static async NationGetStratFinan(): Promise<{
+  static async NationGetStratFinan(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     stratFinan: any;
   }> {
+    const body: Record<string, any> = {};
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
     return this.request('/api/nation/stratfinan', {
       method: 'POST',
+      body: Object.keys(body).length ? JSON.stringify(body) : undefined,
     });
   }
 

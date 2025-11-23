@@ -8,6 +8,20 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
 
+type SocketMockFactory = (options: { sessionId?: string; token?: string | null }) => Partial<Socket> & {
+  trigger?: (event: string, payload?: any) => void;
+};
+
+declare global {
+  interface Window {
+    __OPEN_SAM_SOCKET_MOCK__?: SocketMockFactory;
+    __OPEN_SAM_LAST_SOCKET__?: Partial<Socket> & {
+      trigger?: (event: string, payload?: any) => void;
+    };
+    __OPEN_SAM_SOCKET_EVENTS__?: Array<{ event: string; payload: unknown; timestamp: number; sessionId?: string }>;
+  }
+}
+
 // 전역 소켓 인스턴스 (HMR 중에도 유지)
 let globalSocket: Socket | null = null;
 let globalSocketToken: string | null = null;
@@ -54,9 +68,28 @@ export function useSocket(options: UseSocketOptions = {}) {
 
   useEffect(() => {
     const authToken = getToken();
+    const mockFactory = typeof window !== 'undefined' ? window.__OPEN_SAM_SOCKET_MOCK__ : undefined;
     
-    if (!autoConnect || !authToken) {
+    if (!autoConnect || (!authToken && !mockFactory)) {
       return;
+    }
+
+    if (mockFactory) {
+      const mockSocket = mockFactory({ sessionId, token: authToken }) as Socket;
+      socketRef.current = mockSocket;
+      setSocket(mockSocket);
+      setIsConnected(true);
+      if (typeof window !== 'undefined') {
+        window.__OPEN_SAM_LAST_SOCKET__ = mockSocket;
+        window.__OPEN_SAM_SOCKET_EVENTS__ = window.__OPEN_SAM_SOCKET_EVENTS__ || [];
+      }
+      return () => {
+        mockSocket?.disconnect?.();
+        socketRef.current = null;
+        setSocket(null);
+        setIsConnected(false);
+        connectingRef.current = false;
+      };
     }
 
     // 전역 소켓이 있고 토큰/세션이 같으면 재사용

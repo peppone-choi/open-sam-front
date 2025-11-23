@@ -1,31 +1,29 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { SammoAPI } from '@/lib/api/sammo';
+import { SammoAPI, type ChiefNoticePayload } from '@/lib/api/sammo';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 interface ChiefDiplomacyPanelProps {
   serverID: string;
-  chiefData: any;
+  notices?: ChiefNoticePayload;
   onUpdate: () => void;
 }
 
-export default function ChiefDiplomacyPanel({ serverID, chiefData, onUpdate }: ChiefDiplomacyPanelProps) {
+export default function ChiefDiplomacyPanel({ serverID, notices, onUpdate }: ChiefDiplomacyPanelProps) {
   const router = useRouter();
   const [notice, setNotice] = useState('');
   const [scoutMsg, setScoutMsg] = useState('');
 
   useEffect(() => {
-    if (chiefData?.nation) {
-      setNotice(chiefData.nation.notice || '');
-      setScoutMsg(chiefData.nation.scoutMsg || '');
-    }
-  }, [chiefData]);
+    setNotice(notices?.nation?.msg || '');
+    setScoutMsg(notices?.scout || '');
+  }, [notices]);
 
   const handleSetNotice = async () => {
     try {
-      const result = await SammoAPI.NationSetNotice(notice);
+      const result = await SammoAPI.NationSetNotice({ msg: notice, serverID });
       if (result.result) {
         alert('국가 공지가 변경되었습니다.');
         onUpdate();
@@ -40,7 +38,7 @@ export default function ChiefDiplomacyPanel({ serverID, chiefData, onUpdate }: C
 
   const handleSetScoutMsg = async () => {
     try {
-      const result = await SammoAPI.NationSetScoutMsg(scoutMsg);
+      const result = await SammoAPI.NationSetScoutMsg({ msg: scoutMsg, serverID });
       if (result.result) {
         alert('임관 권유 메시지가 변경되었습니다.');
         onUpdate();

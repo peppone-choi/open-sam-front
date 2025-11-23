@@ -42,7 +42,11 @@ export default function Gin7TacticalHUD() {
         <div className="text-right text-xs text-white/50">
           레이더 열기
           <div className="mt-1 h-2 w-32 rounded-full bg-white/10 overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-rose-500 to-orange-500" style={{ width: `${tactical.radarHeat * 100}%` }} />
+            <div
+              className="h-full bg-gradient-to-r from-rose-500 to-orange-500"
+              data-testid="gin7-radar-bar"
+              style={{ width: `${tactical.radarHeat * 100}%` }}
+            />
           </div>
         </div>
       </header>
@@ -69,7 +73,12 @@ export default function Gin7TacticalHUD() {
                 onChange={(event) => updateEnergy(field.key, Number(event.target.value))}
                 className="w-full accent-cyan-400"
               />
-              <div className="text-right font-mono text-white text-xs">{tactical.energy[field.key]}%</div>
+              <div
+                className="text-right font-mono text-white text-xs"
+                data-testid={`gin7-energy-${field.key}`}
+              >
+                {tactical.energy[field.key]}%
+              </div>
             </label>
           ))}
         </div>

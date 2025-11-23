@@ -16,6 +16,12 @@ import { Coordinates } from '@/types/logh';
 import { useGameStore } from '@/stores/gameStore';
 import { resolveGin7SessionId } from '@/config/gin7';
 
+declare global {
+  interface Window {
+    __OPEN_SAM_STORES__?: Record<string, unknown>;
+  }
+}
+
 interface Gin7StoreState {
   loading: boolean;
   sessionId: string;
@@ -128,3 +134,9 @@ export const useGin7Store = create<Gin7StoreState>((set, get) => ({
     }
   },
 }));
+
+if (typeof window !== 'undefined') {
+  const globalWindow = window as Window;
+  globalWindow.__OPEN_SAM_STORES__ = globalWindow.__OPEN_SAM_STORES__ ?? {};
+  globalWindow.__OPEN_SAM_STORES__.gin7 = useGin7Store;
+}

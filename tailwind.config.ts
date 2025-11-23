@@ -25,26 +25,31 @@ const config: Config = {
           foreground: "#ffffff",
         },
         background: {
-          main: "#0f172a",
-          secondary: "#1e293b",
-          tertiary: "#334155",
+          main: "#050510", // Deep Space
+          secondary: "#101520", // Panel Bg
+          tertiary: "#1a1a1a",
         },
         foreground: {
-          DEFAULT: "#f8fafc",
-          muted: "#94a3b8",
+          DEFAULT: "#E0E0E0", // Primary Text
+          muted: "#9CA3AF", // Muted Text
           dim: "#64748b",
         },
         border: "rgba(148, 163, 184, 0.1)",
         // Gin7 Palette
         empire: {
           DEFAULT: "#C0C0C0", // Silver
-          dark: "#1a1a1a",
-          gold: "#FFD700",
+          blue: "#1e3a8a",    // Blue (Imperial Navy / Prussian Blue)
+          gold: "#FFD700",    // Gold
         },
         alliance: {
           DEFAULT: "#4A5D23", // Olive Drab
           light: "#F5F5DC",   // Beige
-          blue: "#1E90FF",
+          red: "#DC2626",     // Red (Revolution/Accent)
+        },
+        alliance: {
+          DEFAULT: "#4A5D23", // Olive Drab/Military Green
+          light: "#F5F5DC",   // Beige/Cream
+          blue: "#1E90FF",    // Blue - Democracy/Navy
         },
         space: {
           bg: "#050510",
@@ -52,15 +57,15 @@ const config: Config = {
           text: "#E0E0E0",
         },
         hud: {
-          alert: "#EF4444",
-          success: "#10B981",
+          alert: "#EF4444", // Red - Enemy/Critical
+          success: "#10B981", // Green - System Normal
           muted: "#9CA3AF",
         }
       },
       fontFamily: {
-        sans: ['var(--font-outfit)', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Roboto Mono', 'monospace'],
-        serif: ['Times New Roman', 'serif'], // For Empire
+        sans: ['var(--font-outfit)', 'sans-serif'], // Default (Alliance)
+        serif: ['Times New Roman', 'serif'], // Empire
+        mono: ['JetBrains Mono', 'Roboto Mono', 'monospace'], // HUD/Data
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

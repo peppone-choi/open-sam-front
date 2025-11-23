@@ -37,7 +37,7 @@ export default function TacticalHUD({ battleId }: { battleId: string }) {
   }, [selectUnit]);
 
   return (
-    <>
+    <div data-testid="logh-tactical-hud">
       {/* Radar (Top Right) */}
       <div data-testid="tactical-hud" className="absolute top-4 right-4 w-48 h-48 bg-[#050510]/80 border border-[#1E90FF] rounded-full overflow-hidden pointer-events-auto shadow-lg backdrop-blur">
         <div className="w-full h-full relative">
@@ -68,6 +68,6 @@ export default function TacticalHUD({ battleId }: { battleId: string }) {
            </div>
          ))}
       </div>
-    </>
+    </div>
   );
 }

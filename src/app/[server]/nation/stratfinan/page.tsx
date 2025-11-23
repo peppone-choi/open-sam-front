@@ -51,7 +51,7 @@ export default function NationStratFinanPage() {
   async function loadNationData() {
     try {
       setLoading(true);
-      const result = await SammoAPI.NationGetStratFinan();
+      const result = await SammoAPI.NationGetStratFinan({ serverID });
       if (result.result) {
         const data = result.stratFinan;
         setNationData(data);
@@ -79,7 +79,7 @@ export default function NationStratFinanPage() {
 
   async function saveNationMsg() {
     try {
-      const result = await SammoAPI.NationSetNotice(nationMsg);
+      const result = await SammoAPI.NationSetNotice({ msg: nationMsg, serverID });
       if (result.result) {
         setOriginalNationMsg(nationMsg);
         setEditingNationMsg(false);
@@ -99,7 +99,7 @@ export default function NationStratFinanPage() {
 
   async function saveScoutMsg() {
     try {
-      const result = await SammoAPI.NationSetScoutMsg(scoutMsg);
+      const result = await SammoAPI.NationSetScoutMsg({ msg: scoutMsg, serverID });
       if (result.result) {
         setOriginalScoutMsg(scoutMsg);
         setEditingScoutMsg(false);
@@ -119,7 +119,7 @@ export default function NationStratFinanPage() {
 
   async function setRate() {
     try {
-      const result = await SammoAPI.NationSetRate(policy.rate);
+      const result = await SammoAPI.NationSetRate({ amount: policy.rate, serverID });
       if (result.result) {
         alert('세율이 변경되었습니다.');
         await loadNationData();
@@ -133,7 +133,7 @@ export default function NationStratFinanPage() {
 
   async function setBill() {
     try {
-      const result = await SammoAPI.NationSetBill(policy.bill);
+      const result = await SammoAPI.NationSetBill({ amount: policy.bill, serverID });
       if (result.result) {
         alert('지급률이 변경되었습니다.');
         await loadNationData();
@@ -147,7 +147,7 @@ export default function NationStratFinanPage() {
 
   async function setSecretLimit() {
     try {
-      const result = await SammoAPI.NationSetSecretLimit(policy.secretLimit);
+      const result = await SammoAPI.NationSetSecretLimit({ amount: policy.secretLimit, serverID });
       if (result.result) {
         alert('기밀 권한이 변경되었습니다.');
         await loadNationData();
@@ -161,7 +161,7 @@ export default function NationStratFinanPage() {
 
   async function setBlockWar(value: boolean) {
     try {
-      const result = await SammoAPI.NationSetBlockWar(value);
+      const result = await SammoAPI.NationSetBlockWar({ value, serverID });
       if (result.result) {
         setPolicy({...policy, blockWar: value});
         alert('전쟁 금지 설정이 변경되었습니다.');
@@ -176,7 +176,7 @@ export default function NationStratFinanPage() {
 
   async function setBlockScout(value: boolean) {
     try {
-      const result = await SammoAPI.NationSetBlockScout(value);
+      const result = await SammoAPI.NationSetBlockScout({ value, serverID });
       if (result.result) {
         setPolicy({...policy, blockScout: value});
         alert('임관 금지 설정이 변경되었습니다.');

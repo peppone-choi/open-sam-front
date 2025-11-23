@@ -96,3 +96,9 @@ export const useGameStore = create<GameStore>((set) => ({
     ]
   })
 }));
+
+if (typeof window !== 'undefined') {
+  const globalWindow = window as Window;
+  globalWindow.__OPEN_SAM_STORES__ = globalWindow.__OPEN_SAM_STORES__ ?? {};
+  globalWindow.__OPEN_SAM_STORES__.game = useGameStore;
+}

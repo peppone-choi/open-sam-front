@@ -70,7 +70,7 @@ export default function MainControlBar({
           href={href}
           target={target}
           className={cn(buttonBaseClass, activeClass, isHighlight && highlightClass)}
-          style={isHighlight ? undefined : { color: colorSystem?.text }}
+          // Removed manual color override to let ThemeProvider handle it via Tailwind classes
         >
           {label}
           {isHighlight && <span className="absolute top-1 right-1 flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span></span>}
@@ -86,17 +86,16 @@ export default function MainControlBar({
 
   return (
     <div
-      className="flex flex-col gap-2 p-2 rounded-xl bg-background-secondary/40 backdrop-blur-md border border-white/10 shadow-inner h-full"
-      style={{ borderColor: colorSystem?.border }}
+      className="flex flex-col gap-2 p-2 rounded-xl bg-space-panel backdrop-blur-md border border-white/10 shadow-inner h-full"
     >
-      <div className="text-xs font-bold text-foreground-muted uppercase tracking-wider px-2 py-1 mb-1 border-b border-white/5">
+      <div className="text-xs font-bold text-foreground-muted uppercase tracking-wider px-2 py-1 mb-1 border-b border-white/5 font-mono">
         {CONTROL_BAR_TEXT.title}
       </div>
 
-      <div className="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar flex-1 pr-1">
+      <div className="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar flex-1 pr-1 font-serif">
         {/* 1. 내정 관련 */}
         <div className="space-y-1">
-          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1">{CONTROL_BAR_TEXT.sections.domestic}</div>
+          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1 font-mono">{CONTROL_BAR_TEXT.sections.domestic}</div>
           {renderButton(`${basePath}/board`, "회 의 실", !isRonin && myLevel >= 1)}
           {renderButton(`${basePath}/board?isSecret=true`, "기 밀 실", permission >= 2)}
           {renderButton(`${basePath}/my-boss-info`, "인 사 부", !isRonin && myLevel >= 1)}
@@ -104,20 +103,20 @@ export default function MainControlBar({
         </div>
 
         <div className="space-y-1">
-          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1">{CONTROL_BAR_TEXT.sections.military}</div>
+          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1 font-mono">{CONTROL_BAR_TEXT.sections.military}</div>
           {renderButton(`${basePath}/troop`, "부대 편성", hasNationAccess && myLevel >= 1)}
           {renderButton(`${basePath}/chief`, "사 령 부", hasNationAccess && showSecret)}
           {renderButton(`${basePath}/battle-center`, "감 찰 부", hasNationAccess && showSecret, false, "_blank")}
         </div>
 
         <div className="space-y-1">
-          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1">{CONTROL_BAR_TEXT.sections.diplomacy}</div>
+          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1 font-mono">{CONTROL_BAR_TEXT.sections.diplomacy}</div>
           {renderButton(`${basePath}/diplomacy`, "외 교 부", hasNationAccess && showSecret)}
           {renderButton(`${basePath}/npc-control`, "NPC 정책", hasNationAccess && showSecret)}
         </div>
 
         <div className="space-y-1">
-          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1">{CONTROL_BAR_TEXT.sections.information}</div>
+          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1 font-mono">{CONTROL_BAR_TEXT.sections.information}</div>
           {renderButton(`${basePath}/info/nation`, "세력 정보", !isRonin && myLevel >= 1)}
           {renderButton(`${basePath}/info/city`, "세력 도시", hasNationAccess && myLevel >= 1)}
           {renderButton(`${basePath}/nation/generals`, "세력 장수", !isRonin && myLevel >= 1)}
@@ -127,13 +126,13 @@ export default function MainControlBar({
         </div>
 
         <div className="space-y-1">
-          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1">{CONTROL_BAR_TEXT.sections.personal}</div>
+          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1 font-mono">{CONTROL_BAR_TEXT.sections.personal}</div>
           {renderButton(`${basePath}/inherit`, "유산 관리", true)}
           {renderButton(`${basePath}/info/me`, "내 정보 설정", true)}
         </div>
 
         <div className="space-y-1">
-          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1">{CONTROL_BAR_TEXT.sections.special}</div>
+          <div className="text-[10px] font-bold text-foreground-dim px-2 pt-2 pb-1 font-mono">{CONTROL_BAR_TEXT.sections.special}</div>
           {renderButton(`${basePath}/tournament`, "토너먼트", true, isTournamentApplicationOpen, "_blank")}
           {renderButton(`${basePath}/betting`, "베 팅 장", true, isBettingActive, "_blank")}
 
@@ -157,7 +156,7 @@ export default function MainControlBar({
             </div>
 
             {auctionDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-background-tertiary border border-white/10 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-space-panel border border-white/10 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                 <Link
                   href={`${basePath}/auction`}
                   target="_blank"

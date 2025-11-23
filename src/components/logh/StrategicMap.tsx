@@ -211,6 +211,7 @@ export default function StrategicMap({ sessionId, onFleetClick, onCellClick }: P
     <div className="relative bg-black overflow-hidden rounded-lg">
       <canvas
         ref={canvasRef}
+        data-testid="logh-strategic-canvas"
         onClick={handleCanvasClick}
         onMouseMove={handleCanvasMouseMove}
         onMouseLeave={() => setHoveredCell(null)}

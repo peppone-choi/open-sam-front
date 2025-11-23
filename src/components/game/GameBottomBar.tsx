@@ -200,11 +200,7 @@ export default function GameBottomBar({
            "h-16 border-t backdrop-blur-xl flex items-center justify-around px-2 safe-area-bottom transition-all duration-300",
            "bg-background-main/90 border-white/10"
         )}
-        style={{
-           // If nationColor is provided, override the background with a tint
-           backgroundColor: nationColor ? undefined : 'rgba(17, 24, 39, 0.9)', 
-           ...(nationColor ? { background: `linear-gradient(to top, ${barBgColor}, rgba(17, 24, 39, 0.9))` } : {})
-        }}
+        // Removed inline style override to rely on ThemeProvider global styles
       >
         <NavButton 
            icon={<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>}

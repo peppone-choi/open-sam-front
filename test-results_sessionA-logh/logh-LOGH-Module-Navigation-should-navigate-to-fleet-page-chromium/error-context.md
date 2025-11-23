@@ -1,0 +1,74 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: 함대 관리
+      - button "뒤로" [ref=e7] [cursor=pointer]
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - heading "제 13 함대 자유혹성동맹" [level=1] [ref=e11]:
+            - text: 제 13 함대
+            - generic [ref=e12]: 자유혹성동맹
+          - generic [ref=e13]:
+            - generic [ref=e14]: "사령관: 양 웬리"
+            - generic [ref=e15]: "기함: 휴페리온"
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - generic [ref=e18]: 총 함선
+            - generic [ref=e19]: 16,000
+          - generic [ref=e20]:
+            - generic [ref=e21]: 전투력
+            - generic [ref=e22]: 1,303,500
+      - generic [ref=e23]:
+        - button "함대 현황" [ref=e24] [cursor=pointer]
+        - button "진형 설정" [ref=e25] [cursor=pointer]
+        - button "함선 건조/편성" [ref=e26] [cursor=pointer]
+      - generic [ref=e28]:
+        - heading "편성된 함선 목록" [level=2] [ref=e29]
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - generic [ref=e33]:
+                - generic [ref=e34]: 표준 전함
+                - generic [ref=e35]: 전함
+              - generic [ref=e36]: 5,000
+            - generic [ref=e37]:
+              - generic [ref=e38]:
+                - generic [ref=e39]: 숙련도
+                - generic [ref=e43]: "80"
+              - generic [ref=e44]:
+                - generic [ref=e45]: 사기
+                - generic [ref=e49]: "95"
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - generic [ref=e52]:
+                - generic [ref=e53]: 고속 순양함
+                - generic [ref=e54]: 순양함
+              - generic [ref=e55]: 3,000
+            - generic [ref=e56]:
+              - generic [ref=e57]:
+                - generic [ref=e58]: 숙련도
+                - generic [ref=e62]: "75"
+              - generic [ref=e63]:
+                - generic [ref=e64]: 사기
+                - generic [ref=e68]: "90"
+          - generic [ref=e69]:
+            - generic [ref=e70]:
+              - generic [ref=e71]:
+                - generic [ref=e72]: 구축함
+                - generic [ref=e73]: 구축함
+              - generic [ref=e74]: 8,000
+            - generic [ref=e75]:
+              - generic [ref=e76]:
+                - generic [ref=e77]: 숙련도
+                - generic [ref=e81]: "60"
+              - generic [ref=e82]:
+                - generic [ref=e83]: 사기
+                - generic [ref=e87]: "85"
+  - button "Open Next.js Dev Tools" [ref=e93] [cursor=pointer]:
+    - img [ref=e94]
+  - alert [ref=e97]
+```

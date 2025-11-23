@@ -79,12 +79,67 @@ const mockChat = {
   ],
 };
 
+const mockSessionSnapshot = {
+  data: {
+    sessionId: 's2-main',
+    clock: {
+      loopStats: {
+        avgTickDurationMs: 320,
+        maxTickDurationMs: 540,
+        lastAlertAt: null,
+      },
+    },
+  },
+};
+
+const mockStrategySnapshot = {
+  data: {
+    sessionId: 's2-main',
+    map: {
+      meta: {
+        systemCount: 128,
+        warpRouteCount: 54,
+      },
+    },
+    clock: {
+      loopStats: {
+        avgTickDurationMs: 210,
+        maxTickDurationMs: 360,
+      },
+      phase: 'strategic',
+    },
+    fleets: [
+      { fleetId: 'fleet-1', name: '13th Fleet', status: 'idle', totalShips: 16000, morale: 95 },
+    ],
+    operationHotspots: [
+      {
+        operationId: 'op-1',
+        code: 'OPS-01',
+        status: 'ready',
+        objectiveType: '점령',
+        targetGrid: { x: 4, y: 2 },
+        issuedAt: new Date().toISOString(),
+        waitHours: 3,
+      },
+    ],
+  },
+};
+
+const mockTelemetrySamples = {
+  data: [
+    { scene: 'strategy', avgFps: 58, cpuPct: 42, collectedAt: new Date().toISOString() },
+    { scene: 'tactical', avgFps: 61, cpuPct: 47, collectedAt: new Date().toISOString() },
+  ],
+};
+
 const QA_OUTPUT_DIR = path.resolve(__dirname, '../test-results/gin7');
 
 async function mockGin7Routes(page: any) {
-  await page.route('**/api/gin7/session', (route: any) => route.fulfill({ json: mockSession }));
-  await page.route('**/api/gin7/strategy', (route: any) => route.fulfill({ json: mockStrategy }));
-  await page.route('**/api/gin7/operations', async (route: any, request: any) => {
+  await page.route('**/api/gin7/session**', (route: any) => route.fulfill({ json: mockSession }));
+  await page.route('**/api/gin7/session/sessions/**', (route: any) => route.fulfill({ json: mockSessionSnapshot }));
+  await page.route('**/api/gin7/strategy**', (route: any) => route.fulfill({ json: mockStrategy }));
+  await page.route('**/api/gin7/strategy/sessions/**', (route: any) => route.fulfill({ json: mockStrategySnapshot }));
+  await page.route('**/api/gin7/operations**', async (route: any, request: any) => {
     if (request.method() === 'POST') {
       const body = request.postDataJSON?.() ?? {};
       const response = {
@@ -102,12 +157,20 @@ async function mockGin7Routes(page: any) {
     }
     return route.fulfill({ json: mockPlans });
   });
-  await page.route('**/api/gin7/tactical', (route: any) => route.fulfill({ json: mockTactical }));
-  await page.route('**/api/gin7/tactical/energy', async (route: any) => {
+  await page.route('**/api/gin7/tactical/energy**', async (route: any) => {
     route.fulfill({ json: { data: mockTactical.data.energy } });
   });
-  await page.route('**/api/gin7/chat', (route: any) => route.fulfill({ json: mockChat }));
-  await page.route('**/api/gin7/telemetry', (route: any) => route.fulfill({ json: { success: true } }));
+  await page.route('**/api/gin7/tactical**', (route: any) => route.fulfill({ json: mockTactical }));
+  await page.route('**/api/gin7/chat**', (route: any) => route.fulfill({ json: mockChat }));
+  await page.route('**/api/gin7/telemetry**', async (route: any, request: any) => {
+    if (request.method() === 'POST') {
+      return route.fulfill({ json: { success: true } });
+    }
+    const url = new URL(request.url());
+    const limit = Number(url.searchParams.get('limit') ?? mockTelemetrySamples.data.length);
+    const data = mockTelemetrySamples.data.slice(0, limit);
+    return route.fulfill({ json: { data } });
+  });
 }
 
 test.describe('GIN7 UI', () => {

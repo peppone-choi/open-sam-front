@@ -3,6 +3,7 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/contexts/ToastContext";
 import ToastContainer from "@/components/common/ToastContainer";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -22,13 +23,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={outfit.variable}>
-      <body className="font-sans antialiased">
-        <ToastProvider>
-          <div className="min-h-screen flex flex-col">
-            {children}
-          </div>
-          <ToastContainer />
-        </ToastProvider>
+      <body className="font-sans antialiased bg-background-main text-foreground">
+        <ThemeProvider>
+          <ToastProvider>
+            <div className="min-h-screen flex flex-col">
+              {children}
+            </div>
+            <ToastContainer />
+          </ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

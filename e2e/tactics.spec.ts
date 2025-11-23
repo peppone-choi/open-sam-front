@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { LOGH_TEXT } from '../src/constants/uiText';
 
 test.describe('Tactical Map Interaction', () => {
   test('should load map and HUD', async ({ page }) => {
@@ -9,9 +10,11 @@ test.describe('Tactical Map Interaction', () => {
 
     // Verify HUD
     await expect(page.getByTestId('tactical-hud')).toBeVisible();
-    await expect(page.getByText('RADAR ACTIVE')).toBeVisible();
+    await expect(page.getByText(LOGH_TEXT.radarActive)).toBeVisible();
     
-    // Verify Shortcuts
-    await expect(page.getByText('F: Move')).toBeVisible();
+    // Verify Shortcuts (한글)
+    for (const shortcut of LOGH_TEXT.shortcuts) {
+      await expect(page.getByText(shortcut)).toBeVisible();
+    }
   });
 });

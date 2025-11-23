@@ -10,7 +10,21 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
+    // Chromatic configuration for visual regression testing
+    chromatic: {
+      delay: 300,
+      pauseAnimationAtEnd: true,
+      viewports: [375, 768, 1280, 1920],
+    },
   },
+  // Global decorators
+  decorators: [
+    (Story) => (
+      <div style={{ padding: '1rem' }}>
+        <Story />
+      </div>
+    ),
+  ],
 };
 
 export default preview;
