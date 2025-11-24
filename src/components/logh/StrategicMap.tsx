@@ -3,10 +3,12 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useSocket } from '@/hooks/useSocket';
 import { cn } from '@/lib/utils';
+import WarpDialog from './WarpDialog';
 
 /**
  * LOGH Strategic Map Component
  * 100x50 전략 맵 (Canvas 기반)
+ * Manual P.31 - ワープ航行の概念
  */
 
 interface Fleet {
@@ -14,8 +16,10 @@ interface Fleet {
   name: string;
   faction: 'empire' | 'alliance' | 'neutral';
   strategicPosition: { x: number; y: number };
+  destination?: { x: number; y: number };
   status: string;
   isInCombat: boolean;
+  isMoving?: boolean;
   totalShips: number;
 }
 
@@ -24,18 +28,30 @@ interface MapGridData {
   grid: number[][];
 }
 
+interface WarpOutcome {
+  terrainType: string;
+  hazardLevel: number;
+  errorVector: { x: number; y: number };
+  finalDestination: { x: number; y: number };
+}
+
 interface Props {
   sessionId: string;
+  characterId?: string; // Required for warp commands
   onFleetClick?: (fleet: Fleet) => void;
   onCellClick?: (x: number, y: number) => void;
 }
 
-export default function StrategicMap({ sessionId, onFleetClick, onCellClick }: Props) {
+export default function StrategicMap({ sessionId, characterId, onFleetClick, onCellClick }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [mapGrid, setMapGrid] = useState<MapGridData | null>(null);
   const [fleets, setFleets] = useState<Fleet[]>([]);
   const [selectedFleet, setSelectedFleet] = useState<Fleet | null>(null);
   const [hoveredCell, setHoveredCell] = useState<{ x: number; y: number } | null>(null);
+  const [hoveredTerrain, setHoveredTerrain] = useState<{ terrainType: string; hazardLevel: number } | null>(null);
+  const [warpDialogOpen, setWarpDialogOpen] = useState(false);
+  const [warpTarget, setWarpTarget] = useState<{ x: number; y: number } | null>(null);
+  const [lastWarpOutcome, setLastWarpOutcome] = useState<WarpOutcome | null>(null);
 
   const cellWidth = 16; // 각 그리드 셀의 픽셀 크기
   const cellHeight = 16;
@@ -55,6 +71,9 @@ export default function StrategicMap({ sessionId, onFleetClick, onCellClick }: P
     socket.on('game:state-update', (data: any) => {
       if (data.fleets) {
         setFleets(data.fleets);
+      }
+      if (data.warpOutcome) {
+        setLastWarpOutcome(data.warpOutcome);
       }
     });
 
@@ -94,10 +113,37 @@ export default function StrategicMap({ sessionId, onFleetClick, onCellClick }: P
     // 그리드 렌더링
     for (let y = 0; y < mapGrid.gridSize.height; y++) {
       for (let x = 0; x < mapGrid.gridSize.width; x++) {
-        const isNavigable = mapGrid.grid[y][x] === 1;
+        const cellValue = mapGrid.grid[y][x];
         
-        ctx.fillStyle = isNavigable ? '#1a1a2e' : '#0f0f1e';
+        // Terrain-based coloring (GAL-245)
+        let cellColor = '#0f0f1e'; // void
+        if (cellValue === 1) {
+          cellColor = '#1a1a2e'; // space
+        } else if (cellValue === 2) {
+          cellColor = '#4a1a1a'; // plasma-storm (red tint)
+        } else if (cellValue === 3) {
+          cellColor = '#1a2a4a'; // nebula (blue tint)
+        } else if (cellValue === 4) {
+          cellColor = '#2a2a1a'; // asteroid-field (brown tint)
+        }
+        
+        ctx.fillStyle = cellColor;
         ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+
+        // Hazard badges for dangerous terrain
+        if (cellValue === 2) {
+          // Plasma storm - high hazard
+          ctx.fillStyle = '#ff4444';
+          ctx.beginPath();
+          ctx.arc(x * cellWidth + 4, y * cellHeight + 4, 2, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (cellValue === 3 || cellValue === 4) {
+          // Nebula/Asteroid - medium hazard
+          ctx.fillStyle = '#ffaa44';
+          ctx.beginPath();
+          ctx.arc(x * cellWidth + 4, y * cellHeight + 4, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
 
         // 호버된 셀 강조
         if (hoveredCell && hoveredCell.x === x && hoveredCell.y === y) {
@@ -106,6 +152,29 @@ export default function StrategicMap({ sessionId, onFleetClick, onCellClick }: P
           ctx.strokeRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
         }
       }
+    }
+
+    // Render warp error visualization (Manual P.31)
+    if (lastWarpOutcome && lastWarpOutcome.errorVector && (lastWarpOutcome.errorVector.x !== 0 || lastWarpOutcome.errorVector.y !== 0)) {
+      const finalX = Math.floor(lastWarpOutcome.finalDestination.x);
+      const finalY = Math.floor(lastWarpOutcome.finalDestination.y);
+      
+      // Draw warning indicator at final destination
+      ctx.strokeStyle = '#ff00ff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(finalX * cellWidth, finalY * cellHeight, cellWidth, cellHeight);
+      
+      // Draw error vector arrow (simplified)
+      ctx.strokeStyle = '#ffaa00';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath();
+      const centerX = finalX * cellWidth + cellWidth / 2;
+      const centerY = finalY * cellHeight + cellHeight / 2;
+      ctx.moveTo(centerX - lastWarpOutcome.errorVector.x * cellWidth, centerY - lastWarpOutcome.errorVector.y * cellHeight);
+      ctx.lineTo(centerX, centerY);
+      ctx.stroke();
+      ctx.setLineDash([]);
     }
 
     // 함대 렌더링
@@ -184,16 +253,24 @@ export default function StrategicMap({ sessionId, onFleetClick, onCellClick }: P
         setSelectedFleet(clickedFleet);
         onFleetClick?.(clickedFleet);
       } else {
-        onCellClick?.(gridX, gridY);
+        // Right-click or Shift+Click to open warp dialog
+        if (e.button === 2 || e.shiftKey) {
+          if (selectedFleet && characterId) {
+            setWarpTarget({ x: gridX, y: gridY });
+            setWarpDialogOpen(true);
+          }
+        } else {
+          onCellClick?.(gridX, gridY);
+        }
       }
     },
-    [fleets, onFleetClick, onCellClick]
+    [fleets, selectedFleet, characterId, onFleetClick, onCellClick]
   );
 
   // 마우스 이동 처리
   const handleCanvasMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (!canvasRef.current) return;
+      if (!canvasRef.current || !mapGrid) return;
 
       const rect = canvasRef.current.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
@@ -203,9 +280,37 @@ export default function StrategicMap({ sessionId, onFleetClick, onCellClick }: P
       const gridY = Math.floor(mouseY / cellHeight);
 
       setHoveredCell({ x: gridX, y: gridY });
+
+      // Fetch terrain info for hovered cell
+      if (gridY >= 0 && gridY < mapGrid.gridSize.height && gridX >= 0 && gridX < mapGrid.gridSize.width) {
+        const cellValue = mapGrid.grid[gridY][gridX];
+        const terrainLookup: Record<number, { terrainType: string; hazardLevel: number }> = {
+          0: { terrainType: 'void', hazardLevel: 10 },
+          1: { terrainType: 'space', hazardLevel: 0 },
+          2: { terrainType: 'plasma-storm', hazardLevel: 2 },
+          3: { terrainType: 'nebula', hazardLevel: 1 },
+          4: { terrainType: 'asteroid-field', hazardLevel: 1 },
+        };
+        setHoveredTerrain(terrainLookup[cellValue] || { terrainType: 'unknown', hazardLevel: 0 });
+      }
     },
-    []
+    [mapGrid]
   );
+
+  // Handle warp dialog complete
+  const handleWarpComplete = useCallback((result: any) => {
+    if (result.warpOutcome) {
+      setLastWarpOutcome(result.warpOutcome);
+      
+      // Show notification
+      console.log('Warp executed:', result);
+      
+      // Clear after 10 seconds
+      setTimeout(() => {
+        setLastWarpOutcome(null);
+      }, 10000);
+    }
+  }, []);
 
   return (
     <div className="relative bg-black overflow-hidden rounded-lg">
@@ -225,16 +330,50 @@ export default function StrategicMap({ sessionId, onFleetClick, onCellClick }: P
         }}
       />
 
-      {/* 정보 패널 */}
-      {hoveredCell && (
-        <div className="absolute top-2 left-2 bg-black/80 text-white p-2 rounded text-sm font-mono border border-white/10 pointer-events-none">
-          좌표: ({hoveredCell.x}, {hoveredCell.y})
+      {/* 정보 패널 - Terrain & Hazard Info */}
+      {hoveredCell && hoveredTerrain && (
+        <div className="absolute top-2 left-2 bg-black/90 text-white p-3 rounded-lg text-sm font-mono border border-white/20 pointer-events-none shadow-xl space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400">座標:</span>
+            <span className="text-cyan-300 font-bold">({hoveredCell.x}, {hoveredCell.y})</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400">地形:</span>
+            <span className={cn(
+              "font-bold",
+              hoveredTerrain.hazardLevel >= 2 ? "text-red-400" : 
+              hoveredTerrain.hazardLevel === 1 ? "text-yellow-400" : "text-green-400"
+            )}>
+              {hoveredTerrain.terrainType === 'space' ? '通常空間' :
+               hoveredTerrain.terrainType === 'plasma-storm' ? 'プラズマ嵐' :
+               hoveredTerrain.terrainType === 'nebula' ? '星雲' :
+               hoveredTerrain.terrainType === 'asteroid-field' ? '小惑星帯' :
+               hoveredTerrain.terrainType === 'void' ? '航行不能' : '未知'}
+            </span>
+          </div>
+          {hoveredTerrain.hazardLevel > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-gray-400">危険:</span>
+              <span className={cn(
+                "font-bold",
+                hoveredTerrain.hazardLevel >= 2 ? "text-red-400" : "text-yellow-400"
+              )}>
+                {hoveredTerrain.hazardLevel >= 2 ? '⚠️ 高' : hoveredTerrain.hazardLevel === 1 ? '⚡ 中' : '✓ 低'}
+                {hoveredTerrain.hazardLevel > 0 && ` (±${hoveredTerrain.hazardLevel})`}
+              </span>
+            </div>
+          )}
+          {selectedFleet && characterId && (
+            <div className="text-xs text-cyan-300 mt-2 pt-2 border-t border-white/10">
+              💡 Shift+Click でワープ
+            </div>
+          )}
         </div>
       )}
 
       {/* 선택된 함대 정보 */}
       {selectedFleet && (
-        <div className="absolute top-2 right-2 bg-black/90 text-white p-3 rounded-lg min-w-[200px] border border-white/20 shadow-xl">
+        <div className="absolute top-2 right-2 bg-black/90 text-white p-3 rounded-lg min-w-[220px] border border-white/20 shadow-xl">
           <div className="font-bold text-lg mb-2 border-b border-white/10 pb-1">{selectedFleet.name}</div>
           <div className="text-sm space-y-1">
             <div>
@@ -245,14 +384,44 @@ export default function StrategicMap({ sessionId, onFleetClick, onCellClick }: P
                   selectedFleet.faction === 'empire' ? 'text-yellow-400' : 'text-cyan-400'
                 )}
               >
-                {selectedFleet.faction === 'empire' ? '제국' : '동맹'}
+                {selectedFleet.faction === 'empire' ? '제国' : '同盟'}
               </span>
             </div>
-            <div>함선: <span className="font-mono text-blue-300">{selectedFleet.totalShips.toLocaleString()}</span></div>
-            <div>상태: <span className="text-gray-300">{selectedFleet.status}</span></div>
-            {selectedFleet.isInCombat && (
-              <div className="text-red-500 font-bold animate-pulse">⚔️ 전투 중</div>
+            <div>艦船数: <span className="font-mono text-blue-300">{selectedFleet.totalShips.toLocaleString()}</span></div>
+            <div>現在位置: <span className="font-mono text-gray-300">({Math.floor(selectedFleet.strategicPosition.x)}, {Math.floor(selectedFleet.strategicPosition.y)})</span></div>
+            {selectedFleet.destination && (
+              <div>目標: <span className="font-mono text-cyan-300">({Math.floor(selectedFleet.destination.x)}, {Math.floor(selectedFleet.destination.y)})</span></div>
             )}
+            <div>状態: <span className={cn(
+              "font-bold",
+              selectedFleet.isMoving ? "text-cyan-400" : "text-gray-300"
+            )}>{selectedFleet.isMoving ? '🛸 移動中' : selectedFleet.status}</span></div>
+            {selectedFleet.isInCombat && (
+              <div className="text-red-500 font-bold animate-pulse">⚔️ 戦闘中</div>
+            )}
+            {characterId && !selectedFleet.isInCombat && (
+              <button
+                onClick={() => setWarpDialogOpen(true)}
+                className="mt-2 w-full px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded font-bold transition-all text-xs shadow-lg shadow-cyan-500/30"
+              >
+                🛸 ワープ航行
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Warp Error Outcome Display */}
+      {lastWarpOutcome && (lastWarpOutcome.errorVector.x !== 0 || lastWarpOutcome.errorVector.y !== 0) && (
+        <div className="absolute bottom-16 left-2 bg-orange-900/90 border-2 border-orange-500 text-white p-3 rounded-lg max-w-[280px] shadow-2xl animate-pulse">
+          <div className="font-bold text-sm mb-1 flex items-center gap-2">
+            <span className="text-xl">⚠️</span>
+            <span>ワープ誤差発生!</span>
+          </div>
+          <div className="text-xs space-y-1">
+            <div>誤差ベクトル: ({lastWarpOutcome.errorVector.x > 0 ? '+' : ''}{lastWarpOutcome.errorVector.x}, {lastWarpOutcome.errorVector.y > 0 ? '+' : ''}{lastWarpOutcome.errorVector.y})</div>
+            <div>実際の到着: ({Math.floor(lastWarpOutcome.finalDestination.x)}, {Math.floor(lastWarpOutcome.finalDestination.y)})</div>
+            <div className="text-orange-300 mt-1">地形: {lastWarpOutcome.terrainType}</div>
           </div>
         </div>
       )}
@@ -267,6 +436,22 @@ export default function StrategicMap({ sessionId, onFleetClick, onCellClick }: P
           {isConnected ? 'LIVE' : 'OFFLINE'}
         </div>
       </div>
+
+      {/* Warp Dialog */}
+      {warpDialogOpen && selectedFleet && characterId && (
+        <WarpDialog
+          isOpen={warpDialogOpen}
+          onClose={() => {
+            setWarpDialogOpen(false);
+            setWarpTarget(null);
+          }}
+          fleet={selectedFleet}
+          targetCoordinates={warpTarget}
+          sessionId={sessionId}
+          characterId={characterId}
+          onWarpComplete={handleWarpComplete}
+        />
+      )}
     </div>
   );
 }

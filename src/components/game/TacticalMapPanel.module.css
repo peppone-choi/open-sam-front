@@ -116,3 +116,61 @@
 .infoValue {
   color: #333;
 }
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+}
+
+.loadingSpinner {
+  padding: 16px 24px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #e5e7eb;
+  font-size: 16px;
+  font-weight: 600;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.joinBattleBtn {
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.joinBattleBtn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.joinBattleBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.errorText {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 8px;
+}

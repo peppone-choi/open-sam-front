@@ -5,6 +5,15 @@ import {
   UserProfile, 
   CommandType 
 } from '@/types/logh';
+import {
+  ChatMessage,
+  ChannelType,
+  Mail,
+  MailBoxInfo,
+  AddressBookEntry,
+  Handshake,
+  HandshakeStatus,
+} from '@/types/comm';
 
 const API_BASE = '/api/logh';
 
@@ -38,16 +47,71 @@ const CMD_MAP: Record<CommandType, string> = {
 };
 
 export const loghApi = {
-  getUniverseViewport: async (x: number, y: number, zoom: number): Promise<{ systems: StarSystem[], fleets: Fleet[] }> => {
-    const [systemsData, fleetsData] = await Promise.all([
-      fetchWithAuth(`${API_BASE}/galaxy/systems`),
-      fetchWithAuth(`${API_BASE}/galaxy/fleets`)
-    ]);
+  // Galaxy/Strategy Map APIs
+  getGalaxyViewport: async (sessionId?: string) => {
+    const params = new URLSearchParams();
+    if (sessionId) params.set('sessionId', sessionId);
+    
+    const response = await fetch(`/api/gin7/state/strategy?${params.toString()}`);
+    if (!response.ok) throw new Error('Failed to fetch galaxy viewport data');
+    return response.json();
+  },
 
-    return {
-      systems: systemsData.data || [],
-      fleets: fleetsData.data || []
-    };
+  // Ground Combat APIs
+  getGroundCombatState: async (battleId: string, sessionId?: string) => {
+    const params = new URLSearchParams();
+    if (sessionId) params.set('sessionId', sessionId);
+    
+    const response = await fetch(`/api/logh/ground-combat/${battleId}?${params.toString()}`);
+    if (!response.ok) throw new Error('Failed to fetch ground combat state');
+    return response.json();
+  },
+
+  getOccupationStatus: async (battleId: string, sessionId?: string) => {
+    const params = new URLSearchParams();
+    if (sessionId) params.set('sessionId', sessionId);
+    
+    const response = await fetch(`/api/logh/ground-combat/${battleId}/occupation?${params.toString()}`);
+    if (!response.ok) throw new Error('Failed to fetch occupation status');
+    return response.json();
+  },
+
+  getSupplyBatches: async (battleId: string, sessionId?: string) => {
+    const params = new URLSearchParams();
+    if (sessionId) params.set('sessionId', sessionId);
+    
+    const response = await fetch(`/api/logh/ground-combat/${battleId}/supplies?${params.toString()}`);
+    if (!response.ok) throw new Error('Failed to fetch supply batches');
+    return response.json();
+  },
+
+  getWarehouseStocks: async (battleId: string, sessionId?: string) => {
+    const params = new URLSearchParams();
+    if (sessionId) params.set('sessionId', sessionId);
+    
+    const response = await fetch(`/api/logh/ground-combat/${battleId}/warehouse?${params.toString()}`);
+    if (!response.ok) throw new Error('Failed to fetch warehouse stocks');
+    return response.json();
+  },
+
+  updateOccupation: async (battleId: string, planetId: string, updates: any, sessionId?: string) => {
+    const response = await fetch(`/api/logh/ground-combat/${battleId}/occupation/${planetId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...updates, sessionId }),
+    });
+    if (!response.ok) throw new Error('Failed to update occupation status');
+    return response.json();
+  },
+
+  consumeSupply: async (battleId: string, batchId: string, amount: number, sessionId?: string) => {
+    const response = await fetch(`/api/logh/ground-combat/${battleId}/supplies/${batchId}/consume`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, sessionId }),
+    });
+    if (!response.ok) throw new Error('Failed to consume supply');
+    return response.json();
   },
 
   getUserProfile: async (): Promise<UserProfile> => {
@@ -89,33 +153,143 @@ export const loghApi = {
   },
 
   // Economy
-  getEconomyState: async () => {
-    return fetchWithAuth(`${API_BASE}/economy/state`);
+  getEconomyState: async (sessionId: string, characterId?: string) => {
+    const params = new URLSearchParams({ sessionId });
+    if (characterId) params.set('characterId', characterId);
+    const response = await fetchWithAuth(`${API_BASE}/galaxy/economy/state?${params}`);
+    return response.data;
   },
   
-  getEconomyEvents: async () => {
-    return fetchWithAuth(`${API_BASE}/economy/events`);
+  getEconomyEvents: async (sessionId: string, characterId?: string, limit = 10) => {
+    const params = new URLSearchParams({ sessionId, limit: limit.toString() });
+    if (characterId) params.set('characterId', characterId);
+    const response = await fetchWithAuth(`${API_BASE}/galaxy/economy/events?${params}`);
+    return response.data;
   },
 
-  // Communication
-  getMessages: async () => {
-    return fetchWithAuth(`${API_BASE}/comm/messages`);
+  // Communication - Chat
+  getChatMessages: async (
+    sessionId: string,
+    channelType: ChannelType,
+    scopeId?: string,
+    limit = 50
+  ): Promise<ChatMessage[]> => {
+    const params = new URLSearchParams({
+      sessionId,
+      channelType,
+      limit: limit.toString(),
+    });
+    if (scopeId) params.append('scopeId', scopeId);
+    
+    const data = await fetchWithAuth(`${API_BASE}/galaxy/comm/messages?${params}`);
+    return data.data || [];
   },
 
-  getHandshakes: async () => {
-    return fetchWithAuth(`${API_BASE}/comm/handshakes`);
+  sendChatMessage: async (
+    sessionId: string,
+    channelType: ChannelType,
+    senderCharacterId: string,
+    message: string,
+    scopeId?: string,
+    metadata?: Record<string, any>
+  ): Promise<ChatMessage> => {
+    const data = await fetchWithAuth(`${API_BASE}/galaxy/comm/messages`, {
+      method: 'POST',
+      body: JSON.stringify({
+        sessionId,
+        channelType,
+        scopeId,
+        senderCharacterId,
+        message,
+        metadata,
+      }),
+    });
+    return data.data;
   },
 
-  getAddressBook: async () => {
-    return fetchWithAuth(`${API_BASE}/comm/address-book`);
+  // Communication - Handshakes (Messenger)
+  getHandshakes: async (sessionId: string, characterId: string): Promise<Handshake[]> => {
+    const params = new URLSearchParams({ sessionId, characterId });
+    const data = await fetchWithAuth(`${API_BASE}/galaxy/comm/handshakes?${params}`);
+    return data.data || [];
+  },
+
+  requestHandshake: async (
+    sessionId: string,
+    requesterCharacterId: string,
+    targetCharacterId: string
+  ): Promise<Handshake> => {
+    const data = await fetchWithAuth(`${API_BASE}/galaxy/comm/handshakes`, {
+      method: 'POST',
+      body: JSON.stringify({
+        sessionId,
+        requesterCharacterId,
+        targetCharacterId,
+      }),
+    });
+    return data.data;
+  },
+
+  respondHandshake: async (
+    sessionId: string,
+    handshakeId: string,
+    responderCharacterId: string,
+    action: 'accepted' | 'rejected'
+  ): Promise<Handshake> => {
+    const data = await fetchWithAuth(
+      `${API_BASE}/galaxy/comm/handshakes/${handshakeId}/respond`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          sessionId,
+          responderCharacterId,
+          action,
+        }),
+      }
+    );
+    return data.data;
+  },
+
+  // Communication - Address Book
+  getAddressBook: async (sessionId: string, characterId: string): Promise<AddressBookEntry[]> => {
+    const params = new URLSearchParams({ sessionId, characterId });
+    const data = await fetchWithAuth(`${API_BASE}/galaxy/comm/address-book?${params}`);
+    return data.data || [];
+  },
+
+  addAddressBookEntry: async (
+    sessionId: string,
+    ownerCharacterId: string,
+    contactCharacterId: string,
+    contactName: string
+  ): Promise<AddressBookEntry> => {
+    const data = await fetchWithAuth(`${API_BASE}/galaxy/comm/address-book`, {
+      method: 'POST',
+      body: JSON.stringify({
+        sessionId,
+        ownerCharacterId,
+        contactCharacterId,
+        contactName,
+      }),
+    });
+    return data.data;
   },
 
   // Auto-Resolve
-  autoResolveBattle: async (battleId: string): Promise<any> => {
+  autoResolveBattle: async (battleId: string, resolverCharacterId: string): Promise<any> => {
     return fetchWithAuth(`${API_BASE}/galaxy/tactical-battles/${battleId}/resolve`, {
         method: 'POST',
-        body: JSON.stringify({ autoResolve: true })
+        body: JSON.stringify({ autoResolve: true, resolverCharacterId })
     });
+  },
+
+  // Check offline commanders in battle
+  checkOfflineCommanders: async (battleId: string, sessionId?: string): Promise<{ hasOfflineCommanders: boolean; offlineCommanderIds: string[] }> => {
+    const params = new URLSearchParams();
+    if (sessionId) params.set('sessionId', sessionId);
+    
+    const response = await fetchWithAuth(`${API_BASE}/galaxy/tactical-battles/${battleId}/offline-check?${params}`);
+    return response.data || { hasOfflineCommanders: false, offlineCommanderIds: [] };
   },
 
   // Fleet Management

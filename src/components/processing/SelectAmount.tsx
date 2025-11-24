@@ -55,7 +55,11 @@ export default function SelectAmount({
 
   return (
     <div className={styles.amountContainer}>
+      <label htmlFor="amountInput" className="sr-only">
+        금액 입력
+      </label>
       <input
+        id="amountInput"
         type="number"
         className={styles.amountInput}
         value={inputValue}
@@ -63,6 +67,10 @@ export default function SelectAmount({
         min={minAmount}
         max={maxAmount}
         placeholder="금액 입력"
+        aria-label="금액 입력"
+        aria-valuemin={minAmount}
+        aria-valuemax={maxAmount}
+        aria-valuenow={value}
       />
       {amountGuide.length > 0 && (
         <div className={styles.guideButtons}>

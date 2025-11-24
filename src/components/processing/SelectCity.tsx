@@ -73,9 +73,13 @@ export default function SelectCity({
 
   return (
     <div className={styles.selectContainer}>
-      <div 
+      <button 
+        type="button"
         className={styles.selectInput}
         onClick={() => setIsOpen(!isOpen)}
+        aria-label="도시 선택 메뉴 열기"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
       >
         {selectedOption ? (
           <span>
@@ -87,11 +91,11 @@ export default function SelectCity({
         ) : (
           <span className={styles.placeholder}>도시 선택</span>
         )}
-        <span className={styles.arrow}>{isOpen ? '▲' : '▼'}</span>
-      </div>
+        <span className={styles.arrow} aria-hidden="true">{isOpen ? '▲' : '▼'}</span>
+      </button>
 
       {isOpen && (
-        <div className={styles.dropdown}>
+        <div className={styles.dropdown} role="listbox" aria-label="도시 목록">
           {searchable && (
             <input
               type="text"
@@ -100,22 +104,28 @@ export default function SelectCity({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onClick={(e) => e.stopPropagation()}
+              aria-label="도시 검색"
             />
           )}
 
           <div className={styles.options}>
             {filteredOptions.map(opt => (
-              <div
+              <button
+                type="button"
                 key={opt.value}
                 className={`${styles.option} ${opt.value === value ? styles.selected : ''} ${opt.notAvailable ? styles.notAvailable : ''}`}
                 onClick={() => handleSelect(opt)}
+                role="option"
+                aria-selected={opt.value === value}
+                aria-disabled={opt.notAvailable}
+                disabled={opt.notAvailable}
               >
                 <span>
                   {opt.title}
                   {opt.info && <span className={styles.info}> ({opt.info})</span>}
                   {opt.notAvailable && <span className={styles.notAvailable}> (불가)</span>}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </div>

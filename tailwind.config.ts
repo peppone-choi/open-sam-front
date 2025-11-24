@@ -42,13 +42,9 @@ const config: Config = {
           gold: "#FFD700",    // Gold
         },
         alliance: {
-          DEFAULT: "#4A5D23", // Olive Drab
-          light: "#F5F5DC",   // Beige
-          red: "#DC2626",     // Red (Revolution/Accent)
-        },
-        alliance: {
           DEFAULT: "#4A5D23", // Olive Drab/Military Green
           light: "#F5F5DC",   // Beige/Cream
+          red: "#DC2626",     // Red (Revolution/Accent)
           blue: "#1E90FF",    // Blue - Democracy/Navy
         },
         space: {

@@ -1,87 +1,190 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSocket } from '@/hooks/useSocket';
+import { ChatPanel } from '@/components/comm/ChatPanel';
+import { MessengerPanel } from '@/components/comm/MessengerPanel';
+import { MailPanel } from '@/components/comm/MailPanel';
 
-interface Mail {
-  id: string;
-  from: string;
-  subject: string;
-  body: string;
-  date: string;
-  isRead: boolean;
-}
-
-const MOCK_MAILS: Mail[] = [
-  { id: '1', from: '최고 사령부', subject: '라그나로크 작전 명령', body: '즉시 A-1 구역으로 이동하라. 함대가 대기 중이다.', date: '796.01.05', isRead: false },
-  { id: '2', from: '양 웬리', subject: '답장: 다과회 초대', body: '참석하고 싶지만 해야 할 일이 있어 아쉽습니다.', date: '796.01.04', isRead: true },
-  { id: '3', from: '줄리안 민츠', subject: '보급 보고', body: '차 잎 재고가 바닥나고 있습니다.', date: '796.01.03', isRead: true },
-];
+type CommTab = 'chat' | 'messenger' | 'mail';
 
 export default function CommPage() {
-  const [selectedMail, setSelectedMail] = useState<Mail | null>(null);
-  const [tab, setTab] = useState<'inbox' | 'outbox' | 'address'>('inbox');
+  const [activeTab, setActiveTab] = useState<CommTab>('chat');
+  const [badges, setBadges] = useState({
+    chat: 0,
+    messenger: 0,
+    mail: 0,
+  });
+
+  // Get user session info (mock for now - should come from context/auth)
+  const sessionId = 'session-logh-1';
+  const characterId = 'char-yang-wenli';
+  const characterName = '양 웬리';
+
+  // Socket integration for real-time badges
+  const { isConnected, onNewChatMessage, onNewHandshake, onNewMail } = useSocket({
+    sessionId,
+    autoConnect: true,
+  });
+
+  useEffect(() => {
+    // Subscribe to new chat messages
+    const unsubChat = onNewChatMessage((data) => {
+      console.log('New chat message:', data);
+      if (activeTab !== 'chat') {
+        setBadges((prev) => ({ ...prev, chat: prev.chat + 1 }));
+      }
+    });
+
+    // Subscribe to new handshake requests
+    const unsubHandshake = onNewHandshake((data) => {
+      console.log('New handshake request:', data);
+      if (data.targetCharacterId === characterId && activeTab !== 'messenger') {
+        setBadges((prev) => ({ ...prev, messenger: prev.messenger + 1 }));
+      }
+    });
+
+    // Subscribe to new mail
+    const unsubMail = onNewMail((data) => {
+      console.log('New mail:', data);
+      if (activeTab !== 'mail') {
+        setBadges((prev) => ({ ...prev, mail: prev.mail + 1 }));
+      }
+    });
+
+    return () => {
+      unsubChat();
+      unsubHandshake();
+      unsubMail();
+    };
+  }, [activeTab, characterId]);
+
+  const handleTabChange = (tab: CommTab) => {
+    setActiveTab(tab);
+    // Clear badge for the active tab
+    setBadges((prev) => ({ ...prev, [tab]: 0 }));
+  };
+
+  const handleNewChatMessage = (count: number) => {
+    if (activeTab === 'chat') {
+      setBadges((prev) => ({ ...prev, chat: 0 }));
+    }
+  };
+
+  const handleNewHandshake = (count: number) => {
+    if (activeTab !== 'messenger') {
+      setBadges((prev) => ({ ...prev, messenger: count }));
+    } else {
+      setBadges((prev) => ({ ...prev, messenger: 0 }));
+    }
+  };
+
+  const handleNewMail = (count: number) => {
+    if (activeTab !== 'mail') {
+      setBadges((prev) => ({ ...prev, mail: count }));
+    } else {
+      setBadges((prev) => ({ ...prev, mail: 0 }));
+    }
+  };
 
   return (
-    <div className="flex h-full p-4 gap-4 font-mono text-sm">
-       {/* 사이드바 */}
-       <div className="w-1/3 flex flex-col bg-[#101520] border border-[#333]">
-          {/* 탭 */}
-          <div className="flex border-b border-[#333]">
-             <button onClick={() => setTab('inbox')} className={`flex-1 p-2 hover:bg-[#1E90FF]/20 ${tab==='inbox' ? 'text-[#1E90FF] border-b-2 border-[#1E90FF]' : 'text-[#9CA3AF]'}`}>수신함 (2/120)</button>
-             <button onClick={() => setTab('outbox')} className={`flex-1 p-2 hover:bg-[#1E90FF]/20 ${tab==='outbox' ? 'text-[#1E90FF] border-b-2 border-[#1E90FF]' : 'text-[#9CA3AF]'}`}>발신함</button>
-             <button onClick={() => setTab('address')} className={`flex-1 p-2 hover:bg-[#1E90FF]/20 ${tab==='address' ? 'text-[#1E90FF] border-b-2 border-[#1E90FF]' : 'text-[#9CA3AF]'}`}>주소록</button>
-          </div>
-      
-      {/* 목록 */}
-      <div className="flex-1 overflow-y-auto">
-
-             {MOCK_MAILS.map(mail => (
-               <div 
-                 key={mail.id}
-                 onClick={() => setSelectedMail(mail)}
-                 className={`p-3 border-b border-[#333] cursor-pointer hover:bg-[#1E90FF]/10 ${selectedMail?.id === mail.id ? 'bg-[#1E90FF]/20' : ''}`}
-               >
-                 <div className="flex justify-between mb-1">
-                    <span className={`${mail.isRead ? 'text-[#9CA3AF]' : 'text-[#FFD700] font-bold'}`}>{mail.from}</span>
-                    <span className="text-xs text-[#666]">{mail.date}</span>
-                 </div>
-                 <div className="truncate text-[#E0E0E0]">{mail.subject}</div>
-               </div>
-             ))}
-          </div>
-       </div>
-
-    {/* 열람 영역 */}
-    <div className="flex-1 bg-[#050510] border border-[#333] flex flex-col relative">
-
-          {selectedMail ? (
-            <>
-              <div className="p-4 border-b border-[#333] bg-[#101520]">
-                 <div className="text-lg text-[#FFD700] mb-2">{selectedMail.subject}</div>
-                 <div className="flex justify-between text-xs text-[#9CA3AF]">
-                    <span>발신: {selectedMail.from}</span>
-                    <span>일시: {selectedMail.date}</span>
-                 </div>
-              </div>
-              <div className="p-6 leading-relaxed whitespace-pre-wrap">
-                 {selectedMail.body}
-              </div>
-               <div className="mt-auto p-4 border-t border-[#333] flex gap-2 justify-end bg-[#101520]">
-                  <button className="px-4 py-1 border border-[#1E90FF] text-[#1E90FF] hover:bg-[#1E90FF]/20">회신</button>
-                  <button className="px-4 py-1 border border-[#EF4444] text-[#EF4444] hover:bg-[#EF4444]/20">삭제</button>
-               </div>
-
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-[#333]">
-                 <div className="text-center">
-                    <div className="text-4xl mb-4">📡</div>
-                    <div>보안 통신 링크</div>
-                 </div>
-
+    <div className="flex flex-col h-full p-4 font-mono text-sm bg-[#050510]">
+      {/* Header */}
+      <div className="mb-4 pb-3 border-b border-[#333]">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-[#FFD700]">📡 통신 시스템</h1>
+          <div className="flex items-center gap-3">
+            <div
+              className={`text-xs ${
+                isConnected ? 'text-[#10B981]' : 'text-[#EF4444]'
+              }`}
+            >
+              {isConnected ? '🟢 실시간 연결됨' : '🔴 연결 끊김'}
             </div>
+            <div className="text-xs text-[#9CA3AF]">{characterName}</div>
+          </div>
+        </div>
+        <div className="text-xs text-[#666] mt-2">
+          Manual P.15-P.17 | Chat (spot/fleet/global), Messenger (명함 교환), Mail (120개 제한)
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => handleTabChange('chat')}
+          className={`flex-1 px-6 py-3 border transition-colors relative ${
+            activeTab === 'chat'
+              ? 'border-[#1E90FF] text-[#1E90FF] bg-[#1E90FF]/20 font-bold'
+              : 'border-[#333] text-[#9CA3AF] hover:bg-[#1E90FF]/10'
+          }`}
+        >
+          💬 채팅
+          {badges.chat > 0 && (
+            <span className="absolute -top-2 -right-2 bg-[#EF4444] text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
+              {badges.chat}
+            </span>
           )}
-       </div>
+        </button>
+        <button
+          onClick={() => handleTabChange('messenger')}
+          className={`flex-1 px-6 py-3 border transition-colors relative ${
+            activeTab === 'messenger'
+              ? 'border-[#1E90FF] text-[#1E90FF] bg-[#1E90FF]/20 font-bold'
+              : 'border-[#333] text-[#9CA3AF] hover:bg-[#1E90FF]/10'
+          }`}
+        >
+          🤝 메신저
+          {badges.messenger > 0 && (
+            <span className="absolute -top-2 -right-2 bg-[#FFD700] text-black text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
+              {badges.messenger}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => handleTabChange('mail')}
+          className={`flex-1 px-6 py-3 border transition-colors relative ${
+            activeTab === 'mail'
+              ? 'border-[#1E90FF] text-[#1E90FF] bg-[#1E90FF]/20 font-bold'
+              : 'border-[#333] text-[#9CA3AF] hover:bg-[#1E90FF]/10'
+          }`}
+        >
+          ✉️ 메일
+          {badges.mail > 0 && (
+            <span className="absolute -top-2 -right-2 bg-[#EF4444] text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
+              {badges.mail}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-h-0">
+        {activeTab === 'chat' && (
+          <ChatPanel
+            sessionId={sessionId}
+            characterId={characterId}
+            characterName={characterName}
+            onNewMessage={handleNewChatMessage}
+          />
+        )}
+        {activeTab === 'messenger' && (
+          <MessengerPanel
+            sessionId={sessionId}
+            characterId={characterId}
+            characterName={characterName}
+            onNewHandshake={handleNewHandshake}
+          />
+        )}
+        {activeTab === 'mail' && (
+          <MailPanel
+            sessionId={sessionId}
+            characterId={characterId}
+            characterName={characterName}
+            onNewMail={handleNewMail}
+          />
+        )}
+      </div>
     </div>
   );
 }

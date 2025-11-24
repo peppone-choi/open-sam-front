@@ -207,19 +207,19 @@ export default function SelectNPCPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background-main p-4 font-sans text-foreground md:p-6 lg:p-8">
-      <div className="pointer-events-none absolute inset-0 bg-hero-pattern opacity-20" />
+    <div className="relative min-h-screen overflow-hidden bg-gray-950 p-4 font-sans text-gray-100 md:p-6 lg:p-8">
+      <div className="pointer-events-none absolute inset-0 opacity-20" />
       <div className="pointer-events-none absolute -top-32 right-1/4 h-80 w-80 rounded-full bg-pink-500/15 blur-[150px]" />
 
       <div className="relative z-10 mx-auto max-w-6xl space-y-6">
         <TopBackBar title="오리지널 캐릭터 플레이" backUrl="/entrance" />
         {/* Scout Messages */}
         {Object.keys(nations).length > 0 && (
-          <div className="bg-background-secondary/70 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
+          <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/5 bg-white/5 text-foreground">
+                  <tr className="border-b border-white/5 bg-white/5 text-gray-100">
                     <th className="py-3 px-4 text-left w-[130px]">국가</th>
                     <th className="py-3 px-4 text-left">임관 권유문</th>
                   </tr>
@@ -281,8 +281,8 @@ export default function SelectNPCPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-background-secondary/70 backdrop-blur-sm border border-white/5 rounded-xl p-4 shadow-lg">
-              <p className="text-sm text-foreground-muted">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-4 shadow-lg">
+              <p className="text-sm text-gray-400">
                 각 시나리오의 오리지널 캐릭터를 플레이할 수 있습니다.
               </p>
               <button
@@ -302,7 +302,7 @@ export default function SelectNPCPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {npcList.length === 0 ? (
-                <div className="col-span-full py-12 text-center text-foreground-muted">
+                <div className="col-span-full py-12 text-center text-gray-400">
                    사용 가능한 NPC가 없습니다.
                 </div>
               ) : (
@@ -311,7 +311,7 @@ export default function SelectNPCPage() {
                     key={npc.no}
                     className={cn(
                       "relative cursor-pointer group transition-all duration-200",
-                      "bg-background-secondary/70 backdrop-blur-sm border rounded-xl overflow-hidden shadow-lg",
+                      "bg-gray-900/50 backdrop-blur-sm border rounded-xl overflow-hidden shadow-lg",
                       selectedNPC === npc.no 
                         ? "border-blue-500 ring-2 ring-blue-500/50 transform -translate-y-1" 
                         : "border-white/10 hover:border-white/30 hover:-translate-y-0.5"

@@ -158,8 +158,8 @@ export default function EntrancePage() {
               <span className="text-sm font-bold text-white">{userInfo?.nickName}</span>
               <span className="text-xs text-foreground-dim">환영합니다</span>
            </div>
-           <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-red-500/10 hover:text-red-400 text-sm text-foreground-muted transition-all border border-transparent hover:border-red-500/20">
-             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+           <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-red-500/10 hover:text-red-400 text-sm text-foreground-muted transition-all border border-transparent hover:border-red-500/20" aria-label="로그아웃">
+             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
              {COMMON_TEXT.logout}
            </button>
         </div>
@@ -170,7 +170,7 @@ export default function EntrancePage() {
         {/* Warning Banner */}
         <div className="mb-8 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-4 shadow-lg shadow-red-900/5">
            <div className="p-2 bg-red-500/20 rounded-full shrink-0">
-             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-400"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-400" aria-label="경고 아이콘"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
            </div>
            <div>
              <h3 className="text-sm font-bold text-red-400 mb-1">중요 알림</h3>
@@ -225,7 +225,7 @@ export default function EntrancePage() {
           <div className="mb-12 p-6 rounded-2xl bg-gradient-to-br from-orange-500/10 to-background-secondary border border-orange-500/20 flex flex-col md:flex-row items-center md:items-start gap-4 text-center md:text-left relative overflow-hidden">
              <div className="absolute top-0 right-0 p-32 bg-orange-500/10 blur-[80px] rounded-full pointer-events-none" />
              <div className="p-3 bg-orange-500/20 rounded-xl shrink-0 text-orange-500">
-               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="공지사항 알림"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
              </div>
              <div className="relative z-10">
                <h3 className="text-lg font-bold text-orange-400 mb-1">공지사항</h3>
@@ -295,18 +295,18 @@ export default function EntrancePage() {
                     </div>
                     
                     {/* Character Portrait */}
-                    {server.hasCharacter && (
+                     {server.hasCharacter && (
                        <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-white/10 shadow-lg group-hover:scale-110 transition-transform group-hover:border-primary/50">
                           <img
                             src={server.characterPicture ? `/images/gen_icon/${server.characterImgsvr || 0}/${server.characterPicture}.jpg` : '/default_portrait.png'}
-                            alt={COMMON_TEXT.characterAlt}
+                            alt={`${server.characterName} - ${server.characterNation} 소속 장수 초상`}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = '/default_portrait.png';
                             }}
                           />
                        </div>
-                    )}
+                     )}
                   </div>
 
                   {/* Character Info (if exists) */}
@@ -329,9 +329,9 @@ export default function EntrancePage() {
                                입장 불가
                            </button>
                         ) : server.exists && server.hasCharacter ? (
-                           <Link href={`/${server.serverID}/game`} className="w-full py-3 rounded-xl bg-primary text-white font-bold text-center text-sm shadow-lg shadow-primary/20 hover:bg-primary-hover hover:shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                           <Link href={`/${server.serverID}/game`} className="w-full py-3 rounded-xl bg-primary text-white font-bold text-center text-sm shadow-lg shadow-primary/20 hover:bg-primary-hover hover:shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2" aria-label={`${server.korName} 서버 게임에 접속하기`}>
                               <span>접속하기</span>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                            </Link>
                         ) : (
                            <>
@@ -368,21 +368,21 @@ export default function EntrancePage() {
            {/* Account Tools */}
            <div className="lg:col-span-1">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 계정 설정
               </h3>
               <div className="flex flex-col gap-2">
-                <Link href="/user-info" className="p-3 rounded-lg bg-background-secondary border border-white/5 hover:border-primary/30 hover:bg-background-tertiary transition-all flex items-center justify-between group">
+                <Link href="/user-info" className="p-3 rounded-lg bg-background-secondary border border-white/5 hover:border-primary/30 hover:bg-background-tertiary transition-all flex items-center justify-between group" aria-label="비밀번호 및 정보 수정 페이지로 이동">
                   <span className="text-sm text-gray-300 group-hover:text-white">비밀번호 &amp; 정보 수정</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 group-hover:text-primary"><path d="m9 18 6-6-6-6"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 group-hover:text-primary" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                 </Link>
-                <Link href="/user-info/icon" className="p-3 rounded-lg bg-background-secondary border border-white/5 hover:border-primary/30 hover:bg-background-tertiary transition-all flex items-center justify-between group">
+                <Link href="/user-info/icon" className="p-3 rounded-lg bg-background-secondary border border-white/5 hover:border-primary/30 hover:bg-background-tertiary transition-all flex items-center justify-between group" aria-label="전용 아이콘 관리 페이지로 이동">
                   <span className="text-sm text-gray-300 group-hover:text-white">전용 아이콘 관리</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 group-hover:text-primary"><path d="m9 18 6-6-6-6"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 group-hover:text-primary" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                 </Link>
-                <Link href="/user_info/delete" className="p-3 rounded-lg bg-background-secondary border border-white/5 hover:border-red-500/30 hover:bg-red-500/5 transition-all flex items-center justify-between group">
+                <Link href="/user_info/delete" className="p-3 rounded-lg bg-background-secondary border border-white/5 hover:border-red-500/30 hover:bg-red-500/5 transition-all flex items-center justify-between group" aria-label="회원 탈퇴 페이지로 이동">
                   <span className="text-sm text-gray-300 group-hover:text-red-300">회원 탈퇴</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 group-hover:text-red-400"><path d="m9 18 6-6-6-6"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 group-hover:text-red-400" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                 </Link>
               </div>
            </div>
@@ -390,7 +390,7 @@ export default function EntrancePage() {
            {/* Server Info Grid */}
            <div className="lg:col-span-2">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-secondary"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-secondary" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                 서버 안내
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

@@ -20,6 +20,7 @@ interface TacticalFleet {
   };
   totalShips: number;
   formation: string;
+  isFlagship?: boolean; // 旗艦フラグ
 }
 
 interface CameraState {
@@ -40,10 +41,10 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
   // Mutable state for the Render Loop (Avoids React Render Cycle)
   const fleetsRef = useRef<TacticalFleet[]>([]);
   const cameraRef = useRef<CameraState>({ x: 5000, y: 5000, zoom: 0.1 });
-  const selectedFleetIdRef = useRef<string | null>(null);
+  const selectedFleetIdsRef = useRef<Set<string>>(new Set()); // 複数選択対応
   
   // React State for UI Overlays (Throttled updates)
-  const [selectedFleet, setSelectedFleet] = useState<TacticalFleet | null>(null);
+  const [selectedFleets, setSelectedFleets] = useState<TacticalFleet[]>([]);
   const [fleetCount, setFleetCount] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(10); // Display percentage
 
@@ -55,7 +56,15 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
     distance: 0, // for pinch
     startX: 0,
     startY: 0,
-    isDragging: false
+    isDragging: false,
+    isBoxSelecting: false, // Box selection mode
+    boxStartWorldX: 0,
+    boxStartWorldY: 0,
+    boxEndWorldX: 0,
+    boxEndWorldY: 0,
+    lastClickTime: 0, // For double-click detection
+    lastClickFleetId: null as string | null,
+    ctrlPressed: false // Ctrl key for additive selection
   });
 
   const canvasWidth = 1200;
@@ -95,9 +104,11 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
         if (combat) {
           fleetsRef.current = combat.fleets;
           // Sync UI state occasionally or if selection changes
-          if (selectedFleetIdRef.current) {
-            const found = combat.fleets.find((f: TacticalFleet) => f.fleetId === selectedFleetIdRef.current);
-            if (found) setSelectedFleet(found);
+          if (selectedFleetIdsRef.current.size > 0) {
+            const selectedList = combat.fleets.filter((f: TacticalFleet) => 
+              selectedFleetIdsRef.current.has(f.fleetId)
+            );
+            if (selectedList.length > 0) setSelectedFleets(selectedList);
           }
           setFleetCount(combat.fleets.length);
         }
@@ -197,7 +208,7 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
       ctx.fill();
 
       // Selection Ring
-      if (selectedFleetIdRef.current === fleet.fleetId) {
+      if (selectedFleetIdsRef.current.has(fleet.fleetId)) {
         ctx.strokeStyle = '#FFD700'; // Gold selection
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -216,6 +227,33 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
       }
     });
 
+    // Box Selection Visualization
+    if (touchState.current.isBoxSelecting) {
+      const startScreenX = (touchState.current.boxStartWorldX - camera.x) * camera.zoom + canvasWidth / 2;
+      const startScreenY = (touchState.current.boxStartWorldY - camera.y) * camera.zoom + canvasHeight / 2;
+      const endScreenX = (touchState.current.boxEndWorldX - camera.x) * camera.zoom + canvasWidth / 2;
+      const endScreenY = (touchState.current.boxEndWorldY - camera.y) * camera.zoom + canvasHeight / 2;
+
+      ctx.strokeStyle = '#00FF00';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.strokeRect(
+        startScreenX,
+        startScreenY,
+        endScreenX - startScreenX,
+        endScreenY - startScreenY
+      );
+      ctx.setLineDash([]);
+      
+      ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
+      ctx.fillRect(
+        startScreenX,
+        startScreenY,
+        endScreenX - startScreenX,
+        endScreenY - startScreenY
+      );
+    }
+
     rafId.current = requestAnimationFrame(render);
   }, []); // Dependencies are empty because we use Refs
 
@@ -229,6 +267,115 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
     rafId.current = requestAnimationFrame(render);
     return () => cancelAnimationFrame(rafId.current);
   }, [render]);
+
+  // 5. Keyboard Shortcuts Handler
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (!socket || selectedFleetIdsRef.current.size === 0) return;
+
+    const key = e.key.toLowerCase();
+    const selectedIds = Array.from(selectedFleetIdsRef.current);
+
+    switch (key) {
+      case 'f': // 移動 (Move)
+        console.log('[TacticalMap] Move command (F) - awaiting target click');
+        // In a real implementation, this would enter "move mode" waiting for target click
+        // For now, just log
+        break;
+
+      case 'd': // 平行移動 (Parallel Move)
+        console.log('[TacticalMap] Parallel Move command (D)');
+        selectedIds.forEach(fleetId => {
+          socket.emit('fleet:tactical-command', {
+            fleetId,
+            command: 'parallel_move'
+          });
+        });
+        break;
+
+      case 's': // 旋回 (Turn)
+        console.log('[TacticalMap] Turn command (S)');
+        selectedIds.forEach(fleetId => {
+          socket.emit('fleet:tactical-command', {
+            fleetId,
+            command: 'turn'
+          });
+        });
+        break;
+
+      case 'a': // 停止 (Stop)
+        console.log('[TacticalMap] Stop command (A)');
+        selectedIds.forEach(fleetId => {
+          socket.emit('fleet:tactical-command', {
+            fleetId,
+            command: 'stop'
+          });
+        });
+        break;
+
+      case 'r': // 攻撃 (Attack) - enters attack mode
+        console.log('[TacticalMap] Attack command (R)');
+        selectedIds.forEach(fleetId => {
+          socket.emit('fleet:tactical-command', {
+            fleetId,
+            command: 'attack'
+          });
+        });
+        break;
+
+      case 'e': // 一斉攻撃 (Simultaneous Attack) or 射撃 (Shooting)
+        console.log('[TacticalMap] Simultaneous Attack / Shooting command (E)');
+        selectedIds.forEach(fleetId => {
+          socket.emit('fleet:tactical-command', {
+            fleetId,
+            command: 'volley_attack'
+          });
+        });
+        break;
+
+      case 'w': // 連続攻撃 (Continuous Attack) or Missile
+        console.log('[TacticalMap] Continuous Attack / Missile command (W)');
+        selectedIds.forEach(fleetId => {
+          socket.emit('fleet:tactical-command', {
+            fleetId,
+            command: 'continuous_attack'
+          });
+        });
+        break;
+
+      case 'q': // 攻撃停止 (Stop Attack)
+        console.log('[TacticalMap] Stop Attack command (Q)');
+        selectedIds.forEach(fleetId => {
+          socket.emit('fleet:tactical-command', {
+            fleetId,
+            command: 'stop_attack'
+          });
+        });
+        break;
+
+      case 'z': // 隊列変更 (Formation Change)
+        console.log('[TacticalMap] Formation Change command (Z)');
+        selectedIds.forEach(fleetId => {
+          socket.emit('fleet:tactical-command', {
+            fleetId,
+            command: 'change_formation'
+          });
+        });
+        break;
+
+      default:
+        return; // Don't prevent default for other keys
+    }
+
+    e.preventDefault(); // Prevent default browser behavior for game keys
+  }, [socket]);
+
+  // Register keyboard event listener
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
 
   // 4. Input Handlers
@@ -257,39 +404,100 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
     if (!canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
     
-    // Pan Start
-    touchState.current.startX = clientX;
-    touchState.current.startY = clientY;
-    touchState.current.isDragging = true;
-
-    // Check Click/Tap Selection
+    // Store Ctrl state
+    touchState.current.ctrlPressed = !isTouch && (e as React.MouseEvent).ctrlKey;
+    
     const mouseX = clientX - rect.left;
     const mouseY = clientY - rect.top;
     const worldX = (mouseX - canvasWidth / 2) / cameraRef.current.zoom + cameraRef.current.x;
     const worldY = (mouseY - canvasHeight / 2) / cameraRef.current.zoom + cameraRef.current.y;
 
-    const clickedFleet = fleetsRef.current.find((f) => {
-        if (!f.tacticalPosition) return false;
-        const dx = f.tacticalPosition.x - worldX;
-        const dy = f.tacticalPosition.y - worldY;
-        return Math.sqrt(dx * dx + dy * dy) < 200;
-    });
-
-    if (clickedFleet) {
-        selectedFleetIdRef.current = clickedFleet.fleetId;
-        setSelectedFleet(clickedFleet); // Trigger UI update
-    } else {
-        // Only deselect if not dragging (handled in move/up)
+    // Right Click Move Command
+    if (!isTouch && (e as React.MouseEvent).button === 2 && selectedFleetIdsRef.current.size > 0 && socket) {
+        e.preventDefault();
+        // Send move command for all selected fleets
+        selectedFleetIdsRef.current.forEach((fleetId) => {
+          socket.emit('fleet:tactical-move', {
+              fleetId,
+              x: worldX,
+              y: worldY,
+          });
+        });
+        return;
     }
 
-    // Right Click Move Command
-    if (!isTouch && (e as React.MouseEvent).button === 2 && selectedFleetIdRef.current && socket) {
-        e.preventDefault();
-        socket.emit('fleet:tactical-move', {
-            fleetId: selectedFleetIdRef.current,
-            x: worldX,
-            y: worldY,
-        });
+    // Left Click/Tap
+    if (isTouch || (e as React.MouseEvent).button === 0) {
+      // Check Click/Tap Selection
+      const clickedFleet = fleetsRef.current.find((f) => {
+          if (!f.tacticalPosition) return false;
+          const dx = f.tacticalPosition.x - worldX;
+          const dy = f.tacticalPosition.y - worldY;
+          return Math.sqrt(dx * dx + dy * dy) < 200;
+      });
+
+      // Double-click detection
+      const currentTime = Date.now();
+      const isDoubleClick = 
+        currentTime - touchState.current.lastClickTime < 300 &&
+        touchState.current.lastClickFleetId === clickedFleet?.fleetId;
+      
+      touchState.current.lastClickTime = currentTime;
+      touchState.current.lastClickFleetId = clickedFleet?.fleetId || null;
+
+      if (isDoubleClick && clickedFleet) {
+        // Double-click: Select flagship and all subordinates in command range
+        if (clickedFleet.isFlagship) {
+          // Select all fleets within command range (simplified: select all friendly fleets)
+          const friendlyFleets = fleetsRef.current.filter(f => {
+            // Simple heuristic: same faction as flagship (could check proximity too)
+            return f.fleetId.includes(clickedFleet.fleetId.split('-')[0]);
+          });
+          
+          selectedFleetIdsRef.current.clear();
+          friendlyFleets.forEach(f => selectedFleetIdsRef.current.add(f.fleetId));
+          setSelectedFleets(friendlyFleets);
+        } else {
+          // Double-click non-flagship: camera focus (handled elsewhere or future feature)
+          console.log('Camera focus on:', clickedFleet.fleetId);
+        }
+        return;
+      }
+
+      if (clickedFleet) {
+        // Single click with/without Ctrl
+        if (touchState.current.ctrlPressed) {
+          // Ctrl+Click: Toggle selection
+          if (selectedFleetIdsRef.current.has(clickedFleet.fleetId)) {
+            selectedFleetIdsRef.current.delete(clickedFleet.fleetId);
+          } else {
+            selectedFleetIdsRef.current.add(clickedFleet.fleetId);
+          }
+        } else {
+          // Normal click: Replace selection
+          selectedFleetIdsRef.current.clear();
+          selectedFleetIdsRef.current.add(clickedFleet.fleetId);
+        }
+        
+        const selectedList = fleetsRef.current.filter(f => selectedFleetIdsRef.current.has(f.fleetId));
+        setSelectedFleets(selectedList);
+      } else {
+        // Clicked on empty space: Start box selection or pan
+        touchState.current.startX = clientX;
+        touchState.current.startY = clientY;
+        touchState.current.isDragging = true;
+        touchState.current.isBoxSelecting = true;
+        touchState.current.boxStartWorldX = worldX;
+        touchState.current.boxStartWorldY = worldY;
+        touchState.current.boxEndWorldX = worldX;
+        touchState.current.boxEndWorldY = worldY;
+        
+        // Clear selection if not Ctrl
+        if (!touchState.current.ctrlPressed) {
+          selectedFleetIdsRef.current.clear();
+          setSelectedFleets([]);
+        }
+      }
     }
   }, [socket]);
 
@@ -315,17 +523,63 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
      const clientX = 'touches' in e ? (e as React.TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
      const clientY = 'touches' in e ? (e as React.TouchEvent).touches[0].clientY : (e as React.MouseEvent).clientY;
 
-     const dx = (clientX - touchState.current.startX) / cameraRef.current.zoom;
-     const dy = (clientY - touchState.current.startY) / cameraRef.current.zoom;
+     if (!canvasRef.current) return;
+     const rect = canvasRef.current.getBoundingClientRect();
+     const mouseX = clientX - rect.left;
+     const mouseY = clientY - rect.top;
 
-     cameraRef.current.x -= dx;
-     cameraRef.current.y -= dy;
+     if (touchState.current.isBoxSelecting) {
+       // Update box selection
+       const worldX = (mouseX - canvasWidth / 2) / cameraRef.current.zoom + cameraRef.current.x;
+       const worldY = (mouseY - canvasHeight / 2) / cameraRef.current.zoom + cameraRef.current.y;
+       touchState.current.boxEndWorldX = worldX;
+       touchState.current.boxEndWorldY = worldY;
+     } else {
+       // Pan camera
+       const dx = (clientX - touchState.current.startX) / cameraRef.current.zoom;
+       const dy = (clientY - touchState.current.startY) / cameraRef.current.zoom;
 
-     touchState.current.startX = clientX;
-     touchState.current.startY = clientY;
-  }, []);
+       cameraRef.current.x -= dx;
+       cameraRef.current.y -= dy;
+
+       touchState.current.startX = clientX;
+       touchState.current.startY = clientY;
+     }
+   }, []);
 
   const handlePointerUp = useCallback(() => {
+    if (touchState.current.isBoxSelecting) {
+      // Complete box selection
+      const minX = Math.min(touchState.current.boxStartWorldX, touchState.current.boxEndWorldX);
+      const maxX = Math.max(touchState.current.boxStartWorldX, touchState.current.boxEndWorldX);
+      const minY = Math.min(touchState.current.boxStartWorldY, touchState.current.boxEndWorldY);
+      const maxY = Math.max(touchState.current.boxStartWorldY, touchState.current.boxEndWorldY);
+
+      const fleetsInBox = fleetsRef.current.filter((f) => {
+        if (!f.tacticalPosition) return false;
+        return (
+          f.tacticalPosition.x >= minX &&
+          f.tacticalPosition.x <= maxX &&
+          f.tacticalPosition.y >= minY &&
+          f.tacticalPosition.y <= maxY
+        );
+      });
+
+      if (touchState.current.ctrlPressed) {
+        // Add to existing selection
+        fleetsInBox.forEach(f => selectedFleetIdsRef.current.add(f.fleetId));
+      } else {
+        // Replace selection
+        selectedFleetIdsRef.current.clear();
+        fleetsInBox.forEach(f => selectedFleetIdsRef.current.add(f.fleetId));
+      }
+
+      const selectedList = fleetsRef.current.filter(f => selectedFleetIdsRef.current.has(f.fleetId));
+      setSelectedFleets(selectedList);
+
+      touchState.current.isBoxSelecting = false;
+    }
+
     touchState.current.isDragging = false;
     touchState.current.distance = 0;
   }, []);
@@ -367,29 +621,57 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
                <div className="font-mono text-xs text-hud-success">SYS: ONLINE</div>
                <div className="font-mono text-xs">FLEETS: {fleetCount}</div>
                <div className="font-mono text-xs">ZOOM: {zoomLevel}%</div>
+               <div className="font-mono text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">
+                 SELECTED: {selectedFleets.length}
+               </div>
+             </div>
+          </div>
+          
+          {/* Box Selection Help */}
+          <div className="absolute top-4 left-4 pointer-events-none">
+             <div className="bg-space-panel/80 text-space-text p-2 rounded border border-white/10 backdrop-blur-sm">
+               <div className="font-mono text-xs text-gray-300">
+                 Left Drag: Box Select | Dbl-Click: Flagship
+               </div>
+               <div className="font-mono text-xs text-gray-300">
+                 Ctrl+Click: Add/Remove | Right Click: Move
+               </div>
              </div>
           </div>
 
           {/* Selected Fleet Info */}
-          {selectedFleet && (
-            <div className="absolute top-4 right-4 bg-space-panel/90 text-space-text p-4 rounded min-w-[200px] border border-alliance-red/50 shadow-xl backdrop-blur-sm">
+          {selectedFleets.length > 0 && (
+            <div className="absolute top-4 right-4 bg-space-panel/90 text-space-text p-4 rounded min-w-[200px] max-w-[300px] border border-alliance-red/50 shadow-xl backdrop-blur-sm max-h-[400px] overflow-y-auto">
               <div className="font-bold mb-2 text-alliance-red border-b border-white/10 pb-1 font-mono">
-                 {selectedFleet.fleetId}
+                 SELECTED: {selectedFleets.length} FLEET{selectedFleets.length > 1 ? 'S' : ''}
               </div>
-              <div className="text-sm space-y-1.5 font-mono">
-                <div className="flex justify-between">
-                   <span className="text-gray-400">SHIPS</span>
-                   <span>{selectedFleet.totalShips.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                   <span className="text-gray-400">FORM</span>
-                   <span className="text-yellow-400">{selectedFleet.formation}</span>
-                </div>
-                {selectedFleet.tacticalPosition && (
-                  <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-white/5 text-center">
-                    POS: {Math.floor(selectedFleet.tacticalPosition.x)}, {Math.floor(selectedFleet.tacticalPosition.y)}
+              <div className="text-sm space-y-2 font-mono">
+                {selectedFleets.slice(0, 5).map((fleet) => (
+                  <div key={fleet.fleetId} className="border-b border-white/5 pb-2">
+                    <div className="text-xs font-bold text-yellow-400 mb-1">
+                      {fleet.fleetId.substring(0, 12)}
+                      {fleet.isFlagship && <span className="ml-1 text-red-400">★</span>}
+                    </div>
+                    <div className="flex justify-between text-xs">
+                       <span className="text-gray-400">SHIPS</span>
+                       <span>{fleet.totalShips.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                       <span className="text-gray-400">FORM</span>
+                       <span className="text-yellow-400">{fleet.formation}</span>
+                    </div>
+                  </div>
+                ))}
+                {selectedFleets.length > 5 && (
+                  <div className="text-xs text-gray-500 text-center pt-1">
+                    ... and {selectedFleets.length - 5} more
                   </div>
                 )}
+              </div>
+              <div className="mt-3 pt-3 border-t border-white/10 text-xs text-gray-400 font-mono">
+                <div>Shortcuts: F=Move, A=Stop, R=Attack</div>
+                <div>E=Volley, W=Continuous, Q=StopAtk</div>
+                <div>D=ParallelMove, S=Turn, Z=Formation</div>
               </div>
             </div>
           )}

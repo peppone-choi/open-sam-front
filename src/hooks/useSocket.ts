@@ -8,19 +8,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-type SocketMockFactory = (options: { sessionId?: string; token?: string | null }) => Partial<Socket> & {
-  trigger?: (event: string, payload?: any) => void;
-};
-
-declare global {
-  interface Window {
-    __OPEN_SAM_SOCKET_MOCK__?: SocketMockFactory;
-    __OPEN_SAM_LAST_SOCKET__?: Partial<Socket> & {
-      trigger?: (event: string, payload?: any) => void;
-    };
-    __OPEN_SAM_SOCKET_EVENTS__?: Array<{ event: string; payload: unknown; timestamp: number; sessionId?: string }>;
-  }
-}
+// Window interface is now defined in src/types/global.d.ts
 
 // 전역 소켓 인스턴스 (HMR 중에도 유지)
 let globalSocket: Socket | null = null;
@@ -100,7 +88,15 @@ export function useSocket(options: UseSocketOptions = {}) {
       setSocket(globalSocket);
       socketRef.current = globalSocket;
       setIsConnected(true);
-      return;
+      
+      // HMR 시에도 cleanup 함수 반환하여 적절한 정리 보장
+      return () => {
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+          reconnectTimeoutRef.current = null;
+        }
+        connectingRef.current = false;
+      };
     }
 
     // 이미 연결 중이면 스킵 (HMR 중복 연결 방지)
@@ -177,10 +173,10 @@ export function useSocket(options: UseSocketOptions = {}) {
         // 짧은 딜레이 후 재연결 시도
         if (!reconnectTimeoutRef.current) {
           reconnectTimeoutRef.current = setTimeout(() => {
-            reconnectTimeoutRef.current = null;
             if (socketRef.current && !socketRef.current.connected) {
               socketRef.current.connect();
             }
+            reconnectTimeoutRef.current = null;
           }, 2000);
         }
       }
@@ -218,14 +214,16 @@ export function useSocket(options: UseSocketOptions = {}) {
 
     // 정리 함수
     return () => {
-      // 재연결 타임아웃 클리어
+      // 재연결 타임아웃 클리어 (항상 실행)
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = null;
       }
       
-      // 개발 모드에서는 HMR 중에도 연결 유지 (전역 인스턴스 사용)
+      connectingRef.current = false;
+      
       // 프로덕션에서는 완전히 정리
+      // 개발 모드에서도 소켓 이벤트 리스너는 정리하되, 연결은 유지
       if (process.env.NODE_ENV === 'production') {
         if (socketRef.current) {
           socketRef.current.disconnect();
@@ -239,9 +237,15 @@ export function useSocket(options: UseSocketOptions = {}) {
           globalSocketToken = null;
           globalSocketSessionId = null;
         }
+      } else {
+        // 개발 모드: 이벤트 리스너만 정리 (연결은 유지)
+        if (socketRef.current) {
+          socketRef.current.off('connect');
+          socketRef.current.off('disconnect');
+          socketRef.current.off('connect_error');
+          socketRef.current.off('connected');
+        }
       }
-      
-      connectingRef.current = false;
     };
   }, [autoConnect, sessionId, getToken]);
 
@@ -301,6 +305,49 @@ export function useSocket(options: UseSocketOptions = {}) {
     timestamp: Date;
   }) => void) => subscribe('log:updated', callback);
 
+  /**
+   * 통신 이벤트 리스너 (Communication)
+   */
+  const onCommEvent = useMemo(() => createNamespacedSubscriber('comm'), [createNamespacedSubscriber]);
+
+  /**
+   * 새 채팅 메시지 리스너
+   */
+  const onNewChatMessage = (callback: (data: {
+    messageId: string;
+    channelType: string;
+    scopeId?: string;
+    senderName: string;
+    message: string;
+  }) => void) => subscribe('comm:chat:new', callback);
+
+  /**
+   * 새 명함 교환 요청 리스너
+   */
+  const onNewHandshake = (callback: (data: {
+    handshakeId: string;
+    requesterName: string;
+    targetCharacterId: string;
+  }) => void) => subscribe('comm:handshake:new', callback);
+
+  /**
+   * 명함 교환 응답 리스너
+   */
+  const onHandshakeResponse = (callback: (data: {
+    handshakeId: string;
+    status: 'accepted' | 'rejected';
+    requesterCharacterId: string;
+  }) => void) => subscribe('comm:handshake:response', callback);
+
+  /**
+   * 새 메일 수신 리스너
+   */
+  const onNewMail = (callback: (data: {
+    mailId: string;
+    fromName: string;
+    subject: string;
+  }) => void) => subscribe('comm:mail:new', callback);
+
   return {
     socket,
     isConnected,
@@ -309,7 +356,12 @@ export function useSocket(options: UseSocketOptions = {}) {
     onNationEvent,
     onBattleEvent,
     onTurnComplete,
-    onLogUpdate
+    onLogUpdate,
+    onCommEvent,
+    onNewChatMessage,
+    onNewHandshake,
+    onHandshakeResponse,
+    onNewMail,
   };
 }
 

@@ -36,7 +36,7 @@ export class MockSocketServer {
       console.log('[MockSocket] Client connected:', socket.id);
 
       // Battle events
-      socket.on('battle:join', (data) => {
+      socket.on('battle:join', (data: any) => {
         console.log('[MockSocket] battle:join', data);
         const battleState = this.scenarios.battle?.initialState || {
           battleId: data.battleId || 'battle-mock',
@@ -48,7 +48,7 @@ export class MockSocketServer {
         socket.join(`battle:${data.battleId}`);
       });
 
-      socket.on('battle:action', (data) => {
+      socket.on('battle:action', (data: any) => {
         console.log('[MockSocket] battle:action', data);
         const result = this.scenarios.battle?.actionHandler?.(data) || {
           success: true,
@@ -65,14 +65,14 @@ export class MockSocketServer {
         this.io.to(`battle:${data.battleId}`).emit('battle:update', updatedState);
       });
 
-      socket.on('battle:leave', (data) => {
+      socket.on('battle:leave', (data: any) => {
         console.log('[MockSocket] battle:leave', data);
         socket.leave(`battle:${data.battleId}`);
         socket.emit('battle:left', { battleId: data.battleId });
       });
 
       // Diplomacy events
-      socket.on('diplomacy:join', (data) => {
+      socket.on('diplomacy:join', (data: any) => {
         console.log('[MockSocket] diplomacy:join', data);
         const diplomacyState = this.scenarios.diplomacy?.initialState || {
           treaties: [],
@@ -83,7 +83,7 @@ export class MockSocketServer {
         socket.join('diplomacy');
       });
 
-      socket.on('diplomacy:propose', (data) => {
+      socket.on('diplomacy:propose', (data: any) => {
         console.log('[MockSocket] diplomacy:propose', data);
         const proposal = this.scenarios.diplomacy?.proposalHandler?.(data) || {
           id: `proposal-${Date.now()}`,
@@ -97,7 +97,7 @@ export class MockSocketServer {
         this.io.to('diplomacy').emit('diplomacy:new-proposal', proposal);
       });
 
-      socket.on('diplomacy:respond', (data) => {
+      socket.on('diplomacy:respond', (data: any) => {
         console.log('[MockSocket] diplomacy:respond', data);
         const response = this.scenarios.diplomacy?.responseHandler?.(data) || {
           proposalId: data.proposalId,
@@ -117,7 +117,7 @@ export class MockSocketServer {
       });
 
       // Message/Chat events
-      socket.on('message:join', (data) => {
+      socket.on('message:join', (data: any) => {
         console.log('[MockSocket] message:join', data);
         const channel = data.channel || 'global';
         socket.join(`chat:${channel}`);
@@ -126,7 +126,7 @@ export class MockSocketServer {
         socket.emit('message:history', { channel, messages: messageHistory });
       });
 
-      socket.on('message:send', (data) => {
+      socket.on('message:send', (data: any) => {
         console.log('[MockSocket] message:send', data);
         const message = {
           id: `msg-${Date.now()}`,
@@ -145,13 +145,13 @@ export class MockSocketServer {
         this.io.to(`chat:${message.channel}`).emit('message:new', message);
       });
 
-      socket.on('message:leave', (data) => {
+      socket.on('message:leave', (data: any) => {
         console.log('[MockSocket] message:leave', data);
         socket.leave(`chat:${data.channel}`);
       });
 
       // Realtime game updates
-      socket.on('game:subscribe', (data) => {
+      socket.on('game:subscribe', (data: any) => {
         console.log('[MockSocket] game:subscribe', data);
         socket.join(`game:${data.serverId}`);
         
@@ -164,7 +164,7 @@ export class MockSocketServer {
         socket.emit('game:state', gameState);
       });
 
-      socket.on('game:unsubscribe', (data) => {
+      socket.on('game:unsubscribe', (data: any) => {
         console.log('[MockSocket] game:unsubscribe', data);
         socket.leave(`game:${data.serverId}`);
       });
@@ -181,12 +181,12 @@ export class MockSocketServer {
       });
 
       // Generic event handler for testing
-      socket.on('test:echo', (data) => {
+      socket.on('test:echo', (data: any) => {
         console.log('[MockSocket] test:echo', data);
         socket.emit('test:echo-response', data);
       });
 
-      socket.on('disconnect', (reason) => {
+      socket.on('disconnect', (reason: string) => {
         console.log('[MockSocket] Client disconnected:', socket.id, reason);
       });
     });

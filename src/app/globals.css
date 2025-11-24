@@ -32,6 +32,30 @@
   .card-base {
     @apply bg-background-secondary/50 backdrop-blur-md border border-white/10 rounded-xl shadow-xl;
   }
+
+  /* Screen reader only - Accessibility */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .sr-only.focus\:not-sr-only:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: inherit;
+    margin: inherit;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
 }
 
 /* Legacy Support Wrappers - minimizing global impact */

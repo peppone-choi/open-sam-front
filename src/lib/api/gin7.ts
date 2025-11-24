@@ -132,4 +132,58 @@ export const gin7Api = {
       },
     });
   },
+
+  // Fleet Movement API (from galaxy.route.ts:252)
+  moveFleet(params: {
+    sessionId?: string;
+    fleetId: string;
+    target: { x: number; y: number };
+    controllerCharacterId: string;
+  }): Promise<{
+    success: boolean;
+    data: any;
+    compliance: Array<{ manualRef: string; status: string; note: string }>;
+  }> {
+    const sessionId = resolveGin7SessionId(params.sessionId);
+    const path = `/galaxy/fleets/${encodeURIComponent(params.fleetId)}/movements`;
+    return request(path, {
+      method: 'POST',
+      body: {
+        sessionId,
+        target: params.target,
+        controllerCharacterId: params.controllerCharacterId,
+      },
+    });
+  },
+
+  // Galaxy Operations API (from galaxy.route.ts:179)
+  createOperation(params: {
+    sessionId?: string;
+    authorCharacterId: string;
+    cardType: string;
+    objectiveType?: string;
+    targetGrid: { x: number; y: number };
+    cpCost?: { pcp: number; mcp: number };
+    timeline?: { waitHours: number; executionHours: number };
+    logistics?: {
+      fuelCrates: number;
+      supplyHours: number;
+      unitBatchLimit: number;
+      planetsTouched: string[];
+    };
+    participants?: Array<{ characterId: string; role: string }>;
+  }): Promise<{
+    success: boolean;
+    data: any;
+    compliance: Array<{ manualRef: string; status: string; note: string }>;
+  }> {
+    const sessionId = resolveGin7SessionId(params.sessionId);
+    return request('/galaxy/operations', {
+      method: 'POST',
+      body: {
+        sessionId,
+        ...params,
+      },
+    });
+  },
 };

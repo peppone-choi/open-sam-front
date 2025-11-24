@@ -22,12 +22,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={outfit.variable}>
+    <html lang="ko" className={outfit.variable}>
       <body className="font-sans antialiased bg-background-main text-foreground">
+        <a 
+          href="#main-content" 
+          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-primary focus:text-white focus:top-0 focus:left-0"
+        >
+          본문으로 바로가기
+        </a>
         <ThemeProvider>
           <ToastProvider>
             <div className="min-h-screen flex flex-col">
-              {children}
+              <main id="main-content">
+                {children}
+              </main>
             </div>
             <ToastContainer />
           </ToastProvider>

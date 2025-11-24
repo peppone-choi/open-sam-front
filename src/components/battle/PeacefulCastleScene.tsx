@@ -148,10 +148,28 @@ export default function PeacefulCastleScene() {
 
     return () => {
       window.removeEventListener('resize', resize);
+      
+      // Pixi ticker 정리
+      app.ticker.stop();
+      
+      // 모든 자식 제거 및 정리
+      stage.removeChildren();
+      
+      // 그래픽 객체 정리
+      castle.destroy();
+      yard.destroy();
+      decoLayer.destroy({ children: true });
+      peopleLayer.destroy({ children: true });
+      
+      // Walker 배열 정리
+      walkers.length = 0;
+      
+      // Application 파괴
       const appAny = app as any;
       if (appAny && appAny.renderer && !appAny._destroyed) {
-        appAny.destroy(true, { children: true });
+        appAny.destroy(true, { children: true, texture: true, baseTexture: true });
       }
+      
       appRef.current = null;
     };
   }, []);

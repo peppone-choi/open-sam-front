@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useSocket } from '@/hooks/useSocket';
 import { SammoAPI } from '@/lib/api/sammo';
 import styles from './TacticalMapPanel.module.css';
-import { ThreeTacticalMapEngine } from '@/lib/tactical/threeTacticalMap';
+import { createThreeTacticalMapEngine } from '@/lib/tactical/threeTacticalMap.lazy';
+import type { ThreeTacticalMapEngine } from '@/lib/tactical/threeTacticalMap.lazy';
 import type { UnitInstance, UnitVisualConfig } from '@/lib/tactical/isoTacticalMap';
 
 
@@ -81,6 +82,7 @@ export default function TacticalMapPanel({ serverID, generalId, cityId, cityName
   const [recentLogs, setRecentLogs] = useState<LogEntry[]>([]);
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
+  const [engineLoading, setEngineLoading] = useState(false);
   
   const canvasWidth = 740;
   const canvasHeight = 500;
@@ -92,31 +94,45 @@ export default function TacticalMapPanel({ serverID, generalId, cityId, cityName
 
   const myRole = myParticipant?.role ?? null;
 
-  // three 전술맵 엔진 생성/정리
+  // three 전술맵 엔진 생성/정리 (dynamic import)
   useEffect(() => {
     if (!isInBattle) {
       if (threeEngineRef.current) {
         threeEngineRef.current.destroy();
         threeEngineRef.current = null;
       }
+      setEngineLoading(false);
       return;
     }
 
     const canvas = threeCanvasRef.current;
     if (!canvas) return;
 
-    const engine = new ThreeTacticalMapEngine({
+    let cancelled = false;
+    setEngineLoading(true);
+
+    createThreeTacticalMapEngine({
       canvas,
       width: canvasWidth,
       height: canvasHeight,
       logicalWidth: 40,
       logicalHeight: 40,
+    }).then((engine) => {
+      if (cancelled) {
+        engine.destroy();
+        return;
+      }
+      threeEngineRef.current = engine;
+      setEngineLoading(false);
+    }).catch((error) => {
+      console.error('[TacticalMapPanel] Failed to load Three.js engine:', error);
+      setEngineLoading(false);
     });
-    threeEngineRef.current = engine;
 
     return () => {
-      engine.destroy();
-      if (threeEngineRef.current === engine) {
+      cancelled = true;
+      if (threeEngineRef.current) {
+        threeEngineRef.current.destroy();
         threeEngineRef.current = null;
       }
     };
@@ -569,7 +585,14 @@ export default function TacticalMapPanel({ serverID, generalId, cityId, cityName
 
         {/* 전투 중 three 전술맵 캔버스 */}
         {isInBattle && (
-          <canvas ref={threeCanvasRef} className={styles.canvas} />
+          <>
+            <canvas ref={threeCanvasRef} className={styles.canvas} />
+            {engineLoading && (
+              <div className={styles.loadingOverlay}>
+                <div className={styles.loadingSpinner}>전술맵 로딩 중...</div>
+              </div>
+            )}
+          </>
         )}
         
         {/* 로그 오버레이 (하단, 페이드인/아웃) */}

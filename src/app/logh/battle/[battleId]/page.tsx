@@ -14,10 +14,15 @@ export default function LoghBattlePage() {
   
   const [battleState, setBattleState] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [offlineStatus, setOfflineStatus] = useState<{
+    hasOfflineCommanders: boolean;
+    offlineCommanderIds: string[];
+  }>({ hasOfflineCommanders: false, offlineCommanderIds: [] });
 
   useEffect(() => {
     if (battleId) {
       loadBattle();
+      checkOfflineCommanders();
     }
   }, [battleId]);
 
@@ -29,6 +34,15 @@ export default function LoghBattlePage() {
       console.error('전투 정보를 불러오지 못했습니다.', e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkOfflineCommanders = async () => {
+    try {
+      const status = await loghApi.checkOfflineCommanders(battleId, sessionId);
+      setOfflineStatus(status);
+    } catch (e) {
+      console.warn('오프라인 지휘관 확인 실패:', e);
     }
   };
 
@@ -87,7 +101,11 @@ export default function LoghBattlePage() {
         </div>
 
         {/* Tactical HUD Controls */}
-        <TacticalHUD battleId={battleId} />
+        <TacticalHUD 
+          battleId={battleId} 
+          sessionId={sessionId}
+          offlineStatus={offlineStatus}
+        />
       </div>
     </div>
   );

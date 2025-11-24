@@ -155,3 +155,35 @@ export const FORMATIONS = [
   { id: 'box', name: '방형 진형', effect: '방어력↑ 기동력↓' },
   { id: 'ring', name: '원형 진형', effect: '생존력↑ 공격력↓' },
 ];
+
+// Economy System (GAL-201)
+export type EconomyEventType = 'tax' | 'subsidy' | 'logistics' | 'trade' | 'penalty' | 'custom';
+
+export interface EconomyState {
+  status: 'stub' | 'active';
+  treasury: number;
+  taxRate: number;
+  supplyBudget: number;
+  tradeIndex: number;
+  lastTick: Date | null;
+  note?: string;
+}
+
+export interface EconomyEvent {
+  eventId: string;
+  type: EconomyEventType;
+  faction?: 'empire' | 'alliance' | 'rebel';
+  amount: number;
+  currency: 'credit';
+  summary: string;
+  description?: string;
+  supplyImpact?: number;
+  tradeImpact?: number;
+  createdBy?: {
+    userId?: string;
+    characterId?: string;
+    displayName?: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}

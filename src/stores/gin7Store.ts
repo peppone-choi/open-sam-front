@@ -16,11 +16,7 @@ import { Coordinates } from '@/types/logh';
 import { useGameStore } from '@/stores/gameStore';
 import { resolveGin7SessionId } from '@/config/gin7';
 
-declare global {
-  interface Window {
-    __OPEN_SAM_STORES__?: Record<string, unknown>;
-  }
-}
+// Window interface is now defined in src/types/global.d.ts
 
 interface Gin7StoreState {
   loading: boolean;

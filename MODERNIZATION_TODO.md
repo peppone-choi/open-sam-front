@@ -28,6 +28,16 @@ The following pages are still using legacy `page.module.css` and need to be mode
   - `src/app/[server]/world/page.tsx`
   - `src/app/[server]/my-gen-info/page.tsx`
   - `src/app/[server]/my-boss-info/page.tsx`
+- Session 9 Complete (2025-11-24):
+  - `src/app/[server]/join/page.tsx`
+  - `src/app/[server]/select-general/page.tsx`
+  - `src/app/[server]/select-npc/page.tsx`
+  - `src/app/[server]/inherit/page.tsx`
+  - `src/app/[server]/map/cached/page.tsx`
+  - `src/app/[server]/map/recent/page.tsx`
+  - `src/app/[server]/tournament/page.tsx`
+  - `src/app/[server]/tournament-center/page.tsx`
+  - `src/app/[server]/npc-control/page.tsx`
 
 ## Remaining Pages
 
@@ -40,19 +50,24 @@ The following pages are still using legacy `page.module.css` and need to be mode
 - [x] `src/app/[server]/my-boss-info/page.tsx` ✅ Session B
 
 ### Game Entry & Setup
-- [ ] `src/app/[server]/join/page.tsx`
-- [ ] `src/app/[server]/select-general/page.tsx`
-- [ ] `src/app/[server]/select-npc/page.tsx`
-- [ ] `src/app/[server]/inherit/page.tsx`
+- [x] `src/app/[server]/join/page.tsx` ✅ Session 9
+- [x] `src/app/[server]/select-general/page.tsx` ✅ Session 9
+- [x] `src/app/[server]/select-npc/page.tsx` ✅ Session 9
+- [x] `src/app/[server]/inherit/page.tsx` ✅ Session 9
 
 ### Admin
-- [ ] `src/app/[server]/admin/page.tsx` (and sub-pages)
+- [ ] `src/app/[server]/admin/page.tsx` (and sub-pages) - Requires investigation
 
 ### Map
-- [ ] `src/app/[server]/map/cached/page.tsx`
-- [ ] `src/app/[server]/map/recent/page.tsx`
+- [x] `src/app/[server]/map/cached/page.tsx` ✅ Session 9
+- [x] `src/app/[server]/map/recent/page.tsx` ✅ Session 9
 
 ### Other
-- [ ] `src/app/[server]/tournament/page.tsx`
-- [ ] `src/app/[server]/tournament-center/page.tsx`
-- [ ] `src/app/[server]/npc-control/page.tsx`
+- [x] `src/app/[server]/tournament/page.tsx` ✅ Session 9
+- [x] `src/app/[server]/tournament-center/page.tsx` ✅ Session 9
+- [x] `src/app/[server]/npc-control/page.tsx` ✅ Session 9
+
+## Summary
+- **Total Pages Migrated**: 38+
+- **Session 9 Completion**: 9 pages migrated to Tailwind CSS
+- **Remaining**: Admin pages (requires investigation)

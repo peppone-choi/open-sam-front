@@ -65,27 +65,43 @@
     z-index: 1;
 }
 
-/* 계절별 배경 이미지 - 전체 너비에 맞춤 */
+/* 계절별 배경 이미지 - 전체 너비에 맞춤 (WebP with JPG fallback) */
 :global(.map_spring) .mapBglayer1 {
-    background-image: url('/bg_spring.jpg');
+    background-image: url('/bg_spring.webp');
+    background-image: image-set(
+        url('/bg_spring.webp') type('image/webp'),
+        url('/bg_spring.jpg') type('image/jpeg')
+    );
     background-size: 100% 100%;
     background-repeat: no-repeat;
 }
 
 :global(.map_summer) .mapBglayer1 {
-    background-image: url('/bg_summer.jpg');
+    background-image: url('/bg_summer.webp');
+    background-image: image-set(
+        url('/bg_summer.webp') type('image/webp'),
+        url('/bg_summer.jpg') type('image/jpeg')
+    );
     background-size: 100% 100%;
     background-repeat: no-repeat;
 }
 
 :global(.map_fall) .mapBglayer1 {
-    background-image: url('/bg_fall.jpg');
+    background-image: url('/bg_fall.webp');
+    background-image: image-set(
+        url('/bg_fall.webp') type('image/webp'),
+        url('/bg_fall.jpg') type('image/jpeg')
+    );
     background-size: 100% 100%;
     background-repeat: no-repeat;
 }
 
 :global(.map_winter) .mapBglayer1 {
-    background-image: url('/bg_winter.jpg');
+    background-image: url('/bg_winter.webp');
+    background-image: image-set(
+        url('/bg_winter.webp') type('image/webp'),
+        url('/bg_winter.jpg') type('image/jpeg')
+    );
     background-size: 100% 100%;
     background-repeat: no-repeat;
 }

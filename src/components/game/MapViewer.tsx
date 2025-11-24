@@ -294,14 +294,14 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
   const backgroundImage = useMemo(() => {
     switch (seasonClass) {
       case 'map_spring':
-        return '/bg_spring.jpg';
+        return '/bg_spring.webp';
       case 'map_summer':
-        return '/bg_summer.jpg';
+        return '/bg_summer.webp';
       case 'map_fall':
-        return '/bg_fall.jpg';
+        return '/bg_fall.webp';
       case 'map_winter':
       default:
-        return '/bg_winter.jpg';
+        return '/bg_winter.webp';
     }
   }, [seasonClass]);
 

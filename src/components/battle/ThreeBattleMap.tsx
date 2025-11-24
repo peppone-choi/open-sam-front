@@ -217,18 +217,28 @@ export default function ThreeBattleMap({
       window.removeEventListener('resize', handleResize);
       renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
 
-      // 큐브 정리
+      // 큐브 정리 (geometry는 공유, material만 dispose)
       cubeEntriesRef.current.forEach(({ mesh }) => {
         scene.remove(mesh);
+        if (mesh.material && 'dispose' in mesh.material) {
+          (mesh.material as MeshStandardMaterial).dispose();
+        }
       });
       cubeEntriesRef.current = [];
 
+      // 씬에서 제거
       scene.remove(grid, groundMesh, ambient, dirLight);
+      
+      // Geometry/Material dispose
       groundGeo.dispose();
       groundMat.dispose();
       boxGeo.dispose();
+      
+      // Renderer dispose
       renderer.dispose();
+      renderer.forceContextLoss();
 
+      // DOM 정리
       if (container && renderer.domElement.parentElement === container) {
         container.removeChild(renderer.domElement);
       }
@@ -250,7 +260,10 @@ export default function ThreeBattleMap({
     // 기존 큐브 제거
     cubeEntriesRef.current.forEach(({ mesh }) => {
       scene.remove(mesh);
-      // mesh geometry/material은 공유이므로 dispose는 하지 않음
+      // material만 dispose (geometry는 공유)
+      if (mesh.material && 'dispose' in mesh.material) {
+        (mesh.material as MeshStandardMaterial).dispose();
+      }
     });
     cubeEntriesRef.current = [];
 

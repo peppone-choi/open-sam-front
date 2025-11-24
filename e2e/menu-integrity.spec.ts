@@ -189,30 +189,40 @@ const mockMap: GetMapResponse = {
 
 const mockGlobalMenu: MenuItem[] = [
   {
-    type: 'item',
+    type: 'item' as const,
     name: '글로벌 뉴스',
     url: '/history',
   },
   {
-    type: 'multi',
+    type: 'multi' as const,
     name: '세계 행정',
     subMenu: [
-      { type: 'item', name: '국가 순위', url: '/info/nation' },
-      { type: 'item', name: '도시 순찰', url: '/info/city' },
+      { type: 'item' as const, name: '국가 순위', url: '/info/nation' },
+      { type: 'item' as const, name: '도시 순찰', url: '/info/city' },
     ],
   },
   {
-    type: 'split',
+    type: 'split' as const,
     name: '전투 지원',
     main: { name: '전선 상황', url: '/battle' },
     subMenu: [
-      { type: 'item', name: '전투 로그', url: '/battle-center' },
-      { type: 'item', name: '전투 중계', url: '/battle-simulator' },
+      { type: 'item' as const, name: '전투 로그', url: '/battle-center' },
+      { type: 'item' as const, name: '전투 중계', url: '/battle-simulator' },
     ],
   },
 ];
 
-const mockMessageStore: Record<MessageTab, any[]> = {
+interface MockMessage {
+  id: number;
+  type: string;
+  text: string;
+  date: string;
+  src_general_name?: string;
+  src_nation_name?: string;
+  dest_general_name?: string;
+}
+
+const mockMessageStore: Record<MessageTab, MockMessage[]> = {
   system: [
     { id: 1, type: 'system', text: '시스템: 메뉴 무결성 점검이 시작되었습니다.', date: '2025-11-23 08:50:00' },
   ],
@@ -230,7 +240,14 @@ const mockMessageStore: Record<MessageTab, any[]> = {
   ],
 };
 
-const mockContacts = [
+interface MockContact {
+  mailbox: number;
+  name: string;
+  color: number;
+  general: Array<[number, string, number]>;
+}
+
+const mockContacts: MockContact[] = [
   { mailbox: 1000001, name: '위나라', color: 1, general: [[2001, '사마의', 0]] },
   { mailbox: 1000002, name: '오나라', color: 2, general: [[3001, '주유', 0]] },
   { mailbox: 0, name: '재야', color: 0, general: [[4001, '무소속 장수', 0]] },

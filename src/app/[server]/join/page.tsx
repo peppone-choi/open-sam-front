@@ -618,7 +618,7 @@ export default function JoinPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* 임관 권유문 테이블 */}
         {nationList.length > 0 && (
-          <div className="bg-background-secondary/70 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
+          <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -679,7 +679,7 @@ export default function JoinPage() {
              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-white/5 bg-background-secondary/70 p-6 shadow-lg backdrop-blur">
+          <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-white/5 bg-gray-900/50 p-6 shadow-lg backdrop-blur">
             
             {/* 장수명 */}
             <div className="space-y-2">

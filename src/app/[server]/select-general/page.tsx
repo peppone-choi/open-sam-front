@@ -127,8 +127,8 @@ export default function SelectGeneralPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background-main p-4 font-sans text-foreground md:p-6 lg:p-8">
-      <div className="pointer-events-none absolute inset-0 bg-hero-pattern opacity-20" />
+    <div className="relative min-h-screen overflow-hidden bg-gray-950 p-4 font-sans text-gray-100 md:p-6 lg:p-8">
+      <div className="pointer-events-none absolute inset-0 opacity-20" />
       <div className="pointer-events-none absolute -top-32 left-1/3 h-72 w-72 rounded-full bg-blue-500/20 blur-[140px]" />
 
       <div className="relative z-10">
@@ -161,9 +161,9 @@ export default function SelectGeneralPage() {
                 <div
                   key={general.no}
                   className={cn(
-                    'group relative cursor-pointer overflow-hidden rounded-xl border bg-background-secondary/70 shadow-lg backdrop-blur transition-all duration-200',
+                    'group relative cursor-pointer overflow-hidden rounded-xl border bg-gray-900/50 shadow-lg backdrop-blur transition-all duration-200',
                     selectedGeneral === general.no
-                      ? 'border-primary ring-2 ring-primary/50 -translate-y-1 scale-[1.02]'
+                      ? 'border-blue-500 ring-2 ring-blue-500/50 -translate-y-1 scale-[1.02]'
                       : 'border-white/10 hover:-translate-y-0.5 hover:border-white/30',
                   )}
                   onClick={() => setSelectedGeneral(general.no)}
@@ -178,8 +178,8 @@ export default function SelectGeneralPage() {
                       }}
                     />
                     {selectedGeneral === general.no && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-primary/30">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shadow-lg">
+                      <div className="absolute inset-0 flex items-center justify-center bg-blue-600/30">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
@@ -188,9 +188,9 @@ export default function SelectGeneralPage() {
                     )}
                   </div>
                   
-                  <div className="space-y-2 p-3">
+                    <div className="space-y-2 p-3">
                     <div className="text-center text-lg font-bold text-white truncate">{general.name}</div>
-                    <div className="flex items-center justify-between rounded-lg bg-black/30 p-2 text-xs text-foreground-muted">
+                    <div className="flex items-center justify-between rounded-lg bg-black/30 p-2 text-xs text-gray-400">
                       <div className="flex flex-col items-center">
                         <span className="text-[10px]">통솔</span>
                         <span className="font-mono text-white">{general.leadership}</span>
@@ -219,8 +219,8 @@ export default function SelectGeneralPage() {
                 className={cn(
                   'rounded-full px-8 py-3 text-lg font-bold shadow-xl transition-all duration-300',
                   selectedGeneral
-                    ? 'bg-primary text-white hover:scale-105 hover:bg-primary-hover hover:shadow-primary/30'
-                    : 'bg-white/10 text-foreground-muted',
+                    ? 'bg-blue-600 text-white hover:scale-105 hover:bg-blue-500 hover:shadow-blue-500/30'
+                    : 'bg-white/10 text-gray-400',
                 )}
               >
                 {selectedGeneral ? '이 장수로 시작하기' : '장수를 선택해주세요'}

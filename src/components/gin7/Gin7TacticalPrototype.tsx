@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { PixiTacticalMapEngine } from '@/lib/tactical/pixiTacticalMap';
+import { useEffect, useRef, useState } from 'react';
+import { createPixiTacticalMapEngine } from '@/lib/tactical/pixiTacticalMap.lazy';
+import type { PixiTacticalMapEngine } from '@/lib/tactical/pixiTacticalMap.lazy';
 import { UnitInstance } from '@/lib/tactical/isoTacticalMap';
 import { useGin7Store } from '@/stores/gin7Store';
 import { useGin7Telemetry } from '@/hooks/useGin7Telemetry';
@@ -27,6 +28,7 @@ export default function Gin7TacticalPrototype() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<PixiTacticalMapEngine | null>(null);
   const previousIds = useRef<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const units = useGin7Store((state) => state.tactical?.units ?? []);
   const recordLocalTelemetry = useGin7Store((state) => state.recordLocalTelemetry);
 
@@ -39,14 +41,30 @@ export default function Gin7TacticalPrototype() {
 
   useEffect(() => {
     if (!canvasRef.current) return;
-    engineRef.current = new PixiTacticalMapEngine({
+    
+    let cancelled = false;
+    setIsLoading(true);
+
+    createPixiTacticalMapEngine({
       canvas: canvasRef.current,
       width: 360,
       height: 360,
       logicalWidth: 24,
       logicalHeight: 24,
+    }).then((engine) => {
+      if (cancelled) {
+        engine.destroy();
+        return;
+      }
+      engineRef.current = engine;
+      setIsLoading(false);
+    }).catch((error) => {
+      console.error('[Gin7TacticalPrototype] Failed to load Pixi.js engine:', error);
+      setIsLoading(false);
     });
+
     return () => {
+      cancelled = true;
       engineRef.current?.destroy();
       engineRef.current = null;
     };
@@ -73,6 +91,15 @@ export default function Gin7TacticalPrototype() {
   }, [units]);
 
   return (
-    <canvas ref={canvasRef} data-testid="gin7-tactical-canvas" className="w-full rounded-2xl border border-white/5 bg-[#0b1020]" />
+    <div className="relative w-full">
+      <canvas ref={canvasRef} data-testid="gin7-tactical-canvas" className="w-full rounded-2xl border border-white/5 bg-[#0b1020]" />
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-[#0b1020]/90 rounded-2xl">
+          <div className="text-white/60 text-sm font-mono animate-pulse">
+            Loading tactical map...
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

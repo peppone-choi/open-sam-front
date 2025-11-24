@@ -479,7 +479,7 @@ test('세션 B - 프론트엔드 실시간/전술 인터랙션', async ({ page }
   scriptLog.push(`[${formatNow()}] 레이더 게이지/텔레메트리 샘플 업데이트`);
   checklist.push('- ✅ GIN7 레이더/텔레메트리: 로컬 샘플과 게이지 반응 확인');
 
-  await tacticalHud.screenshot({ path: gin7Screenshot, fullPage: false });
+  await tacticalHud.screenshot({ path: gin7Screenshot });
   await testInfo.attach('세션B-실시간-GIN7', { path: gin7Screenshot, contentType: 'image/png' });
 
   // LOGH strategic interactions
@@ -534,7 +534,7 @@ test('세션 B - 프론트엔드 실시간/전술 인터랙션', async ({ page }
     checklist.push('- ✅ LOGH 전략 지도: 함대 선택 및 이동 이벤트가 Socket Mock으로 기록됨');
   }
 
-  await strategicCanvas.screenshot({ path: loghStrategicScreenshot, fullPage: false });
+  await strategicCanvas.screenshot({ path: loghStrategicScreenshot });
   await testInfo.attach('세션B-실시간-LOGH-전략', { path: loghStrategicScreenshot, contentType: 'image/png' });
 
   // LOGH tactical/HUD interactions
@@ -570,7 +570,7 @@ test('세션 B - 프론트엔드 실시간/전술 인터랙션', async ({ page }
   scriptLog.push(`[${formatNow()}] Tactical HUD 단축키/ESC 동작 검증 완료`);
   checklist.push('- ✅ LOGH 전술 HUD: 단축키 로그·ESC 선택 해제가 정상 작동');
 
-  await page.getByTestId('tactical-map-canvas').screenshot({ path: loghTacticalScreenshot, fullPage: false });
+  await page.getByTestId('tactical-map-canvas').screenshot({ path: loghTacticalScreenshot });
   await testInfo.attach('세션B-실시간-LOGH-전술', { path: loghTacticalScreenshot, contentType: 'image/png' });
 
   await page.context().tracing.stop({ path: tracePath });

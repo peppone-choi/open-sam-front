@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import type { Meta, StoryObj } from '@storybook/react';
 import Gin7CommandPanel from './Gin7CommandPanel';
 import { Gin7StoryProvider } from '@/stories/mocks/gin7Mocks';
 

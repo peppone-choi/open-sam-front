@@ -71,8 +71,8 @@ export default function InheritPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background-main p-4 font-sans text-foreground md:p-6 lg:p-8">
-      <div className="pointer-events-none absolute inset-0 bg-hero-pattern opacity-20" />
+    <div className="relative min-h-screen overflow-hidden bg-gray-950 p-4 font-sans text-gray-100 md:p-6 lg:p-8">
+      <div className="pointer-events-none absolute inset-0 opacity-20" />
       <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-amber-500/15 blur-[150px]" />
 
       <div className="relative z-10 mx-auto max-w-2xl space-y-6">
@@ -90,12 +90,12 @@ export default function InheritPage() {
               ))}
             </div>
 
-            <div className="rounded-2xl border border-white/5 bg-background-secondary/70 p-8 text-center shadow-lg">
-               <h2 className="mb-4 text-xl font-bold text-foreground">보유 유산 포인트</h2>
+            <div className="rounded-2xl border border-white/5 bg-gray-900/50 p-8 text-center shadow-lg">
+               <h2 className="mb-4 text-xl font-bold text-white">보유 유산 포인트</h2>
                <div className="text-6xl font-extrabold text-amber-300">
                   {inheritData?.totalPoint?.toLocaleString() || 0} <span className="text-2xl text-amber-500">P</span>
                </div>
-               <p className="mt-6 text-sm text-foreground-muted">
+               <p className="mt-6 text-sm text-gray-400">
                   유산 포인트는 다음 회차 플레이 시 특수 능력을 구매하거나 초기 자원을 늘리는 데 사용할 수 있습니다.
                </p>
             </div>

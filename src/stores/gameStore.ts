@@ -19,9 +19,13 @@ interface GameStore {
   selectedUnitId: string | null;
   selectUnit: (id: string | null) => void;
   
-  // Data (Mock for now)
+  // Data
   starSystems: StarSystem[];
   fleets: Fleet[];
+  
+  // Loading States
+  isLoadingGalaxy: boolean;
+  galaxyError: string | null;
 
   // Actions
   setViewport: (x: number, y: number, zoom?: number) => void;
@@ -30,7 +34,8 @@ interface GameStore {
   refreshUserProfile: (profile: UserProfile) => void; // Added for hook compatibility
   updateCP: (pcpDelta: number, mcpDelta: number) => void; // Added for command execution
 
-  // Mock Loaders
+  // Data Loaders
+  loadGalaxyData: (sessionId?: string) => Promise<void>;
   loadMockData: () => void;
 }
 
@@ -55,6 +60,8 @@ export const useGameStore = create<GameStore>((set) => ({
   selectedUnitId: null,
   starSystems: [],
   fleets: [],
+  isLoadingGalaxy: false,
+  galaxyError: null,
 
   setViewport: (x, y, zoom) => set((state) => ({ 
     viewport: { ...state.viewport, x, y, zoom: zoom ?? state.viewport.zoom } 
@@ -78,6 +85,73 @@ export const useGameStore = create<GameStore>((set) => ({
       }
     };
   }),
+
+  loadGalaxyData: async (sessionId?: string) => {
+    set({ isLoadingGalaxy: true, galaxyError: null });
+    try {
+      const { loghApi } = await import('@/lib/api/logh');
+      const response = await loghApi.getGalaxyViewport(sessionId);
+      
+      if (!response.success || !response.data) {
+        throw new Error('Invalid galaxy data response');
+      }
+
+      const data = response.data;
+      
+      // Parse star systems from cells
+      const starSystems: StarSystem[] = [];
+      if (data.cells && Array.isArray(data.cells)) {
+        data.cells.forEach((cell: any) => {
+          if (cell.type === 'star_system' && cell.label) {
+            starSystems.push({
+              id: `sys-${cell.x}-${cell.y}`,
+              name: cell.label,
+              gridX: cell.x,
+              gridY: cell.y,
+              faction: cell.faction || 'none',
+              planets: []
+            });
+          }
+        });
+      }
+
+      // Parse fleets
+      const fleets: Fleet[] = [];
+      if (data.fleets && Array.isArray(data.fleets)) {
+        data.fleets.forEach((fleet: any) => {
+          fleets.push({
+            id: fleet.id,
+            commanderName: fleet.name || 'Unknown',
+            faction: fleet.faction || 'none',
+            gridX: fleet.x,
+            gridY: fleet.y,
+            size: fleet.cpLoad?.mcp || 0,
+            status: fleet.status || 'idle'
+          });
+        });
+      }
+
+      // Set viewport if provided
+      const newViewport = data.viewport ? {
+        x: data.viewport.x || 0,
+        y: data.viewport.y || 0,
+        zoom: 1
+      } : undefined;
+
+      set({ 
+        starSystems, 
+        fleets, 
+        isLoadingGalaxy: false,
+        ...(newViewport && { viewport: newViewport })
+      });
+    } catch (error: any) {
+      console.error('Failed to load galaxy data:', error);
+      set({ 
+        galaxyError: error.message || 'Failed to load galaxy data',
+        isLoadingGalaxy: false 
+      });
+    }
+  },
 
   loadMockData: () => set({
     starSystems: [
