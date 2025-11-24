@@ -14,6 +14,8 @@ function CityInfoContent() {
 
   const [loading, setLoading] = useState(true);
   const [cityList, setCityList] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 25;
 
   useEffect(() => {
     loadCityList();
@@ -25,6 +27,7 @@ function CityInfoContent() {
       const result = await SammoAPI.GetCityList({ type, session_id: serverID });
       if (result.result && result.cityList) {
         setCityList(result.cityList);
+        setPage(1);
       }
     } catch (err) {
       console.error(err);
@@ -97,9 +100,10 @@ function CityInfoContent() {
                     <th className="py-3 px-4 whitespace-nowrap text-right">민심</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
-                  {cityList.map((city) => (
+                 <tbody className="divide-y divide-white/5">
+                  {cityList.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((city) => (
                     <tr key={city.city} className="hover:bg-white/5 transition-colors">
+
                       <td className="py-3 px-4 font-bold text-blue-400">{city.name}</td>
                       <td className="py-3 px-4 text-center">{city.level}</td>
                       <td className="py-3 px-4 text-center">{city.region}</td>
@@ -134,10 +138,51 @@ function CityInfoContent() {
                      </tr>
                   )}
                 </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+               </table>
+             </div>
+
+             {/* Pagination */}
+             {cityList.length > PAGE_SIZE && (
+               <div className="flex items-center justify-between px-4 py-3 border-t border-white/10 text-sm text-gray-300">
+                 <div>
+                   전체 {cityList.length}개 중{' '}
+                   <span className="font-mono">
+                     {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, cityList.length)}
+                   </span>
+                 </div>
+                 <div className="flex gap-2">
+                   <button
+                     type="button"
+                     onClick={() => setPage((p) => Math.max(1, p - 1))}
+                     disabled={page === 1}
+                     className={cn(
+                       'px-3 py-1 rounded border text-xs',
+                       page === 1
+                         ? 'border-gray-700 text-gray-600 cursor-not-allowed'
+                         : 'border-gray-500 text-gray-200 hover:bg-white/10'
+                     )}
+                   >
+                     이전
+                   </button>
+                   <button
+                     type="button"
+                     onClick={() => setPage((p) => (p * PAGE_SIZE < cityList.length ? p + 1 : p))}
+                     disabled={page * PAGE_SIZE >= cityList.length}
+                     className={cn(
+                       'px-3 py-1 rounded border text-xs',
+                       page * PAGE_SIZE >= cityList.length
+                         ? 'border-gray-700 text-gray-600 cursor-not-allowed'
+                         : 'border-gray-500 text-gray-200 hover:bg-white/10'
+                     )}
+                   >
+                     다음
+                   </button>
+                 </div>
+               </div>
+             )}
+           </div>
+         )}
+
       </div>
     </div>
   );

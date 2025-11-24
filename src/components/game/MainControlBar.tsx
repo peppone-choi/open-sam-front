@@ -17,6 +17,7 @@ export interface MainControlBarProps {
   isTournamentApplicationOpen: boolean;
   isBettingActive: boolean;
   colorSystem?: ColorSystem;
+  hasCity?: boolean; // 도시 소유 여부 (현재 도시 메뉴 활성화용)
 }
 
 export default function MainControlBar({
@@ -29,6 +30,7 @@ export default function MainControlBar({
   isTournamentApplicationOpen,
   isBettingActive,
   colorSystem,
+  hasCity = false, // 기본값은 false
 }: MainControlBarProps) {
   const params = useParams();
   const serverID = params?.server as string;
@@ -70,7 +72,7 @@ export default function MainControlBar({
           href={href}
           target={target}
           className={cn(buttonBaseClass, activeClass, isHighlight && highlightClass)}
-          // Removed manual color override to let ThemeProvider handle it via Tailwind classes
+        // Removed manual color override to let ThemeProvider handle it via Tailwind classes
         >
           {label}
           {isHighlight && <span className="absolute top-1 right-1 flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span></span>}
@@ -121,7 +123,7 @@ export default function MainControlBar({
           {renderButton(`${basePath}/info/city`, "세력 도시", hasNationAccess && myLevel >= 1)}
           {renderButton(`${basePath}/nation/generals`, "세력 장수", !isRonin && myLevel >= 1)}
           {renderButton(`${basePath}/world`, "중원 정보", true)}
-          {renderButton(`${basePath}/info/current-city`, "현재 도시", true)}
+          {renderButton(`${basePath}/info/current-city`, "현재 도시", hasCity)}
           {renderButton(`${basePath}/info/generals`, "암 행 부", showSecret, false, "_blank")}
         </div>
 

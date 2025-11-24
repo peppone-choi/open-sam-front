@@ -51,11 +51,11 @@ export const loghApi = {
   getGalaxyViewport: async (sessionId?: string) => {
     const params = new URLSearchParams();
     if (sessionId) params.set('sessionId', sessionId);
-    
-    const response = await fetch(`/api/gin7/state/strategy?${params.toString()}`);
-    if (!response.ok) throw new Error('Failed to fetch galaxy viewport data');
-    return response.json();
+
+    // LOGH 전용 갤럭시 뷰포트 엔드포인트 사용
+    return fetchWithAuth(`${API_BASE}/galaxy/viewport?${params.toString()}`);
   },
+
 
   // Ground Combat APIs
   getGroundCombatState: async (battleId: string, sessionId?: string) => {
@@ -131,6 +131,23 @@ export const loghApi = {
         };
     }
     throw new Error('No commander found');
+  },
+
+  // Legacy LOGH endpoints (used by game screen)
+  getMyCommander: async () => {
+    const res = await fetch(`${API_BASE}/my-commander`);
+    if (!res.ok) {
+      throw new Error('Failed to load commander');
+    }
+    return res.json();
+  },
+
+  getFleetDetail: async (fleetId: string) => {
+    const res = await fetch(`${API_BASE}/fleet/${fleetId}`);
+    if (!res.ok) {
+      throw new Error('Failed to load fleet');
+    }
+    return res.json();
   },
 
   executeCommand: async (cardId: string, command: CommandType, target?: any): Promise<{ success: boolean, message: string, pcpCost: number, mcpCost: number }> => {

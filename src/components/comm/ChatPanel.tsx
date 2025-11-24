@@ -15,6 +15,8 @@ export function ChatPanel({ sessionId, characterId, characterName, onNewMessage 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [channelType, setChannelType] = useState<ChannelType>('global');
   const [scopeId, setScopeId] = useState<string>('');
+  const [filterText, setFilterText] = useState('');
+
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -33,6 +35,7 @@ export function ChatPanel({ sessionId, characterId, characterName, onNewMessage 
         100
       );
       setMessages(data);
+      onNewMessage?.(data.length);
       scrollToBottom();
     } catch (error: any) {
       console.error('Failed to load chat messages:', error);
@@ -40,6 +43,7 @@ export function ChatPanel({ sessionId, characterId, characterName, onNewMessage 
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     loadMessages();
@@ -56,10 +60,15 @@ export function ChatPanel({ sessionId, characterId, characterName, onNewMessage 
         inputMessage,
         channelType === 'global' ? undefined : scopeId
       );
-      setMessages((prev) => [...prev, newMessage]);
+      setMessages((prev) => {
+        const next = [...prev, newMessage];
+        onNewMessage?.(next.length);
+        return next;
+      });
       setInputMessage('');
       scrollToBottom();
     } catch (error: any) {
+
       console.error('Failed to send message:', error);
       alert(`메시지 전송 실패: ${error.message}`);
     }
@@ -71,9 +80,19 @@ export function ChatPanel({ sessionId, characterId, characterName, onNewMessage 
       setScopeId('');
     }
   };
-
+ 
+  const visibleMessages = filterText
+    ? messages.filter((msg) => {
+        const text = (msg.message || '').toLowerCase();
+        const sender = (msg.senderName || '').toLowerCase();
+        const q = filterText.toLowerCase();
+        return text.includes(q) || sender.includes(q);
+      })
+    : messages;
+ 
   return (
     <div className="flex flex-col h-full bg-[#050510] border border-[#333]">
+
       {/* Channel Selector */}
       <div className="p-3 border-b border-[#333] bg-[#101520]">
         <div className="flex gap-2 mb-2">
@@ -107,31 +126,71 @@ export function ChatPanel({ sessionId, characterId, characterName, onNewMessage 
           >
             지점 채팅
           </button>
+          <button
+            onClick={() => handleChannelChange('whisper')}
+            className={`px-3 py-1 text-sm border ${
+              channelType === 'whisper'
+                ? 'border-[#FFD700] text-[#FFD700] bg-[#FFD700]/20'
+                : 'border-[#333] text-[#9CA3AF] hover:bg-[#FFD700]/10'
+            }`}
+          >
+            귓속말
+          </button>
         </div>
 
         {channelType !== 'global' && (
-          <div>
-            <label htmlFor="scopeId" className="sr-only">
-              {channelType === 'fleet' ? '함대' : '지점'} ID
-            </label>
-            <input
-              id="scopeId"
-              type="text"
-              placeholder={`${channelType === 'fleet' ? '함대' : '지점'} ID 입력`}
-              value={scopeId}
-              onChange={(e) => setScopeId(e.target.value)}
-              className="w-full px-2 py-1 text-sm bg-[#050510] border border-[#333] text-[#E0E0E0] focus:outline-none focus:border-[#1E90FF]"
-              aria-label={`${channelType === 'fleet' ? '함대' : '지점'} ID 입력`}
-            />
+          <div className="mt-1 flex gap-2">
+            <div className="flex-1">
+              <label htmlFor="scopeId" className="sr-only">
+                {channelType === 'fleet'
+                  ? '함대 ID'
+                  : channelType === 'whisper'
+                  ? '대상 캐릭터 ID'
+                  : '지점 ID'}
+              </label>
+              <input
+                id="scopeId"
+                type="text"
+                placeholder={
+                  channelType === 'fleet'
+                    ? '함대 ID 입력'
+                    : channelType === 'whisper'
+                    ? '대상 캐릭터 ID 입력'
+                    : '지점 ID 입력'
+                }
+                value={scopeId}
+                onChange={(e) => setScopeId(e.target.value)}
+                className="w-full px-2 py-1 text-sm bg-[#050510] border border-[#333] text-[#E0E0E0] focus:outline-none focus:border-[#1E90FF]"
+                aria-label={
+                  channelType === 'fleet'
+                    ? '함대 ID 입력'
+                    : channelType === 'whisper'
+                    ? '대상 캐릭터 ID 입력'
+                    : '지점 ID 입력'
+                }
+              />
+            </div>
+            <div className="w-40">
+              <input
+                type="text"
+                value={filterText}
+                onChange={(e) => setFilterText(e.target.value)}
+                placeholder="메시지 검색"
+                className="w-full px-2 py-1 text-xs bg-[#050510] border border-[#333] text-[#E0E0E0] focus:outline-none focus:border-[#1E90FF]"
+                aria-label="채팅 검색"
+              />
+            </div>
           </div>
         )}
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
+
         {loading ? (
           <div className="text-center text-[#666] py-8">메시지 로딩 중...</div>
-        ) : messages.length === 0 ? (
+        ) : visibleMessages.length === 0 ? (
+
           <div className="text-center text-[#666] py-8">
             메시지가 없습니다.
             <br />
@@ -142,7 +201,8 @@ export function ChatPanel({ sessionId, characterId, characterName, onNewMessage 
             </span>
           </div>
         ) : (
-          messages.map((msg) => (
+          visibleMessages.map((msg) => (
+
             <div
               key={msg.messageId}
               className={`p-2 rounded ${

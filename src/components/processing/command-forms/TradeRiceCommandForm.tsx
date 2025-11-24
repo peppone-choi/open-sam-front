@@ -24,14 +24,17 @@ export default function TradeRiceCommandForm({
 }: TradeRiceCommandFormProps) {
   const [amount, setAmount] = useState(1000);
   const [buyRice, setBuyRice] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = () => {
     if (amount < minAmount || amount > maxAmount) {
-      alert(`금액은 ${minAmount.toLocaleString()} ~ ${maxAmount.toLocaleString()} 사이여야 합니다.`);
+      setError(`금액은 ${minAmount.toLocaleString()} ~ ${maxAmount.toLocaleString()} 사이여야 합니다.`);
       return;
     }
+    setError(null);
     onSubmit({ amount, buyRice });
   };
+
 
   return (
     <div className={styles.container}>
@@ -63,14 +66,25 @@ export default function TradeRiceCommandForm({
           <div className={styles.formField}>
             <label>금액:</label>
             <SelectAmount
-              value={amount}
-              minAmount={minAmount}
-              maxAmount={maxAmount}
-              amountGuide={amountGuide}
-              onChange={setAmount}
-            />
-          </div>
-          <div className={styles.formActions}>
+               value={amount}
+               minAmount={minAmount}
+               maxAmount={maxAmount}
+               amountGuide={amountGuide}
+               onChange={(value) => {
+                 setAmount(value);
+                 if (error) {
+                   setError(null);
+                 }
+               }}
+             />
+           </div>
+           {error && (
+             <p className={styles.errorMessage} role="alert" aria-live="assertive">
+               {error}
+             </p>
+           )}
+           <div className={styles.formActions}>
+
             <button type="button" onClick={handleSubmit} className={styles.submitButton}>
               {commandName}
             </button>

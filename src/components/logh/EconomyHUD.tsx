@@ -52,9 +52,16 @@ export default function EconomyHUD({
   }, [sessionId, characterId, autoRefresh, refreshInterval]);
 
   if (loading) {
-    return (
-      <div className={`bg-gray-900/80 border border-cyan-500/30 rounded-lg p-4 ${className}`}>
-        <div className="animate-pulse space-y-3">
+     return (
+       <div
+         className={`bg-gray-900/80 border border-cyan-500/30 rounded-lg p-4 ${className}`}
+         role="status"
+         aria-live="polite"
+         aria-busy="true"
+       >
+         <div className="animate-pulse space-y-3">
+
+
           <div className="h-6 bg-cyan-500/20 rounded w-1/3"></div>
           <div className="h-20 bg-cyan-500/10 rounded"></div>
           <div className="space-y-2">
@@ -68,9 +75,15 @@ export default function EconomyHUD({
   }
 
   if (error) {
-    return (
-      <div className={`bg-red-900/20 border border-red-500/50 rounded-lg p-4 ${className}`}>
-        <div className="text-red-400 text-sm">
+     return (
+       <div
+         className={`bg-red-900/20 border border-red-500/50 rounded-lg p-4 ${className}`}
+         role="alert"
+         aria-live="assertive"
+       >
+         <div className="text-red-400 text-sm">
+
+
           <div className="font-semibold mb-1">Error</div>
           <div>{error}</div>
         </div>

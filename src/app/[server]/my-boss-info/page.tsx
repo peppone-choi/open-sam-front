@@ -271,6 +271,9 @@ function PersonnelTables({
     const selectionValue = chiefSelections[level] ?? 0;
     const isProcessing = appointingLevels[level];
 
+    // 군주(level 12)는 자신의 직위를 수정할 수 없음
+    const isMonarchPosition = level === 12 && officerData.meLevel === 12;
+
     return (
       <div className="flex flex-col gap-2">
         {info?.name ? (
@@ -284,7 +287,7 @@ function PersonnelTables({
         ) : (
           <span className="text-gray-500">-</span>
         )}
-        {canAppointChief && (
+        {canAppointChief && !isMonarchPosition && (
           isLocked ? (
             <span className="text-xs text-amber-400">이번 턴에는 이미 임명했습니다.</span>
           ) : (
@@ -307,9 +310,8 @@ function PersonnelTables({
               </select>
               <button
                 type="button"
-                className={`px-3 py-1.5 text-xs font-bold rounded transition-colors border border-white/10 ${
-                  isProcessing ? "bg-gray-700 text-gray-400" : "bg-blue-600 hover:bg-blue-500"
-                }`}
+                className={`px-3 py-1.5 text-xs font-bold rounded transition-colors border border-white/10 ${isProcessing ? "bg-gray-700 text-gray-400" : "bg-blue-600 hover:bg-blue-500"
+                  }`}
                 onClick={() => onAppoint(level)}
                 disabled={isProcessing}
               >
@@ -372,12 +374,12 @@ function PersonnelTables({
                 <td colSpan={3} className="py-3 px-4 text-gray-300">
                   {tigers.length > 0
                     ? tigers.map((t, i) => (
-                        <span key={`${t.name}-${i}`}>
-                          {t.name}
-                          <span className="text-gray-500">【{t.value.toLocaleString()}】</span>
-                          {i < tigers.length - 1 ? ", " : ""}
-                        </span>
-                      ))
+                      <span key={`${t.name}-${i}`}>
+                        {t.name}
+                        <span className="text-gray-500">【{t.value.toLocaleString()}】</span>
+                        {i < tigers.length - 1 ? ", " : ""}
+                      </span>
+                    ))
                     : "-"}
                 </td>
               </tr>
@@ -386,12 +388,12 @@ function PersonnelTables({
                 <td colSpan={3} className="py-3 px-4 text-gray-300">
                   {eagles.length > 0
                     ? eagles.map((e, i) => (
-                        <span key={`${e.name}-${i}`}>
-                          {e.name}
-                          <span className="text-gray-500">【{e.value.toLocaleString()}】</span>
-                          {i < eagles.length - 1 ? ", " : ""}
-                        </span>
-                      ))
+                      <span key={`${e.name}-${i}`}>
+                        {e.name}
+                        <span className="text-gray-500">【{e.value.toLocaleString()}】</span>
+                        {i < eagles.length - 1 ? ", " : ""}
+                      </span>
+                    ))
                     : "-"}
                 </td>
               </tr>

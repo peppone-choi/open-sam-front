@@ -225,7 +225,8 @@ export default function GamePageLayout({ children }: GamePageLayoutProps) {
             nationColor: frontInfo.nation.color,
             isTournamentApplicationOpen: frontInfo.global.isTournamentApplicationOpen,
             isBettingActive: frontInfo.global.isBettingActive,
-            colorSystem
+            colorSystem,
+            hasCity: !!frontInfo.general.city, // city 필드가 존재하고 0이 아닌 경우 true
         };
     }, [
         frontInfo?.general?.permission,

@@ -4,7 +4,9 @@
  */
 
 // Chat channel types (P.16)
-export type ChannelType = 'spot' | 'fleet' | 'grid' | 'global';
+// LOGH 확장: 귓속말(whisper) 채널 추가
+export type ChannelType = 'spot' | 'fleet' | 'grid' | 'global' | 'whisper';
+
 
 // Message types
 export interface ChatMessage {

@@ -1,4 +1,4 @@
-import SteeringPanel from '@/components/logh/SteeringPanel';
+import TacticalSteeringPanel from '@/components/logh/TacticalSteeringPanel';
 import TacticalMap from '@/components/logh/TacticalMap';
 import TacticalHUD from '@/components/logh/TacticalHUD';
 
@@ -17,7 +17,7 @@ export default async function BattlePage({ params }: { params: Promise<{ battleI
         
         {/* HUD Overlay: Steering Panel (Bottom Left) */}
         <div className="absolute bottom-4 left-4 pointer-events-auto">
-           <SteeringPanel />
+           <TacticalSteeringPanel />
         </div>
       </div>
     </div>

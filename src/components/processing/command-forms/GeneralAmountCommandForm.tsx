@@ -28,6 +28,8 @@ export default function GeneralAmountCommandForm({
   const [selectedGeneralID, setSelectedGeneralID] = useState<number>(0);
   const [isGold, setIsGold] = useState(true);
   const [amount, setAmount] = useState(1000);
+  const [error, setError] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (generals.length > 0 && selectedGeneralID === 0) {
@@ -37,19 +39,21 @@ export default function GeneralAmountCommandForm({
 
   const handleSubmit = () => {
     if (selectedGeneralID === 0) {
-      alert('장수를 선택해주세요.');
+      setError('장수를 선택해주세요.');
       return;
     }
     if (amount < minAmount || amount > maxAmount) {
-      alert(`금액은 ${minAmount.toLocaleString()} ~ ${maxAmount.toLocaleString()} 사이여야 합니다.`);
+      setError(`금액은 ${minAmount.toLocaleString()} ~ ${maxAmount.toLocaleString()} 사이여야 합니다.`);
       return;
     }
+    setError(null);
     onSubmit({
       destGeneralID: selectedGeneralID,
       isGold,
       amount
     });
   };
+
 
   const getDescription = () => {
     if (commandName === '몰수') {
@@ -78,10 +82,16 @@ export default function GeneralAmountCommandForm({
           <div className={styles.formField}>
             <label>장수:</label>
             <SelectGeneral
-              value={selectedGeneralID}
-              generals={generals}
-              onChange={setSelectedGeneralID}
-            />
+               value={selectedGeneralID}
+               generals={generals}
+               onChange={(value) => {
+                 setSelectedGeneralID(value);
+                 if (error) {
+                   setError(null);
+                 }
+               }}
+             />
+
           </div>
           <div className={styles.formField}>
             <label>자원:</label>
@@ -105,14 +115,25 @@ export default function GeneralAmountCommandForm({
           <div className={styles.formField}>
             <label>금액:</label>
             <SelectAmount
-              value={amount}
-              minAmount={minAmount}
-              maxAmount={maxAmount}
-              amountGuide={amountGuide}
-              onChange={setAmount}
-            />
-          </div>
-          <div className={styles.formActions}>
+               value={amount}
+               minAmount={minAmount}
+               maxAmount={maxAmount}
+               amountGuide={amountGuide}
+               onChange={(value) => {
+                 setAmount(value);
+                 if (error) {
+                   setError(null);
+                 }
+               }}
+             />
+           </div>
+           {error && (
+             <p className={styles.errorMessage} role="alert" aria-live="assertive">
+               {error}
+             </p>
+           )}
+           <div className={styles.formActions}>
+
             <button type="button" onClick={handleSubmit} className={styles.submitButton}>
               {commandName}
             </button>

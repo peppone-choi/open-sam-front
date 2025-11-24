@@ -3,6 +3,13 @@
 import { useState } from 'react';
 
 const SYSTEM_KEYS = ['BEAM', 'GUN', 'SHIELD', 'ENGINE', 'WARP', 'SENSOR'] as const;
+
+interface SteeringPanelProps {
+  initialDistribution?: Partial<Record<SystemKey, number>>;
+  onDistributionChange?: (distribution: Record<SystemKey, number>) => void;
+  disabled?: boolean;
+}
+
 const SYSTEM_LABELS: Record<SystemKey, string> = {
   BEAM: '빔 무장',
   GUN: '포격 시스템',
@@ -22,8 +29,11 @@ const DEFAULT_DISTRIBUTION: Record<SystemKey, number> = {
   SENSOR: 20,
 };
 
-export default function SteeringPanel() {
-  const [distribution, setDistribution] = useState<Record<SystemKey, number>>(DEFAULT_DISTRIBUTION);
+export default function SteeringPanel({ initialDistribution, onDistributionChange, disabled = false }: SteeringPanelProps = {}) {
+  const [distribution, setDistribution] = useState<Record<SystemKey, number>>(
+    initialDistribution ? { ...DEFAULT_DISTRIBUTION, ...initialDistribution } : DEFAULT_DISTRIBUTION,
+  );
+
 
   const handleChange = (key: SystemKey, newVal: number) => {
     setDistribution((prev) => {
@@ -35,7 +45,9 @@ export default function SteeringPanel() {
       
       // 3. 100% 이하면 그대로 반환
       if (total <= 100) {
-        return newDistribution;
+        const next = newDistribution;
+        onDistributionChange?.(next);
+        return next;
       }
       
       // 4. 100% 초과 시: 다른 슬라이더들을 비례적으로 감소
@@ -92,13 +104,16 @@ export default function SteeringPanel() {
         );
         adjustedDistribution[maxKey] = Math.max(0, adjustedDistribution[maxKey] - diff);
       }
-      
-      return adjustedDistribution;
+
+      const next = adjustedDistribution;
+      onDistributionChange?.(next);
+      return next;
     });
   };
 
   const handleReset = () => {
     setDistribution(DEFAULT_DISTRIBUTION);
+    onDistributionChange?.(DEFAULT_DISTRIBUTION);
   };
 
   // 총합 계산
@@ -107,8 +122,9 @@ export default function SteeringPanel() {
   const isOptimal = total === 100;
   const isUnderUtilized = total < 100;
 
-  return (
-    <div className="bg-[#101520]/90 border border-[#1E90FF] p-4 w-48 rounded text-xs font-mono shadow-2xl backdrop-blur">
+    return (
+    <div className={`bg-[#101520]/90 border border-[#1E90FF] p-4 w-48 rounded text-xs font-mono shadow-2xl backdrop-blur ${disabled ? 'opacity-60' : ''}`}>
+
       <div className="flex justify-between items-center mb-2 border-b border-[#333] pb-1">
         <span className="text-[#1E90FF] font-bold">에너지 배분</span>
         <div className="flex items-center gap-2">
@@ -134,12 +150,14 @@ export default function SteeringPanel() {
           {isUnderUtilized && `• ${100 - total}% 여유`}
         </span>
         <button
-          onClick={handleReset}
-          className="text-[#1E90FF] hover:text-[#4AA8FF] transition-colors text-[10px]"
+          onClick={!disabled ? handleReset : undefined}
+          disabled={disabled}
+          className="text-[#1E90FF] hover:text-[#4AA8FF] transition-colors text-[10px] disabled:opacity-40 disabled:cursor-not-allowed"
           title="기본값으로 재설정"
         >
           초기화
         </button>
+
       </div>
       
       {/* 전체 에너지 사용률 바 */}
@@ -168,9 +186,11 @@ export default function SteeringPanel() {
               min="0"
               max="100"
               value={distribution[key]}
-              onChange={(e) => handleChange(key, parseInt(e.target.value))}
-              className="w-full h-1 bg-[#333] rounded-lg appearance-none cursor-pointer accent-[#1E90FF]"
+              onChange={!disabled ? (e) => handleChange(key, parseInt(e.target.value, 10)) : undefined}
+              disabled={disabled}
+              className="w-full h-1 bg-[#333] rounded-lg appearance-none cursor-pointer accent-[#1E90FF] disabled:cursor-not-allowed"
             />
+
             {/* Visual Bar */}
             <div className="w-full h-1 bg-[#333] rounded overflow-hidden mt-0.5">
               <div 

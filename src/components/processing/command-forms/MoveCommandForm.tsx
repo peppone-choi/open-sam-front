@@ -40,6 +40,8 @@ export default function MoveCommandForm({
   const [selectedCityID, setSelectedCityID] = useState<number>(currentCity);
   const [mapDataState, setMapDataState] = useState<GetMapResponse | null>(mapData || null);
   const [loadingMap, setLoadingMap] = useState(!mapData);
+  const [error, setError] = useState<string | null>(null);
+
 
   // 맵 데이터 로드
   useEffect(() => {
@@ -65,16 +67,38 @@ export default function MoveCommandForm({
   function handleCityClick(cityId: number) {
     if (cityId !== currentCity) {
       setSelectedCityID(cityId);
+      if (error) {
+        setError(null);
+      }
     }
   }
 
+
   const handleSubmit = () => {
-    if (selectedCityID === 0 || selectedCityID === currentCity) {
-      alert('다른 도시를 선택해주세요.');
+    // 천도, 증축 등은 현재 도시 선택 불가가 아닐 수 있음.
+    // 그러나 MoveCommandForm은 기본적으로 "이동"이라 대상이 필요함.
+    // 증축/감축은 현재 도시 대상일 수 있음.
+    // 하지만 processing에 왔다는 건 대상 선택이 필요하다는 뜻?
+    // 만약 증축이 "현재 도시"라면 processing 없이 바로 실행되어야 함 (reqArg=0).
+    // 만약 "다른 도시"를 증축해주는거라면 선택 필요.
+    // 일반적으로 증축/감축은 "현재 도시"임.
+    // 따라서 processing에 안 올 것임. 만약 온다면 선택 가능한 것.
+    // 수몰, 초토화는 "선택된 도시"임.
+    
+    if (selectedCityID === 0) {
+      setError('도시를 선택해주세요.');
       return;
     }
+    
+    if (['강행', '이동', '천도'].includes(commandName) && selectedCityID === currentCity) {
+      setError('다른 도시를 선택해주세요.');
+      return;
+    }
+    
+    setError(null);
     onSubmit({ destCityID: selectedCityID });
   };
+
 
   const getDescription = () => {
     if (commandName === '강행') {
@@ -87,6 +111,20 @@ export default function MoveCommandForm({
       return '선택된 도시에 첩보를 실행합니다.\n인접도시일 경우 많은 정보를 얻을 수 있습니다.\n목록을 선택하거나 도시를 클릭하세요.';
     } else if (['화계', '탈취', '파괴', '선동'].includes(commandName)) {
       return `선택된 도시에 ${commandName}을(를) 실행합니다.\n목록을 선택하거나 도시를 클릭하세요.`;
+    } else if (commandName === '수몰') {
+      return '선택된 도시에 수몰을 발동합니다.\n전쟁중인 상대국 도시만 가능합니다.\n목록을 선택하거나 도시를 클릭하세요.';
+    } else if (commandName === '백성동원') {
+      return '선택된 도시에 백성을 동원해 성벽을 쌓습니다.\n아국 도시만 가능합니다.\n목록을 선택하거나 도시를 클릭하세요.';
+    } else if (commandName === '천도') {
+      return '선택된 도시로 천도합니다.\n현재 수도에서 연결된 도시만 가능하며, 1+2×거리만큼의 턴이 필요합니다.\n목록을 선택하거나 도시를 클릭하세요.';
+    } else if (commandName === '허보') {
+      return '선택된 도시에 허보를 발동합니다.\n선포, 전쟁중인 상대국 도시만 가능합니다.\n목록을 선택하거나 도시를 클릭하세요.';
+    } else if (commandName === '초토화') {
+      return '선택된 도시를 초토화 시킵니다.\n도시가 공백지가 되며, 도시의 인구, 내정 상태에 따라 상당량의 국고가 확보됩니다.\n국가의 수뇌들은 명성을 잃고, 모든 장수들은 배신 수치가 1 증가합니다.\n목록을 선택하거나 도시를 클릭하세요.';
+    } else if (commandName === '증축') {
+      return '선택된 도시를 증축합니다.\n목록을 선택하거나 도시를 클릭하세요.';
+    } else if (commandName === '감축') {
+      return '선택된 도시를 감축합니다.\n목록을 선택하거나 도시를 클릭하세요.';
     }
     return '도시를 선택하세요.';
   };
@@ -122,12 +160,23 @@ export default function MoveCommandForm({
           <div className={styles.formField}>
             <label>도시:</label>
             <SelectCity
-              value={selectedCityID}
-              cities={cities}
-              onChange={setSelectedCityID}
-            />
-          </div>
-          <div className={styles.formActions}>
+               value={selectedCityID}
+               cities={cities}
+               onChange={(value) => {
+                 setSelectedCityID(value);
+                 if (error) {
+                   setError(null);
+                 }
+               }}
+             />
+           </div>
+           {error && (
+             <p className={styles.errorMessage} role="alert" aria-live="assertive">
+               {error}
+             </p>
+           )}
+           <div className={styles.formActions}>
+
             <button type="button" onClick={handleSubmit} className={styles.submitButton}>
               {commandName}
             </button>
@@ -137,4 +186,3 @@ export default function MoveCommandForm({
     </div>
   );
 }
-

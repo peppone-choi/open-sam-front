@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CommandType } from '@/types/logh';
 import { Gin7CommandMeta } from '@/types/gin7';
 
@@ -39,6 +39,7 @@ export default function TargetSelectionModal({
   const [gridY, setGridY] = useState<string>('0');
   const [fleetId, setFleetId] = useState<string>('');
   const [systemId, setSystemId] = useState<string>('');
+  const dialogRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -47,8 +48,25 @@ export default function TargetSelectionModal({
       setFleetId('');
       setSystemId('');
       setTargetType('coordinates');
+      return;
     }
-  }, [isOpen]);
+
+    if (dialogRef.current) {
+      dialogRef.current.focus();
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        onCancel();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onCancel]);
 
   if (!isOpen) return null;
 
@@ -87,8 +105,17 @@ export default function TargetSelectionModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center pointer-events-auto">
+    <div
+      className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center pointer-events-auto"
+      onClick={onCancel}
+    >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="target-selection-title"
+        aria-describedby="target-selection-description"
+        tabIndex={-1}
         className={`w-[500px] border-2 rounded-lg shadow-2xl ${theme} ${
           faction === 'empire' ? 'font-serif' : 'font-mono'
         }`}
@@ -96,7 +123,7 @@ export default function TargetSelectionModal({
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/20">
-          <h3 className="text-lg font-bold">Target Selection</h3>
+          <h3 id="target-selection-title" className="text-lg font-bold">Target Selection</h3>
           <button onClick={onCancel} className="text-2xl leading-none hover:opacity-70">
             ×
           </button>
@@ -216,7 +243,10 @@ export default function TargetSelectionModal({
           )}
 
           {/* Manual Reference */}
-          <div className="text-xs opacity-50 pt-2 border-t border-white/10">
+          <div
+            id="target-selection-description"
+            className="text-xs opacity-50 pt-2 border-t border-white/10"
+          >
             gin7manual.txt P.26: Max 16 cards per character
           </div>
         </div>

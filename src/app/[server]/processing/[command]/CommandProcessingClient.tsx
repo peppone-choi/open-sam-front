@@ -3,9 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
-import TopBackBar from '@/components/common/TopBackBar';
 import { JosaUtil } from '@/lib/utils/josaUtil';
-import { cn } from '@/lib/utils';
 import {
   RecruitCommandForm,
   MoveCommandForm,
@@ -25,12 +23,16 @@ import {
   MaterialAidCommandForm,
   AppointGeneralCommandForm,
   NoAggressionProposalCommandForm,
+  DeclareWarCommandForm,
   PiJangPaJangCommandForm,
   MovePopulationCommandForm,
   RaiseArmyCommandForm,
   ReassignUnitCommandForm,
-  SimpleCommandForm
+  SimpleCommandForm,
+  NationTargetCommandForm,
+  GeneralTargetCommandForm
 } from '@/components/processing/command-forms';
+import HighRiskCommandConfirmModal from '@/components/processing/HighRiskCommandConfirmModal';
 import type { ProcGeneralItem, ProcNationItem } from '@/components/processing/SelectGeneral';
 
 // --- Type Definitions (Keep logic intact) ---
@@ -75,6 +77,16 @@ interface CommandProcessingClientProps {
   turnListParam?: string;
   isChief: boolean;
   generalIdParam?: number;
+}
+
+interface HighRiskConfirmState {
+  open: boolean;
+  title: string;
+  brief: string;
+  details: string[];
+  args: any;
+  requireInputLabel?: string;
+  expectedInput?: string;
 }
 
 interface CommandData {
@@ -131,6 +143,7 @@ interface CommandData {
   currentCrewType?: number;
   crew?: number;
   gold?: number;
+  rice?: number;
   [key: string]: any;
   ownDexList?: Array<{ armType: number; name: string; amount: number }>;
   dexLevelList?: Array<{ amount: number; color: string; name: string }>;
@@ -178,6 +191,12 @@ function normalizeUnitStackGroup(
       stacks: group.stacks,
       totalTroops,
       stackCount,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      morale: group.averageMorale, // Optional: average morale for display
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      train: group.averageTrain
     };
   }
   return null;
@@ -217,6 +236,52 @@ function buildOwnItem(
   return result;
 }
 
+const HIGH_RISK_CITY_COMMANDS = new Set([
+  '천도',
+  'che_천도',
+  '초토화',
+  'che_초토화',
+  '수몰',
+  'che_수몰',
+]);
+
+const HIGH_RISK_POPULATION_COMMANDS = new Set([
+  '인구이동',
+  'che_인구이동',
+  'movePopulation',
+]);
+
+const HIGH_RISK_MATERIAL_AID_COMMANDS = new Set([
+  '물자원조',
+  'che_물자원조',
+  'materialAid',
+]);
+
+const HIGH_RISK_DECLARE_WAR_COMMANDS = new Set([
+  '선전포고',
+  'che_선전포고',
+  'declareWar',
+]);
+
+const HIGH_RISK_DIPLOMACY_COMMANDS = new Set([
+  '불가침제의',
+  'che_불가침제의',
+  'noAggressionProposal',
+  '불가침파기제의',
+  'che_불가침파기제의',
+  '종전제의',
+  'che_종전제의',
+]);
+
+const CITY_NAME_CONFIRM_COMMANDS = new Set([
+  '천도',
+  'che_천도',
+  '초토화',
+  'che_초토화',
+  '수몰',
+  'che_수몰',
+]);
+
 export default function CommandProcessingClient({
   serverID,
   command,
@@ -226,6 +291,9 @@ export default function CommandProcessingClient({
 }: CommandProcessingClientProps) {
   const [loading, setLoading] = useState(true);
   const [commandData, setCommandData] = useState<CommandData | null>(null);
+  const [highRiskConfirmState, setHighRiskConfirmState] = useState<HighRiskConfirmState | null>(
+    null
+  );
   const router = useRouter();
   const generalID = generalIdParam;
 
@@ -262,112 +330,314 @@ export default function CommandProcessingClient({
     }
   }
 
-  async function handleSubmit(args: any) {
+  function buildBrief(args: any): string {
+    let brief = command;
+
+    if (!commandData) {
+      return brief;
+    }
+
+    const commandType = commandData.commandType || command;
+
+    if (
+      [
+        '이동',
+        '강행',
+        '출병',
+        '첩보',
+        '화계',
+        '탈취',
+        '파괴',
+        '선동',
+        'che_이동',
+        'che_강행',
+        'che_출병',
+        'che_첩보',
+        'che_화계',
+        'che_탈취',
+        'che_파괴',
+        'che_선동',
+        '인구이동',
+        'che_인구이동',
+        '수몰',
+        '백성동원',
+        '천도',
+        '허보',
+        '초토화',
+        '증축',
+        '감축',
+        'che_수몰',
+        'che_백성동원',
+        'che_천도',
+        'che_허보',
+        'che_초토화',
+        'che_증축',
+        'che_감축',
+      ].includes(commandType)
+    ) {
+      if (args.destCityID && commandData.cities) {
+        const cities: any = commandData.cities;
+        let cityName: string | undefined;
+        if (cities instanceof Map) {
+          const cityData = cities.get(args.destCityID);
+          cityName = cityData?.name || cityData;
+        } else if (Array.isArray(cities)) {
+          const cityData = cities.find(([id]: [number, any]) => id === args.destCityID);
+          cityName = cityData?.[1];
+        }
+        if (cityName) {
+          brief = `${JosaUtil.attachJosa(cityName, '으로')} ${commandData.name || command}`;
+          if (args.amount) {
+            brief += ` (${args.amount.toLocaleString()})`;
+          }
+        }
+      }
+    } else if (
+      ['등용', 'che_등용', 'che_장수대상임관', '장수대상임관', '부대탈퇴지시', 'che_부대탈퇴지시'].includes(
+        commandType
+      )
+    ) {
+      if (args.destGeneralID && commandData.generals) {
+        const general = commandData.generals.find((g: any) => g.no === args.destGeneralID);
+        if (general) {
+          brief = `${JosaUtil.attachJosa(general.name, '을')} ${commandData.name || command}`;
+        }
+      }
+    } else if (
+      ['몰수', '포상', '증여', 'che_몰수', 'che_포상', 'che_증여'].includes(commandType)
+    ) {
+      if (args.destGeneralID && commandData.generals) {
+        const general = commandData.generals.find((g: any) => g.no === args.destGeneralID);
+        if (general) {
+          const typeStr = args.isGold ? '금' : '쌀';
+          const amountStr = args.amount?.toLocaleString() || '0';
+          brief = `${JosaUtil.attachJosa(general.name, '에게')} ${typeStr} ${amountStr}을(를) ${
+            commandData.name || command
+          }`;
+        }
+      }
+    } else if (['군량매매', 'che_군량매매'].includes(commandType)) {
+      const amountStr = args.amount?.toLocaleString() || '0';
+      brief = `쌀 ${amountStr} ${args.buyRice ? '매입' : '매각'}`;
+    } else if (
+      ['징병', '모병', 'che_징병', 'che_모병'].includes(commandType)
+    ) {
+      const crewType = args.crewType;
+      let crewName = '병력';
+      if (commandData.armCrewTypes) {
+        for (const arm of commandData.armCrewTypes) {
+          const found = arm.values.find((c) => c.id === crewType);
+          if (found) {
+            crewName = found.name;
+            break;
+          }
+        }
+      }
+      brief = `${crewName} ${args.amount?.toLocaleString()} ${commandData.name || command}`;
+    } else if (
+      ['국기변경', 'che_국기변경', '국호변경', 'che_국호변경'].includes(commandType)
+    ) {
+      brief = commandData.name || command;
+    } else if (
+      [
+        '급습',
+        '불가침파기제의',
+        '이호경식',
+        '종전제의',
+        'che_급습',
+        'che_불가침파기제의',
+        'che_이호경식',
+        'che_종전제의',
+      ].includes(commandType)
+    ) {
+      if (args.destNationID && commandData.nations) {
+        const nation = commandData.nations.find((n) => n.id === args.destNationID);
+        if (nation) {
+          brief = `${JosaUtil.attachJosa(nation.name, '에')} ${commandData.name || command}`;
+        }
+      }
+    }
+
+    return brief;
+  }
+
+  function getCityName(destCityID?: number): string | undefined {
+    if (!destCityID || !commandData?.cities) {
+      return undefined;
+    }
+
+    const cities: any = commandData.cities;
+    if (cities instanceof Map) {
+      const cityData = cities.get(destCityID);
+      return cityData?.name || cityData;
+    }
+
+    if (Array.isArray(cities)) {
+      const cityData = cities.find(([id]: [number, any]) => id === destCityID);
+      return cityData?.[1];
+    }
+
+    return undefined;
+  }
+
+  function getNationName(destNationID?: number): string | undefined {
+    if (!destNationID || !commandData?.nations) {
+      return undefined;
+    }
+
+    const nation = commandData.nations.find((n) => n.id === destNationID);
+    return nation?.name;
+  }
+
+  function buildHighRiskConfirmState(args: any, brief: string): HighRiskConfirmState | null {
+    if (!commandData) return null;
+
+    const commandType = commandData.commandType || command;
+    const commandName = commandData.name || command;
+    const details: string[] = [];
+    let requireInputLabel: string | undefined;
+    let expectedInput: string | undefined;
+
+    if (HIGH_RISK_CITY_COMMANDS.has(commandType)) {
+      const cityName = getCityName(args.destCityID);
+      if (cityName) {
+        details.push(`대상 도시: ${cityName}`);
+      }
+
+      if (commandType.includes('천도')) {
+        details.push('수도가 변경되며 국가 운영에 큰 영향을 줍니다.');
+      } else if (commandType.includes('초토화')) {
+        details.push('도시는 공백지가 되며 인구와 내정 수치가 사라집니다.');
+        details.push('국가 수뇌의 명성이 감소하고 모든 장수의 배신 수치가 증가합니다.');
+      } else if (commandType.includes('수몰')) {
+        details.push('대상 도시에 큰 피해를 주는 공격 명령입니다.');
+      }
+
+      if (CITY_NAME_CONFIRM_COMMANDS.has(commandType) && cityName) {
+        expectedInput = cityName;
+        requireInputLabel = `안전을 위해 대상 도시 이름 "${cityName}"을(를) 정확히 입력해주세요.`;
+      }
+    } else if (HIGH_RISK_POPULATION_COMMANDS.has(commandType)) {
+      const cityName = getCityName(args.destCityID);
+      if (cityName) {
+        details.push(`대상 도시: ${cityName}`);
+      }
+      if (typeof args.amount === 'number') {
+        details.push(`이동 인구: ${args.amount.toLocaleString()} 명`);
+      }
+    } else if (HIGH_RISK_MATERIAL_AID_COMMANDS.has(commandType)) {
+      const nationName = getNationName(args.destNationID);
+      if (nationName) {
+        details.push(`대상 국가: ${nationName}`);
+      }
+      if (Array.isArray(args.amountList) && args.amountList.length >= 2) {
+        const [gold, rice] = args.amountList as [number, number];
+        details.push(`금 원조: ${gold.toLocaleString()} 냥`);
+        details.push(`쌀 원조: ${rice.toLocaleString()} 석`);
+      }
+    } else if (HIGH_RISK_DECLARE_WAR_COMMANDS.has(commandType)) {
+      const nationName = getNationName(args.destNationID);
+      if (nationName) {
+        details.push(`대상 국가: ${nationName}`);
+      }
+      details.push('해당 국가와 전쟁 상태가 되며, 자동으로 되돌릴 수 없습니다.');
+    } else if (HIGH_RISK_DIPLOMACY_COMMANDS.has(commandType)) {
+      const nationName = getNationName(args.destNationID);
+      if (nationName) {
+        details.push(`대상 국가: ${nationName}`);
+      }
+
+      if (commandType.includes('불가침제의')) {
+        if (typeof args.year === 'number' && typeof args.month === 'number') {
+          details.push(`불가침 기간: ${args.year}년 ${args.month}월까지`);
+        }
+        details.push('해당 기간 동안 상호 공격이 제한됩니다.');
+      } else if (commandType.includes('불가침파기제의')) {
+        details.push('기존 불가침 조약을 파기하는 고위험 외교 명령입니다.');
+      } else if (commandType.includes('종전제의')) {
+        details.push('상대국과의 전쟁을 종료하기 위한 제의입니다.');
+      }
+    } else {
+      return null;
+    }
+
+    details.push('이 명령은 실제 게임 진행에 큰 영향을 줄 수 있습니다.');
+
+    return {
+      open: true,
+      title: commandName,
+      brief,
+      details,
+      args,
+      requireInputLabel,
+      expectedInput,
+    };
+  }
+
+  async function executeReserve(args: any, brief: string) {
+    const turnList = turnListParam?.split('_').map(Number) || [0];
+
+    let result: any;
+    if (isChief) {
+      result = await SammoAPI.NationCommandReserveCommand({
+        serverID,
+        action: command,
+        turnList,
+        arg: args,
+      });
+    } else {
+      result = await SammoAPI.CommandReserveCommand({
+        serverID,
+        general_id: generalID,
+        turn_idx: turnList.length > 0 ? turnList[0] : undefined,
+        action: command,
+        arg: args,
+        brief,
+      });
+    }
+
+    if (result.result ?? result.success) {
+      router.push(`/${serverID}/${isChief ? 'chief' : 'game'}`);
+    } else {
+      alert(result.reason || result.message || '명령 등록에 실패했습니다.');
+    }
+  }
+
+  async function handleSubmit(args: any, forceExecute = false) {
     if (!command) {
       alert('명령이 지정되지 않았습니다.');
       return;
     }
 
+    const brief = buildBrief(args);
+
     try {
-      const turnList = turnListParam?.split('_').map(Number) || [0];
+      const commandType = commandData?.commandType || command;
 
-      let brief = command;
-      if (commandData) {
-        // ... (Logic for generating brief description - kept as is)
-        if (args.destCityID && commandData.cities) {
-          const cities: any = commandData.cities;
-          let cityName: string | undefined;
+      if (!forceExecute && commandType) {
+        const isHighRisk =
+          HIGH_RISK_CITY_COMMANDS.has(commandType) ||
+          HIGH_RISK_POPULATION_COMMANDS.has(commandType) ||
+          HIGH_RISK_MATERIAL_AID_COMMANDS.has(commandType) ||
+          HIGH_RISK_DECLARE_WAR_COMMANDS.has(commandType) ||
+          HIGH_RISK_DIPLOMACY_COMMANDS.has(commandType);
 
-          if (cities instanceof Map) {
-            const cityData = cities.get(args.destCityID);
-            cityName = cityData?.name || cityData;
-          } else if (Array.isArray(cities)) {
-            const cityData = cities.find(([id]: [number, any]) => id === args.destCityID);
-            cityName = cityData?.[1];
+        if (isHighRisk) {
+          const confirmState = buildHighRiskConfirmState(args, brief);
+          if (confirmState) {
+            setHighRiskConfirmState(confirmState);
+            return;
           }
-
-          if (cityName) {
-            brief = `${JosaUtil.attachJosa(cityName, '으로')} ${command}`;
-          }
-        } else if ((args.destGeneralID || args.targetGeneralID) && commandData.generals) {
-          const targetGeneralId = args.destGeneralID || args.targetGeneralID;
-          const general = commandData.generals.find((g: any) => g.no === targetGeneralId || g.id === targetGeneralId);
-          if (general) {
-            brief = `${JosaUtil.attachJosa(general.name, '을')} ${command}`;
-          }
-        } else if (args.generalID && args.amount && commandData.generals) {
-          const general = commandData.generals.find((g: any) => g.id === args.generalID);
-          const amountStr = args.amount.toLocaleString();
-          if (general) {
-            brief = `${JosaUtil.attachJosa(general.name, '에게')} ${JosaUtil.attachJosa(amountStr, '을')} ${command}`;
-          }
-        } else if (args.targetGeneralID && args.nationID && commandData.generals && commandData.nations) {
-          const general = commandData.generals.find((g: any) => g.id === args.targetGeneralID);
-          const nation = commandData.nations.find((n: any) => n.id === args.nationID);
-          if (general && nation) {
-            brief = `${JosaUtil.attachJosa(general.name, '을')} ${JosaUtil.attachJosa(nation.name, '에')} ${command}`;
-          }
-        } else if (args.nationID && commandData.nations) {
-          const nation = commandData.nations.find((n: any) => n.id === args.nationID);
-          if (nation) {
-            brief = `${JosaUtil.attachJosa(nation.name, '에')} ${command}`;
-          }
-        } else if (args.nationName && (args.colorType !== undefined || args.nationType)) {
-          brief = `${JosaUtil.attachJosa(args.nationName, '을')} ${command}`;
-        } else if (args.newName) {
-          brief = `${JosaUtil.attachJosa(args.newName, '으로')} ${command}`;
-        } else if (args.destCityID && args.amount) {
-          const cities: any = commandData.cities || [];
-          let cityName: string | undefined;
-
-          if (cities instanceof Map) {
-            const cityData = cities.get(args.destCityID);
-            cityName = cityData?.name || cityData;
-          } else if (Array.isArray(cities)) {
-            const cityData = cities.find(([id]: [number, any]) => id === args.destCityID);
-            cityName = cityData?.[1];
-          }
-
-          const amountStr = args.amount.toLocaleString();
-          if (cityName) {
-            brief = `${JosaUtil.attachJosa(cityName, '으로')} ${JosaUtil.attachJosa(amountStr, '을')} ${command}`;
-          }
-        } else if (args.amount) {
-          const amountStr = args.amount.toLocaleString();
-          brief = `${JosaUtil.attachJosa(amountStr, '을')} ${command}`;
         }
       }
 
-      let result: any;
-      if (isChief) {
-        result = await SammoAPI.NationCommandReserveCommand({
-          serverID,
-          action: command,
-          turnList,
-          arg: args
-        });
-      } else {
-        result = await SammoAPI.CommandReserveCommand({
-          serverID,
-          general_id: generalID,
-          turn_idx: turnList.length > 0 ? turnList[0] : undefined,
-          action: command,
-          arg: args,
-          brief
-        });
-      }
-
-      if (result.result ?? result.success) {
-        // alert('명령이 등록되었습니다.'); // Optional: remove alert for smoother UX
-        router.push(`/${serverID}/${isChief ? 'chief' : 'game'}`);
-      } else {
-        alert(result.reason || result.message || '명령 등록에 실패했습니다.');
-      }
+      await executeReserve(args, brief);
     } catch (err: any) {
       console.error(err);
       alert(err.message || '명령 등록에 실패했습니다.');
     }
   }
+
 
   function handleCancel() {
     router.push(`/${serverID}/${isChief ? 'chief' : 'game'}`);
@@ -393,36 +663,19 @@ export default function CommandProcessingClient({
       stackCount: typeof stack.stackCount === 'number' ? stack.stackCount : 1,
     }));
 
-    // Wrapper for unified styling
+    // Wrapper removed to avoid double TopBackBar and layout issues
     const FormWrapper = ({ children }: { children: React.ReactNode }) => (
-      <div className="min-h-screen bg-background-main flex flex-col items-center p-4 font-sans selection:bg-primary selection:text-white">
-        <div className="fixed inset-0 bg-hero-pattern opacity-20 pointer-events-none" />
-        <div className="w-full max-w-3xl relative z-10">
-          <TopBackBar title={`${commandName}`} onBack={handleCancel} />
-          <div className="mt-4 bg-background-secondary/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="px-6 py-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
-               <div className="flex items-center gap-3">
-                  <span className="w-2 h-8 rounded-full bg-primary"></span>
-                  <div>
-                     <h2 className="text-xl font-bold text-white">{commandName}</h2>
-                     <p className="text-xs text-foreground-muted">턴 {turnListParam?.split('_').join(', ')} 실행 예정</p>
-                  </div>
-               </div>
-               {isChief && (
-                  <span className="px-2 py-1 rounded bg-secondary/20 text-secondary text-xs font-bold border border-secondary/30">수뇌부 명령</span>
-               )}
-            </div>
-            <div className="p-6">
-               {children}
-            </div>
-          </div>
-        </div>
-      </div>
+      <>
+        {children}
+      </>
     );
 
     let Component: React.ReactNode = null;
 
-    if (commandType === '등용' || commandType === 'che_등용') {
+    const submitWithConfirm = (args: any) => handleSubmit(args);
+ 
+     if (commandType === '등용' || commandType === 'che_등용') {
+
       const generals = commandData.generals || [];
       const nationsMap = new Map<number, ProcNationItem>();
       if (commandData.nations) {
@@ -439,13 +692,47 @@ export default function CommandProcessingClient({
           onCancel={handleCancel}
         />
       );
-    } else if (['이동', '강행', '출병', '첩보', '화계', '탈취', '파괴', '선동', 'che_이동', 'che_강행', 'che_출병', 'che_첩보', 'che_화계', 'che_탈취', 'che_파괴', 'che_선동'].includes(commandType)) {
+    } else if (
+      [
+        '이동',
+        '강행',
+        '출병',
+        '첩보',
+        '화계',
+        '탈취',
+        '파괴',
+        '선동',
+        'che_이동',
+        'che_강행',
+        'che_출병',
+        'che_첩보',
+        'che_화계',
+        'che_탈취',
+        'che_파괴',
+        'che_선동',
+        '수몰',
+        '백성동원',
+        '천도',
+        '허보',
+        '초토화',
+        '증축',
+        '감축',
+        'che_수몰',
+        'che_백성동원',
+        'che_천도',
+        'che_허보',
+        'che_초토화',
+        'che_증축',
+        'che_감축',
+      ].includes(commandType)
+    ) {
       const citiesArray = commandData.cities || [];
       const citiesMap = new Map<number, { name: string; info?: string }>();
       for (const [cityId, cityName] of citiesArray) {
         citiesMap.set(cityId, { name: String(cityName) });
       }
       const currentCity = commandData.currentCity || 0;
+      const useConfirm = HIGH_RISK_CITY_COMMANDS.has(commandType);
       Component = (
         <MoveCommandForm
           commandName={commandName}
@@ -454,7 +741,7 @@ export default function CommandProcessingClient({
           distanceList={commandData.distanceList}
           mapData={commandData.mapData}
           serverID={serverID}
-          onSubmit={handleSubmit}
+          onSubmit={useConfirm ? submitWithConfirm : handleSubmit}
           onCancel={handleCancel}
         />
       );
@@ -608,6 +895,7 @@ export default function CommandProcessingClient({
         />
       );
     } else if (['물자원조', 'che_물자원조', 'materialAid'].includes(commandType)) {
+      const useConfirm = HIGH_RISK_MATERIAL_AID_COMMANDS.has(commandType);
       Component = (
         <MaterialAidCommandForm
           commandName={commandName}
@@ -619,7 +907,7 @@ export default function CommandProcessingClient({
           maxAmount={commandData.maxAmount || 0}
           amountGuide={commandData.amountGuide || [100, 500, 1000, 2000, 5000, 10000]}
           mapData={commandData.mapData}
-          onSubmit={handleSubmit}
+          onSubmit={useConfirm ? submitWithConfirm : handleSubmit}
           onCancel={handleCancel}
         />
       );
@@ -643,7 +931,20 @@ export default function CommandProcessingClient({
           onCancel={handleCancel}
         />
       );
+    } else if (['선전포고', 'che_선전포고', 'declareWar'].includes(commandType)) {
+      const useConfirm = HIGH_RISK_DECLARE_WAR_COMMANDS.has(commandType);
+      Component = (
+        <DeclareWarCommandForm
+          commandName={commandName}
+          serverID={serverID}
+          nations={commandData.nations || []}
+          mapData={commandData.mapData}
+          onSubmit={useConfirm ? submitWithConfirm : handleSubmit}
+          onCancel={handleCancel}
+        />
+      );
     } else if (['불가침제의', 'che_불가침제의', 'noAggressionProposal'].includes(commandType)) {
+      const useConfirm = HIGH_RISK_DIPLOMACY_COMMANDS.has(commandType);
       Component = (
         <NoAggressionProposalCommandForm
           commandName={commandName}
@@ -654,7 +955,30 @@ export default function CommandProcessingClient({
           maxYear={commandData.maxYear ?? (commandData.year ?? 1)}
           month={commandData.month || 1}
           mapData={commandData.mapData}
-          onSubmit={handleSubmit}
+          onSubmit={useConfirm ? submitWithConfirm : handleSubmit}
+          onCancel={handleCancel}
+        />
+      );
+    } else if (
+      [
+        '급습',
+        '불가침파기제의',
+        '이호경식',
+        '종전제의',
+        'che_급습',
+        'che_불가침파기제의',
+        'che_이호경식',
+        'che_종전제의',
+      ].includes(commandType)
+    ) {
+      const useConfirm = HIGH_RISK_DIPLOMACY_COMMANDS.has(commandType);
+      Component = (
+        <NationTargetCommandForm
+          commandName={commandName}
+          serverID={serverID}
+          nations={commandData.nations || []}
+          mapData={commandData.mapData}
+          onSubmit={useConfirm ? submitWithConfirm : handleSubmit}
           onCancel={handleCancel}
         />
       );
@@ -678,6 +1002,7 @@ export default function CommandProcessingClient({
       for (const [cityId, cityName] of citiesArray) {
         citiesMap.set(cityId, { name: String(cityName) });
       }
+      const useConfirm = HIGH_RISK_POPULATION_COMMANDS.has(commandType);
       Component = (
         <MovePopulationCommandForm
           commandName={commandName}
@@ -685,7 +1010,7 @@ export default function CommandProcessingClient({
           minAmount={commandData.minAmount || 0}
           maxAmount={commandData.maxAmount || 0}
           amountGuide={commandData.amountGuide || [100, 500, 1000, 2000, 5000, 10000]}
-          onSubmit={handleSubmit}
+          onSubmit={useConfirm ? submitWithConfirm : handleSubmit}
           onCancel={handleCancel}
         />
       );
@@ -695,6 +1020,15 @@ export default function CommandProcessingClient({
           commandName={commandName}
           generalStacks={generalStacksList}
           cityStacks={cityStacksList}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
+      );
+    } else if (['부대탈퇴지시', 'che_부대탈퇴지시'].includes(commandType)) {
+      Component = (
+        <GeneralTargetCommandForm
+          commandName={commandName}
+          generals={commandData.generals || []}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
         />
@@ -718,12 +1052,36 @@ export default function CommandProcessingClient({
     return (
       <div className="min-h-screen flex items-center justify-center bg-background-main text-white">
         <div className="animate-pulse flex flex-col items-center">
-           <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-           <div>로딩 중...</div>
+          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+          <div>로딩 중...</div>
         </div>
       </div>
     );
   }
 
-  return renderCommandForm();
+  const form = renderCommandForm();
+
+  return (
+    <>
+      {form}
+      {highRiskConfirmState && (
+        <HighRiskCommandConfirmModal
+          isOpen={highRiskConfirmState.open}
+          title={highRiskConfirmState.title}
+          brief={highRiskConfirmState.brief}
+          details={highRiskConfirmState.details}
+          requireInputLabel={highRiskConfirmState.requireInputLabel}
+          expectedInput={highRiskConfirmState.expectedInput}
+          onCancel={() => setHighRiskConfirmState(null)}
+          onConfirm={async () => {
+            const state = highRiskConfirmState;
+            if (!state) return;
+            setHighRiskConfirmState(null);
+            await handleSubmit(state.args, true);
+          }}
+        />
+      )}
+    </>
+  );
 }
+

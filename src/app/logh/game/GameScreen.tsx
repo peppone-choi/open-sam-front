@@ -5,6 +5,9 @@ import { useSocket } from '@/hooks/useSocket';
 import StrategicMap from '@/components/logh/StrategicMap';
 import TacticalMap from '@/components/logh/TacticalMap';
 import { cn } from '@/lib/utils';
+import { useGameStore } from '@/stores/gameStore';
+import { useGin7Store } from '@/stores/gin7Store';
+import { loghApi } from '@/lib/api/logh';
 
 /**
  * LOGH Game Screen
@@ -52,7 +55,12 @@ export default function LoghGamePage() {
   const [loading, setLoading] = useState(true);
   const [activeTacticalMap, setActiveTacticalMap] = useState<string | null>(null);
   const [selectedFleet, setSelectedFleet] = useState<any>(null);
-  const sessionId = 'test_session'; // TODO: 실제 세션 ID로 교체
+
+  // Integrate with Gin7/global game state for session/character identity
+  const userProfile = useGameStore((s) => s.userProfile);
+  const gin7SessionId = useGin7Store((s) => s.sessionId);
+  const sessionId = gin7SessionId || userProfile?.sessionId || 'test_session';
+  const characterId = userProfile?.characterId;
 
   // Socket.IO 연결
   const { socket, isConnected } = useSocket({ sessionId, autoConnect: true });
@@ -65,16 +73,27 @@ export default function LoghGamePage() {
     try {
       setLoading(true);
 
-      // Load commander data from API
-      const response = await fetch('/api/logh/my-commander');
-      const commanderData = await response.json();
-      setCommander(commanderData);
+      // Load commander data from API (LOGH backend wrapper)
+      const commanderData = await loghApi.getMyCommander?.().catch(async () => {
+        // fallback: legacy endpoint
+        const res = await fetch('/api/logh/my-commander');
+        if (!res.ok) throw new Error('Failed to load commander');
+        return res.json();
+      });
+
+      setCommander(commanderData as Commander);
 
       // Load fleet data if commander has a fleet
-      if (commanderData.fleetId) {
-        const fleetResponse = await fetch(`/api/logh/fleet/${commanderData.fleetId}`);
-        const fleetData = await fleetResponse.json();
-        setFleet(fleetData);
+      if (commanderData && (commanderData as any).fleetId) {
+        const fleetId = (commanderData as any).fleetId as string;
+        const fleetData = await loghApi.getFleetDetail?.(fleetId).catch(async () => {
+          const res = await fetch(`/api/logh/fleet/${fleetId}`);
+          if (!res.ok) throw new Error('Failed to load fleet');
+          return res.json();
+        });
+        setFleet(fleetData as Fleet);
+      } else {
+        setFleet(null);
       }
     } catch (error) {
       console.error('게임 데이터를 불러오지 못했습니다:', error);
@@ -85,16 +104,21 @@ export default function LoghGamePage() {
 
   async function executeCommand(commandName: string, params: any = {}) {
     try {
-      await fetch('/api/logh/command/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ command: commandName, params }),
-      });
+      // 우선 loghApi.executeCommand를 사용하고, 실패 시 구 엔드포인트로 폴백
+      try {
+        await loghApi.executeCommand?.('active-card', commandName as any, params);
+      } catch {
+        await fetch('/api/logh/command/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ command: commandName, params }),
+        });
+      }
 
       alert(`커맨드 "${commandName}" 실행 완료!`);
       await loadGameData();
     } catch (error: any) {
-      alert(`커맨드 실행 실패: ${error.message}`);
+      alert(`커맨드 실행 실패: ${error.message ?? String(error)}`);
     }
   }
 
@@ -269,15 +293,15 @@ export default function LoghGamePage() {
           <div className="bg-black/40 rounded-lg overflow-hidden h-[600px] relative">
              <StrategicMap
                 sessionId={sessionId}
+                characterId={characterId}
                 onFleetClick={(fleet: any) => {
                   console.log('선택한 함대 정보:', fleet);
                   setSelectedFleet(fleet);
                 }}
                 onCellClick={(x: number, y: number) => {
                   console.log('선택한 좌표:', x, y);
-                  // 선택된 함대가 있으면 이동 명령
+                  // 선택된 함대가 있으면 이동 명령 (기존 실시간 이동 경로 유지)
                   if (selectedFleet && socket) {
-
                    socket.emit('fleet:move', {
                      fleetId: selectedFleet.fleetId,
                      x,

@@ -218,21 +218,15 @@ function getMockResponse(slug: string, req: NextRequest): MockResult | null {
     return { body: { success: true, data: { fleets: MOCK_TACTICAL_FLEETS } } };
   }
 
-  if (path === 'map/grid') {
-    return { body: { success: true, data: MOCK_MAP_GRID } };
-  }
+  // NOTE: 전략 맵/커맨더/함대 정보는 실제 백엔드와의 동기화를 위해
+  // mock 사용을 지양하고, 가능한 한 proxyToBackend를 사용한다.
+  // 필요 시 별도 DEV 전용 플래그로만 활성화하도록 남겨둔다.
+  //
+  // if (path === 'map/grid') { ... }
+  // if (path === 'my-commander') { ... }
+  // if (path === 'fleet/my') { ... }
+  // if (path.startsWith('fleet/')) { ... }
 
-  if (path === 'my-commander') {
-    return { body: MOCK_COMMANDER };
-  }
-
-  if (path === 'fleet/my') {
-    return { body: { success: true, data: MOCK_FLEET_DETAIL } };
-  }
-
-  if (path.startsWith('fleet/')) {
-    return { body: MOCK_FLEET_DETAIL };
-  }
 
   if (path === 'command/execute') {
     return { body: { success: true, message: 'Mock command executed' } };

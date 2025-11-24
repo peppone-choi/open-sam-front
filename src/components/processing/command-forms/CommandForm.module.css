@@ -168,6 +168,12 @@
   color: #adb5bd;
 }
 
+.errorMessage {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #ff6b6b;
+}
+
 .buttonGroup {
   display: flex;
   gap: 0.25rem;

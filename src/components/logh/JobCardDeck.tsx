@@ -63,28 +63,28 @@ export default function JobCardDeck() {
 
   const handleTargetConfirm = (target: Target) => {
     setSelectedTarget(target);
-    setPendingCommand(null);
     setShowConfirmDialog(true);
   };
 
   const handleTargetCancel = () => {
     setPendingCommand(null);
+    setSelectedTarget(null);
+    setShowConfirmDialog(false);
   };
 
   const handleFinalConfirm = async () => {
-    if (!pendingCommand && !selectedTarget) return;
+    if (!pendingCommand || !selectedTarget) return;
 
-    // Use selected target or fall back to stored pending command
-    const command = pendingCommand?.commandMeta;
+    const { card, commandMeta } = pendingCommand;
     const target = selectedTarget;
-    const card = pendingCommand?.card;
-
-    if (!command || !card) return;
+    const command = commandMeta;
 
     setShowConfirmDialog(false);
+    setPendingCommand(null);
 
-    // Calculate CP substitution warning
-    const cpCost = typeof command.cpCost === 'number' ? command.cpCost : parseInt(String(command.cpCost || '0'), 10);
+    // Calculate CP substitution warning (for QA logging)
+    const cpCost =
+      typeof command.cpCost === 'number' ? command.cpCost : parseInt(String(command.cpCost || '0'), 10);
     let cpWarning: { pcp?: number; mcp?: number } | undefined;
 
     if (command.cpType === 'PCP' && userProfile.pcp < cpCost) {
@@ -95,12 +95,12 @@ export default function JobCardDeck() {
 
     // Prepare args based on target type
     const args: Record<string, unknown> = {};
-    if (target?.type === 'coordinates') {
+    if (target.type === 'coordinates') {
       args.gridX = target.gridX;
       args.gridY = target.gridY;
-    } else if (target?.type === 'fleet') {
+    } else if (target.type === 'fleet') {
       args.fleetId = target.fleetId;
-    } else if (target?.type === 'system') {
+    } else if (target.type === 'system') {
       args.systemId = target.systemId;
     }
 
@@ -179,7 +179,7 @@ export default function JobCardDeck() {
       </div>
 
       {/* Target Selection Modal */}
-      {pendingCommand && (
+      {pendingCommand && !showConfirmDialog && (
         <TargetSelectionModal
           isOpen={true}
           command={pendingCommand.command}
@@ -200,6 +200,7 @@ export default function JobCardDeck() {
           command={pendingCommand.commandMeta}
           target={selectedTarget}
           executionTime="Immediate"
+          cpWarning={cpWarning}
           onConfirm={handleFinalConfirm}
           onCancel={handleFinalCancel}
           faction={userProfile.faction as any}

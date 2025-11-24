@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useGameStore } from '@/stores/gameStore';
 import { loghApi } from '@/lib/api/logh';
 import { LOGH_TEXT } from '@/constants/uiText';
+import { useShortcut } from '@/hooks/useShortcut';
+
 
 interface TacticalHUDProps {
   battleId: string;
@@ -25,8 +27,9 @@ export default function TacticalHUD({
   sessionId = 'test_session',
   offlineStatus 
 }: TacticalHUDProps) {
-  const { selectUnit, selectedUnitId } = useGameStore();
+  const { selectUnit, selectedUnitId, userProfile } = useGameStore();
   const [isAuto, setIsAuto] = useState(false);
+
   const [casualtyReport, setCasualtyReport] = useState<CasualtyReport[]>([]);
   const [showCasualties, setShowCasualties] = useState(false);
 
@@ -46,7 +49,9 @@ export default function TacticalHUD({
     
     try {
         setIsAuto(true);
-        const result = await loghApi.autoResolveBattle(battleId, 'temp-resolver-id');
+        const resolverId = userProfile?.id || 'temp-resolver-id';
+        const result = await loghApi.autoResolveBattle(battleId, resolverId);
+
         
         // Extract casualty report from result
         if (result.data?.casualtyReport) {
@@ -61,20 +66,13 @@ export default function TacticalHUD({
     }
   };
 
-  // P.25 Shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      switch(e.key.toLowerCase()) {
-        case 'f': console.log('명령: 이동'); break;
-        case 'r': console.log('명령: 공격'); break;
-        case 'z': console.log('진형: 척추'); break;
-        case 'x': console.log('진형: 오목'); break;
-        case 'escape': selectUnit(null); break;
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectUnit]);
+  // P.25 Shortcuts - 전술 화면 전용 단축키 등록
+  useShortcut('f', () => console.log('명령: 이동'), { scope: 'logh-tactical' });
+  useShortcut('r', () => console.log('명령: 공격'), { scope: 'logh-tactical' });
+  useShortcut('z', () => console.log('진형: 척추'), { scope: 'logh-tactical' });
+  useShortcut('x', () => console.log('진형: 오목'), { scope: 'logh-tactical' });
+  useShortcut('Escape', () => selectUnit(null), { scope: 'logh-tactical' });
+
 
   return (
     <div data-testid="logh-tactical-hud">

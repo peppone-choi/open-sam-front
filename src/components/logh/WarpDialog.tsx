@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { gin7Api } from '@/lib/api/gin7';
 
 /**
  * LOGH Warp Navigation Dialog
@@ -99,26 +100,18 @@ export default function WarpDialog({
     setError(null);
 
     try {
-      const response = await fetch(
-        `/api/logh/galaxy/fleets/${fleet.fleetId}/movements`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId,
-            controllerCharacterId: characterId,
-            target: { x, y },
-          }),
-        }
-      );
-
-      const result = await response.json();
+      const result = await gin7Api.moveFleet({
+        sessionId,
+        fleetId: fleet.fleetId,
+        target: { x, y },
+        controllerCharacterId: characterId,
+      });
 
       if (result.success) {
         onWarpComplete?.(result.data);
         onClose();
       } else {
-        setError(result.message || 'ワープに失敗しました');
+        setError('ワープに失敗しました');
       }
     } catch (err: any) {
       setError(err.message || 'エラーが発生しました');

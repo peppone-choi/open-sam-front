@@ -120,12 +120,43 @@ export default function GroundCombatHUD({ battleId, sessionId }: GroundCombatHUD
   };
 
   if (loading && !combatState) {
-    return (
-      <div className="fixed top-4 right-4 bg-black/90 border border-cyan-500 rounded-lg p-4 min-w-[400px]">
-        <div className="text-cyan-400 animate-pulse">Loading ground combat data...</div>
-      </div>
-    );
-  }
+     return (
+       <div
+         className="fixed top-4 right-4 bg-black/90 border border-cyan-500 rounded-lg p-4 min-w-[400px]"
+         role="status"
+         aria-live="polite"
+         aria-busy="true"
+       >
+         <div className="text-cyan-400 animate-pulse">Loading ground combat data...</div>
+       </div>
+     );
+   }
+ 
+   if (error) {
+     return (
+       <div
+         className="fixed top-4 right-4 bg-black/90 border border-red-500 rounded-lg p-4 min-w-[400px]"
+         role="alert"
+         aria-live="assertive"
+       >
+         <div className="text-red-400">Error: {error}</div>
+       </div>
+     );
+   }
+
+ 
+   if (error) {
+     return (
+       <div
+         className="fixed top-4 right-4 bg-black/90 border border-red-500 rounded-lg p-4 min-w-[400px]"
+         role="alert"
+         aria-live="assertive"
+       >
+         <div className="text-red-400">Error: {error}</div>
+       </div>
+     );
+   }
+
 
   if (error) {
     return (
@@ -150,13 +181,29 @@ export default function GroundCombatHUD({ battleId, sessionId }: GroundCombatHUD
             Grid: ({combatState.gridCoordinates.x}, {combatState.gridCoordinates.y})
           </span>
         </div>
-        <div className="mt-2">
-          <span className="text-xs text-gray-500">Phase: </span>
-          <span className="text-yellow-400 uppercase font-bold text-sm">
-            {combatState.combatPhase}
-          </span>
+        <div className="mt-2 flex items-center justify-between text-xs">
+          <div>
+            <span className="text-gray-500">Phase: </span>
+            <span className="text-yellow-400 uppercase font-bold text-sm">
+              {combatState.combatPhase}
+            </span>
+          </div>
+          {/* 간단 요약 경고: 보급 고갈/공성 상태 */}
+          <div className="flex gap-2">
+            {combatState.supplyBatches.some((b) => b.status === 'exhausted') && (
+              <span className="px-2 py-1 rounded bg-red-900/60 border border-red-500 text-red-200 font-semibold">
+                보급 고갈 위험
+              </span>
+            )}
+            {combatState.occupationStatus.some((o) => o.status === 'under_siege') && (
+              <span className="px-2 py-1 rounded bg-orange-900/60 border border-orange-500 text-orange-200 font-semibold">
+                포위/공성 상태
+              </span>
+            )}
+          </div>
         </div>
       </div>
+
 
       {/* Tab Navigation */}
       <div className="flex gap-2 mb-4">
