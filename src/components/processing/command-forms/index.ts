@@ -22,3 +22,5 @@ export { default as SimpleCommandForm } from './SimpleCommandForm';
 export { default as TradeEquipmentCommandForm } from './TradeEquipmentCommandForm';
 export { default as TradeRiceCommandForm } from './TradeRiceCommandForm';
 export { default as TributeCommandForm } from './TributeCommandForm';
+export { default as NationTargetCommandForm } from './NationTargetCommandForm';
+export { default as GeneralTargetCommandForm } from './GeneralTargetCommandForm';

@@ -1,15 +1,14 @@
 'use client';
-
+ 
 import React from 'react';
-import { TurnObj } from '@/lib/api/sammo';
-import { format, addMinutes } from 'date-fns';
+
 
 interface ChiefTopItemProps {
   officer: {
     name: string;
     officerLevelText: string;
     npcType: number;
-    turn: TurnObj[];
+    turn: any[];
     turnTime: string;
   };
   maxTurn: number;
@@ -22,16 +21,30 @@ export default function ChiefTopItem({ officer, maxTurn, turnTerm, onSelect, sty
   // Simple read-only view
   // Render simplified grid
   
-  const turns = [];
+  const turns = [] as { index: number; timeStr: string; brief: string }[];
   let currentTime = new Date(officer.turnTime);
-  for(let i=0; i<maxTurn; i++){
-      const t = officer.turn[i] || { brief: '' };
-      turns.push({
-          index: i,
-          timeStr: format(currentTime, turnTerm >= 5 ? 'HH:mm' : 'mm:ss'),
-          brief: t.brief
-      });
-      currentTime = addMinutes(currentTime, turnTerm);
+
+  const pad2 = (n: number) => (n < 10 ? `0${n}` : String(n));
+
+  const addMinutesLocal = (date: Date, minutes: number) =>
+    new Date(date.getTime() + minutes * 60_000);
+
+  for (let i = 0; i < maxTurn; i += 1) {
+    const t = (officer.turn && (officer.turn as any)[i]) || { brief: '' };
+    const hours = currentTime.getHours();
+    const minutes = currentTime.getMinutes();
+
+    const timeStr = turnTerm >= 5
+      ? `${pad2(hours)}:${pad2(minutes)}`
+      : `${pad2(minutes)}:00`;
+
+    turns.push({
+      index: i,
+      timeStr,
+      brief: t.brief || '',
+    });
+
+    currentTime = addMinutesLocal(currentTime, turnTerm);
   }
 
   return (

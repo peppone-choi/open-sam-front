@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { SammoAPI, type ChiefCenterPayload, type ChiefResponse } from '@/lib/api/sammo';
+import { SammoAPI, type ChiefCenterPayload } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import ChiefReservedCommand from '@/components/game/ChiefReservedCommand';
 import ChiefTopItem from '@/components/game/ChiefTopItem';
@@ -19,7 +19,7 @@ export default function ChiefPage() {
 
   const [loading, setLoading] = useState(true);
   const [chiefData, setChiefData] = useState<ChiefCenterPayload | null>(null);
-  const [turnData, setTurnData] = useState<ChiefResponse | null>(null);
+  const [turnData, setTurnData] = useState<any | null>(null);
   const [viewTarget, setViewTarget] = useState<number | undefined>(undefined);
   
   const [activeTab, setActiveTab] = useState<'turn' | 'domestic' | 'personnel' | 'diplomacy'>('turn');
@@ -30,7 +30,7 @@ export default function ChiefPage() {
       setLoading(true);
       const [centerRes, turnRes] = await Promise.all([
           SammoAPI.GetChiefCenter({ serverID }),
-          SammoAPI.NationCommand.GetReservedCommand()
+          SammoAPI.NationCommandGetReservedCommand({ serverID }),
       ]);
 
       if (centerRes.result) {
@@ -96,9 +96,10 @@ export default function ChiefPage() {
            return turns;
        };
 
-      const year = turnData.year || chiefData.year;
-      const month = turnData.month || chiefData.month;
-      const date = turnData.date || chiefData.date;
+       const year = turnData.year;
+       const month = turnData.month;
+       const date = turnData.date;
+
 
       // Levels to display
       const leftLevels = [12, 10, 8, 6];

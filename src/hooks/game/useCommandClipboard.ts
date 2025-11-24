@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { TurnObj } from '@/lib/api/sammo';
 
 export interface ClipboardAction {
   turnList: number[]; // Relative offsets usually, or raw indices depending on usage
