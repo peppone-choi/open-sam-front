@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SammoAPI } from '@/lib/api/sammo';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -83,7 +85,7 @@ export default function RegisterPage() {
       });
 
       if (result.result) {
-        alert('회원가입이 완료되었습니다. 로그인해주세요.');
+        showToast('회원가입이 완료되었습니다. 로그인해주세요.', 'success');
         router.push('/');
       } else {
         setError(result.reason || '회원가입에 실패했습니다.');

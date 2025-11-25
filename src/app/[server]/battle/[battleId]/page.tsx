@@ -5,12 +5,14 @@ import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import BattleMap, { BattleUnit } from '@/components/battle/BattleMap';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 export default function BattleDetailPage() {
   const params = useParams();
   const serverID = params?.server as string;
   const battleId = params?.battleId as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [battleData, setBattleData] = useState<any>(null);
@@ -45,7 +47,7 @@ export default function BattleDetailPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('전투 정보를 불러오는데 실패했습니다.');
+      showToast('전투 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

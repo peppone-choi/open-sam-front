@@ -5,6 +5,7 @@ import TopBackBar from '@/components/common/TopBackBar';
 import { cn } from '@/lib/utils';
 import { loghApi } from '@/lib/api/logh';
 import { CommandType, UserProfile } from '@/types/logh';
+import { useToast } from '@/contexts/ToastContext';
 
 // Command Interface Definitions
 interface CommandOption {
@@ -101,6 +102,7 @@ const COMMAND_LIST: CommandDefinition[] = [
 ];
 
 export default function LoghCommandsPage() {
+  const { showToast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedCommand, setSelectedCommand] = useState<CommandDefinition | null>(null);
   const [commandParams, setCommandParams] = useState<Record<string, any>>({});
@@ -146,17 +148,17 @@ export default function LoghCommandsPage() {
       const result = await loghApi.executeCommand('default', selectedCommand.id, commandParams);
       
       if (result.success) {
-          alert(`명령 실행 완료: ${selectedCommand.name}`);
+          showToast(`명령 실행 완료: ${selectedCommand.name}`, 'success');
           setSelectedCommand(null);
           setCommandParams({});
           // Refresh commander info
           const data = await loghApi.getUserProfile();
           setCommander(data);
       } else {
-          alert(`명령 실패: ${result.message}`);
+          showToast(`명령 실패: ${result.message}`, 'error');
       }
     } catch (error: any) {
-      alert(`오류 발생: ${error.message}`);
+      showToast(`오류 발생: ${error.message}`, 'error');
     } finally {
       setIsExecuting(false);
     }

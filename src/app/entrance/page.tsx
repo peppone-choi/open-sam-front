@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { SammoAPI } from '@/lib/api/sammo';
 import { cn } from '@/lib/utils';
 import { COMMON_TEXT } from '@/constants/uiText';
+import { useToast } from '@/contexts/ToastContext';
 
 interface Server {
   serverID: string;
@@ -29,6 +30,7 @@ interface Server {
 
 export default function EntrancePage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [serverList, setServerList] = useState<Server[]>([]);
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -210,7 +212,7 @@ export default function EntrancePage() {
                     />
                     <button 
                       className="px-4 py-2 rounded-lg bg-primary/20 text-primary hover:bg-primary hover:text-white transition-all text-sm font-medium border border-primary/20"
-                      onClick={() => alert('공지사항 변경 기능은 추후 구현 예정입니다.')}
+                       onClick={() => showToast('공지사항 변경 기능은 추후 구현 예정입니다.', 'info')}
                     >
                       저장
                     </button>

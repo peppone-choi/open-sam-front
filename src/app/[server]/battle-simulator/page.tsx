@@ -6,11 +6,13 @@ import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import IsoTacticalBattleMap from '@/components/battle/IsoTacticalBattleMap';
 import { BattleUnit } from '@/components/battle/BattleMap';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 export default function BattleSimulatorPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [simulatorData, setSimulatorData] = useState<any>(null);
@@ -161,13 +163,13 @@ export default function BattleSimulatorPage() {
 
       if (result.result) {
         setSimulatorData(result.simulation);
-        alert('시뮬레이션이 완료되었습니다.');
+        showToast('시뮬레이션이 완료되었습니다.', 'success');
       } else {
-        alert(result.reason || '시뮬레이션에 실패했습니다.');
+        showToast(result.reason || '시뮬레이션에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('시뮬레이션에 실패했습니다.');
+      showToast('시뮬레이션에 실패했습니다.', 'error');
     }
   }
 

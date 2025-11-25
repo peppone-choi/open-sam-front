@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 interface BettingSummary {
   id: number;
@@ -70,6 +71,7 @@ const renderBettingTypeLabel = (typeKey: string): string => {
 export default function BettingPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [bettingList, setBettingList] = useState<BettingSummary[]>([]);
@@ -161,7 +163,7 @@ export default function BettingPage() {
         return prev.filter((item) => item !== candidateKey);
       }
       if (prev.length >= selectCnt) {
-        alert(`최대 ${selectCnt}개까지 선택할 수 있습니다.`);
+        showToast(`최대 ${selectCnt}개까지 선택할 수 있습니다.`, 'warning');
         return prev;
       }
       return [...prev, candidateKey];
@@ -172,12 +174,12 @@ export default function BettingPage() {
     if (!detail || selectedBettingId == null) return;
     const selectCnt = detail.bettingInfo?.selectCnt ?? 1;
     if (selectedCandidates.length !== selectCnt) {
-      alert(`필요한 선택 수(${selectCnt})를 맞춰주세요.`);
+      showToast(`필요한 선택 수(${selectCnt})를 맞춰주세요.`, 'warning');
       return;
     }
     const amountValue = Number(betAmount);
     if (!Number.isFinite(amountValue) || amountValue <= 0) {
-      alert('베팅 금액을 올바르게 입력해주세요.');
+      showToast('베팅 금액을 올바르게 입력해주세요.', 'warning');
       return;
     }
     setPlacing(true);
@@ -192,14 +194,14 @@ export default function BettingPage() {
         serverID,
       });
       if (result.result) {
-        alert('베팅이 완료되었습니다.');
+        showToast('베팅이 완료되었습니다.', 'success');
         await loadBettingDetail(selectedBettingId);
       } else {
-        alert(result.reason || '베팅에 실패했습니다.');
+        showToast(result.reason || '베팅에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('베팅 중 오류가 발생했습니다.');
+      showToast('베팅 중 오류가 발생했습니다.', 'error');
     } finally {
       setPlacing(false);
     }

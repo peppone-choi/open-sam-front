@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function DeleteAccountPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [globalSalt, setGlobalSalt] = useState<string>('');
   const [formData, setFormData] = useState({
@@ -26,12 +28,12 @@ export default function DeleteAccountPage() {
       if (result.result) {
         setGlobalSalt(result.global_salt);
       } else {
-        alert('로그인이 필요합니다.');
+        showToast('로그인이 필요합니다.', 'warning');
         router.push('/entrance');
       }
     } catch (err) {
       console.error(err);
-      alert('사용자 정보를 불러오는데 실패했습니다.');
+      showToast('사용자 정보를 불러오는데 실패했습니다.', 'error');
       router.push('/entrance');
     } finally {
       setLoading(false);
@@ -42,7 +44,7 @@ export default function DeleteAccountPage() {
     e.preventDefault();
 
     if (!formData.password) {
-      alert('비밀번호를 입력해주세요.');
+      showToast('비밀번호를 입력해주세요.', 'warning');
       return;
     }
 
@@ -57,14 +59,14 @@ export default function DeleteAccountPage() {
       });
 
       if (result.result) {
-        alert('계정이 탈퇴 처리되었습니다.\n1개월간 정보가 보존되며, 1개월간 재가입이 불가능합니다.');
+        showToast('계정이 탈퇴 처리되었습니다. 1개월간 정보가 보존되며, 재가입이 불가능합니다.', 'success');
         router.push('/');
       } else {
-        alert(result.reason || '계정 탈퇴에 실패했습니다.');
+        showToast(result.reason || '계정 탈퇴에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('계정 탈퇴에 실패했습니다.');
+      showToast('계정 탈퇴에 실패했습니다.', 'error');
     }
   }
 

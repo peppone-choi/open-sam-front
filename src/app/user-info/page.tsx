@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SammoAPI } from '@/lib/api/sammo';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function UserInfoPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);
   const [globalSalt, setGlobalSalt] = useState<string>('');
@@ -39,12 +41,12 @@ export default function UserInfoPage() {
         setUserData(result);
         setGlobalSalt(result.global_salt || '');
       } else {
-        alert('로그인이 필요합니다.');
+        showToast('로그인이 필요합니다.', 'warning');
         router.push('/');
       }
     } catch (err) {
       console.error(err);
-      alert('사용자 정보를 불러오는데 실패했습니다.');
+      showToast('사용자 정보를 불러오는데 실패했습니다.', 'error');
       router.push('/entrance');
     } finally {
       setLoading(false);
@@ -55,17 +57,17 @@ export default function UserInfoPage() {
     e.preventDefault();
     
     if (!passwordForm.currentPassword || !passwordForm.newPassword) {
-      alert('모든 필드를 입력해주세요.');
+      showToast('모든 필드를 입력해주세요.', 'warning');
       return;
     }
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      alert('새 비밀번호가 일치하지 않습니다.');
+      showToast('새 비밀번호가 일치하지 않습니다.', 'warning');
       return;
     }
 
     if (passwordForm.newPassword.length < 6) {
-      alert('새 비밀번호는 최소 6자 이상이어야 합니다.');
+      showToast('새 비밀번호는 최소 6자 이상이어야 합니다.', 'warning');
       return;
     }
 
@@ -77,14 +79,14 @@ export default function UserInfoPage() {
       });
 
       if (result.result) {
-        alert('비밀번호가 변경되었습니다.');
+        showToast('비밀번호가 변경되었습니다.', 'success');
         setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       } else {
-        alert(result.reason || '비밀번호 변경에 실패했습니다.');
+        showToast(result.reason || '비밀번호 변경에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('비밀번호 변경에 실패했습니다.');
+      showToast('비밀번호 변경에 실패했습니다.', 'error');
     }
   }
 
@@ -92,7 +94,7 @@ export default function UserInfoPage() {
     e.preventDefault();
 
     if (!deletePassword) {
-      alert('비밀번호를 입력해주세요.');
+      showToast('비밀번호를 입력해주세요.', 'warning');
       return;
     }
 
@@ -107,15 +109,15 @@ export default function UserInfoPage() {
       });
 
       if (result.result) {
-        alert('계정이 삭제되었습니다.');
+        showToast('계정이 삭제되었습니다.', 'success');
         localStorage.removeItem('token');
         router.push('/');
       } else {
-        alert(result.reason || '계정 삭제에 실패했습니다.');
+        showToast(result.reason || '계정 삭제에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('계정 삭제에 실패했습니다.');
+      showToast('계정 삭제에 실패했습니다.', 'error');
     }
   }
 
@@ -123,13 +125,13 @@ export default function UserInfoPage() {
     try {
       const result = await SammoAPI.ExpandLoginToken();
       if (result.result) {
-        alert('로그인 토큰이 연장되었습니다.');
+        showToast('로그인 토큰이 연장되었습니다.', 'success');
         loadUserData();
       } else {
-        alert(result.reason || '토큰 연장에 실패했습니다.');
+        showToast(result.reason || '토큰 연장에 실패했습니다.', 'error');
       }
     } catch (err) {
-      alert('토큰 연장에 실패했습니다.');
+      showToast('토큰 연장에 실패했습니다.', 'error');
     }
   }
 
@@ -141,13 +143,13 @@ export default function UserInfoPage() {
     try {
       const result = await SammoAPI.DisallowThirdUse();
       if (result.result) {
-        alert('개인정보 3자 제공 동의가 철회되었습니다.');
+        showToast('개인정보 3자 제공 동의가 철회되었습니다.', 'success');
         loadUserData();
       } else {
-        alert(result.reason || '철회에 실패했습니다.');
+        showToast(result.reason || '철회에 실패했습니다.', 'error');
       }
     } catch (err) {
-      alert('철회에 실패했습니다.');
+      showToast('철회에 실패했습니다.', 'error');
     }
   }
 
@@ -156,14 +158,14 @@ export default function UserInfoPage() {
     if (file) {
       // 파일 크기 체크 (50KB)
       if (file.size > 50 * 1024) {
-        alert('파일 크기는 50KB 이하여야 합니다.');
+        showToast('파일 크기는 50KB 이하여야 합니다.', 'warning');
         return;
       }
 
       // 파일 형식 체크
       const allowedTypes = ['image/avif', 'image/webp', 'image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
       if (!allowedTypes.includes(file.type)) {
-        alert('avif, webp, jpg, gif, png 파일만 가능합니다.');
+        showToast('avif, webp, jpg, gif, png 파일만 가능합니다.', 'warning');
         return;
       }
 
@@ -182,7 +184,7 @@ export default function UserInfoPage() {
     e.preventDefault();
     
     if (!iconFile) {
-      alert('파일을 선택해주세요.');
+      showToast('파일을 선택해주세요.', 'warning');
       return;
     }
 
@@ -192,15 +194,15 @@ export default function UserInfoPage() {
       
       const result = await SammoAPI.ChangeIcon(formData);
       if (result.result) {
-        alert('아이콘이 변경되었습니다.');
+        showToast('아이콘이 변경되었습니다.', 'success');
         setIconFile(null);
         setIconPreview(null);
         loadUserData();
       } else {
-        alert(result.reason || '아이콘 변경에 실패했습니다.');
+        showToast(result.reason || '아이콘 변경에 실패했습니다.', 'error');
       }
     } catch (err) {
-      alert('아이콘 변경에 실패했습니다.');
+      showToast('아이콘 변경에 실패했습니다.', 'error');
     }
   }
 
@@ -212,13 +214,13 @@ export default function UserInfoPage() {
     try {
       const result = await SammoAPI.DeleteIcon();
       if (result.result) {
-        alert('아이콘이 제거되었습니다.');
+        showToast('아이콘이 제거되었습니다.', 'success');
         loadUserData();
       } else {
-        alert(result.reason || '아이콘 제거에 실패했습니다.');
+        showToast(result.reason || '아이콘 제거에 실패했습니다.', 'error');
       }
     } catch (err) {
-      alert('아이콘 제거에 실패했습니다.');
+      showToast('아이콘 제거에 실패했습니다.', 'error');
     }
   }
 

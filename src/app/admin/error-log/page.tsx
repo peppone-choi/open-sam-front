@@ -4,10 +4,12 @@ import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 
 function ErrorLogContent() {
   const searchParams = useSearchParams();
   const from = searchParams?.get('from') ? Number(searchParams.get('from')) : 0;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [errorLogs, setErrorLogs] = useState<any[]>([]);
@@ -24,7 +26,7 @@ function ErrorLogContent() {
       }
     } catch (err) {
       console.error(err);
-      alert('에러 로그를 불러오는데 실패했습니다.');
+      showToast('에러 로그를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

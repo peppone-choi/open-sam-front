@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 // Helper to determine text color based on background brightness
@@ -22,6 +23,7 @@ function getContrastColor(hexColor: string) {
 export default function KingdomListPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [kingdomList, setKingdomList] = useState<any[]>([]);
@@ -39,7 +41,7 @@ export default function KingdomListPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('세력 목록을 불러오는데 실패했습니다.');
+      showToast('세력 목록을 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

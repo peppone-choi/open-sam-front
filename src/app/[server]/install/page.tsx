@@ -4,11 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import styles from './page.module.css';
 
 export default function InstallPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<any>({});
@@ -28,7 +30,7 @@ export default function InstallPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('설치 설정을 불러오는데 실패했습니다.');
+      showToast('설치 설정을 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -42,14 +44,14 @@ export default function InstallPage() {
       });
 
       if (result.result) {
-        alert('설치가 완료되었습니다.');
+        showToast('설치가 완료되었습니다.', 'success');
         router.push(`/${serverID}/game`);
       } else {
-        alert(result.reason || '설치에 실패했습니다.');
+        showToast(result.reason || '설치에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('설치에 실패했습니다.');
+      showToast('설치에 실패했습니다.', 'error');
     }
   }
 

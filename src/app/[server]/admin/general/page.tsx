@@ -28,7 +28,6 @@ function AdminGeneralContent() {
       }
     } catch (err) {
       console.error(err);
-      // alert('장수 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

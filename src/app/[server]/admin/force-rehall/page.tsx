@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 interface AdminGeneralSummary {
@@ -14,6 +15,7 @@ interface AdminGeneralSummary {
 export default function AdminForceRehallPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [generalList, setGeneralList] = useState<AdminGeneralSummary[]>([]);
@@ -35,7 +37,6 @@ export default function AdminForceRehallPage() {
       }
     } catch (error) {
       console.error('[AdminForceRehall] general list error', error);
-      // alert('장수 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -47,7 +48,7 @@ export default function AdminForceRehallPage() {
 
   const handleForceRehall = useCallback(async () => {
     if (selectedGeneral === '') {
-      alert('장수를 선택해주세요.');
+      showToast('장수를 선택해주세요.', 'warning');
       return;
     }
     if (!confirm('정말로 강제 재할당을 하시겠습니까?')) {
@@ -59,17 +60,17 @@ export default function AdminForceRehallPage() {
       });
       
       if (result.result) {
-        alert('강제 재할당이 완료되었습니다.');
+        showToast('강제 재할당이 완료되었습니다.', 'success');
         setSelectedGeneral('');
         await loadGeneralList();
       } else {
-        alert(result.reason || '강제 재할당에 실패했습니다.');
+        showToast(result.reason || '강제 재할당에 실패했습니다.', 'error');
       }
     } catch (error) {
       console.error('[AdminForceRehall] force error', error);
-      alert('강제 재할당에 실패했습니다.');
+      showToast('강제 재할당에 실패했습니다.', 'error');
     }
-  }, [loadGeneralList, selectedGeneral]);
+  }, [loadGeneralList, selectedGeneral, showToast]);
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">

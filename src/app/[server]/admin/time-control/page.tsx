@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 import styles from './page.module.css';
 
@@ -11,6 +12,7 @@ import styles from './page.module.css';
 export default function AdminTimeControlPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [timeData, setTimeData] = useState<any>(null);
@@ -55,7 +57,7 @@ export default function AdminTimeControlPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('시간 정보를 불러오는데 실패했습니다.');
+      showToast('시간 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -72,13 +74,13 @@ export default function AdminTimeControlPage() {
       
       if (action === 'forward' || action === 'backward') {
         if (!minute) {
-          alert('분을 입력해주세요.');
+          showToast('분을 입력해주세요.', 'warning');
           return;
         }
         data.minute = Number(minute);
       } else if (action === 'tnmt_forward' || action === 'tnmt_backward') {
         if (!minute2) {
-          alert('분을 입력해주세요.');
+          showToast('분을 입력해주세요.', 'warning');
           return;
         }
         data.minute = Number(minute2);
@@ -90,16 +92,16 @@ export default function AdminTimeControlPage() {
       });
 
       if (result.result) {
-        alert('처리되었습니다.');
+        showToast('처리되었습니다.', 'success');
         setMinute('');
         setMinute2('');
         await loadTimeData();
       } else {
-        alert(result.reason || '처리에 실패했습니다.');
+        showToast(result.reason || '처리에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('처리에 실패했습니다.');
+      showToast('처리에 실패했습니다.', 'error');
     }
   }
 

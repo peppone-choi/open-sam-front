@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SammoAPI } from '@/lib/api/sammo';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 // OTP Modal Component
 function OtpModal({ isOpen, onClose, onSubmit }: { isOpen: boolean; onClose: () => void; onSubmit: (code: string) => void }) {
@@ -170,10 +171,12 @@ export default function LoginPage() {
     handleLogin(undefined, code);
   };
 
+  const { showToast } = useToast();
+
   const handleKakaoLogin = () => {
     // 카카오 로그인 로직 (환경변수 등 필요)
     // 현재는 알림만 표시
-    alert('카카오 로그인은 현재 설정 중입니다.');
+    showToast('카카오 로그인은 현재 설정 중입니다.', 'info');
     // window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID}&redirect_uri=...&response_type=code`;
   };
 

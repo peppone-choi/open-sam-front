@@ -2,16 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { SammoAPI } from '@/lib/api/sammo';
+import { SammoAPI, type NationStratFinanPayload } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
-const diplomacyStateInfo: Record<number, {name: string, color: string}> = {
-  0: { name: '중립', color: '#9CA3AF' }, // gray-400
-  1: { name: '불가침', color: '#4ADE80' }, // green-400
-  2: { name: '동맹', color: '#60A5FA' }, // blue-400
-  3: { name: '교전', color: '#F87171' }, // red-400
-  7: { name: '-', color: '#FFFFFF' }
+const diplomacyStateInfo: Record<number, { name: string; color?: string }> = {
+  0: { name: '교전', color: '#F87171' }, // red-400
+  1: { name: '선포중', color: '#F472B6' }, // pink-400
+  2: { name: '통상', color: '#E5E7EB' }, // gray-200
+  7: { name: '불가침', color: '#4ADE80' }, // green-400
 };
 
 function calculateEndDate(year: number, month: number, term: number): {year: number, month: number} {
@@ -25,9 +25,10 @@ function calculateEndDate(year: number, month: number, term: number): {year: num
 export default function NationStratFinanPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
-  const [nationData, setNationData] = useState<any>(null);
+  const [nationData, setNationData] = useState<NationStratFinanPayload | null>(null);
   
   const [nationMsg, setNationMsg] = useState('');
   const [scoutMsg, setScoutMsg] = useState('');
@@ -52,26 +53,27 @@ export default function NationStratFinanPage() {
     try {
       setLoading(true);
       const result = await SammoAPI.NationGetStratFinan({ serverID });
-      if (result.result) {
-        const data = result.stratFinan;
-        setNationData(data);
-        
-        setNationMsg(data.nationMsg || '');
-        setScoutMsg(data.scoutMsg || '');
-        setOriginalNationMsg(data.nationMsg || '');
-        setOriginalScoutMsg(data.scoutMsg || '');
-        
-        setPolicy({
-          rate: data.rate || 0,
-          bill: data.bill || 0,
-          secretLimit: data.secretLimit || 0,
-          blockWar: data.blockWar || false,
-          blockScout: data.blockScout || false
-        });
-      }
+         if (result.result) {
+         const data = result.stratFinan;
+         setNationData(data);
+         
+         setNationMsg(data.nationMsg || '');
+         setScoutMsg(data.scoutMsg || '');
+         setOriginalNationMsg(data.nationMsg || '');
+         setOriginalScoutMsg(data.scoutMsg || '');
+         
+         const policySource = data.policy || data;
+         setPolicy({
+           rate: policySource.rate || 0,
+           bill: policySource.bill || 0,
+           secretLimit: policySource.secretLimit || 0,
+           blockWar: policySource.blockWar || false,
+           blockScout: policySource.blockScout || false
+         });
+       }
     } catch (err) {
       console.error(err);
-      alert('내무부 정보를 불러오는데 실패했습니다.');
+      showToast('내무부 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -83,12 +85,12 @@ export default function NationStratFinanPage() {
       if (result.result) {
         setOriginalNationMsg(nationMsg);
         setEditingNationMsg(false);
-        alert('국가 방침이 저장되었습니다.');
+        showToast('국가 방침이 저장되었습니다.', 'success');
       } else {
-        alert(result.reason || '저장에 실패했습니다.');
+        showToast(result.reason || '저장에 실패했습니다.', 'error');
       }
     } catch (err: any) {
-      alert(err.message || '저장에 실패했습니다.');
+      showToast(err.message || '저장에 실패했습니다.', 'error');
     }
   }
 
@@ -103,12 +105,12 @@ export default function NationStratFinanPage() {
       if (result.result) {
         setOriginalScoutMsg(scoutMsg);
         setEditingScoutMsg(false);
-        alert('임관 권유 메시지가 저장되었습니다.');
+        showToast('임관 권유 메시지가 저장되었습니다.', 'success');
       } else {
-        alert(result.reason || '저장에 실패했습니다.');
+        showToast(result.reason || '저장에 실패했습니다.', 'error');
       }
     } catch (err: any) {
-      alert(err.message || '저장에 실패했습니다.');
+      showToast(err.message || '저장에 실패했습니다.', 'error');
     }
   }
 
@@ -121,13 +123,13 @@ export default function NationStratFinanPage() {
     try {
       const result = await SammoAPI.NationSetRate({ amount: policy.rate, serverID });
       if (result.result) {
-        alert('세율이 변경되었습니다.');
+        showToast('세율이 변경되었습니다.', 'success');
         await loadNationData();
       } else {
-        alert(result.reason || '변경에 실패했습니다.');
+        showToast(result.reason || '변경에 실패했습니다.', 'error');
       }
     } catch (err: any) {
-      alert(err.message || '변경에 실패했습니다.');
+      showToast(err.message || '변경에 실패했습니다.', 'error');
     }
   }
 
@@ -135,13 +137,13 @@ export default function NationStratFinanPage() {
     try {
       const result = await SammoAPI.NationSetBill({ amount: policy.bill, serverID });
       if (result.result) {
-        alert('지급률이 변경되었습니다.');
+        showToast('지급률이 변경되었습니다.', 'success');
         await loadNationData();
       } else {
-        alert(result.reason || '변경에 실패했습니다.');
+        showToast(result.reason || '변경에 실패했습니다.', 'error');
       }
     } catch (err: any) {
-      alert(err.message || '변경에 실패했습니다.');
+      showToast(err.message || '변경에 실패했습니다.', 'error');
     }
   }
 
@@ -149,13 +151,13 @@ export default function NationStratFinanPage() {
     try {
       const result = await SammoAPI.NationSetSecretLimit({ amount: policy.secretLimit, serverID });
       if (result.result) {
-        alert('기밀 권한이 변경되었습니다.');
+        showToast('기밀 권한이 변경되었습니다.', 'success');
         await loadNationData();
       } else {
-        alert(result.reason || '변경에 실패했습니다.');
+        showToast(result.reason || '변경에 실패했습니다.', 'error');
       }
     } catch (err: any) {
-      alert(err.message || '변경에 실패했습니다.');
+      showToast(err.message || '변경에 실패했습니다.', 'error');
     }
   }
 
@@ -163,14 +165,14 @@ export default function NationStratFinanPage() {
     try {
       const result = await SammoAPI.NationSetBlockWar({ value, serverID });
       if (result.result) {
-        setPolicy({...policy, blockWar: value});
-        alert('전쟁 금지 설정이 변경되었습니다.');
+        setPolicy({ ...policy, blockWar: value });
+        showToast('전쟁 금지 설정이 변경되었습니다.', 'success');
         await loadNationData();
       } else {
-        alert(result.reason || '변경에 실패했습니다.');
+        showToast(result.reason || '변경에 실패했습니다.', 'error');
       }
     } catch (err: any) {
-      alert(err.message || '변경에 실패했습니다.');
+      showToast(err.message || '변경에 실패했습니다.', 'error');
     }
   }
 
@@ -178,14 +180,14 @@ export default function NationStratFinanPage() {
     try {
       const result = await SammoAPI.NationSetBlockScout({ value, serverID });
       if (result.result) {
-        setPolicy({...policy, blockScout: value});
-        alert('임관 금지 설정이 변경되었습니다.');
+        setPolicy({ ...policy, blockScout: value });
+        showToast('임관 금지 설정이 변경되었습니다.', 'success');
         await loadNationData();
       } else {
-        alert(result.reason || '변경에 실패했습니다.');
+        showToast(result.reason || '변경에 실패했습니다.', 'error');
       }
     } catch (err: any) {
-      alert(err.message || '변경에 실패했습니다.');
+      showToast(err.message || '변경에 실패했습니다.', 'error');
     }
   }
 
@@ -206,6 +208,7 @@ export default function NationStratFinanPage() {
   const incomeGold = (income.gold?.war || 0) + (income.gold?.city || 0);
   const incomeRice = (income.rice?.wall || 0) + (income.rice?.city || 0);
   const warSettingCnt = nationData?.warSettingCnt || { remain: 0, inc: 0, max: 0 };
+  const canToggleBlockWar = editable && (warSettingCnt.remain ?? 0) > 0;
   const year = nationData?.year || 0;
   const month = nationData?.month || 0;
 
@@ -219,7 +222,9 @@ export default function NationStratFinanPage() {
           <div className="bg-white/5 px-6 py-4 border-b border-white/5">
              <h2 className="text-lg font-bold text-white">외교 관계</h2>
           </div>
-          <div className="overflow-x-auto">
+          
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="bg-white/5 text-xs uppercase text-gray-400 font-bold border-b border-white/5">
                 <tr>
@@ -234,12 +239,13 @@ export default function NationStratFinanPage() {
               </thead>
               <tbody className="divide-y divide-white/5">
                 {nationsList.map((nation: any) => {
-                  const diplomacy = nation.diplomacy || {};
-                  const term = diplomacy.term || 0;
-                  const endDate = term > 0 ? calculateEndDate(year, month, term) : null;
-                  const stateInfo = diplomacyStateInfo[diplomacy.state] || diplomacyStateInfo[0];
-                  
-                  return (
+                   const diplomacy = nation.diplomacy || {};
+                   const term = diplomacy.term || 0;
+                   const endDate = term > 0 ? calculateEndDate(year, month, term) : null;
+                   const rawState = typeof diplomacy.state === 'number' ? diplomacy.state : 2;
+                   const stateInfo = diplomacyStateInfo[rawState] || diplomacyStateInfo[2];
+                   
+                   return (
                     <tr key={nation.nation} className="hover:bg-white/[0.02] transition-colors">
                       <td className="px-6 py-3 font-medium" style={{color: nation.nation === 0 ? '#E5E7EB' : nation.color}}>
                          {nation.name}
@@ -255,6 +261,54 @@ export default function NationStratFinanPage() {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card List */}
+          <div className="md:hidden">
+            <div className="divide-y divide-white/5">
+              {nationsList.map((nation: any) => {
+                 const diplomacy = nation.diplomacy || {};
+                 const term = diplomacy.term || 0;
+                 const endDate = term > 0 ? calculateEndDate(year, month, term) : null;
+                 const rawState = typeof diplomacy.state === 'number' ? diplomacy.state : 2;
+                 const stateInfo = diplomacyStateInfo[rawState] || diplomacyStateInfo[2];
+                 
+                 return (
+                  <div key={nation.nation} className="p-4 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-lg" style={{color: nation.nation === 0 ? '#E5E7EB' : nation.color}}>
+                         {nation.name}
+                      </span>
+                      <span className="text-sm font-bold px-2 py-1 rounded bg-black/40" style={{color: stateInfo.color}}>
+                        {stateInfo.name}
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                      <div className="bg-black/20 p-2 rounded border border-white/5">
+                        <div className="text-xs text-gray-500 mb-1">국력</div>
+                        <div className="text-gray-300">{nation.power?.toLocaleString() || '-'}</div>
+                      </div>
+                      <div className="bg-black/20 p-2 rounded border border-white/5">
+                        <div className="text-xs text-gray-500 mb-1">장수</div>
+                        <div className="text-gray-300">{nation.gennum?.toLocaleString() || '-'}</div>
+                      </div>
+                      <div className="bg-black/20 p-2 rounded border border-white/5">
+                        <div className="text-xs text-gray-500 mb-1">속령</div>
+                        <div className="text-gray-300">{nation.cityCnt?.toLocaleString() || '-'}</div>
+                      </div>
+                    </div>
+
+                    {(term > 0) && (
+                      <div className="flex justify-between text-xs text-gray-400 pt-2 border-t border-white/5">
+                        <span>기간: {term}개월</span>
+                        <span>종료: {endDate ? `${endDate.year}년 ${endDate.month}월` : '-'}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
 
@@ -330,71 +384,71 @@ export default function NationStratFinanPage() {
              
              {/* Finance Grid */}
              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Gold */}
-                <div className="bg-black/20 border border-white/5 rounded-lg p-5 space-y-4">
-                   <h3 className="text-yellow-500 font-bold uppercase text-xs tracking-wider border-b border-white/5 pb-2 mb-2">자금 예산</h3>
-                   <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                         <span className="text-gray-500">현재 자금</span>
-                         <span className="text-white font-medium">{gold.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                         <span className="text-gray-500">단기수입</span>
-                         <span className="text-white font-medium">{(income.gold?.war || 0).toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                         <span className="text-gray-500">세금</span>
-                         <span className="text-white font-medium">{Math.floor(income.gold?.city || 0).toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between border-t border-white/10 pt-2 mt-2">
-                         <span className="text-gray-400">수입 / 지출</span>
-                         <span className="text-gray-200">
-                            <span className="text-green-400">+{Math.floor(incomeGold).toLocaleString()}</span> 
-                            <span className="mx-2 text-gray-600">/</span>
-                            <span className="text-red-400">{Math.floor(-outcome).toLocaleString()}</span>
-                         </span>
-                      </div>
-                      <div className="flex justify-between border-t border-white/10 pt-2 mt-2">
-                         <span className="text-yellow-500 font-bold">예상 국고</span>
-                         <span className="text-yellow-400 font-bold text-lg">
-                            {Math.floor(gold + incomeGold - outcome).toLocaleString()}
-                         </span>
-                      </div>
-                   </div>
-                </div>
+                 {/* Gold */}
+                 <div className="bg-black/20 border border-white/5 rounded-lg p-5 space-y-4">
+                    <h3 className="text-yellow-500 font-bold uppercase text-xs tracking-wider border-b border-white/5 pb-2 mb-2">자금 예산</h3>
+                    <div className="space-y-2 text-sm">
+                       <div className="flex justify-between">
+                          <span className="text-gray-400">현재 자금</span>
+                          <span className="text-white font-medium">{gold.toLocaleString()}</span>
+                       </div>
+                       <div className="flex justify-between">
+                          <span className="text-gray-400">단기수입</span>
+                          <span className="text-white font-medium">{(income.gold?.war || 0).toLocaleString()}</span>
+                       </div>
+                       <div className="flex justify-between">
+                          <span className="text-gray-400">세금</span>
+                          <span className="text-white font-medium">{Math.floor(income.gold?.city || 0).toLocaleString()}</span>
+                       </div>
+                       <div className="flex justify-between border-t border-white/10 pt-2 mt-2">
+                          <span className="text-gray-400">수입 / 지출</span>
+                          <span className="text-gray-200">
+                             <span className="text-green-400">+{Math.floor(incomeGold).toLocaleString()}</span> 
+                             <span className="mx-2 text-gray-600">/</span>
+                             <span className="text-red-400">{Math.floor(-outcome).toLocaleString()}</span>
+                          </span>
+                       </div>
+                       <div className="flex justify-between border-t border-white/10 pt-2 mt-2">
+                          <span className="text-yellow-500 font-bold">예상 국고</span>
+                          <span className="text-yellow-400 font-bold text-lg">
+                             {Math.floor(gold + incomeGold - outcome).toLocaleString()}
+                          </span>
+                       </div>
+                    </div>
+                 </div>
 
-                {/* Rice */}
-                <div className="bg-black/20 border border-white/5 rounded-lg p-5 space-y-4">
-                   <h3 className="text-orange-500 font-bold uppercase text-xs tracking-wider border-b border-white/5 pb-2 mb-2">군량 예산</h3>
-                   <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                         <span className="text-gray-500">현재 군량</span>
-                         <span className="text-white font-medium">{rice.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                         <span className="text-gray-500">둔전수입</span>
-                         <span className="text-white font-medium">{Math.floor(income.rice?.wall || 0).toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                         <span className="text-gray-500">세금</span>
-                         <span className="text-white font-medium">{Math.floor(income.rice?.city || 0).toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between border-t border-white/10 pt-2 mt-2">
-                         <span className="text-gray-400">수입 / 지출</span>
-                         <span className="text-gray-200">
-                            <span className="text-green-400">+{Math.floor(incomeRice).toLocaleString()}</span>
-                            <span className="mx-2 text-gray-600">/</span>
-                            <span className="text-red-400">{Math.floor(-outcome).toLocaleString()}</span>
-                         </span>
-                      </div>
-                      <div className="flex justify-between border-t border-white/10 pt-2 mt-2">
-                         <span className="text-orange-500 font-bold">예상 군량</span>
-                         <span className="text-orange-400 font-bold text-lg">
-                            {Math.floor(rice + incomeRice - outcome).toLocaleString()}
-                         </span>
-                      </div>
-                   </div>
-                </div>
+                 {/* Rice */}
+                 <div className="bg-black/20 border border-white/5 rounded-lg p-5 space-y-4">
+                    <h3 className="text-green-500 font-bold uppercase text-xs tracking-wider border-b border-white/5 pb-2 mb-2">군량 예산</h3>
+                    <div className="space-y-2 text-sm">
+                       <div className="flex justify-between">
+                          <span className="text-gray-400">현재 군량</span>
+                          <span className="text-white font-medium">{rice.toLocaleString()}</span>
+                       </div>
+                       <div className="flex justify-between">
+                          <span className="text-gray-400">둔전수입</span>
+                          <span className="text-white font-medium">{Math.floor(income.rice?.wall || 0).toLocaleString()}</span>
+                       </div>
+                       <div className="flex justify-between">
+                          <span className="text-gray-400">세금</span>
+                          <span className="text-white font-medium">{Math.floor(income.rice?.city || 0).toLocaleString()}</span>
+                       </div>
+                       <div className="flex justify-between border-t border-white/10 pt-2 mt-2">
+                          <span className="text-gray-400">수입 / 지출</span>
+                          <span className="text-gray-200">
+                             <span className="text-green-400">+{Math.floor(incomeRice).toLocaleString()}</span>
+                             <span className="mx-2 text-gray-600">/</span>
+                             <span className="text-red-400">{Math.floor(-outcome).toLocaleString()}</span>
+                          </span>
+                       </div>
+                       <div className="flex justify-between border-t border-white/10 pt-2 mt-2">
+                          <span className="text-green-500 font-bold">예상 군량</span>
+                          <span className="text-green-400 font-bold text-lg">
+                             {Math.floor(rice + incomeRice - outcome).toLocaleString()}
+                          </span>
+                       </div>
+                    </div>
+                 </div>
              </div>
 
              {/* Policy Settings Grid */}
@@ -465,18 +519,22 @@ export default function NationStratFinanPage() {
                 {/* Block War/Scout */}
                 <div className="bg-black/20 border border-white/5 rounded-lg p-4">
                    <label className="text-xs font-bold text-blue-400 uppercase mb-3 block">금지 설정</label>
-                   <div className="text-[10px] text-gray-500 mb-2 text-center">
-                      전쟁 금지: {warSettingCnt.remain}회 (월 +{warSettingCnt.inc}회, 최대 {warSettingCnt.max}회)
-                   </div>
-                   <div className="space-y-2">
-                      <label className="flex items-center gap-2 cursor-pointer hover:bg-white/5 p-1 rounded transition-colors">
-                         <input 
-                           type="checkbox" 
-                           className="w-4 h-4 rounded border-gray-700 bg-gray-900 text-blue-600 focus:ring-offset-gray-900 focus:ring-1 focus:ring-blue-500"
-                           checked={policy.blockWar} 
-                           onChange={(e) => editable && setBlockWar(e.target.checked)}
-                           disabled={!editable}
-                         />
+                    <div className="text-[10px] text-gray-500 mb-2 text-center">
+                       전쟁 금지: {warSettingCnt.remain}회 (월 +{warSettingCnt.inc}회, 최대 {warSettingCnt.max}회)
+                       {editable && !canToggleBlockWar && ' - 잔여 횟수 0회 (변경 불가)'}
+                    </div>
+                    <div className="space-y-2">
+                       <label className="flex items-center gap-2 cursor-pointer hover:bg-white/5 p-1 rounded transition-colors">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-gray-700 bg-gray-900 text-blue-600 focus:ring-offset-gray-900 focus:ring-1 focus:ring-blue-500"
+                            checked={policy.blockWar} 
+                            onChange={(e) => {
+                              if (!editable || !canToggleBlockWar) return;
+                              void setBlockWar(e.target.checked);
+                            }}
+                            disabled={!canToggleBlockWar}
+                          />
                          <span className="text-sm text-gray-300">전쟁 금지</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer hover:bg-white/5 p-1 rounded transition-colors">

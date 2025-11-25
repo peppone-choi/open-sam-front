@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 interface BettingItem {
@@ -68,6 +69,7 @@ const renderBettingTypeLabel = (typeKey: string): string => {
 export default function NationBettingPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [bettingList, setBettingList] = useState<BettingItem[]>([]);
@@ -97,7 +99,7 @@ export default function NationBettingPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('국가 베팅 정보를 불러오는데 실패했습니다.');
+      showToast('국가 베팅 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

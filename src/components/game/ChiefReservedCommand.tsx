@@ -60,17 +60,38 @@ export default function ChiefReservedCommand({
     const router = useRouter();
 
     const processedTurns = useMemo(() => {
+        const baseTime = date ? new Date(date) : null;
+        const termMinutes = typeof turnTerm === 'number' ? turnTerm : 0;
+
         return Array.from({ length: viewMaxTurn }).map((_, index) => {
             const cmd = reservedCommands[index];
+
+            let yearMonthLabel = '-';
+            if (typeof year === 'number' && typeof month === 'number') {
+                const totalMonths = (year * 12) + (month - 1) + index;
+                const cYear = Math.floor(totalMonths / 12);
+                const cMonth = (totalMonths % 12) + 1;
+                yearMonthLabel = `${cYear}년 ${String(cMonth).padStart(2, '0')}월`;
+            }
+
+            let timeStr = '??:??';
+            if (baseTime && termMinutes > 0 && !Number.isNaN(baseTime.getTime())) {
+                const execTime = new Date(baseTime.getTime() + index * termMinutes * 60000);
+                const hh = String(execTime.getHours()).padStart(2, '0');
+                const mm = String(execTime.getMinutes()).padStart(2, '0');
+                timeStr = `${hh}:${mm}`;
+            }
+
             return {
                 index,
-                timeStr: cmd ? cmd.time : '00:00',
+                yearMonth: yearMonthLabel,
+                timeStr,
                 brief: cmd ? cmd.brief : '휴식',
                 action: cmd ? cmd.action : 'rest',
                 arg: cmd ? cmd.arg : {},
             };
         });
-    }, [reservedCommands, viewMaxTurn]);
+    }, [reservedCommands, viewMaxTurn, year, month, date, turnTerm]);
 
     const selectionSummary = useMemo(() => {
         if (selectedTurnIndices.size === 0) {
@@ -267,13 +288,34 @@ export default function ChiefReservedCommand({
                             )}
                         </DragSelect>
                     ) : (
-                        <div className={styles.timeColumn}>
-                            {processedTurns.map((turn) => (
-                                <div key={`time-${turn.index}`} className={styles.timeCell}>
-                                    {turn.timeStr}
-                                </div>
-                            ))}
-                        </div>
+                        <>
+                            <div className={styles.turnNumberColumn}>
+                                {processedTurns.map((turn) => (
+                                    <div
+                                        key={`turn-${turn.index}`}
+                                        className={styles.turnCell}
+                                    >
+                                        {turn.index + 1}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className={styles.yearMonthColumn}>
+                                {processedTurns.map((turn) => (
+                                    <div key={`ym-${turn.index}`} className={styles.yearMonthCell}>
+                                        <span className="font-mono text-gray-400">{turn.yearMonth}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className={styles.timeColumn}>
+                                {processedTurns.map((turn) => (
+                                    <div key={`time-${turn.index}`} className={styles.timeCell}>
+                                        <span className="font-mono text-gray-500">{turn.timeStr}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
                     )}
 
                     {/* Column 2 */}
@@ -281,7 +323,10 @@ export default function ChiefReservedCommand({
                         <div className={styles.timeColumn}>
                             {processedTurns.map((turn) => (
                                 <div key={`time-${turn.index}`} className={styles.timeCell}>
-                                    {turn.timeStr}
+                                    <div className="flex flex-col items-center justify-center text-[10px] leading-tight">
+                                        <span className="font-mono text-gray-300">{turn.yearMonth}</span>
+                                        <span className="font-mono text-gray-400">{turn.timeStr}</span>
+                                    </div>
                                 </div>
                             ))}
                         </div>

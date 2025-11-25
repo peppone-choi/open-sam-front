@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 type ServerStatus = 'preparing' | 'running' | 'paused' | 'finished' | 'united' | string;
@@ -68,6 +69,7 @@ interface AdminUpdatePayload extends Record<string, string | number | boolean | 
 export default function AdminGamePage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<AdminGameSettings>({});
@@ -124,7 +126,6 @@ export default function AdminGamePage() {
       }
     } catch (error) {
       console.error(error);
-      // alert('설정을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -137,7 +138,7 @@ export default function AdminGamePage() {
 
   const handleSubmit = useCallback(async (action: AdminAction, value?: AdminActionValue) => {
     if (!serverID) {
-      alert('서버 정보가 없습니다.');
+      showToast('서버 정보가 없습니다.', 'error');
       return;
     }
 
@@ -180,7 +181,7 @@ export default function AdminGamePage() {
         case 'resetScenario':
           payload.scenarioId = (value as string) || selectedScenarioId;
           if (!payload.scenarioId) {
-            alert('시나리오를 선택해주세요');
+            showToast('시나리오를 선택해주세요', 'warning');
             return;
           }
           payload.turnterm = settings.turnterm || 60;
@@ -192,24 +193,24 @@ export default function AdminGamePage() {
       const result = await SammoAPI.AdminUpdateGame({ action, data: payload });
       
       if (result.result) {
-        alert('변경되었습니다');
+        showToast('변경되었습니다', 'success');
         if (action === 'log') {
           setLog('');
         }
         if (action === 'resetScenario') {
-          alert('시나리오가 초기화되었습니다. 페이지를 새로고침합니다.');
+          showToast('시나리오가 초기화되었습니다. 페이지를 새로고침합니다.', 'success');
           window.location.reload();
         } else {
           void loadSettings();
         }
       } else {
-        alert(result.reason || '변경에 실패했습니다');
+        showToast(result.reason || '변경에 실패했습니다', 'error');
       }
     } catch (error: any) {
       console.error(error);
-      alert(error.message || '오류가 발생했습니다');
+      showToast(error.message || '오류가 발생했습니다', 'error');
     }
-  }, [allowNpcPossess, loadSettings, log, maxgeneral, maxnation, msg, scenario, selectedScenarioId, serverID, serverName, settings.status, settings.turnterm, starttime, startyear]);
+  }, [allowNpcPossess, loadSettings, log, maxgeneral, maxnation, msg, scenario, selectedScenarioId, serverID, serverName, settings.status, settings.turnterm, showToast, starttime, startyear]);
 
   const handleChangeStatus = useCallback((status: ServerStatusKey) => {
     const statusLabels: Record<ServerStatusKey, string> = {
@@ -227,20 +228,20 @@ export default function AdminGamePage() {
 
   const handleResetScenario = useCallback(() => {
     if (!selectedScenarioId) {
-      alert('시나리오를 선택해주세요');
+      showToast('시나리오를 선택해주세요', 'warning');
       return;
     }
     
     const selectedScenario = scenarios.find((scenarioTemplate) => scenarioTemplate.id === selectedScenarioId);
     if (!selectedScenario) {
-      alert('선택한 시나리오를 찾을 수 없습니다.');
+      showToast('선택한 시나리오를 찾을 수 없습니다.', 'error');
       return;
     }
     
     if (confirm(`정말로 "${selectedScenario.title}" 시나리오로 서버를 초기화하시겠습니까?\n\n⚠️ 모든 장수/국가 데이터가 삭제됩니다!`)) {
       void handleSubmit('resetScenario', selectedScenarioId);
     }
-  }, [handleSubmit, scenarios, selectedScenarioId]);
+  }, [handleSubmit, scenarios, selectedScenarioId, showToast]);
  
 
   if (loading) {

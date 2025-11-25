@@ -42,7 +42,11 @@
     "node_modules",
     "**/*.stories.ts",
     "**/*.stories.tsx",
-    "e2e/**/*"
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/__tests__/**",
+    "e2e/**/*",
+    "src/stories/mocks/**"
   ]
 }
 

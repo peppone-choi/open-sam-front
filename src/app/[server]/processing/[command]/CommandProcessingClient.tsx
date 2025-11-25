@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import { JosaUtil } from '@/lib/utils/josaUtil';
+import { useToast } from '@/contexts/ToastContext';
 import {
   RecruitCommandForm,
   MoveCommandForm,
@@ -144,6 +145,12 @@ interface CommandData {
   crew?: number;
   gold?: number;
   rice?: number;
+  /**
+   * 단순 내정 커맨드 미리보기용 비용/효과 메타데이터
+   */
+  costGold?: number;
+  costRice?: number;
+  compensationStyle?: number | null;
   [key: string]: any;
   ownDexList?: Array<{ armType: number; name: string; amount: number }>;
   dexLevelList?: Array<{ amount: number; color: string; name: string }>;
@@ -295,6 +302,7 @@ export default function CommandProcessingClient({
     null
   );
   const router = useRouter();
+  const { showToast } = useToast();
   const generalID = generalIdParam;
 
   useEffect(() => {
@@ -318,12 +326,12 @@ export default function CommandProcessingClient({
       if (result.result && result.commandData) {
         setCommandData(result.commandData);
       } else {
-        alert('명령 데이터를 불러오는데 실패했습니다.');
+        showToast('명령 데이터를 불러오는데 실패했습니다.', 'error');
         router.push(`/${serverID}/${isChief ? 'chief' : 'game'}`);
       }
     } catch (err) {
       console.error(err);
-      alert('명령 데이터를 불러오는데 실패했습니다.');
+      showToast('명령 데이터를 불러오는데 실패했습니다.', 'error');
       router.push(`/${serverID}/${isChief ? 'chief' : 'game'}`);
     } finally {
       setLoading(false);
@@ -469,12 +477,31 @@ export default function CommandProcessingClient({
     const cities: any = commandData.cities;
     if (cities instanceof Map) {
       const cityData = cities.get(destCityID);
-      return cityData?.name || cityData;
+      if (!cityData) {
+        return undefined;
+      }
+      if (typeof cityData === 'string') {
+        return cityData;
+      }
+      if (typeof cityData === 'object' && typeof cityData.name === 'string') {
+        return cityData.name;
+      }
+      return String(cityData);
     }
 
     if (Array.isArray(cities)) {
       const cityData = cities.find(([id]: [number, any]) => id === destCityID);
-      return cityData?.[1];
+      if (!cityData) {
+        return undefined;
+      }
+      const value = cityData[1];
+      if (typeof value === 'string') {
+        return value;
+      }
+      if (value && typeof value === 'object' && typeof (value as any).name === 'string') {
+        return (value as any).name;
+      }
+      return String(value);
     }
 
     return undefined;
@@ -505,12 +532,13 @@ export default function CommandProcessingClient({
       }
 
       if (commandType.includes('천도')) {
-        details.push('수도가 변경되며 국가 운영에 큰 영향을 줍니다.');
+        details.push('수도가 선택한 도시로 옮겨지며, 국가 운영과 전선 배치에 큰 영향을 줍니다.');
+        details.push('천도 후에는 이전 수도로 자동 복구되지 않으며, 국고/군량·방어선이 재배치됩니다.');
       } else if (commandType.includes('초토화')) {
-        details.push('도시는 공백지가 되며 인구와 내정 수치가 사라집니다.');
+        details.push('도시는 공백지가 되며 인구와 내정 수치가 영구적으로 사라집니다.');
         details.push('국가 수뇌의 명성이 감소하고 모든 장수의 배신 수치가 증가합니다.');
       } else if (commandType.includes('수몰')) {
-        details.push('대상 도시에 큰 피해를 주는 공격 명령입니다.');
+        details.push('대상 도시에 큰 피해를 주는 공격 명령으로, 인구와 시설에 영구적인 손실을 줄 수 있습니다.');
       }
 
       if (CITY_NAME_CONFIRM_COMMANDS.has(commandType) && cityName) {
@@ -518,13 +546,18 @@ export default function CommandProcessingClient({
         requireInputLabel = `안전을 위해 대상 도시 이름 "${cityName}"을(를) 정확히 입력해주세요.`;
       }
     } else if (HIGH_RISK_POPULATION_COMMANDS.has(commandType)) {
-      const cityName = getCityName(args.destCityID);
-      if (cityName) {
-        details.push(`대상 도시: ${cityName}`);
+      const sourceCityName = getCityName(commandData.currentCity);
+      const destCityName = getCityName(args.destCityID);
+      if (sourceCityName) {
+        details.push(`출발 도시: ${sourceCityName}`);
+      }
+      if (destCityName) {
+        details.push(`도착 도시: ${destCityName}`);
       }
       if (typeof args.amount === 'number') {
         details.push(`이동 인구: ${args.amount.toLocaleString()} 명`);
       }
+      details.push('이 이동은 실행 후 되돌릴 수 없으며, 두 도시의 인구·내정 수치에 직접적인 영향을 줍니다.');
     } else if (HIGH_RISK_MATERIAL_AID_COMMANDS.has(commandType)) {
       const nationName = getNationName(args.destNationID);
       if (nationName) {
@@ -535,12 +568,14 @@ export default function CommandProcessingClient({
         details.push(`금 원조: ${gold.toLocaleString()} 냥`);
         details.push(`쌀 원조: ${rice.toLocaleString()} 석`);
       }
+      details.push('보낸 자원은 되돌릴 수 없으며, 국가 재정에 큰 영향을 줍니다.');
     } else if (HIGH_RISK_DECLARE_WAR_COMMANDS.has(commandType)) {
       const nationName = getNationName(args.destNationID);
       if (nationName) {
         details.push(`대상 국가: ${nationName}`);
       }
-      details.push('해당 국가와 전쟁 상태가 되며, 자동으로 되돌릴 수 없습니다.');
+      details.push('해당 국가와 전쟁 상태가 되며, 종전·불가침 등 다른 외교 커맨드를 사용하지 않는 한 자동으로 평화로 돌아가지 않습니다.');
+      details.push('선전포고 이후 발생하는 전투·도시 점령·외교 변화는 되돌릴 수 없습니다.');
     } else if (HIGH_RISK_DIPLOMACY_COMMANDS.has(commandType)) {
       const nationName = getNationName(args.destNationID);
       if (nationName) {
@@ -551,7 +586,7 @@ export default function CommandProcessingClient({
         if (typeof args.year === 'number' && typeof args.month === 'number') {
           details.push(`불가침 기간: ${args.year}년 ${args.month}월까지`);
         }
-        details.push('해당 기간 동안 상호 공격이 제한됩니다.');
+        details.push('해당 기간 동안 상호 공격이 제한되며, 조기 종료 시 별도의 외교 커맨드가 필요합니다.');
       } else if (commandType.includes('불가침파기제의')) {
         details.push('기존 불가침 조약을 파기하는 고위험 외교 명령입니다.');
       } else if (commandType.includes('종전제의')) {
@@ -599,13 +634,13 @@ export default function CommandProcessingClient({
     if (result.result ?? result.success) {
       router.push(`/${serverID}/${isChief ? 'chief' : 'game'}`);
     } else {
-      alert(result.reason || result.message || '명령 등록에 실패했습니다.');
+      showToast(result.reason || result.message || '명령 등록에 실패했습니다.', 'error');
     }
   }
 
   async function handleSubmit(args: any, forceExecute = false) {
     if (!command) {
-      alert('명령이 지정되지 않았습니다.');
+      showToast('명령이 지정되지 않았습니다.', 'error');
       return;
     }
 
@@ -634,7 +669,7 @@ export default function CommandProcessingClient({
       await executeReserve(args, brief);
     } catch (err: any) {
       console.error(err);
-      alert(err.message || '명령 등록에 실패했습니다.');
+      showToast(err.message || '명령 등록에 실패했습니다.', 'error');
     }
   }
 
@@ -997,19 +1032,46 @@ export default function CommandProcessingClient({
         />
       );
     } else if (['인구이동', 'che_인구이동', 'movePopulation'].includes(commandType)) {
-      const citiesArray = commandData.cities || [];
-      const citiesMap = new Map<number, { name: string; info?: string }>();
-      for (const [cityId, cityName] of citiesArray) {
-        citiesMap.set(cityId, { name: String(cityName) });
+      const rawCities = commandData.cities;
+      const citiesEntries: Array<[number, { name: string; info?: string }]> = [];
+
+      if (rawCities instanceof Map) {
+        for (const [cityId, value] of rawCities.entries()) {
+          if (typeof value === 'string') {
+            citiesEntries.push([cityId, { name: value }]);
+          } else if (value && typeof value === 'object') {
+            const name = typeof (value as any).name === 'string' ? (value as any).name : String(value);
+            const info = typeof (value as any).info === 'string' ? (value as any).info : undefined;
+            citiesEntries.push([cityId, { name, info }]);
+          } else {
+            citiesEntries.push([cityId, { name: String(value) }]);
+          }
+        }
+      } else if (Array.isArray(rawCities)) {
+        for (const [cityId, value] of rawCities as Array<[number, any]>) {
+          if (typeof value === 'string') {
+            citiesEntries.push([cityId, { name: value }]);
+          } else if (value && typeof value === 'object') {
+            const name = typeof (value as any).name === 'string' ? (value as any).name : String(value);
+            const info = typeof (value as any).info === 'string' ? (value as any).info : undefined;
+            citiesEntries.push([cityId, { name, info }]);
+          } else {
+            citiesEntries.push([cityId, { name: String(value) }]);
+          }
+        }
       }
+
       const useConfirm = HIGH_RISK_POPULATION_COMMANDS.has(commandType);
       Component = (
         <MovePopulationCommandForm
           commandName={commandName}
-          cities={Array.from(citiesMap.entries())}
+          serverID={serverID}
+          cities={citiesEntries}
+          currentCity={commandData.currentCity || 0}
           minAmount={commandData.minAmount || 0}
           maxAmount={commandData.maxAmount || 0}
           amountGuide={commandData.amountGuide || [100, 500, 1000, 2000, 5000, 10000]}
+          mapData={commandData.mapData}
           onSubmit={useConfirm ? submitWithConfirm : handleSubmit}
           onCancel={handleCancel}
         />
@@ -1018,8 +1080,11 @@ export default function CommandProcessingClient({
       Component = (
         <ReassignUnitCommandForm
           commandName={commandName}
+          currentCityId={commandData.currentCityId}
+          currentCityName={commandData.currentCityName}
           generalStacks={generalStacksList}
           cityStacks={cityStacksList}
+          availableCities={commandData.availableCities || []}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
         />
@@ -1034,11 +1099,35 @@ export default function CommandProcessingClient({
         />
       );
     } else {
-      // Default simple commands
+      // Default simple commands (내정/기타 단순 명령 포함)
+      let descriptionText = `${commandName} 명령을 실행합니다.`;
+
+      // 내정 계열 기본 설명 보완 (효과를 조금 더 명확히 표현)
+      if (['농지개간', '농업'].includes(commandType)) {
+        descriptionText = '도시의 농업 수치를 상승시킵니다.';
+      } else if (['상업', '상업투자', '상업 투자'].includes(commandType)) {
+        descriptionText = '도시의 상업 수치를 상승시킵니다.';
+      } else if (['치안', '치안강화'].includes(commandType)) {
+        descriptionText = '도시의 치안 수치를 상승시킵니다.';
+      } else if (['방어', '수비강화', '수비 강화'].includes(commandType)) {
+        descriptionText = '도시의 수비(방어력)를 강화합니다.';
+      } else if (['성벽', '성벽보수', '성벽 보수'].includes(commandType)) {
+        descriptionText = '도시의 성벽 내구도를 보수하여 방어력을 높입니다.';
+      } else if (['정착장려', '정착 장려'].includes(commandType)) {
+        descriptionText = '도시 인구를 증가시키는 내정 명령입니다.';
+      } else if (['주민선정', '주민 선정', '선정'].includes(commandType)) {
+        descriptionText = '도시의 민심(신뢰도)을 높이는 내정 명령입니다.';
+      } else if (['기술연구', '기술 연구'].includes(commandType)) {
+        descriptionText = '국가의 기술력을 상승시킵니다.';
+      }
+
       Component = (
         <SimpleCommandForm
           commandName={commandName}
-          description={`${commandName} 명령을 실행합니다.`}
+          description={descriptionText}
+          costGold={commandData.costGold}
+          costRice={commandData.costRice}
+          compensationStyle={commandData.compensationStyle}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
         />

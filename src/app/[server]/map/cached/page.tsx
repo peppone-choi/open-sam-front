@@ -4,11 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import MapViewer from '@/components/game/MapViewer';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 export default function CachedMapPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [mapData, setMapData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ export default function CachedMapPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('지도 데이터를 불러오는데 실패했습니다.');
+      showToast('지도 데이터를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

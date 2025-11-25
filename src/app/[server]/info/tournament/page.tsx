@@ -29,7 +29,7 @@ export default function TournamentInfoPage() {
       // Assuming it exists or using request method directly.
       // Original code used: SammoAPI.GetTournamentInfo({ session_id: serverID })
       
-      const result = (await SammoAPI['request']('/api/game/get-tournament-info', { 
+      const result = (await SammoAPI['request']('/api/info/tournament', { 
           method: 'POST',
           body: JSON.stringify({ session_id: serverID })
       })) as TournamentResponse;
@@ -39,7 +39,6 @@ export default function TournamentInfoPage() {
       }
     } catch (err) {
       console.error(err);
-      // alert('토너먼트 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

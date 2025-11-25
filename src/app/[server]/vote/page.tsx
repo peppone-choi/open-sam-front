@@ -5,10 +5,12 @@ import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function VotePage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [voteData, setVoteData] = useState<any>(null);
@@ -31,7 +33,7 @@ export default function VotePage() {
       }
     } catch (err) {
       console.error(err);
-      alert('투표 정보를 불러오는데 실패했습니다.');
+      showToast('투표 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -39,7 +41,7 @@ export default function VotePage() {
 
   async function handleSubmitVote() {
     if (selectedOption === null || !voteData) {
-      alert('옵션을 선택해주세요.');
+      showToast('옵션을 선택해주세요.', 'warning');
       return;
     }
     
@@ -50,15 +52,15 @@ export default function VotePage() {
       });
 
       if (result.result) {
-        alert('투표가 완료되었습니다.');
+        showToast('투표가 완료되었습니다.', 'success');
         setSelectedOption(null);
         await loadVoteData();
       } else {
-        alert(result.reason || '투표에 실패했습니다.');
+        showToast(result.reason || '투표에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('투표에 실패했습니다.');
+      showToast('투표에 실패했습니다.', 'error');
     }
   }
 

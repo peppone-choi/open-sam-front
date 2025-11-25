@@ -4,12 +4,11 @@ import React, { useMemo, useState } from 'react';
 import SammoBar from '../game/SammoBar';
 
 import NationFlag from '../common/NationFlag';
+import { Badge } from "@/components/ui/badge";
 import { formatInjury } from '@/utils/formatInjury';
 import { calcInjury } from '@/utils/calcInjury';
 import { formatGeneralTypeCall } from '@/utils/formatGeneralTypeCall';
-import { formatOfficerLevelText } from '@/utils/formatOfficerLevelText';
 import { TroopIconDisplay } from '../common/TroopIconDisplay';
-import styles from './GeneralBasicCard.module.css';
 import type { ColorSystem } from '@/types/colorSystem';
 import { getCrewTypeDisplayName } from '@/utils/unitTypeMapping';
 import { useUnitConst } from '@/hooks/useUnitConst';
@@ -198,8 +197,6 @@ function resolveStackLabel(
 // 아이콘 경로 가져오기
 function getIconPath(imgsvr: number, picture: string): string {
   if (!picture) return '';
-  // 실제 이미지 서버 경로 구성
-  // imgsvr이 있으면 해당 서버 사용, 없으면 기본 경로
   if (imgsvr && imgsvr > 0) {
     return `/api/general/icon/${imgsvr}/${picture}`;
   }
@@ -237,14 +234,11 @@ export default function GeneralBasicCard({
   const troopLeaderCity = troopLeaderInfo?.city;
   const troopReserved = Array.isArray(troopLeaderInfo?.reservedCommand) ? troopLeaderInfo!.reservedCommand : null;
   const firstReservedCommand = troopReserved?.[0];
-  // 재야는 흰색, 국가는 국가 색상
   const nationColor = (nation && nation.id !== 0) ? (nation?.color ?? "#666") : "#FFFFFF";
   const displayColor = nationColor;
 
-  // 부상 정보
   const injuryInfo = formatInjury(general.injury || 0);
 
-  // 타입 호칭
   const generalTypeCall = formatGeneralTypeCall(
     general.leadership || 50,
     general.strength || 50,
@@ -252,10 +246,7 @@ export default function GeneralBasicCard({
     gameConst
   );
 
-  // 경험치 임계값
   const statUpThreshold = gameConst?.upgradeLimit || STAT_UP_THRESHOLD;
-
-  // 연령 색상
   const retirementYear = gameConst?.retirementYear || 70;
   const age = general.age || 20;
   const ageColor = age < retirementYear * 0.75 
@@ -264,26 +255,17 @@ export default function GeneralBasicCard({
       ? (colorSystem?.warning || 'yellow') 
       : (colorSystem?.error || 'red');
 
-  // 다음 실행 시간 계산 (PHP 버전과 동일한 로직)
-  // 장수의 turntime과 현재 시간을 비교하여 남은 시간 계산
-  // lastExecuted는 세션 전체 기준이므로 장수 개별 턴 시간 계산에는 사용하지 않음
   const nextExecuteMinute = useMemo(() => {
-    if (!general.turntime) {
-      // turntime이 없으면 0 반환
-      return 0;
-    }
+    if (!general.turntime) return 0;
     
     const turnTime = typeof general.turntime === 'string' 
       ? new Date(general.turntime) 
       : (general.turntime instanceof Date ? general.turntime : new Date());
     
-    // 현재 시간과 비교
     const now = new Date();
     const remainingMs = turnTime.getTime() - now.getTime();
     
-    // turnTime이 과거면 다음 턴 시간으로 계산 (표시용만)
     if (remainingMs <= 0) {
-      // turnTerm만큼 더한 시간으로 계산
       const nextTurnTime = new Date(turnTime.getTime() + turnTerm * 60000);
       const nextRemainingMs = nextTurnTime.getTime() - now.getTime();
       return Math.max(0, Math.floor(nextRemainingMs / 60000));
@@ -292,11 +274,8 @@ export default function GeneralBasicCard({
     return Math.max(0, Math.floor(remainingMs / 60000));
   }, [general.turntime, turnTerm]);
 
-  // 경험치 레벨 계산
   const nextExp = nextExpLevelRemain(general.experience || 0, general.explevel || 0);
 
-  // 도시명 가져오기
-  // officer_city는 관직을 맡은 도시 (태수, 도독 등)
   const officerCityName = general.officer_city && cityConst?.[general.officer_city]?.name || '';
   const unitStacks = general.unitStacks;
   const totalStackTroops = unitStacks?.totalTroops;
@@ -305,9 +284,20 @@ export default function GeneralBasicCard({
   const visibleStacks = hasStackDetail ? unitStacks!.stacks.slice(0, 3) : [];
   const hasExtraStacks = hasStackDetail && unitStacks!.stacks.length > visibleStacks.length;
   const unitConst = useUnitConst();
-  const crewtypeId = getCrewtypeId(general.crewtype);
+  // unitStacks의 첫 번째 스택에서 crewtype 정보를 우선적으로 사용
+  const primaryStackCrewTypeId = unitStacks?.stacks?.[0]?.crewTypeId;
   const primaryStackName = unitStacks?.stacks?.[0]?.crewTypeName;
-  const crewtypeLabel = formatCrewtypeLabel(general.crewtype, unitConst ?? undefined, primaryStackName);
+  const effectiveCrewtype = primaryStackCrewTypeId && primaryStackCrewTypeId > 0
+    ? { id: primaryStackCrewTypeId, label: primaryStackName || `병종 ${primaryStackCrewTypeId}` }
+    : general.crewtype;
+  const crewtypeId = getCrewtypeId(effectiveCrewtype);
+  const crewtypeLabel = formatCrewtypeLabel(effectiveCrewtype, unitConst ?? undefined, primaryStackName);
+  const displayTrain = typeof unitStacks?.averageTrain === 'number'
+    ? unitStacks.averageTrain
+    : (general.train || 0);
+  const displayAtmos = typeof unitStacks?.averageMorale === 'number'
+    ? unitStacks.averageMorale
+    : (general.atmos || 50);
   const soldierSummary = typeof totalStackTroops === 'number'
     ? `${totalStackTroops.toLocaleString()}명${totalStackCount ? ` · ${totalStackCount.toLocaleString()}부대` : ''}`
     : `${(general.crew || 0).toLocaleString()}명`;
@@ -320,68 +310,73 @@ export default function GeneralBasicCard({
 
   return (
     <div 
-      className={styles.generalCardContainer}
+      className="w-full h-full flex flex-col bg-gray-900/60 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl overflow-hidden text-gray-200 font-sans"
       style={{
         borderColor: colorSystem?.border,
       }}
     >
       {/* 상단 카드: 기본 정보 + 능력치 */}
-      <div className={styles.generalCardTop}>
-        <div className={styles.generalIcon}>
+      <div className="grid grid-cols-[100px_1fr] md:grid-cols-[120px_1fr] grid-rows-[auto_auto_1fr_auto] w-full h-full">
+        <div className="col-start-1 row-span-4 w-full h-full relative overflow-hidden border-r border-white/10 flex flex-col justify-start bg-black/20 group">
           <img
+            className="w-full h-auto max-h-[140px] md:max-h-[160px] aspect-[3/4] object-cover object-top transition-transform duration-500 group-hover:scale-105"
             src={general.picture ? getIconPath(general.imgsvr || 0, general.picture) : '/default_portrait.png'}
             alt={general.name}
             onError={(e) => {
               (e.target as HTMLImageElement).src = '/default_portrait.png';
             }}
           />
-          <div className={styles.generalNameCell}>
+          <div className="relative w-full py-2 px-1 bg-gradient-to-b from-white/5 to-transparent text-white text-center font-bold text-base shadow-sm z-10 border-t border-white/5">
             <span 
-              className={styles.clickable}
+              className="cursor-pointer transition-colors duration-200 hover:text-white hover:shadow-[0_0_8px_rgba(255,255,255,0.5)]"
               onClick={() => window.location.href = `/general/${general.no}`}
               title="장수 상세 정보"
             >
               {general.name}
             </span>
             {officerCityName && (
-              <span style={{ fontSize: '0.8em', fontWeight: 'normal', marginLeft: '0.3rem' }}>
+              <span className="block text-xs font-normal mt-1 opacity-90">
                 {officerCityName} {general.officerLevelText}
               </span>
             )}
-            <div className={styles.generalSubInfo}>
+            <div className="mt-2 flex flex-col gap-1.5 items-center">
               {visibleStacks.length > 0 ? (
-                <div className={styles.miniStackList}>
+                <div className="flex flex-wrap gap-1 justify-center">
                   {visibleStacks.map((stack) => (
-                    <div key={stack.id} className={styles.miniStackBadge}>
+                    <Badge key={stack.id} variant="outline" className="gap-1 font-normal">
                       <TroopIconDisplay crewtype={stack.crewTypeId} size={14} />
-                      <span className={styles.miniStackLabel}>
+                      <span className="text-white/85">
                         {resolveStackLabel(stack.crewTypeId, stack.crewTypeName, unitConst ?? undefined)}
                       </span>
-                      <span className={styles.miniStackTroops}>{stack.troops.toLocaleString()}</span>
-                    </div>
+                      <span className="text-white/65 font-semibold ml-1">{stack.troops.toLocaleString()}</span>
+                    </Badge>
                   ))}
                 </div>
               ) : (
-                <div className={styles.crewBadge}>
+                <Badge variant="outline" className="gap-1.5 font-normal">
                   {crewtypeId ? <TroopIconDisplay crewtype={crewtypeId} size={16} /> : null}
                   <span>{crewtypeLabel}</span>
-                </div>
+                </Badge>
               )}
               {canToggleStacks ? (
-                <button type="button" className={styles.stackToggleButton} onClick={handleStackToggle}>
-                  <span className={styles.stackSummaryText}>
+                <button 
+                  type="button" 
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/20 bg-white/10 text-white/85 text-xs cursor-pointer transition-colors hover:bg-white/20 hover:border-white/35 active:scale-95"
+                  onClick={handleStackToggle}
+                >
+                  <span className="text-white/75">
                     {hasExtraStacks ? `외 ${extraStackCount}부대` : soldierSummary}
                   </span>
-                  <span className={styles.stackToggleIndicator}>{showStacks ? '▴' : '▾'}</span>
+                  <span className="text-white/80">{showStacks ? '▴' : '▾'}</span>
                 </button>
               ) : (
-                <span className={styles.stackSummaryText}>{soldierSummary}</span>
+                <span className="text-xs text-white/75">{soldierSummary}</span>
               )}
             </div>
           </div>
         </div>
 
-        <div className={styles.infoRow}>
+        <div className="col-start-2 row-start-1 flex items-center gap-3 px-4 py-2 text-sm font-semibold border-b border-white/10 bg-white/5 text-white/90">
           {nation && nation.id !== 0 ? (
             <NationFlag 
               nation={{
@@ -400,7 +395,7 @@ export default function GeneralBasicCard({
           <span>{generalTypeCall}</span>
           <span style={{ color: injuryInfo[1] }}>{injuryInfo[0]}</span>
           {general.turntime && (
-            <span style={{ marginLeft: 'auto', fontSize: '0.85em', color: colorSystem?.textMuted }}>
+            <span className="ml-auto text-xs text-gray-400">
               {typeof general.turntime === 'string' 
                 ? (general.turntime.includes('T') 
                     ? new Date(general.turntime).toLocaleTimeString('ko-KR', { hour12: false })
@@ -412,10 +407,10 @@ export default function GeneralBasicCard({
           )}
         </div>
 
-        <div className={styles.statsRow}>
-          <div className={styles.statBox}>
-            <div className={styles.statLabel}>통솔</div>
-            <div className={styles.statValue}>
+        <div className="col-start-2 row-start-2 px-4 py-2 border-b border-white/10 grid grid-cols-5 gap-2 bg-black/10">
+          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px">
+            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide">통솔</div>
+            <div className="text-base font-bold text-white flex items-center gap-0.5 leading-none">
               <span style={{ color: injuryInfo[1] }}>
                 {calcInjury('leadership', {
                   leadership: general.leadership ?? 0,
@@ -425,19 +420,19 @@ export default function GeneralBasicCard({
                 })}
               </span>
               {typeof general.lbonus === 'number' && general.lbonus !== 0 && (
-                <span style={{ color: general.lbonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red'), fontSize: '0.7em' }}>
+                <span className="text-[0.7em]" style={{ color: general.lbonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red') }}>
                   {general.lbonus > 0 ? '+' : ''}{general.lbonus}
                 </span>
               )}
             </div>
-            <div className={styles.statBar}>
+            <div className="w-full h-[3px] bg-white/10 rounded-sm mt-1 overflow-hidden">
               <SammoBar height={7} percent={((general.leadership_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
             </div>
           </div>
 
-          <div className={styles.statBox}>
-            <div className={styles.statLabel}>무력</div>
-            <div className={styles.statValue}>
+          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px">
+            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide">무력</div>
+            <div className="text-base font-bold text-white flex items-center gap-0.5 leading-none">
               <span style={{ color: injuryInfo[1] }}>
                 {calcInjury('strength', {
                   leadership: general.leadership ?? 0,
@@ -447,19 +442,19 @@ export default function GeneralBasicCard({
                 })}
               </span>
               {typeof general.sbonus === 'number' && general.sbonus !== 0 && (
-                <span style={{ color: general.sbonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red'), fontSize: '0.7em' }}>
+                <span className="text-[0.7em]" style={{ color: general.sbonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red') }}>
                   {general.sbonus > 0 ? '+' : ''}{general.sbonus}
                 </span>
               )}
             </div>
-            <div className={styles.statBar}>
+            <div className="w-full h-[3px] bg-white/10 rounded-sm mt-1 overflow-hidden">
               <SammoBar height={7} percent={((general.strength_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
             </div>
           </div>
 
-          <div className={styles.statBox}>
-            <div className={styles.statLabel}>지력</div>
-            <div className={styles.statValue}>
+          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px">
+            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide">지력</div>
+            <div className="text-base font-bold text-white flex items-center gap-0.5 leading-none">
               <span style={{ color: injuryInfo[1] }}>
                 {calcInjury('intel', {
                   leadership: general.leadership ?? 0,
@@ -469,89 +464,106 @@ export default function GeneralBasicCard({
                 })}
               </span>
               {typeof general.ibonus === 'number' && general.ibonus !== 0 && (
-                <span style={{ color: general.ibonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red'), fontSize: '0.7em' }}>
+                <span className="text-[0.7em]" style={{ color: general.ibonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red') }}>
                   {general.ibonus > 0 ? '+' : ''}{general.ibonus}
                 </span>
               )}
             </div>
-            <div className={styles.statBar}>
+            <div className="w-full h-[3px] bg-white/10 rounded-sm mt-1 overflow-hidden">
               <SammoBar height={7} percent={((general.intel_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
             </div>
           </div>
 
-          <div className={styles.statBox}>
-            <div className={styles.statLabel}>정치</div>
-            <div className={styles.statValue}>
+          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px">
+            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide">정치</div>
+            <div className="text-base font-bold text-white flex items-center gap-0.5 leading-none">
               <span style={{ color: injuryInfo[1] }}>
                 {general.politics ?? 0}
               </span>
               {typeof general.pbonus === 'number' && general.pbonus !== 0 && (
-                <span style={{ color: general.pbonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red'), fontSize: '0.7em' }}>
+                <span className="text-[0.7em]" style={{ color: general.pbonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red') }}>
                   {general.pbonus > 0 ? '+' : ''}{general.pbonus}
                 </span>
               )}
             </div>
-            <div className={styles.statBar}>
+            <div className="w-full h-[3px] bg-white/10 rounded-sm mt-1 overflow-hidden">
               <SammoBar height={7} percent={((general.politics_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
             </div>
           </div>
 
-          <div className={styles.statBox}>
-            <div className={styles.statLabel}>매력</div>
-            <div className={styles.statValue}>
+          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px">
+            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide">매력</div>
+            <div className="text-base font-bold text-white flex items-center gap-0.5 leading-none">
               <span style={{ color: injuryInfo[1] }}>
                 {general.charm ?? 0}
               </span>
               {typeof general.cbonus === 'number' && general.cbonus !== 0 && (
-                <span style={{ color: general.cbonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red'), fontSize: '0.7em' }}>
+                <span className="text-[0.7em]" style={{ color: general.cbonus > 0 ? (colorSystem?.success || 'cyan') : (colorSystem?.error || 'red') }}>
                   {general.cbonus > 0 ? '+' : ''}{general.cbonus}
                 </span>
               )}
             </div>
-            <div className={styles.statBar}>
+            <div className="w-full h-[3px] bg-white/10 rounded-sm mt-1 overflow-hidden">
               <SammoBar height={7} percent={((general.charm_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
             </div>
           </div>
         </div>
 
-        <div className={styles.detailGrid}>
-          <div className="bg1">명마</div>
-          <div>{getItemName(general.horse)}</div>
+        <div className="col-start-2 row-start-3 grid grid-cols-[auto_1fr] content-start px-4 py-3 gap-y-1.5 gap-x-4 text-xs overflow-y-auto sm:grid-cols-[auto_1fr_auto_1fr] md:grid-cols-[auto_1fr_auto_1fr_auto_1fr_auto_1fr]">
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">명마</div>
+          <div className="text-white/90 font-medium truncate">{getItemName(general.horse)}</div>
 
-          <div className="bg1">무기</div>
-          <div>{getItemName(general.weapon)}</div>
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">무기</div>
+          <div className="text-white/90 font-medium truncate">{getItemName(general.weapon)}</div>
 
-          <div className="bg1">서적</div>
-          <div>{getItemName(general.book)}</div>
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">서적</div>
+          <div className="text-white/90 font-medium truncate">{getItemName(general.book)}</div>
 
-          <div className="bg1">자금</div>
-          <div>{(general.gold || 0).toLocaleString()}</div>
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">자금</div>
+          <div className="text-white/90 font-medium truncate">{(general.gold || 0).toLocaleString()}</div>
 
-          <div className="bg1">군량</div>
-          <div>{(general.rice || 0).toLocaleString()}</div>
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">군량</div>
+          <div className="text-white/90 font-medium truncate">{(general.rice || 0).toLocaleString()}</div>
 
-          <div className="bg1">도구</div>
-          <div>{getItemName(general.item)}</div>
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">도구</div>
+          <div className="text-white/90 font-medium truncate">{getItemName(general.item)}</div>
 
-          <div className="bg1">훈련</div>
-          <div>{general.train || 0}</div>
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">훈련</div>
+          <div className="text-white/90 font-medium truncate">{Math.round(displayTrain).toLocaleString()}</div>
+ 
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">사기</div>
+          <div className="text-white/90 font-medium truncate">{Math.round(displayAtmos).toLocaleString()}</div>
 
-          <div className="bg1">사기</div>
-          <div>{general.atmos || 50}</div>
-
-          <div className="bg1">성격</div>
-          <div>{getItemName(general.personal)}</div>
-
-          <div className="bg1">특기</div>
-          <div>
-            {getItemName(general.specialDomestic)} / {getItemName(general.specialWar)}
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">성격</div>
+          <div className="text-white/90 font-medium truncate">
+            {general.personal && general.personal !== 'None' ? (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
+                {getItemName(general.personal)}
+              </Badge>
+            ) : '-'}
           </div>
 
-          <div className="bg1">연령</div>
-          <div style={{ color: ageColor }}>{age}세</div>
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">특기</div>
+          <div className="text-white/90 font-medium truncate flex gap-1 items-center">
+            {general.specialDomestic && general.specialDomestic !== 'None' && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
+                {getItemName(general.specialDomestic)}
+              </Badge>
+            )}
+            {general.specialWar && general.specialWar !== 'None' && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
+                {getItemName(general.specialWar)}
+              </Badge>
+            )}
+            {(!general.specialDomestic || general.specialDomestic === 'None') && 
+             (!general.specialWar || general.specialWar === 'None') && '-'}
+          </div>
 
-          <div className="bg1">수비</div>
-          <div className={styles.generalDefenceTrain}>
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">연령</div>
+          <div className="font-medium truncate" style={{ color: ageColor }}>{age}세</div>
+
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">수비</div>
+          <div className="font-semibold truncate">
             {general.defence_train === 999 ? (
               <span style={{ color: colorSystem?.error || 'red' }}>수비 안함</span>
             ) : (
@@ -559,14 +571,14 @@ export default function GeneralBasicCard({
             )}
           </div>
 
-          <div className="bg1">삭턴</div>
-          <div>{general.killturn || 0} 턴</div>
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">삭턴</div>
+          <div className="text-white/90 font-medium truncate">{general.killturn || 0} 턴</div>
 
-          <div className="bg1">실행</div>
-          <div>{nextExecuteMinute}분 남음</div>
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">실행</div>
+          <div className="text-white/90 font-medium truncate">{nextExecuteMinute}분 남음</div>
 
-          <div className="bg1">부대</div>
-          <div className={styles.generalTroop}>
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">부대</div>
+          <div className="text-white/90 font-medium truncate">
             {!normalizedTroopInfo && !fallbackTroopName ? (
               '-'
             ) : normalizedTroopInfo ? (
@@ -574,7 +586,7 @@ export default function GeneralBasicCard({
                 <s style={{ color: 'gray' }}>{normalizedTroopInfo.name}</s>
               ) : troopLeaderCity && troopLeaderCity === general.city ? (
                 <span
-                  className={styles.clickable}
+                  className="cursor-pointer transition-colors hover:text-white hover:shadow-[0_0_8px_rgba(255,255,255,0.5)]"
                   onClick={() => window.location.href = '/troop'}
                   title="부대 정보"
                 >
@@ -582,7 +594,7 @@ export default function GeneralBasicCard({
                 </span>
               ) : (
                 <span
-                  className={styles.clickable}
+                  className="cursor-pointer transition-colors hover:text-white hover:shadow-[0_0_8px_rgba(255,255,255,0.5)]"
                   style={{ color: colorSystem?.warning || 'orange' }}
                   onClick={() => window.location.href = '/troop'}
                   title="부대 정보"
@@ -596,60 +608,60 @@ export default function GeneralBasicCard({
             )}
           </div>
 
-          <div className="bg1">벌점</div>
-          <div className={styles.generalRefreshScoreTotal}>
+          <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">벌점</div>
+          <div className="text-white/90 font-medium truncate">
             {formatRefreshScore(general.refreshScoreTotal || 0)} {(general.refreshScoreTotal || 0).toLocaleString()}점({general.refreshScore || 0})
           </div>
         </div>
 
         {/* 레벨 정보 */}
-        <div className={styles.crewInfo}>
+        <div className="col-start-2 row-start-4 px-4 py-2 border-t border-white/10 flex items-center justify-between bg-black/20">
           <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '0.75rem' }}>
-            <span style={{ fontWeight: 'bold', color: colorSystem?.success || '#4CAF50', fontSize: '1.1em', minWidth: '50px' }}>Lv.{general.explevel || 0}</span>
+            <span className="font-bold text-[1.1em] min-w-[50px]" style={{ color: colorSystem?.success || '#4CAF50' }}>Lv.{general.explevel || 0}</span>
             <div style={{ flex: 1 }}>
               <SammoBar height={7} percent={((general.experience || 0) % nextExp[1]) / nextExp[1] * 100} barColor={displayColor} />
             </div>
-            <span style={{ fontSize: '0.85em', color: colorSystem?.textMuted || '#aaa', whiteSpace: 'nowrap' }}>
+            <span className="text-xs text-gray-400 whitespace-nowrap">
               {nextExp[0].toLocaleString()} / {nextExp[1].toLocaleString()}
             </span>
           </div>
         </div>
         
         {hasStackDetail && showStacks && unitStacks && (
-          <div className={styles.unitStacksPanel}>
-            <div className={styles.unitStacksHeader}>
+          <div className="col-span-full m-0 bg-black/30 border-t border-white/10 p-3 animate-slideDown">
+            <div className="flex justify-between items-center mb-2 text-sm text-white/80 pb-1.5 border-b border-white/5">
               <div>
                 총 <strong>{(unitStacks.totalTroops || 0).toLocaleString()}명</strong>
                 {totalStackCount ? (
-                  <span style={{ marginLeft: '0.4rem', color: colorSystem?.textMuted || '#999' }}>
+                  <span className="ml-1.5 text-gray-400">
                     ({totalStackCount.toLocaleString()}부대)
                   </span>
                 ) : null}
               </div>
-              <div style={{ fontSize: '0.85rem', color: colorSystem?.textMuted || '#aaa' }}>
+              <div className="text-xs text-gray-400">
                 평균 훈련 {unitStacks.averageTrain ?? '-'} | 평균 사기 {unitStacks.averageMorale ?? '-'}
               </div>
             </div>
-            <div className={styles.unitStacksList}>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-2 max-h-[200px] overflow-y-auto pr-2">
               {unitStacks.stacks.map((stack) => (
-                <div key={stack.id} className={styles.unitStackCard}>
-                  <div className={styles.unitStackCrewType}>
+                <div key={stack.id} className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 p-2.5 bg-white/5 rounded-lg border border-white/5 transition-all hover:bg-white/10 hover:border-white/10 hover:-translate-y-px">
+                  <div className="flex items-center gap-2 font-semibold text-white text-sm">
                     <TroopIconDisplay crewtype={stack.crewTypeId} size={24} />
                     <span>{resolveStackLabel(stack.crewTypeId, stack.crewTypeName, unitConst ?? undefined)}</span>
                   </div>
-                  <div className={styles.unitStackStat}>
-                    <span>병력</span>
-                    <strong>{stack.troops.toLocaleString()}</strong>
+                  <div className="flex flex-col items-center min-w-[36px]">
+                    <span className="text-[0.6rem] text-white/40 uppercase mb-0.5">병력</span>
+                    <strong className="text-sm text-white/90 font-semibold">{stack.troops.toLocaleString()}</strong>
                   </div>
-                  <div className={styles.unitStackStat}>
-                    <span>훈련</span>
-                    <strong>{Math.round(stack.train).toLocaleString()}</strong>
+                  <div className="flex flex-col items-center min-w-[36px]">
+                    <span className="text-[0.6rem] text-white/40 uppercase mb-0.5">훈련</span>
+                    <strong className="text-sm text-white/90 font-semibold">{Math.round(stack.train).toLocaleString()}</strong>
                   </div>
-                  <div className={styles.unitStackStat}>
-                    <span>사기</span>
-                    <strong>{Math.round(stack.morale).toLocaleString()}</strong>
+                  <div className="flex flex-col items-center min-w-[36px]">
+                    <span className="text-[0.6rem] text-white/40 uppercase mb-0.5">사기</span>
+                    <strong className="text-sm text-white/90 font-semibold">{Math.round(stack.morale).toLocaleString()}</strong>
                   </div>
-                  <div className={styles.unitStackFooter}>
+                  <div className="col-span-full mt-1.5 pt-1.5 border-t border-white/5 text-[0.7rem] text-white/40 flex justify-between">
                     {stack.unitSize}명 × {stack.stackCount}스택
                     {stack.updatedAt ? ` · ${new Date(stack.updatedAt).toLocaleString()}` : ''}
                   </div>

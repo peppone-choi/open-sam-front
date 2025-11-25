@@ -3,8 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { SammoAPI } from '@/lib/api/sammo';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function AdminSessionsPage() {
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<any[]>([]);
   const [creating, setCreating] = useState(false);
@@ -32,7 +34,7 @@ export default function AdminSessionsPage() {
       }
     } catch (err) {
       console.error('세션/시나리오 로드 실패:', err);
-      alert('세션 정보를 불러오는데 실패했습니다.');
+      showToast('세션 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -40,13 +42,13 @@ export default function AdminSessionsPage() {
 
   async function handleCreate() {
     if (!selectedScenarioId) {
-      alert('시나리오를 선택해주세요');
+      showToast('시나리오를 선택해주세요', 'warning');
       return;
     }
 
     const selectedScenario = scenarios.find((s) => s.id === selectedScenarioId);
     if (!selectedScenario) {
-      alert('선택한 시나리오를 찾을 수 없습니다.');
+      showToast('선택한 시나리오를 찾을 수 없습니다.', 'error');
       return;
     }
 
@@ -71,15 +73,15 @@ export default function AdminSessionsPage() {
       });
 
       if (!result.success) {
-        alert(result.message || '세션 생성에 실패했습니다');
+        showToast(result.message || '세션 생성에 실패했습니다', 'error');
         return;
       }
 
-      alert(`세션이 생성되었습니다: ${sessionId}`);
+      showToast(`세션이 생성되었습니다: ${sessionId}`, 'success');
       await loadAll();
     } catch (err: any) {
       console.error(err);
-      alert(err.message || '세션 생성에 실패했습니다');
+      showToast(err.message || '세션 생성에 실패했습니다', 'error');
     } finally {
       setCreating(false);
     }
@@ -97,14 +99,14 @@ export default function AdminSessionsPage() {
       setResettingId(sessionId);
       const result = await SammoAPI.AdminSessionReset({ sessionId });
       if (!result.success) {
-        alert(result.message || '세션 리셋에 실패했습니다');
+        showToast(result.message || '세션 리셋에 실패했습니다', 'error');
         return;
       }
-      alert('세션이 전역적으로 리셋되었습니다.');
+      showToast('세션이 전역적으로 리셋되었습니다.', 'success');
       await loadAll();
     } catch (err: any) {
       console.error(err);
-      alert(err.message || '세션 리셋에 실패했습니다');
+      showToast(err.message || '세션 리셋에 실패했습니다', 'error');
     } finally {
       setResettingId(null);
     }

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 interface NationPolicyState {
   values: Record<string, any>;
@@ -26,6 +27,7 @@ type ComplexPolicyKey = (typeof COMPLEX_POLICY_KEYS)[number];
 export default function NPCControlPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [control, setControl] = useState<NPCControlState | null>(null);
@@ -134,7 +136,7 @@ export default function NPCControlPage() {
         const parsed = JSON.parse(raw);
         payload[key] = parsed;
       } catch (err) {
-        alert(`${key} 값이 올바른 JSON 형식이 아닙니다.`);
+        showToast(`${key} 값이 올바른 JSON 형식이 아닙니다.`, 'error');
         return null;
       }
     }
@@ -155,14 +157,14 @@ export default function NPCControlPage() {
       });
 
       if (result.result) {
-        alert(result.message || '국가 정책을 저장했습니다.');
+        showToast(result.message || '국가 정책을 저장했습니다.', 'success');
         await loadNPCData();
       } else {
-        alert(result.reason || '국가 정책 저장에 실패했습니다.');
+        showToast(result.reason || '국가 정책 저장에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('국가 정책 저장 중 오류가 발생했습니다.');
+      showToast('국가 정책 저장 중 오류가 발생했습니다.', 'error');
     } finally {
       setSavingSection(null);
     }
@@ -176,7 +178,7 @@ export default function NPCControlPage() {
       .filter(Boolean);
 
     if (priorityList.length === 0) {
-      alert('최소 한 개 이상의 명령을 입력해야 합니다.');
+      showToast('최소 한 개 이상의 명령을 입력해야 합니다.', 'warning');
       return;
     }
 
@@ -189,14 +191,14 @@ export default function NPCControlPage() {
       });
 
       if (result.result) {
-        alert(result.message || '우선순위를 저장했습니다.');
+        showToast(result.message || '우선순위를 저장했습니다.', 'success');
         await loadNPCData();
       } else {
-        alert(result.reason || '우선순위 저장에 실패했습니다.');
+        showToast(result.reason || '우선순위 저장에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('우선순위 저장 중 오류가 발생했습니다.');
+      showToast('우선순위 저장 중 오류가 발생했습니다.', 'error');
     } finally {
       setSavingSection(null);
     }

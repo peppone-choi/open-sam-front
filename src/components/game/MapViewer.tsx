@@ -181,6 +181,7 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
   // 지역 ID를 지역 이름으로 변환
   const getRegionText = (region: number): string => {
     const regionMap: Record<number, string> = {
+      0: '기타',
       1: '하북',
       2: '중원',
       3: '서북',
@@ -336,7 +337,7 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
     <div className={`world_map map_detail full_width_map ${seasonClass} ${hideCityName ? 'hide_cityname' : ''} ${styles.worldMap}`}>
       <div className={styles.mapTitle}>
         <span className={styles.mapTitleText}>
-          {mapData.year}年 {mapData.month}月
+          {mapData.year}년 {mapData.month}월
         </span>
       </div>
       <div ref={mapBodyRef} className={styles.mapBody}>

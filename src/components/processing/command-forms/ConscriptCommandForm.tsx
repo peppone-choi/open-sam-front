@@ -6,6 +6,7 @@ import TopBackBar from '@/components/common/TopBackBar';
 import styles from './CommandForm.module.css';
 import crewStyles from './ConscriptCommandForm.module.css';
 import { getCrewTypeDisplayName } from '@/utils/unitTypeMapping';
+import { useToast } from '@/contexts/ToastContext';
 
 interface CrewTypeItem {
   id: number;
@@ -119,6 +120,7 @@ export default function ConscriptCommandForm({
   const safeGold = parseFiniteNumber(gold);
   const safeRice = parseFiniteNumber(rice);
   const safeCrew = parseFiniteNumber(crew);
+  const { showToast } = useToast();
 
   // 병종 맵 생성
   const crewTypeMap = useMemo(() => {
@@ -158,7 +160,14 @@ export default function ConscriptCommandForm({
     if (!crewType) {
       return 0;
     }
-    return crewType.baseCostRaw ?? crewType.baseCost ?? 0;
+    // PHP/백엔드 징병 비용과 최대한 일치시키기 위해,
+    // onCalcDomestic까지 반영된 effectiveCostPerHundred가 있으면 우선 사용한다.
+    return (
+      (crewType as any).effectiveCostPerHundred ??
+      crewType.baseCostRaw ??
+      crewType.baseCost ??
+      0
+    );
   }, []);
 
   const getRicePerHundred = useCallback((crewType: CrewTypeItem | null): number => {
@@ -295,20 +304,20 @@ export default function ConscriptCommandForm({
 
   const handleSubmit = () => {
     if (!selectedCrewType) {
-      alert('병종을 선택해주세요.');
+      showToast('병종을 선택해주세요.', 'error');
       return;
     }
     if (selectedCrewType.notAvailable) {
-      alert('선택한 병종은 현재 사용할 수 없습니다.');
+      showToast('선택한 병종은 현재 사용할 수 없습니다.', 'error');
       return;
     }
     if (amount < 1) {
-      alert('병력은 1명 이상이어야 합니다.');
+      showToast('병력은 1명 이상이어야 합니다.', 'error');
       return;
     }
     
     if (actualCrew <= 0) {
-      alert('징집 가능한 병력이 없습니다.');
+      showToast('징집 가능한 병력이 없습니다.', 'error');
       return;
     }
     
@@ -316,12 +325,12 @@ export default function ConscriptCommandForm({
     const totalRice = getTotalRice();
     
     if (totalCost > safeGold) {
-      alert(`자금이 부족합니다. 필요: ${totalCost.toLocaleString()}금, 보유: ${formatNumber(safeGold)}금`);
+      showToast(`자금이 부족합니다. 필요: ${totalCost.toLocaleString()}금, 보유: ${formatNumber(safeGold)}금`, 'error');
       return;
     }
     
     if (totalRice > safeRice) {
-      alert(`군량이 부족합니다. 필요: ${totalRice.toLocaleString()}미, 보유: ${formatNumber(safeRice)}미`);
+      showToast(`군량이 부족합니다. 필요: ${totalRice.toLocaleString()}미, 보유: ${formatNumber(safeRice)}미`, 'error');
       return;
     }
 

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import MapViewer from '@/components/game/MapViewer';
+import { useToast } from '@/contexts/ToastContext';
 
 interface MapSummaryCard {
   label: string;
@@ -16,6 +17,7 @@ export default function RecentMapPage() {
   const params = useParams();
   const router = useRouter();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [mapData, setMapData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -44,7 +46,7 @@ export default function RecentMapPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('지도 데이터를 불러오는데 실패했습니다.');
+      showToast('지도 데이터를 불러오는데 실패했습니다.', 'error');
     } finally {
       if (options?.silent) {
         setRefreshing(false);

@@ -4,12 +4,14 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 
 function DiplomacyProcessContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const serverID = params?.server as string;
   const action = searchParams?.get('action') || '';
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [diplomacyData, setDiplomacyData] = useState<any>(null);
@@ -36,7 +38,7 @@ function DiplomacyProcessContent() {
       }
     } catch (err) {
       console.error(err);
-      alert('외교 정보를 불러오는데 실패했습니다.');
+      showToast('외교 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -44,7 +46,7 @@ function DiplomacyProcessContent() {
 
   async function handleSubmit(formData: any) {
     if (!letterNo || !action) {
-      alert('필수 정보가 없습니다.');
+      showToast('필수 정보가 없습니다.', 'warning');
       return;
     }
 
@@ -58,14 +60,14 @@ function DiplomacyProcessContent() {
       });
 
       if (result.result) {
-        alert('처리되었습니다.');
+        showToast('처리되었습니다.', 'success');
         router.push(`/${serverID}/diplomacy`);
       } else {
-        alert(result.reason || '처리에 실패했습니다.');
+        showToast(result.reason || '처리에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('처리에 실패했습니다.');
+      showToast('처리에 실패했습니다.', 'error');
     }
   }
 

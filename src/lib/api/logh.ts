@@ -29,11 +29,32 @@ const getHeaders = () => {
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const headers = { ...getHeaders(), ...options.headers };
   const res = await fetch(url, { ...options, headers });
-  if (!res.ok) {
-    const error = await res.text().catch(() => res.statusText);
-    throw new Error(`API Error ${res.status}: ${error}`);
+
+  const contentType = res.headers.get('content-type') || '';
+  let payload: any = null;
+  let textBody: string | null = null;
+
+  if (contentType.includes('application/json')) {
+    payload = await res.json().catch(() => null);
+  } else {
+    textBody = await res.text().catch(() => res.statusText);
   }
-  return res.json();
+
+  if (!res.ok) {
+    const messageFromJson = payload && (payload.message || payload.error || payload.reason);
+    const message = messageFromJson || textBody || res.statusText;
+    throw new Error(`API Error ${res.status}: ${message}`);
+  }
+
+  if (payload !== null) {
+    return payload;
+  }
+
+  try {
+    return textBody ? JSON.parse(textBody) : {};
+  } catch {
+    return textBody;
+  }
 };
 
 // Command Mapping
@@ -315,7 +336,7 @@ export const loghApi = {
       const res = await fetchWithAuth(`${API_BASE}/fleet/my`);
       if (res.data) return res.data;
     } catch (e) {
-      // Fallback
+      console.warn('[LOGH] getMyFleet failed, using mock FleetDetail', e);
     }
     
     // Fallback Mock Data for Development
@@ -364,7 +385,7 @@ export const loghApi = {
       const res = await fetchWithAuth(`${API_BASE}/galaxy/tactical-battles/${battleId}`);
       if (res.data) return res.data;
     } catch(e) {
-      // Fallback
+      console.warn('[LOGH] getBattleState failed, using mock battle state', e);
     }
     // Mock Data
     return {

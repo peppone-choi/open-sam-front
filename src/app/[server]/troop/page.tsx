@@ -6,6 +6,7 @@ import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import { cn } from '@/lib/utils';
 import GamePageLayout from '@/components/layout/GamePageLayout';
+import { useToast } from '@/contexts/ToastContext';
 
 interface Troop {
   troopID: number;
@@ -28,6 +29,7 @@ interface Troop {
 export default function TroopPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [troopList, setTroopList] = useState<Troop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,7 +86,7 @@ export default function TroopPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('부대 정보를 불러오는데 실패했습니다.');
+      showToast('부대 정보를 불러오는데 실패했습니다.', 'error');
       setTroopList([]);
     } finally {
       setLoading(false);
@@ -93,7 +95,7 @@ export default function TroopPage() {
 
   async function makeTroop() {
     if (!newTroopName.trim()) {
-      alert('부대명을 입력해주세요.');
+      showToast('부대명을 입력해주세요.', 'warning');
       return;
     }
 
@@ -105,13 +107,14 @@ export default function TroopPage() {
 
       if (result.result) {
         setNewTroopName('');
+        showToast('부대가 창설되었습니다.', 'success');
         await loadTroops();
       } else {
-        alert(result.reason || '부대 창설에 실패했습니다.');
+        showToast(result.reason || '부대 창설에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('부대 창설에 실패했습니다.');
+      showToast('부대 창설 중 오류가 발생했습니다.', 'error');
     }
   }
 
@@ -122,13 +125,14 @@ export default function TroopPage() {
       });
 
       if (result.result) {
+        showToast('부대에 탑승했습니다.', 'success');
         await loadTroops();
       } else {
-        alert(result.reason || '부대 탑승에 실패했습니다.');
+        showToast(result.reason || '부대 탑승에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('부대 탑승에 실패했습니다.');
+      showToast('부대 탑승 중 오류가 발생했습니다.', 'error');
     }
   }
 
@@ -140,13 +144,14 @@ export default function TroopPage() {
     try {
       const result = await SammoAPI.TroopExitTroop();
       if (result.result) {
+        showToast('부대에서 탈퇴했습니다.', 'success');
         await loadTroops();
       } else {
-        alert(result.reason || '부대 탈퇴에 실패했습니다.');
+        showToast(result.reason || '부대 탈퇴에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('부대 탈퇴에 실패했습니다.');
+      showToast('부대 탈퇴 중 오류가 발생했습니다.', 'error');
     }
   }
 

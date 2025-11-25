@@ -9,6 +9,7 @@ export interface Gin7StrategicCell {
   label?: string;
   navigable: boolean;
   density?: number;
+  faction?: Gin7Faction;
 }
 
 export interface Gin7FleetMarker {
@@ -19,6 +20,7 @@ export interface Gin7FleetMarker {
   y: number;
   status: 'idle' | 'moving' | 'engaging' | 'retreating';
   cpLoad: { pcp: number; mcp: number };
+  totalShips: number;
   isFlagship: boolean;
 }
 
@@ -84,7 +86,7 @@ export interface Gin7CommandPlan {
   target: string;
   plannedStart: string;
   participants: string[];
-  status: 'draft' | 'issued' | 'active' | 'completed';
+  status: 'draft' | 'issued' | 'active' | 'completed' | 'aborted';
   notes?: string;
 }
 

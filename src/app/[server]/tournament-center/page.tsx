@@ -20,13 +20,16 @@ export default function TournamentCenterPage() {
   async function loadTournamentData() {
     try {
       setLoading(true);
-      const result = await SammoAPI.GetTournamentCenter();
+      const result = await SammoAPI.GetTournamentCenter({
+        session_id: serverID,
+      });
       if (result.result) {
         setTournamentData(result.tournament);
+      } else {
+        setTournamentData(null);
       }
     } catch (err) {
       console.error(err);
-      // alert('토너먼트 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -47,8 +50,16 @@ export default function TournamentCenterPage() {
             
             {tournamentData ? (
                <div className="space-y-4">
-                  {/* Tournament Detail Rendering */}
-                  <p className="text-xl text-white">{tournamentData.status}</p>
+                  <p className="text-xl text-white">
+                    {tournamentData.isApplicationOpen
+                      ? '신청 기간입니다.'
+                      : tournamentData.isActive
+                        ? `진행 상태: ${tournamentData.typeName || '토너먼트'} (${tournamentData.state})`
+                        : '현재 진행중인 토너먼트가 없습니다.'}
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    참가자 수: {(tournamentData.participants?.length ?? 0).toLocaleString()}명
+                  </p>
                </div>
             ) : (
                <div className="flex flex-col items-center gap-4">

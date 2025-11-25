@@ -7,6 +7,7 @@ import TopBackBar from "@/components/common/TopBackBar";
 import { isBrightColor } from "@/utils/isBrightColor";
 import { cn } from "@/lib/utils";
 import { formatOfficerLevelText } from "@/utils/formatOfficerLevelText";
+import { useToast } from "@/contexts/ToastContext";
 
 interface OfficerData {
   meLevel: number;
@@ -67,6 +68,7 @@ const CHIEF_STAT_MIN = 70;
 export default function PersonnelPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [nationData, setNationData] = useState<any>(null);
@@ -118,7 +120,7 @@ export default function PersonnelPage() {
       setAppointingLevels({});
     } catch (err) {
       console.error(err);
-      alert("인사부 정보를 불러오는데 실패했습니다.");
+      showToast("인사부 정보를 불러오는데 실패했습니다.", "error");
     } finally {
       setLoading(false);
     }
@@ -143,7 +145,28 @@ export default function PersonnelPage() {
       if (!serverID) {
         return;
       }
+
       const selectedGeneral = chiefSelections[level] ?? 0;
+      const officerLevelText = formatOfficerLevelText(
+        level,
+        officerData?.nation.level ?? nationData?.level ?? 0,
+        cityConstMap?.officerTitles
+      );
+
+      if (level >= 5) {
+        if (!selectedGeneral) {
+          if (!window.confirm(`${officerLevelText} 직을 비우시겠습니까?`)) {
+            return;
+          }
+        } else {
+          const target = generals.find((gen) => (gen.no ?? gen.id ?? gen.generalNo) === selectedGeneral);
+          const generalName = target?.name ?? "선택된 장수";
+          if (!window.confirm(`${generalName}을 ${officerLevelText} 직에 임명하시겠습니까?`)) {
+            return;
+          }
+        }
+      }
+
       setAppointingLevels((prev) => ({ ...prev, [level]: true }));
       try {
         const result = await SammoAPI.OfficerAppoint({
@@ -153,18 +176,18 @@ export default function PersonnelPage() {
           destCityID: options?.cityId,
         });
         if (!result?.result) {
-          alert(result?.reason ?? "임명에 실패했습니다.");
+          showToast(result?.reason ?? "임명에 실패했습니다.", "error");
           return;
         }
         await loadAllData();
       } catch (err) {
         console.error(err);
-        alert("임명 요청 중 오류가 발생했습니다.");
+        showToast("임명 요청 중 오류가 발생했습니다.", "error");
       } finally {
         setAppointingLevels((prev) => ({ ...prev, [level]: false }));
       }
     },
-    [chiefSelections, loadAllData, serverID]
+    [chiefSelections, cityConstMap?.officerTitles, generals, officerData?.nation.level, loadAllData, nationData?.level, serverID]
   );
 
   return (

@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 
 function ProcessingContent() {
   const params = useParams();
@@ -13,6 +14,7 @@ function ProcessingContent() {
   const commandType = searchParams?.get('command') || '';
   const turnList = searchParams?.get('turnList')?.split('_').map(Number) || [];
   const isChiefTurn = searchParams?.get('is_chief') === 'true';
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [commandData, setCommandData] = useState<any>(null);
@@ -38,11 +40,11 @@ function ProcessingContent() {
         // 폼 데이터 초기화
         setFormData({});
       } else {
-        alert(result.reason || '명령 정보를 불러오는데 실패했습니다.');
+        showToast(result.reason || '명령 정보를 불러오는데 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('명령 정보를 불러오는데 실패했습니다.');
+      showToast('명령 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -59,11 +61,11 @@ function ProcessingContent() {
       if (result.result) {
         router.push(`/${serverID}/game`);
       } else {
-        alert(result.reason || '명령 등록에 실패했습니다.');
+        showToast(result.reason || '명령 등록에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('명령 등록에 실패했습니다.');
+      showToast('명령 등록에 실패했습니다.', 'error');
     }
   }
 

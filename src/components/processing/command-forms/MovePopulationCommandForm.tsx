@@ -67,9 +67,10 @@ export default function MovePopulationCommandForm({
     }
 
     if (amount < minAmount || amount > maxAmount) {
-      alert(`금액은 ${minAmount.toLocaleString()} ~ ${maxAmount.toLocaleString()} 사이여야 합니다.`);
+      alert(`인구는 ${minAmount.toLocaleString()} ~ ${maxAmount.toLocaleString()} 사이여야 합니다.`);
       return;
     }
+
 
     onSubmit({
       destCityID: selectedCityID,
@@ -110,7 +111,7 @@ export default function MovePopulationCommandForm({
           </div>
 
           <div className={styles.formField}>
-            <label>금:</label>
+            <label>인구:</label>
             <SelectAmount
               value={amount}
               amountGuide={amountGuide}
@@ -119,6 +120,7 @@ export default function MovePopulationCommandForm({
               onChange={setAmount}
             />
           </div>
+
 
           <div className={styles.formActions}>
             <button

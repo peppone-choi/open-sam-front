@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import type { ColorSystem } from '@/types/colorSystem';
 import { cn } from '@/lib/utils';
 import { CONTROL_BAR_TEXT } from '@/constants/uiText';
@@ -33,6 +33,7 @@ export default function MainControlBar({
   hasCity = false, // 기본값은 false
 }: MainControlBarProps) {
   const params = useParams();
+  const pathname = usePathname();
   const serverID = params?.server as string;
   const basePath = `/${serverID}`;
 
@@ -59,19 +60,26 @@ export default function MainControlBar({
     };
   }, []);
 
-  const buttonBaseClass = "relative flex items-center justify-center w-full px-3 py-3 text-sm font-medium transition-all duration-200 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none active:scale-95";
+  const buttonBaseClass = "relative flex items-center justify-center w-full min-h-[44px] px-3 py-2 text-sm font-medium transition-all duration-200 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none active:scale-95";
 
-  const activeClass = "bg-background-tertiary/80 hover:bg-background-secondary hover:text-white border-white/10 text-foreground hover:border-primary/30 hover:shadow-md shadow-black/20";
+  // 기본 상태
+  const defaultClass = "bg-background-tertiary/80 text-foreground border-white/5 hover:bg-background-secondary hover:text-white hover:border-primary/30 hover:shadow-md shadow-black/20";
+  
+  // 활성 상태 (URL 매칭)
+  const activeStateClass = "bg-white/10 text-blue-400 border-b-2 border-blue-500 shadow-inner font-bold";
+  
   const disabledClass = "bg-background-tertiary/30 text-foreground-muted/40 border-white/5 cursor-not-allowed grayscale";
   const highlightClass = "border-accent/50 text-accent shadow-accent/10 bg-accent/5 hover:bg-accent/10";
 
   const renderButton = (href: string, label: string, enabled: boolean, isHighlight: boolean = false, target: string = "_self") => {
+    const isActive = pathname === href;
+    
     if (enabled) {
       return (
         <Link
           href={href}
           target={target}
-          className={cn(buttonBaseClass, activeClass, isHighlight && highlightClass)}
+          className={cn(buttonBaseClass, isActive ? activeStateClass : defaultClass, isHighlight && highlightClass)}
         // Removed manual color override to let ThemeProvider handle it via Tailwind classes
         >
           {label}
@@ -144,13 +152,13 @@ export default function MainControlBar({
               <Link
                 href={`${basePath}/auction`}
                 target="_blank"
-                className={cn(buttonBaseClass, activeClass, "rounded-r-none border-r-0 w-full text-left justify-start")}
+                className={cn(buttonBaseClass, pathname === `${basePath}/auction` ? activeStateClass : defaultClass, "rounded-r-none border-r-0 w-full text-left justify-start")}
               >
                 경 매 장
               </Link>
               <button
                 type="button"
-                className={cn(buttonBaseClass, activeClass, "rounded-l-none w-10 px-0 flex items-center justify-center")}
+                className={cn(buttonBaseClass, defaultClass, "rounded-l-none w-10 px-0 flex items-center justify-center")}
                 onClick={() => setAuctionDropdownOpen(!auctionDropdownOpen)}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("transition-transform", auctionDropdownOpen ? "rotate-180" : "")}><path d="m6 9 6 6 6-6" /></svg>

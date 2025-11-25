@@ -9,6 +9,7 @@ import HistoryTimeline from '@/components/info/HistoryTimeline';
 import { buildJoinSummaryCards, buildTimelineFromSources, getTraitInfo } from '@/lib/utils/game/entryFormatter';
 import { INFO_TEXT } from '@/constants/uiText';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 type Nation = JoinNationSummary;
 type StatLimits = JoinStatLimits;
@@ -19,6 +20,7 @@ export default function JoinPage() {
   const router = useRouter();
   const serverID = params?.server as string;
 
+  const { showToast } = useToast();
   const [nationList, setNationList] = useState<Nation[]>([]);
   const [cityList, setCityList] = useState<City[]>([]); // 전체 도시 목록
   const [allCities, setAllCities] = useState<City[]>([]); // 전체 도시 목록 (필터링용)
@@ -49,13 +51,13 @@ export default function JoinPage() {
 
     // 파일 타입 검증
     if (!file.type.startsWith('image/')) {
-      alert('이미지 파일만 업로드 가능합니다.');
+      showToast('이미지 파일만 업로드 가능합니다.', 'warning');
       return;
     }
 
     // 파일 크기 검증 (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('파일 크기는 5MB 이하여야 합니다.');
+      showToast('파일 크기는 5MB 이하여야 합니다.', 'warning');
       return;
     }
 
@@ -77,13 +79,13 @@ export default function JoinPage() {
         if (result.result && result.url) {
           setFormData(prev => ({ ...prev, pic: result.url || '' }));
         } else {
-          alert(result.reason || '이미지 업로드에 실패했습니다.');
+          showToast(result.reason || '이미지 업로드에 실패했습니다.', 'error');
           setIconPreview(null);
           setFormData(prev => ({ ...prev, pic: '' }));
         }
       } catch (err) {
         console.error('이미지 업로드 에러:', err);
-        alert('이미지 업로드 중 오류가 발생했습니다.');
+        showToast('이미지 업로드 중 오류가 발생했습니다.', 'error');
         setIconPreview(null);
         setFormData(prev => ({ ...prev, pic: '' }));
       } finally {
@@ -548,24 +550,24 @@ export default function JoinPage() {
     e.preventDefault();
     
     if (!formData.name) {
-      alert('장수명을 입력해주세요.');
+      showToast('장수명을 입력해주세요.', 'warning');
       return;
     }
 
     if (!serverID) {
-      alert('서버 정보가 없습니다.');
+      showToast('서버 정보가 없습니다.', 'error');
       return;
     }
 
     // 각 능력치가 범위 내인지 확인
     const stats = [formData.leadership, formData.strength, formData.intel, formData.politics, formData.charm];
     if (stats.some(stat => stat > statLimits.max)) {
-      alert(`각 능력치는 ${statLimits.max} 이하여야 합니다.`);
+      showToast(`각 능력치는 ${statLimits.max} 이하여야 합니다.`, 'warning');
       return;
     }
 
     if (stats.some(stat => stat < statLimits.min)) {
-      alert(`각 능력치는 ${statLimits.min} 이상이어야 합니다.`);
+      showToast(`각 능력치는 ${statLimits.min} 이상이어야 합니다.`, 'warning');
       return;
     }
 
@@ -573,7 +575,7 @@ export default function JoinPage() {
     const total = calculateTotalStats();
     const traitInfo = getTraitInfo(formData.trait);
     if (total < traitInfo.totalMin || total > traitInfo.totalMax) {
-      alert(`${formData.trait} 트레잇은 능력치 합이 ${traitInfo.totalMin}~${traitInfo.totalMax} 사이여야 합니다. (현재: ${total})`);
+      showToast(`${formData.trait} 트레잇은 능력치 합이 ${traitInfo.totalMin}~${traitInfo.totalMax} 사이여야 합니다. (현재: ${total})`, 'warning');
       return;
     }
 
@@ -599,7 +601,7 @@ export default function JoinPage() {
       if (result.result) {
         router.push(`/${serverID}/game`);
       } else {
-        alert(result.reason || '장수 생성에 실패했습니다.');
+        showToast(result.reason || '장수 생성에 실패했습니다.', 'error');
       }
     } catch (err: unknown) {
       console.error('장수 생성 에러:', err);
@@ -607,7 +609,7 @@ export default function JoinPage() {
         (err instanceof Error && err.message) ||
         (typeof err === 'object' && err !== null && 'data' in err && typeof err.data === 'object' && err.data !== null && ('reason' in err.data ? String(err.data.reason) : 'message' in err.data ? String(err.data.message) : '')) ||
         '장수 생성에 실패했습니다.';
-      alert(errorMessage);
+      showToast(errorMessage, 'error');
     }
   }
 

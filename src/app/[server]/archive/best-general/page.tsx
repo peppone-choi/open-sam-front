@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 function BestGeneralContent() {
@@ -11,6 +12,7 @@ function BestGeneralContent() {
   const searchParams = useSearchParams();
   const serverID = params?.server as string;
   const btn = searchParams?.get('btn') || '유저 보기';
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [bestGeneralList, setBestGeneralList] = useState<any[]>([]);
@@ -28,7 +30,7 @@ function BestGeneralContent() {
       }
     } catch (err) {
       console.error(err);
-      alert('명장 목록을 불러오는데 실패했습니다.');
+      showToast('명장 목록을 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

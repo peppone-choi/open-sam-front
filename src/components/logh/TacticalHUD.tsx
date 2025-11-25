@@ -77,18 +77,18 @@ export default function TacticalHUD({
   return (
     <div data-testid="logh-tactical-hud">
       {/* Radar (Top Right) */}
-      <div data-testid="tactical-hud" className="absolute top-4 right-4 w-48 h-48 bg-[#050510]/80 border border-[#1E90FF] rounded-full overflow-hidden pointer-events-auto shadow-lg backdrop-blur">
+      <div data-testid="tactical-hud" className="absolute top-16 right-4 md:top-4 md:right-4 w-32 h-32 md:w-48 md:h-48 bg-[#050510]/80 border border-[#1E90FF] rounded-full overflow-hidden pointer-events-auto shadow-[0_0_15px_rgba(30,144,255,0.4)] backdrop-blur transition-all duration-300">
         <div className="w-full h-full relative">
            {/* Radar Sweep Animation */}
            <div className="absolute inset-0 border-r border-[#1E90FF]/50 w-1/2 h-full origin-right animate-spin-slow" 
                 style={{ animationDuration: '4s' }}></div>
            {/* Center (Flagship) */}
-           <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-[#00FF00] -translate-x-1/2 -translate-y-1/2 rounded-full"></div>
+           <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-[#00FF00] -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_0_5px_#00FF00]"></div>
            {/* Grid */}
            <div className="absolute inset-0 border border-[#1E90FF]/20 rounded-full scale-50"></div>
            <div className="absolute inset-0 border border-[#1E90FF]/20 rounded-full scale-75"></div>
         </div>
-        <div className="absolute bottom-1 right-2 text-[10px] text-[#1E90FF] font-mono">{LOGH_TEXT.radarActive}</div>
+        <div className="absolute bottom-2 right-1/2 translate-x-1/2 text-[8px] md:text-[10px] text-[#1E90FF] font-mono whitespace-nowrap">{LOGH_TEXT.radarActive}</div>
       </div>
 
       {/* Offline Commander Alert */}
@@ -131,22 +131,22 @@ export default function TacticalHUD({
       )}
 
       {/* Shortcuts Help (Bottom Center) */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 pointer-events-auto">
+      <div className="absolute bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 flex flex-wrap justify-center gap-2 pointer-events-auto w-full max-w-lg px-4">
          <button 
            onClick={handleAutoResolve}
            disabled={isAuto}
-           className={`px-3 py-1 border rounded text-xs font-bold transition-all ${
+           className={`px-4 py-2 border rounded-md text-sm font-bold transition-all shadow-lg ${
              offlineStatus?.hasOfflineCommanders && !isAuto
                ? 'bg-orange-500/30 border-orange-500 text-orange-300 animate-pulse hover:bg-orange-500/50'
                : isAuto 
                  ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' 
-                 : 'bg-black/60 border-white/30 text-white hover:bg-white/10'
+                 : 'bg-black/80 border-white/30 text-white hover:bg-white/20'
            }`}
          >
            {isAuto ? LOGH_TEXT.autoResolveActiveLabel : LOGH_TEXT.autoResolveIdleLabel}
          </button>
          {LOGH_TEXT.shortcuts.map(cmd => (
-           <div key={cmd} className="bg-black/60 text-[#9CA3AF] text-xs px-2 py-1 border border-[#333] rounded">
+           <div key={cmd} className="bg-black/70 text-gray-300 text-xs px-3 py-2 border border-gray-700 rounded shadow hover:border-gray-500 transition-colors backdrop-blur-sm">
              {cmd}
            </div>
          ))}

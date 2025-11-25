@@ -25,8 +25,7 @@ export default function BettingInfoPage() {
   async function loadBettingList() {
     try {
       setLoading(true);
-      // Note: Using raw request if SammoAPI.GetBettingInfo is not available in types
-      const result = (await SammoAPI['request']('/api/betting/get-betting-info', {
+      const result = (await SammoAPI['request']('/api/info/betting', {
           method: 'POST',
           body: JSON.stringify({ session_id: serverID })
       })) as BettingListResponse;
@@ -36,7 +35,6 @@ export default function BettingInfoPage() {
       }
     } catch (err) {
       console.error(err);
-      // alert('베팅 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

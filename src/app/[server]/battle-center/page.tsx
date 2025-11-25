@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { SammoAPI } from '@/lib/api/sammo';
+import { SammoAPI, type BattleCenterEntry } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function BattleCenterPage() {
   const params = useParams();
@@ -12,7 +13,8 @@ export default function BattleCenterPage() {
   const serverID = params?.server as string;
 
   const [loading, setLoading] = useState(true);
-  const [battleData, setBattleData] = useState<any>(null);
+  const [battleData, setBattleData] = useState<{ battles: BattleCenterEntry[] } | null>(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     loadBattleData();
@@ -29,7 +31,7 @@ export default function BattleCenterPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('전투 정보를 불러오는데 실패했습니다.');
+      showToast('전투 정보를 불러오는데 실패했습니다.', 'error');
       setBattleData({ battles: [] });
     } finally {
       setLoading(false);
@@ -49,12 +51,12 @@ export default function BattleCenterPage() {
           <div className="space-y-4">
             {battleData && battleData.battles && Array.isArray(battleData.battles) && battleData.battles.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {battleData.battles.map((battle: any) => (
-                  <div key={battle.battleId} className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-5 shadow-lg hover:border-white/20 transition-all duration-200 flex flex-col gap-4">
+                {battleData.battles.map((battle: BattleCenterEntry) => (
+                  <div key={battle.battleId ?? battle.id} className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-5 shadow-lg hover:border-white/20 transition-all duration-200 flex flex-col gap-4">
                     <div className="flex justify-between items-start border-b border-white/5 pb-3">
                       <div className="flex items-center gap-2">
                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-900/50 text-red-400 border border-red-500/20">
-                            전투 #{battle.battleId}
+                            전투 #{battle.battleId ?? battle.id}
                          </span>
                          <span className="text-xs text-gray-500">
                             {new Date(battle.date).toLocaleString('ko-KR')}
@@ -66,14 +68,14 @@ export default function BattleCenterPage() {
                     <div className="text-sm text-gray-300 space-y-1 flex-1">
                       {battle.type === 'general' && (
                         <div className="flex justify-between">
-                          <span className="text-gray-500">장수/국가</span>
-                          <span>{battle.generalId} / {battle.nationId}</span>
+                          <span className="text-gray-500">유형</span>
+                          <span>장수 전투 기록</span>
                         </div>
                       )}
                       {battle.type === 'world' && (
                         <div className="flex justify-between">
-                          <span className="text-gray-500">국가</span>
-                          <span>{battle.nationId}</span>
+                          <span className="text-gray-500">유형</span>
+                          <span>세계 전투 기록</span>
                         </div>
                       )}
                       <div className="mt-2 p-3 bg-black/20 rounded-lg text-gray-400 text-xs leading-relaxed break-words">

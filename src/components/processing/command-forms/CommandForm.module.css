@@ -64,34 +64,43 @@
 
 .textInput {
   width: 100%;
-  padding: 0.5rem;
-  background-color: #495057;
-  border: 1px solid #6c757d;
-  border-radius: 0.25rem;
+  padding: 0.75rem 1rem;
+  background-color: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
   color: #fff;
   font-size: 0.875rem;
+  transition: all 0.2s;
 }
 
 .textInput:focus {
   outline: none;
-  border-color: #007bff;
-  background-color: #5a6268;
+  border-color: #6366f1;
+  background-color: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
 .selectInput {
   width: 100%;
-  padding: 0.5rem;
-  background-color: #495057;
-  border: 1px solid #6c757d;
-  border-radius: 0.25rem;
+  padding: 0.75rem 1rem;
+  background-color: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
   color: #fff;
   font-size: 0.875rem;
+  transition: all 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
 }
 
 .selectInput:focus {
   outline: none;
-  border-color: #007bff;
-  background-color: #5a6268;
+  border-color: #6366f1;
+  background-color: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
 .colorSelect {
@@ -211,21 +220,44 @@
 .submitButton {
   flex: 1;
   padding: 0.75rem 1.5rem;
-  background-color: #007bff;
-  border: 1px solid #007bff;
-  border-radius: 0.25rem;
-  color: #fff;
+  background-color: #6366f1;
+  border: 1px solid #6366f1;
+  border-radius: 0.5rem;
+  color: #ffffff;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2);
 }
 
 .submitButton:hover {
-  background-color: #0056b3;
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+  transform: translateY(-1px);
 }
 
 .submitButton:active {
-  background-color: #004085;
+  background-color: #4338ca;
+  transform: translateY(0) scale(0.98);
+}
+
+.cancelButton {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: #9ca3af;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
 @media (min-width: 992px) {

@@ -6,6 +6,7 @@ import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import TipTapEditor from '@/components/editor/TipTapEditor';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 interface Letter {
   no: number;
@@ -20,6 +21,7 @@ interface Letter {
 export default function DiplomacyPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [letters, setLetters] = useState<Letter[]>([]);
   const [nations, setNations] = useState<Array<[number, string, string, number]>>([]);
@@ -81,7 +83,7 @@ export default function DiplomacyPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('외교문서를 불러오는데 실패했습니다.');
+      showToast('외교문서를 불러오는데 실패했습니다.', 'error');
       setLetters([]);
     } finally {
       setLoading(false);
@@ -90,7 +92,7 @@ export default function DiplomacyPage() {
 
   async function sendLetter() {
     if (!newLetter.destNation || !newLetter.brief) {
-      alert('대상 국가와 내용을 입력해주세요.');
+      showToast('대상 국가와 내용을 입력해주세요.', 'warning');
       return;
     }
 
@@ -109,11 +111,11 @@ export default function DiplomacyPage() {
         setShowNewLetter(false);
         await loadLetters();
       } else {
-        alert(result.reason || result.message || '외교문서 전송에 실패했습니다.');
+        showToast(result.reason || result.message || '외교문서 전송에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('외교문서 전송에 실패했습니다.');
+      showToast('외교문서 전송에 실패했습니다.', 'error');
     }
   }
 
@@ -261,11 +263,11 @@ export default function DiplomacyPage() {
                                 if (result.result) {
                                   await loadLetters();
                                 } else {
-                                  alert(result.reason || '처리에 실패했습니다.');
+                                  showToast(result.reason || '처리에 실패했습니다.', 'error');
                                 }
                               } catch (err) {
                                 console.error(err);
-                                alert('처리에 실패했습니다.');
+                                showToast('처리에 실패했습니다.', 'error');
                               }
                             }}
                             className="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded transition-colors shadow-lg shadow-green-900/20"
@@ -285,11 +287,11 @@ export default function DiplomacyPage() {
                                 if (result.result) {
                                   await loadLetters();
                                 } else {
-                                  alert(result.reason || '처리에 실패했습니다.');
+                                  showToast(result.reason || '처리에 실패했습니다.', 'error');
                                 }
                               } catch (err) {
                                 console.error(err);
-                                alert('처리에 실패했습니다.');
+                                showToast('처리에 실패했습니다.', 'error');
                               }
                             }}
                             className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded transition-colors shadow-lg shadow-red-900/20"

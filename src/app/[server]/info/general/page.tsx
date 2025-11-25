@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import GeneralBasicCard from '@/components/cards/GeneralBasicCard';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 function GeneralInfoContent() {
@@ -12,6 +13,7 @@ function GeneralInfoContent() {
   const searchParams = useSearchParams();
   const serverID = params?.server as string;
   const generalID = searchParams?.get('generalID') ? Number(searchParams.get('generalID')) : undefined;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [generalData, setGeneralData] = useState<any>(null);
@@ -29,7 +31,7 @@ function GeneralInfoContent() {
       }
     } catch (err) {
       console.error(err);
-      alert('장수 정보를 불러오는데 실패했습니다.');
+      showToast('장수 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

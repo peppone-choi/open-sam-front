@@ -38,13 +38,22 @@ export default function InheritPage() {
       ]);
     }
     return buildTimelineFromSources(
-      items.slice(0, 5).map((entry: Record<string, any>, index: number) => ({
-        id: String(entry.id ?? `inherit-${index}`),
-        order: index + 1,
-        category: 'system',
-        title: entry.reason || entry.type || '포인트 적립',
-        description: `${entry.amount ?? entry.point ?? 0}P · ${entry.date ?? entry.createdAt ?? '최근 기록'}`,
-      })),
+      items.slice(0, 5).map((entry: Record<string, any>, index: number) => {
+        const amount = entry.amount ?? entry.point;
+        const pointText = typeof amount === 'number' ? `${amount}P` : '';
+        const dateText = entry.date ?? entry.createdAt ?? '최근 기록';
+        const parts: string[] = [];
+        if (pointText) parts.push(pointText);
+        if (dateText) parts.push(String(dateText));
+
+        return {
+          id: String(entry.id ?? `inherit-${index}`),
+          order: index + 1,
+          category: 'system',
+          title: entry.reason || entry.type || '포인트 적립',
+          description: parts.join(' · '),
+        };
+      }),
     );
   }, [inheritData?.inheritList]);
 
@@ -55,7 +64,7 @@ export default function InheritPage() {
   async function loadInheritData() {
     try {
       setLoading(true);
-      const result: any = await SammoAPI['request']('/api/game/get-inherit-point', { method: 'POST' });
+      const result = await SammoAPI.GetInheritPoint({ session_id: serverID });
       if (result.result) {
         setInheritData({
           totalPoint: result.totalPoint,
@@ -64,7 +73,6 @@ export default function InheritPage() {
       }
     } catch (err) {
       console.error(err);
-      // alert('유산 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

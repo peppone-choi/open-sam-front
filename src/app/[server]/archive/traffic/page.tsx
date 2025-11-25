@@ -4,11 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 export default function TrafficPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [trafficData, setTrafficData] = useState<any>(null);
@@ -26,7 +28,7 @@ export default function TrafficPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('트래픽 정보를 불러오는데 실패했습니다.');
+      showToast('트래픽 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

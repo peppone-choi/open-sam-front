@@ -56,11 +56,12 @@ export default function ChiefTopItem({ officer, maxTurn, turnTerm, onSelect, sty
             <span>{officer.officerLevelText}</span>
             <span style={{ color: '#aaffff' }}>{officer.name}</span>
         </div>
-        <div className="grid grid-cols-[40px_1fr] auto-rows-[30px]">
+        <div className="grid grid-cols-[64px_1fr] auto-rows-[30px]">
             {turns.map(t => (
                 <React.Fragment key={t.index}>
-                    <div className="border-b border-gray-800 flex items-center justify-center text-gray-500">
-                        {t.timeStr}
+                    <div className="border-b border-gray-800 flex flex-col items-center justify-center text-[10px] text-gray-400">
+                        <span className="font-mono text-gray-300">{t.index + 1}</span>
+                        <span className="font-mono">{t.timeStr}</span>
                     </div>
                     <div className="border-b border-gray-800 flex items-center pl-2 truncate text-gray-400">
                         <span dangerouslySetInnerHTML={{ __html: t.brief }} />

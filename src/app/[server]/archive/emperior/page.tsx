@@ -5,11 +5,13 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 export default function EmperiorPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [emperiorList, setEmperiorList] = useState<any[]>([]);
@@ -29,7 +31,7 @@ export default function EmperiorPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('역대 왕조 목록을 불러오는데 실패했습니다.');
+      showToast('역대 왕조 목록을 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

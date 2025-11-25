@@ -66,9 +66,56 @@ export interface ChiefTimelinePayload {
   month: number;
   turnTerm: number;
   maxChiefTurn: number;
-}
-
-export interface ChiefCenterPayload {
+ }
+ 
+ export interface NationStratFinanPayload {
+   year: number;
+   month: number;
+   nationID: number;
+   officerLevel: number;
+   editable: boolean;
+   nationsList: Array<{
+     nation: number;
+     name: string;
+     color: string;
+     cityCnt: number;
+     gennum: number;
+     power: number;
+     diplomacy: {
+       state: number;
+       term: number | null;
+     };
+   }>;
+   nationMsg: string;
+   scoutMsg: string;
+   gold: number;
+   rice: number;
+   policy: {
+     rate: number;
+     bill: number;
+     secretLimit: number;
+     blockWar: boolean;
+     blockScout: boolean;
+   };
+   warSettingCnt: {
+     remain: number;
+     inc: number;
+     max: number;
+   };
+   income: {
+     gold: {
+       city: number;
+       war: number;
+     };
+     rice: {
+       city: number;
+       wall: number;
+     };
+   };
+   outcome: number;
+ }
+ 
+ export interface ChiefCenterPayload {
   nation: {
     id: number;
     name: string;
@@ -272,8 +319,24 @@ export interface GetFrontInfoResponse {
     flushGlobal?: number;
     flushGeneral?: number;
   };
-  cityConstMap?: Record<number, { name: string }>;
-}
+  cityConstMap?: {
+    /**
+     * 지역/레벨/관직/국가 레벨 상수 맵
+     * - region: 지역 ID → 지역 이름/라벨
+     * - level: 도시 레벨 → 레벨 텍스트 (향/수/진/관/…)
+     * - officerTitles: 관직 레벨 → 직위명 (군주/태수/도위 등)
+     * - nationLevels: 국가 레벨 → 국가 등급명
+     */
+    region?: Record<number | string, string | { id?: number; name?: string; label?: string }>;
+    level?: Record<number, string>;
+    officerTitles?: Record<number | string, string>;
+    nationLevels?: Record<number | string, string>;
+  };
+ }
+
+
+export type CityInfo = NonNullable<GetFrontInfoResponse['city']>;
+export type NationInfo = NonNullable<GetFrontInfoResponse['nation']>;
 
 export interface GetMapResponse {
   success: boolean;
@@ -346,6 +409,22 @@ export interface JoinNationsResponse {
   cities?: JoinCitySummary[];
   statLimits?: JoinStatLimits;
 }
+
+export type BattleCenterEntry = {
+  battleId?: number;
+  id: string | number;
+  type: 'active' | 'general' | 'world';
+  status: string;
+  text: string;
+  date: string | Date;
+  generalId?: number;
+  nationId?: number;
+  attackerNationId?: number;
+  defenderNationId?: number;
+  targetCityId?: number;
+  currentPhase?: string;
+  currentTurn?: number;
+};
 
 export class SammoAPI {
   private static baseURL = API_BASE_URL;
@@ -660,7 +739,33 @@ export class SammoAPI {
     });
   }
 
+  static async GlobalGetDiplomacy(params?: {
+    session_id?: string;
+    serverID?: string;
+  }): Promise<{
+    success: boolean;
+    result: boolean;
+    nations?: any[];
+    conflict?: [number, Record<number, number>][];
+    diplomacyList?: Record<number, Record<number, number>>;
+    myNationID?: number;
+    message?: string;
+  }> {
+    const body: Record<string, any> = {};
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
+
+    return this.request('/api/global/diplomacy', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+  
   static async GlobalGeneralList(params: {
+
     token?: string;
   }): Promise<{
     result: boolean;
@@ -678,20 +783,29 @@ export class SammoAPI {
     session_id?: string;
     general_id?: number;
   }): Promise<{
-    success: boolean;
-    result: boolean;
-    turn: Array<{
-      action: string;
-      brief: string;
-      arg: any;
-    }>;
-    turnTime: string;
-    turnTerm: number;
-    year: number;
-    month: number;
-    date: string;
-    autorun_limit?: number | null;
-  }> {
+     success: boolean;
+     result: boolean;
+     turn: Array<{
+       action: string;
+       brief: string;
+       arg: any;
+     }>;
+     /** 다음 개인 턴 기준 시각 (ISO 문자열) */
+     turnTime: string;
+     /** 한 턴 길이 (분 단위) */
+     turnTerm: number;
+     /** 장수의 다음 turnTime 기준 in‑game 년/월 */
+     year: number;
+     month: number;
+     /** 세션 전체 관점의 현재 in‑game 년/월 (없으면 year/month와 동일) */
+     sessionYear?: number;
+     sessionMonth?: number;
+     /** 응답 생성 시 서버 시각 (ISO 문자열) */
+     date: string;
+     autorun_limit?: number | null;
+     reason?: string;
+   }> {
+
     const query = new URLSearchParams();
     if (params?.serverID) query.append('session_id', params.serverID);
     if (params?.session_id) query.append('session_id', params.session_id);
@@ -940,7 +1054,7 @@ export class SammoAPI {
     full?: boolean;
   }): Promise<{
     result: boolean;
-    nation: any;
+    nation: NationInfo;
   }> {
     const body: Record<string, any> = {};
 
@@ -2125,7 +2239,7 @@ export class SammoAPI {
 
   static async GetCurrentCity(sessionId?: string): Promise<{
     result: boolean;
-    city?: any;
+    city?: CityInfo;
   }> {
     const query = new URLSearchParams();
     if (sessionId) query.append('sessionId', sessionId);
@@ -2141,7 +2255,7 @@ export class SammoAPI {
     cityID: number;
   }): Promise<{
     result: boolean;
-    city: any;
+    city: CityInfo;
     error?: string;
   }> {
     return this.request('/api/info/city', {
@@ -2155,7 +2269,7 @@ export class SammoAPI {
 
   static async GetMyCityInfo(): Promise<{
     result: boolean;
-    city: any;
+    city: CityInfo;
   }> {
     return this.request('/api/game/my-city-info', {
       method: 'POST',
@@ -2381,13 +2495,16 @@ export class SammoAPI {
   }
 
   // Inherit API
-  static async GetInheritPoint(): Promise<{
+  static async GetInheritPoint(params?: {
+    session_id?: string;
+  }): Promise<{
     result: boolean;
     totalPoint: number;
     inheritList: any[];
   }> {
     return this.request('/api/inherit/get-point', {
       method: 'POST',
+      body: params ? JSON.stringify(params) : undefined,
     });
   }
 
@@ -2458,7 +2575,7 @@ export class SammoAPI {
   }): Promise<{
     success: boolean;
     result: boolean;
-    battles?: any[];
+    battles?: BattleCenterEntry[];
     message?: string;
   }> {
     return this.request('/api/battle/center', {
@@ -2676,7 +2793,7 @@ export class SammoAPI {
     session_id?: string;
   }): Promise<{
     result: boolean;
-    stratFinan: any;
+    stratFinan: NationStratFinanPayload;
   }> {
     const body: Record<string, any> = {};
     if (params?.session_id) {

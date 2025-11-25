@@ -8,12 +8,14 @@ import InfoSummaryCard from '@/components/info/InfoSummaryCard';
 import HistoryTimeline from '@/components/info/HistoryTimeline';
 import { buildSelectPoolSummary, buildTimelineFromSources } from '@/lib/utils/game/entryFormatter';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function SelectGeneralPage() {
   const params = useParams();
   const serverID = params?.server as string;
   const router = useRouter();
 
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [generalList, setGeneralList] = useState<any[]>([]);
   const [selectedGeneral, setSelectedGeneral] = useState<number | null>(null);
@@ -97,7 +99,7 @@ export default function SelectGeneralPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('장수 목록을 불러오는데 실패했습니다.');
+      showToast('장수 목록을 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -105,7 +107,7 @@ export default function SelectGeneralPage() {
 
   async function handleSelect() {
     if (!selectedGeneral) {
-      alert('장수를 선택해주세요.');
+      showToast('장수를 선택해주세요.', 'warning');
       return;
     }
     
@@ -115,14 +117,14 @@ export default function SelectGeneralPage() {
       });
 
       if (result.result) {
-        alert('장수 선택이 완료되었습니다.');
+        showToast('장수 선택이 완료되었습니다.', 'success');
         router.push(`/${serverID}/game`);
       } else {
-        alert(result.reason || '장수 선택에 실패했습니다.');
+        showToast(result.reason || '장수 선택에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('장수 선택에 실패했습니다.');
+      showToast('장수 선택에 실패했습니다.', 'error');
     }
   }
 

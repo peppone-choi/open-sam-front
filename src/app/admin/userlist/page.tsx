@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function AdminUserListPage() {
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [userList, setUserList] = useState<any[]>([]);
 
@@ -21,7 +23,7 @@ export default function AdminUserListPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('사용자 목록을 불러오는데 실패했습니다.');
+      showToast('사용자 목록을 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -37,14 +39,14 @@ export default function AdminUserListPage() {
       });
 
       if (result.result) {
-        alert('처리되었습니다.');
+        showToast('처리되었습니다.', 'success');
         await loadUserList();
       } else {
-        alert(result.reason || '처리에 실패했습니다.');
+        showToast(result.reason || '처리에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('처리에 실패했습니다.');
+      showToast('처리에 실패했습니다.', 'error');
     }
   }
 

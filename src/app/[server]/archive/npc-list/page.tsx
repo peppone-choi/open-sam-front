@@ -5,12 +5,14 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 function NPCListContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const serverID = params?.server as string;
   const type = searchParams?.get('type') ? Number(searchParams.get('type')) : 1;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [npcList, setNpcList] = useState<any[]>([]);
@@ -28,7 +30,7 @@ function NPCListContent() {
       }
     } catch (err) {
       console.error(err);
-      alert('NPC 목록을 불러오는데 실패했습니다.');
+      showToast('NPC 목록을 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

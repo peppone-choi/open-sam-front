@@ -8,11 +8,13 @@ import InfoSummaryCard from '@/components/info/InfoSummaryCard';
 import HistoryTimeline from '@/components/info/HistoryTimeline';
 import { buildNpcSummaryCards, buildTimelineFromSources } from '@/lib/utils/game/entryFormatter';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function SelectNPCPage() {
   const params = useParams();
   const serverID = params?.server as string;
   const router = useRouter();
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [npcList, setNpcList] = useState<any[]>([]);
@@ -140,14 +142,12 @@ export default function SelectNPCPage() {
         setNpcList(npcArray);
         setPickMoreSeconds((result as any).pickMoreSeconds || 0);
       } else {
-        // alert((result as any).reason || 'NPC 목록을 불러오는데 실패했습니다.');
         if ((result as any).reason?.includes('이미 장수가 생성')) {
           router.push(`/${serverID}/game`);
         }
       }
     } catch (err) {
       console.error(err);
-      // alert('NPC 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -155,7 +155,7 @@ export default function SelectNPCPage() {
 
   async function handleRefresh() {
     if (pickMoreSeconds > 0) {
-      alert(`${pickMoreSeconds}초 후에 다시 뽑을 수 있습니다.`);
+      showToast(`${pickMoreSeconds}초 후에 다시 뽑을 수 있습니다.`, 'info');
       return;
     }
     await loadNPCList(true);
@@ -169,7 +169,7 @@ export default function SelectNPCPage() {
 
   async function handleSelect() {
     if (!selectedNPC) {
-      alert('NPC를 선택해주세요.');
+      showToast('NPC를 선택해주세요.', 'error');
       return;
     }
 
@@ -180,19 +180,20 @@ export default function SelectNPCPage() {
       });
 
       if (result.result) {
-        alert(`${result.general_name || '장수'} 선택이 완료되었습니다.`);
+        showToast(`${result.general_name || '장수'} 선택이 완료되었습니다.`, 'success');
         router.push(`/${serverID}/game`);
       } else {
-        alert(result.reason || 'NPC 선택에 실패했습니다.');
+        showToast(result.reason || 'NPC 선택에 실패했습니다.', 'error');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('NPC 선택에 실패했습니다.');
+      showToast(err?.message || 'NPC 선택에 실패했습니다.', 'error');
     }
   }
 
   function getNationName(nationId: number): string {
-    return nations[nationId]?.name || (nationId === 0 ? '재야' : `국가${nationId}`);
+    if (nationId === 0) return '재야';
+    return nations[nationId]?.name || '이름 미확인 국가';
   }
 
   function getTextColor(bgColor: string): string {

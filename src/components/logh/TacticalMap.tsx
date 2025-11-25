@@ -611,14 +611,17 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
             onTouchEnd={handlePointerUp}
             onWheel={handleWheel}
             onContextMenu={(e) => e.preventDefault()}
-            className="cursor-crosshair block w-full h-auto touch-none"
-            style={{ height: '600px', backgroundColor: '#050510' }}
+            className="cursor-crosshair block w-full h-auto aspect-[3/2] touch-none shadow-2xl border border-white/10 rounded-lg"
+            style={{ backgroundColor: '#050510' }}
           />
 
           {/* HUD Overlay */}
           <div className="absolute bottom-4 left-4 pointer-events-none">
-             <div className="bg-space-panel/90 text-space-text p-3 rounded border border-white/10 backdrop-blur-sm space-y-1">
-               <div className="font-mono text-xs text-hud-success">SYS: ONLINE</div>
+             <div className="bg-space-panel/90 text-space-text p-3 rounded border border-white/10 backdrop-blur-sm space-y-1 shadow-[0_0_10px_rgba(30,144,255,0.3)]">
+               <div className="font-mono text-xs text-hud-success flex items-center gap-2">
+                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"/>
+                 SYS: ONLINE
+               </div>
                <div className="font-mono text-xs">FLEETS: {fleetCount}</div>
                <div className="font-mono text-xs">ZOOM: {zoomLevel}%</div>
                <div className="font-mono text-xs text-gray-400 mt-2 pt-2 border-t border-white/10">
@@ -627,8 +630,32 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
              </div>
           </div>
           
+          {/* Zoom Controls (Mobile Friendly) */}
+          <div className="absolute bottom-4 right-4 flex flex-col gap-2 pointer-events-auto">
+            <button
+              onClick={() => {
+                const newZoom = Math.min(2.0, cameraRef.current.zoom + 0.1);
+                cameraRef.current.zoom = newZoom;
+                setZoomLevel(Math.round(newZoom * 100));
+              }}
+              className="w-12 h-12 bg-gray-800/80 border border-white/30 text-white rounded-full flex items-center justify-center text-xl font-bold hover:bg-gray-700 active:bg-gray-600 transition-colors backdrop-blur shadow-lg"
+            >
+              +
+            </button>
+            <button
+              onClick={() => {
+                const newZoom = Math.max(0.01, cameraRef.current.zoom - 0.1);
+                cameraRef.current.zoom = newZoom;
+                setZoomLevel(Math.round(newZoom * 100));
+              }}
+              className="w-12 h-12 bg-gray-800/80 border border-white/30 text-white rounded-full flex items-center justify-center text-xl font-bold hover:bg-gray-700 active:bg-gray-600 transition-colors backdrop-blur shadow-lg"
+            >
+              -
+            </button>
+          </div>
+          
           {/* Box Selection Help */}
-          <div className="absolute top-4 left-4 pointer-events-none">
+          <div className="absolute top-4 left-4 pointer-events-none hidden md:block">
              <div className="bg-space-panel/80 text-space-text p-2 rounded border border-white/10 backdrop-blur-sm">
                <div className="font-mono text-xs text-gray-300">
                  Left Drag: Box Select | Dbl-Click: Flagship
@@ -641,9 +668,10 @@ export default function TacticalMap({ sessionId, tacticalMapId, onClose }: Props
 
           {/* Selected Fleet Info */}
           {selectedFleets.length > 0 && (
-            <div className="absolute top-4 right-4 bg-space-panel/90 text-space-text p-4 rounded min-w-[200px] max-w-[300px] border border-alliance-red/50 shadow-xl backdrop-blur-sm max-h-[400px] overflow-y-auto">
-              <div className="font-bold mb-2 text-alliance-red border-b border-white/10 pb-1 font-mono">
-                 SELECTED: {selectedFleets.length} FLEET{selectedFleets.length > 1 ? 'S' : ''}
+            <div className="absolute top-16 right-4 bg-space-panel/90 text-space-text p-4 rounded-lg min-w-[220px] max-w-[320px] border border-alliance-red/50 shadow-[0_0_20px_rgba(255,0,0,0.2)] backdrop-blur-md max-h-[60vh] overflow-y-auto">
+              <div className="font-bold mb-3 text-alliance-red border-b border-white/10 pb-2 font-mono flex justify-between items-center">
+                 <span>SELECTED UNITS</span>
+                 <span className="bg-red-900/40 px-2 py-0.5 rounded text-xs border border-red-500/30">{selectedFleets.length}</span>
               </div>
               <div className="text-sm space-y-2 font-mono">
                 {selectedFleets.slice(0, 5).map((fleet) => (

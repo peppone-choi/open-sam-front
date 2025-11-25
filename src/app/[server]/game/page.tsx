@@ -10,7 +10,7 @@ import CityBasicCard from '@/components/cards/CityBasicCard';
 import NationBasicCard from '@/components/cards/NationBasicCard';
 import PartialReservedCommand from '@/components/game/PartialReservedCommand';
 import MessagePanel from '@/components/game/MessagePanel';
-import GameBottomBar from '@/components/game/GameBottomBar';
+import CommandMenuPanel from '@/components/game/CommandMenuPanel';
 import VersionModal from '@/components/game/VersionModal';
 import GlobalMenu from '@/components/game/GlobalMenu';
 import GameInfoPanel from '@/components/game/GameInfoPanel';
@@ -120,7 +120,8 @@ export default function GamePage() {
     if (!socket || !isConnected) return;
     const cleanupTurn = onTurnComplete(() => setTimeout(reloadAllData, 2000));
     const cleanupMonth = onGameEvent('month:changed', (data) => {
-        setFrontInfo(prev => prev ? ({...prev, global: {...prev.global, year: data.year, month: data.month}}) : null);
+        setFrontInfo(prev => prev ? ({ ...prev, global: { ...prev.global, year: data.year, month: data.month } }) : null);
+        setMapData(prev => prev ? ({ ...prev, year: data.year, month: data.month }) : prev);
         setTimeout(reloadAllData, 3000);
     });
     const cleanupGen = onGeneralEvent('updated', (data) => {
@@ -246,7 +247,7 @@ export default function GamePage() {
   const globalLogs = frontInfo.recentRecord?.global ?? [];
 
   return (
-    <div className="min-h-screen bg-background-main text-foreground flex flex-col font-sans selection:bg-primary selection:text-white">
+    <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col font-sans selection:bg-primary selection:text-white">
       {/* Top Bar */}
       <header className="w-full bg-black/60 backdrop-blur border-b border-white/10 shadow-sm px-4 py-2 flex justify-between items-center z-40">
          <div className="flex items-center gap-4">
@@ -320,13 +321,21 @@ export default function GamePage() {
                </div>
             </div>
 
+            {mainControlProps && (
+               <CommandMenuPanel
+                  serverID={serverID}
+                  mainControlProps={mainControlProps}
+                  globalMenu={globalMenu}
+               />
+            )}
+
             {/* 2. Info & Logs Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[600px]">
                 {/* Info Column */}
                 <div className="flex flex-col gap-4">
                    {/* General Card */}
                    {frontInfo.general && frontInfo.nation && (
-                      <div className="rounded-xl border border-white/10 bg-background-secondary/40 backdrop-blur shadow-lg overflow-hidden h-fit">
+                      <div className="rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden h-fit">
                          <GeneralBasicCard
                            general={frontInfo.general}
                            nation={frontInfo.nation}
@@ -339,7 +348,7 @@ export default function GamePage() {
                    
                    {/* City Card */}
                    {frontInfo.city && (
-                      <div className="rounded-xl border border-white/10 bg-background-secondary/40 backdrop-blur shadow-lg overflow-hidden h-fit">
+                      <div className="rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden h-fit">
                          <CityBasicCard 
                            city={frontInfo.city} 
                            cityConstMap={frontInfo.cityConstMap}
@@ -350,7 +359,7 @@ export default function GamePage() {
 
                    {/* Nation Card */}
                    {frontInfo.nation && (
-                      <div className="rounded-xl border border-white/10 bg-background-secondary/40 backdrop-blur shadow-lg overflow-hidden h-fit">
+                      <div className="rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden h-fit">
                          <NationBasicCard
                            nation={frontInfo.nation}
                            global={frontInfo.global}
@@ -364,7 +373,7 @@ export default function GamePage() {
                 {/* Logs Column */}
                 <div className="flex flex-col gap-4 h-full">
                    {/* Messages */}
-                   <div className="rounded-xl border border-white/10 bg-background-secondary/40 backdrop-blur shadow-lg overflow-hidden flex flex-col flex-1 min-h-[300px]">
+                   <div className="rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden flex flex-col flex-1 min-h-[300px]">
                       <div className="px-4 py-2 bg-white/5 border-b border-white/5 flex justify-between items-center">
                          <h3 className="font-bold text-sm text-white flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -384,7 +393,7 @@ export default function GamePage() {
                    </div>
 
                    {/* Logs */}
-                   <div className="rounded-xl border border-white/10 bg-background-secondary/40 backdrop-blur shadow-lg overflow-hidden flex flex-col flex-1 min-h-[300px]">
+                   <div className="rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden flex flex-col flex-1 min-h-[300px]">
                       <div className="px-4 py-2 bg-white/5 border-b border-white/5">
                          <h3 className="font-bold text-sm text-white flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -425,7 +434,7 @@ export default function GamePage() {
 
          {/* Right Column: Command (3 cols) */}
          <div className="lg:col-span-3 flex flex-col h-full">
-            <div className="rounded-xl border border-white/10 bg-background-secondary/60 backdrop-blur shadow-xl flex flex-col h-full min-h-[850px]">
+            <div className="rounded-xl border border-white/10 bg-gray-900/60 backdrop-blur shadow-xl flex flex-col h-full min-h-[850px]">
                <div className="px-4 py-3 bg-white/5 border-b border-white/5 flex justify-between items-center">
                   <h3 className="font-bold text-sm text-white flex items-center gap-2">
                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
@@ -450,17 +459,6 @@ export default function GamePage() {
 
       </div>
 
-      <GameBottomBar 
-        onRefresh={reloadAllData}
-        isLoading={loading}
-        nationColor={frontInfo.nation?.color}
-        colorSystem={{...colorSystem, accent: colorSystem.base}}
-        globalMenu={globalMenu}
-        globalInfo={frontInfo.global}
-        onMenuClick={handleMenuClick}
-        mainControlProps={mainControlProps}
-      />
-      
       <VersionModal
         isOpen={isVersionModalOpen}
         onClose={() => setIsVersionModalOpen(false)}

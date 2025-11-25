@@ -4,6 +4,21 @@ import React, { useState, useEffect } from 'react';
 import { SammoAPI } from '@/lib/api/sammo';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { formatOfficerLevelText } from '@/utils/formatOfficerLevelText';
+
+function getCrewTypeName(crewtype: number): string {
+  const crewTypes: Record<number, string> = {
+    0: '없음',
+    1: '창병',
+    2: '극병',
+    3: '노병',
+    4: '기병',
+    5: '충차',
+    6: '투석',
+    7: '정예병',
+  };
+  return crewTypes[crewtype] || '없음';
+}
 
 interface ChiefPersonnelPanelProps {
   serverID: string;
@@ -85,13 +100,17 @@ export default function ChiefPersonnelPanel({ serverID, chiefData, onUpdate }: C
               </thead>
               <tbody className="divide-y divide-white/5">
                 {generals.map((gen) => (
-                  <tr key={gen.no} className="hover:bg-white/5 transition-colors">
+                   <tr key={gen.no} className="hover:bg-white/5 transition-colors">
                     <td className="px-4 py-3 font-bold text-white">{gen.name}</td>
-                    <td className={cn("px-4 py-3 font-medium", gen.officerLevelText !== '일반' ? "text-yellow-500" : "text-gray-400")}>
-                      {gen.officerLevelText}
+                    <td className={cn("px-4 py-3 font-medium", (gen.officerLevelText ?? formatOfficerLevelText(gen.officer_level ?? gen.officerLevel ?? 0)) !== '일반' ? "text-yellow-500" : "text-gray-400")}>
+                      {gen.officerLevelText ?? formatOfficerLevelText(gen.officer_level ?? gen.officerLevel ?? 0)}
                     </td>
-                    <td className="px-4 py-3 text-gray-300">{gen.city}</td>
-                    <td className="px-4 py-3 text-gray-300">{gen.crewtype}</td>
+                    <td className="px-4 py-3 text-gray-300">
+                      {(gen.cityName || gen.city)
+                        ? `${gen.cityName || `도시 ${gen.city}`}${typeof gen.cityLevel === 'number' && gen.cityLevel > 0 ? ` (+ Lv.${gen.cityLevel})` : ''}`
+                        : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-gray-300">{getCrewTypeName(gen.crewtype || 0)}</td>
                     <td className="px-4 py-3 text-right font-mono text-gray-300">{gen.crew?.toLocaleString()}</td>
                     <td className="px-4 py-3 text-center">
                       <button 

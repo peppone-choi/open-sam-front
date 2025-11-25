@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSocket } from '@/hooks/useSocket';
 import { SammoAPI } from '@/lib/api/sammo';
+import { Skeleton } from '@/components/ui/skeleton';
 import styles from './TacticalMapPanel.module.css';
 import { createThreeTacticalMapEngine } from '@/lib/tactical/threeTacticalMap.lazy';
 import type { ThreeTacticalMapEngine } from '@/lib/tactical/threeTacticalMap.lazy';
@@ -498,13 +499,15 @@ export default function TacticalMapPanel({ serverID, generalId, cityId, cityName
     ctx.stroke();
 
     // HP 바 (쿼터뷰 위치 조정)
-    const hpBarWidth = 50;
-    const hpBarHeight = 6;
-    const hpRatio = unit.hp / unit.maxHp;
-    const hpBarY = y - size - 15;
+    const hpBarWidth = 60; // Increased width
+    const hpBarHeight = 8; // Increased height for better visibility
+    const hpCurrent = typeof unit.hp === 'number' && unit.hp > 0 ? unit.hp : unit.troops;
+    const hpMax = typeof unit.maxHp === 'number' && unit.maxHp > 0 ? unit.maxHp : (unit.maxTroops > 0 ? unit.maxTroops : hpCurrent || 1);
+    const hpRatio = hpMax > 0 ? hpCurrent / hpMax : 1;
+    const hpBarY = y - size - 18;
 
     // HP 바 배경
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'; // Darker background
     ctx.fillRect(x - hpBarWidth / 2, hpBarY, hpBarWidth, hpBarHeight);
 
     // HP 바 (현재 체력)
@@ -514,26 +517,26 @@ export default function TacticalMapPanel({ serverID, generalId, cityId, cityName
 
     // HP 바 테두리
     ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1.5;
     ctx.strokeRect(x - hpBarWidth / 2, hpBarY, hpBarWidth, hpBarHeight);
 
     // 장수 이름 (배경 포함)
-    const nameY = y - size - 28;
+    const nameY = y - size - 32;
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(x - 35, nameY - 12, 70, 16);
+    ctx.fillRect(x - 40, nameY - 14, 80, 20); // Larger name background
     
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 11px sans-serif';
+    ctx.font = 'bold 13px sans-serif'; // Larger font
     ctx.textAlign = 'center';
     ctx.fillText(unit.generalName, x, nameY);
 
     // 병력 수 (유닛 중앙)
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 12px sans-serif';
+    ctx.font = 'bold 14px sans-serif'; // Larger font
     ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 3;
-    ctx.strokeText(`${unit.troops}`, x, y + 4);
-    ctx.fillText(`${unit.troops}`, x, y + 4);
+    ctx.lineWidth = 4;
+    ctx.strokeText(`${unit.troops}`, x, y + 5);
+    ctx.fillText(`${unit.troops}`, x, y + 5);
   };
 
   // 색상 밝게 하기
@@ -588,8 +591,8 @@ export default function TacticalMapPanel({ serverID, generalId, cityId, cityName
           <>
             <canvas ref={threeCanvasRef} className={styles.canvas} />
             {engineLoading && (
-              <div className={styles.loadingOverlay}>
-                <div className={styles.loadingSpinner}>전술맵 로딩 중...</div>
+              <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                <Skeleton className="w-[95%] h-[95%] rounded-xl bg-gray-700/50" />
               </div>
             )}
           </>
@@ -624,7 +627,14 @@ export default function TacticalMapPanel({ serverID, generalId, cityId, cityName
           </div>
         )}
       </div>
-      {isInBattle && battleState && (
+      {isInBattle && (engineLoading ? (
+        <div className={styles.info}>
+          <Skeleton className="h-7 w-32 bg-gray-500/20" />
+          <Skeleton className="h-7 w-24 bg-gray-500/20" />
+          <Skeleton className="h-7 w-24 bg-gray-500/20" />
+          <Skeleton className="h-7 w-24 bg-gray-500/20" />
+        </div>
+      ) : battleState && (
         <div className={styles.info}>
           <div className={styles.infoItem}>
             <span className={styles.infoLabel}>전투 ID:</span>
@@ -655,43 +665,7 @@ export default function TacticalMapPanel({ serverID, generalId, cityId, cityName
             </div>
           )}
         </div>
-      )}
-
-      {!isInBattle && cityId && (
-        <div className={styles.info}>
-          <button
-            type="button"
-            className={styles.joinBattleBtn}
-            disabled={joining || !generalId}
-            onClick={async () => {
-              if (!generalId) return;
-              try {
-                setJoinError(null);
-                setJoining(true);
-                const result = await SammoAPI.GetBattleCenter({ serverID });
-                const battles = result.battles || [];
-                const active = battles.find((b: any) => b.targetCityId === cityId && b.status !== 'completed');
-                if (!active) {
-                  setJoinError('이 도시에 진행 중인 전투가 없습니다.');
-                  return;
-                }
-                const battleId = active.battleId || active.id;
-                router.push(`/${serverID}/battle/${battleId}/three?generalId=${generalId}`);
-              } catch (error: any) {
-                console.error('[TacticalMap] 전투 참가 실패:', error);
-                setJoinError('전투 정보를 불러오는 데 실패했습니다.');
-              } finally {
-                setJoining(false);
-              }
-            }}
-          >
-            {joining ? '전투방 확인 중...' : '현재 도시 전술 전투 참가'}
-          </button>
-          {joinError && (
-            <div className={styles.errorText}>{joinError}</div>
-          )}
-        </div>
-      )}
+      ))}
     </div>
   );
 }

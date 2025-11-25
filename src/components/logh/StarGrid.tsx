@@ -29,13 +29,13 @@ export default function StarGrid() {
 
   // Calculate unit counts per grid
   const calculateGridUnits = useCallback(() => {
-    const counts = new Map<string, { empire: number; alliance: number }>();
-    
-    fleets.forEach(fleet => {
-      const key = `${fleet.gridX},${fleet.gridY}`;
-      const current = counts.get(key) || { empire: 0, alliance: 0 };
+      const counts = new Map<string, { empire: number; alliance: number }>();
       
-      const units = Math.ceil(fleet.size / 300); // 1 unit = 300 ships
+      fleets.forEach(fleet => {
+        const key = `${fleet.gridX},${fleet.gridY}`;
+        const current = counts.get(key) || { empire: 0, alliance: 0 };
+        
+        const units = typeof fleet.unitCount === 'number' ? fleet.unitCount : 0;
       if (fleet.faction === 'empire') {
         current.empire += units;
       } else if (fleet.faction === 'alliance') {
@@ -85,18 +85,19 @@ export default function StarGrid() {
     // Draw Grid Lines
     ctx.strokeStyle = 'rgba(30, 144, 255, 0.1)';
     ctx.lineWidth = 1;
-    const gridSize = 100; // 100x100 grid
+    const GRID_COLS = 100; // 100 columns (x: 0-99)
+    const GRID_ROWS = 50;  // 50 rows (y: 0-49)
     
-    for (let x = 0; x <= gridSize; x++) {
+    for (let x = 0; x <= GRID_COLS; x++) {
       ctx.beginPath();
       ctx.moveTo(x * CELL_SIZE, 0);
-      ctx.lineTo(x * CELL_SIZE, gridSize * CELL_SIZE);
+      ctx.lineTo(x * CELL_SIZE, GRID_ROWS * CELL_SIZE);
       ctx.stroke();
     }
-    for (let y = 0; y <= gridSize; y++) {
+    for (let y = 0; y <= GRID_ROWS; y++) {
       ctx.beginPath();
       ctx.moveTo(0, y * CELL_SIZE);
-      ctx.lineTo(gridSize * CELL_SIZE, y * CELL_SIZE);
+      ctx.lineTo(GRID_COLS * CELL_SIZE, y * CELL_SIZE);
       ctx.stroke();
     }
 
@@ -212,7 +213,7 @@ export default function StarGrid() {
       {/* Loading State */}
       {isLoadingGalaxy && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
-          <div className="text-[#1E90FF] text-sm font-mono">Loading Galaxy Data...</div>
+          <div className="text-cyan-400 text-sm font-mono animate-pulse">Loading Galaxy Data...</div>
         </div>
       )}
 
@@ -226,7 +227,7 @@ export default function StarGrid() {
               const sessionId = typeof window !== 'undefined' ? localStorage.getItem('logh_sessionId') : null;
               loadGalaxyData(sessionId || undefined);
             }}
-            className="mt-2 px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs"
+            className="mt-2 px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs transition-transform active:scale-95"
           >
             Retry
           </button>

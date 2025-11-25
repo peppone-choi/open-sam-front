@@ -16,6 +16,7 @@
     "@tiptap/extension-placeholder": "^3.10.2",
     "@tiptap/react": "^3.10.2",
     "@tiptap/starter-kit": "^3.10.2",
+    "class-variance-authority": "^0.7.1",
     "next": "16.0.0",
     "pixi.js": "^8.0.0",
     "react": "19.2.0",

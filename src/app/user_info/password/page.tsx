@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [globalSalt, setGlobalSalt] = useState<string>('');
   const [formData, setFormData] = useState({
@@ -27,12 +29,12 @@ export default function ChangePasswordPage() {
       if (result.result) {
         setGlobalSalt(result.global_salt);
       } else {
-        alert('사용자 정보를 불러오는데 실패했습니다.');
+        showToast('사용자 정보를 불러오는데 실패했습니다.', 'error');
         router.push('/entrance');
       }
     } catch (err) {
       console.error(err);
-      alert('사용자 정보를 불러오는데 실패했습니다.');
+      showToast('사용자 정보를 불러오는데 실패했습니다.', 'error');
       router.push('/entrance');
     } finally {
       setLoading(false);
@@ -41,27 +43,27 @@ export default function ChangePasswordPage() {
 
   function validateForm(): boolean {
     if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
-      alert('모든 필드를 입력해주세요.');
+      showToast('모든 필드를 입력해주세요.', 'warning');
       return false;
     }
 
     if (formData.newPassword.length < 6) {
-      alert('새 비밀번호는 최소 6자 이상이어야 합니다.');
+      showToast('새 비밀번호는 최소 6자 이상이어야 합니다.', 'warning');
       return false;
     }
 
     if (formData.newPassword.length > 50) {
-      alert('새 비밀번호는 최대 50자 이하여야 합니다.');
+      showToast('새 비밀번호는 최대 50자 이하여야 합니다.', 'warning');
       return false;
     }
 
     if (formData.newPassword !== formData.confirmPassword) {
-      alert('새 비밀번호가 일치하지 않습니다.');
+      showToast('새 비밀번호가 일치하지 않습니다.', 'warning');
       return false;
     }
 
     if (formData.currentPassword === formData.newPassword) {
-      alert('새 비밀번호는 현재 비밀번호와 달라야 합니다.');
+      showToast('새 비밀번호는 현재 비밀번호와 달라야 합니다.', 'warning');
       return false;
     }
 
@@ -83,7 +85,7 @@ export default function ChangePasswordPage() {
       });
 
       if (result.result) {
-        alert('비밀번호가 변경되었습니다.');
+        showToast('비밀번호가 변경되었습니다.', 'success');
         setFormData({ 
           currentPassword: '', 
           newPassword: '', 
@@ -91,11 +93,11 @@ export default function ChangePasswordPage() {
         });
         router.push('/user-info');
       } else {
-        alert(result.reason || '비밀번호 변경에 실패했습니다.');
+        showToast(result.reason || '비밀번호 변경에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('비밀번호 변경에 실패했습니다.');
+      showToast('비밀번호 변경에 실패했습니다.', 'error');
     }
   }
 

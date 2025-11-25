@@ -36,6 +36,17 @@ export default function WorldPage() {
   const [diplomacyData, setDiplomacyData] = useState<DiplomacyData | null>(null);
   const [mapData, setMapData] = useState<GetMapResponse | null>(null);
 
+  const cityNameMap = useMemo(() => {
+    if (!mapData?.cityList) return new Map<number, string>();
+    const map = new Map<number, string>();
+    for (const city of mapData.cityList) {
+      const id = city[0] as number;
+      const name = String(city[6] ?? '') || `도시 ${id}`;
+      map.set(id, name);
+    }
+    return map;
+  }, [mapData]);
+
   const summaryStats = useMemo(() => {
     if (!diplomacyData) {
       return null;
@@ -99,17 +110,17 @@ export default function WorldPage() {
       setLoading(true);
       setError(null);
       
-      const [worldInfoResult, mapResult]: [any, GetMapResponse] = await Promise.all([
-        SammoAPI.GetWorldInfo({ session_id: serverID }),
+      const [diplomacyResult, mapResult]: [any, GetMapResponse] = await Promise.all([
+        SammoAPI.GlobalGetDiplomacy({ serverID }),
         SammoAPI.GlobalGetMap({ serverID, neutralView: 1 })
       ]);
       
-      if (worldInfoResult.result && (worldInfoResult as any).success) {
+      if (diplomacyResult?.result) {
         setDiplomacyData({
-          nations: (worldInfoResult as any).nations || [],
-          conflict: (worldInfoResult as any).conflict || [],
-          diplomacyList: (worldInfoResult as any).diplomacyList || {},
-          myNationID: (worldInfoResult as any).myNationID || 0
+          nations: diplomacyResult.nations || [],
+          conflict: diplomacyResult.conflict || [],
+          diplomacyList: diplomacyResult.diplomacyList || {},
+          myNationID: diplomacyResult.myNationID || 0
         });
       } else {
         // setError('중원 정보를 불러올 수 없습니다.');
@@ -165,7 +176,7 @@ export default function WorldPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background-main p-4 font-sans text-foreground md:p-6 lg:p-8">
+    <div className="relative min-h-screen overflow-hidden bg-gray-950 p-4 font-sans text-gray-100 md:p-6 lg:p-8">
       <div className="pointer-events-none absolute inset-0 bg-hero-pattern opacity-20" />
       <div className="pointer-events-none absolute -top-32 right-10 h-96 w-96 rounded-full bg-emerald-500/15 blur-[180px]" />
 
@@ -220,16 +231,16 @@ export default function WorldPage() {
 
             {/* 천하도 지도 */}
             {mapData && (
-              <div className="overflow-hidden rounded-2xl border border-white/5 bg-background-secondary/70 shadow-lg">
+              <div className="overflow-hidden rounded-2xl border border-white/5 bg-gray-900/70 shadow-lg">
                 <div className="border-b border-white/10 bg-blue-500/10 px-6 py-3 text-lg font-bold text-blue-200">천하도</div>
-                <div className="relative h-[600px] bg-background-tertiary/30">
+                <div className="relative h-[600px] bg-gray-800/30">
                   <MapViewer serverID={serverID} mapData={mapData} isFullWidth />
                 </div>
               </div>
             )}
 
             {/* 외교 현황 */}
-            <div className="overflow-hidden rounded-2xl border border-white/5 bg-background-secondary/70 shadow-lg">
+            <div className="overflow-hidden rounded-2xl border border-white/5 bg-gray-900/70 shadow-lg">
               <div className="border-b border-white/10 bg-indigo-500/10 px-6 py-3 text-lg font-bold text-indigo-200">외교 현황</div>
               <div className="overflow-x-auto p-4">
                 <table className="w-full border-collapse text-sm">
@@ -259,7 +270,7 @@ export default function WorldPage() {
                         {diplomacyData.nations.map((youNation) => {
                           if (meNation.nation === youNation.nation) {
                             return (
-                              <td key={youNation.nation} className="border border-white/5 bg-black/20 p-2 text-center text-foreground-muted">
+                              <td key={youNation.nation} className="border border-white/5 bg-black/20 p-2 text-center text-gray-400">
                                 ＼
                               </td>
                             );
@@ -281,7 +292,7 @@ export default function WorldPage() {
                     ))}
                   </tbody>
                 </table>
-                <div className="mt-4 flex justify-center gap-4 text-center text-xs text-foreground-muted">
+                <div className="mt-4 flex justify-center gap-4 text-center text-xs text-gray-400">
                    <span><span className="font-bold text-green-400">@</span> 불가침</span>
                    <span>ㆍ 통상</span>
                    <span><span className="font-bold text-pink-400">▲</span> 선전포고</span>
@@ -291,12 +302,12 @@ export default function WorldPage() {
             </div>
 
             {/* 국가 목록 */}
-            <div className="overflow-hidden rounded-2xl border border-white/5 bg-background-secondary/70 shadow-lg">
+            <div className="overflow-hidden rounded-2xl border border-white/5 bg-gray-900/70 shadow-lg">
               <div className="border-b border-white/10 bg-emerald-500/10 px-6 py-3 text-lg font-bold text-emerald-200">국가 목록</div>
               <div className="overflow-x-auto">
                  <table className="w-full text-left text-sm">
                    <thead>
-                     <tr className="border-b border-white/5 bg-white/5 text-foreground">
+                     <tr className="border-b border-white/5 bg-white/5 text-gray-100">
                        <th className="px-4 py-3">국가</th>
                        <th className="px-4 py-3 text-center">레벨</th>
                        <th className="px-4 py-3 text-right">세력</th>
@@ -316,7 +327,7 @@ export default function WorldPage() {
                          <td className="px-4 py-3 text-center">{nation.level}</td>
                          <td className="px-4 py-3 text-right font-mono text-amber-300">{nation.power?.toLocaleString() ?? 0}</td>
                          <td className="px-4 py-3 text-right font-mono text-blue-200">{nation.gennum ?? 0}</td>
-                         <td className="px-4 py-3 text-right font-mono text-foreground-muted">{nation.cities?.length ?? 0}</td>
+                         <td className="px-4 py-3 text-right font-mono text-gray-400">{nation.cities?.length ?? 0}</td>
                        </tr>
                      ))}
                    </tbody>
@@ -326,46 +337,50 @@ export default function WorldPage() {
 
             {/* 분쟁 현황 */}
             {diplomacyData.conflict.length > 0 && (
-              <div className="overflow-hidden rounded-2xl border border-white/5 bg-background-secondary/70 shadow-lg">
+              <div className="overflow-hidden rounded-2xl border border-white/5 bg-gray-900/70 shadow-lg">
                 <div className="border-b border-white/10 bg-rose-500/10 px-6 py-3 text-lg font-bold text-rose-200">분쟁 현황</div>
                 <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2 lg:grid-cols-3">
-                  {diplomacyData.conflict.map(([cityID, conflictNations]) => (
-                    <div key={cityID} className="rounded-lg border border-white/5 bg-black/20 p-4">
-                      <div className="mb-3 border-b border-white/5 pb-2 text-sm font-bold text-foreground">도시 #{cityID}</div>
-                      <div className="space-y-3">
-                        {Object.entries(conflictNations).map(([nationID, percent]) => {
-                          const nation = diplomacyData.nations.find((n) => n.nation === parseInt(nationID, 10));
-                          if (!nation) return null;
-                          
-                          return (
-                            <div key={nationID} className="space-y-1">
-                              <div className="flex justify-between text-xs">
-                                 <span
-                                   className="rounded px-1.5 py-0.5 font-bold"
-                                   style={{ color: getNationTextColor(nation.color), backgroundColor: nation.color }}
-                                 >
-                                    {nation.name}
-                                 </span>
-                                 <span className="text-foreground-muted">{percent.toFixed(1)}%</span>
-                              </div>
-                              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-                                <div
-                                  className="h-full rounded-full"
-                                  style={{ width: `${percent}%`, backgroundColor: nation.color }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
+                   {diplomacyData.conflict.map(([cityID, conflictNations]) => {
+                     const name = cityNameMap.get(cityID) ?? '이름 미확인 도시';
+                     return (
+                       <div key={cityID} className="rounded-lg border border-white/5 bg-black/20 p-4">
+                         <div className="mb-3 border-b border-white/5 pb-2 text-sm font-bold text-gray-100">{name}</div>
+                         <div className="space-y-3">
+                           {Object.entries(conflictNations).map(([nationID, percent]) => {
+                             const nation = diplomacyData.nations.find((n) => n.nation === parseInt(nationID, 10));
+                             if (!nation) return null;
+                             
+                             return (
+                               <div key={nationID} className="space-y-1">
+                                 <div className="flex justify-between text-xs">
+                                   <span
+                                     className="rounded px-1.5 py-0.5 font-bold"
+                                     style={{ color: getNationTextColor(nation.color), backgroundColor: nation.color }}
+                                   >
+                                     {nation.name}
+                                   </span>
+                                   <span className="text-gray-400">{percent.toFixed(1)}%</span>
+                                 </div>
+                                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                                   <div
+                                     className="h-full rounded-full"
+                                     style={{ width: `${percent}%`, backgroundColor: nation.color }}
+                                   />
+                                 </div>
+                               </div>
+                             );
+                           })}
+                         </div>
+                       </div>
+                     );
+                   })}
+
                 </div>
               </div>
             )}
           </div>
         ) : (
-          <div className="flex h-[50vh] items-center justify-center text-foreground-muted">
+          <div className="flex h-[50vh] items-center justify-center text-gray-400">
             데이터가 없습니다.
           </div>
         )}

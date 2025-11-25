@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { SammoAPI } from '@/lib/api/sammo';
+import { SammoAPI, type CityInfo } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import CityBasicCard from '@/components/cards/CityBasicCard';
 import { cn } from '@/lib/utils';
@@ -41,7 +41,7 @@ function CurrentCityContent() {
   const cityId = searchParams?.get('cityId');
 
   const [loading, setLoading] = useState(true);
-  const [cityData, setCityData] = useState<any>(null);
+  const [cityData, setCityData] = useState<CityInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -78,7 +78,7 @@ function CurrentCityContent() {
       setLoading(true);
       setError(null);
       const result = await SammoAPI.GetCurrentCity(serverID);
-      if (result.result) {
+      if (result.result && result.city) {
         setCityData(result.city);
       } else {
         setError('현재 도시 정보를 불러올 수 없습니다.');
@@ -91,7 +91,7 @@ function CurrentCityContent() {
     }
   }
 
-  const title = cityId ? `도시 정보 (${cityData?.name || cityId})` : '현재 도시';
+  const title = cityId ? `도시 정보 (${cityData?.name || '이름 미확인'})` : '현재 도시';
   
   const handleReload = () => {
     if (cityId) {

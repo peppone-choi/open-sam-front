@@ -1,10 +1,13 @@
 'use client';
-
+ 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import { cn } from '@/lib/utils';
+import { formatOfficerLevelText } from '@/utils/formatOfficerLevelText';
+import { useToast } from '@/contexts/ToastContext';
+
 
 function getCrewTypeName(crewtype: number): string {
   const crewTypes: Record<number, string> = {
@@ -26,6 +29,7 @@ function GeneralsInfoContent() {
   const serverID = params?.server as string;
   const type = searchParams?.get('type') ? Number(searchParams.get('type')) : 7;
 
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [generalList, setGeneralList] = useState<any[]>([]);
 
@@ -42,7 +46,7 @@ function GeneralsInfoContent() {
       }
     } catch (err) {
       console.error(err);
-      alert('장수 목록을 불러오는데 실패했습니다.');
+      showToast('장수 목록을 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -127,7 +131,9 @@ function GeneralsInfoContent() {
                         <div className="text-blue-400">{general.name}</div>
                         <div className="text-xs text-gray-500">Lv {general.explevel || 0}</div>
                       </td>
-                      <td className="py-3 px-4 text-center text-gray-400">{general.officer_level || '-'}</td>
+                      <td className="py-3 px-4 text-center text-gray-400">
+                        {general.officerLevelText || formatOfficerLevelText(general.officer_level ?? 0)}
+                      </td>
                       <td className="py-3 px-4 text-center font-mono">{general.leadership || 0}</td>
                       <td className="py-3 px-4 text-center font-mono">{general.strength || 0}</td>
                       <td className="py-3 px-4 text-center font-mono">{general.intel || 0}</td>
@@ -135,7 +141,11 @@ function GeneralsInfoContent() {
                       <td className="py-3 px-4 text-center font-mono">{general.dedlevel || 0}</td>
                       <td className="py-3 px-4 text-right font-mono text-blue-300">{general.crew?.toLocaleString() || 0}</td>
                       <td className="py-3 px-4 text-center text-gray-300">{getCrewTypeName(general.crewtype || 0)}</td>
-                      <td className="py-3 px-4 text-center text-gray-300">{general.cityName || general.city}</td>
+                      <td className="py-3 px-4 text-center text-gray-300">
+                        {(general.cityName || general.city)
+                          ? `${general.cityName || `도시 ${general.city}`}${typeof general.cityLevel === 'number' && general.cityLevel > 0 ? ` (+ Lv.${general.cityLevel})` : ''}`
+                          : '-'}
+                      </td>
                       <td className="py-3 px-4 text-center text-gray-400">{general.troopName || '-'}</td>
                       <td className="py-3 px-4 text-right font-mono text-yellow-500">{general.gold?.toLocaleString() || 0}</td>
                       <td className="py-3 px-4 text-right font-mono text-green-500">{general.rice?.toLocaleString() || 0}</td>

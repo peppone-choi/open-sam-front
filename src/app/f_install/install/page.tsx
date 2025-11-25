@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
+import { useToast } from '@/contexts/ToastContext';
 import styles from './page.module.css';
 
 export default function FileInstallPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [installStep, setInstallStep] = useState<'db' | 'config' | 'complete'>('db');
   const [formData, setFormData] = useState({
@@ -18,7 +20,7 @@ export default function FileInstallPage() {
 
   async function handleDBSubmit() {
     if (!formData.db_name || !formData.db_user) {
-      alert('DB 이름과 사용자를 입력해주세요.');
+      showToast('DB 이름과 사용자를 입력해주세요.', 'warning');
       return;
     }
 
@@ -34,11 +36,11 @@ export default function FileInstallPage() {
       if (result.result) {
         setInstallStep('config');
       } else {
-        alert(result.reason || 'DB 설정에 실패했습니다.');
+        showToast(result.reason || 'DB 설정에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('DB 설정에 실패했습니다.');
+      showToast('DB 설정에 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -59,11 +61,11 @@ export default function FileInstallPage() {
       if (result.result) {
         setInstallStep('complete');
       } else {
-        alert(result.reason || '설정에 실패했습니다.');
+        showToast(result.reason || '설정에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('설정에 실패했습니다.');
+      showToast('설정에 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

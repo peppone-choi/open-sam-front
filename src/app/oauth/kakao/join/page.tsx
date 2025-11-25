@@ -3,12 +3,14 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
+import { useToast } from '@/contexts/ToastContext';
 import styles from './page.module.css';
 
 function KakaoJoinContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const oauthCode = searchParams?.get('code');
+  const { showToast } = useToast();
   
   const [formData, setFormData] = useState({
     username: '',
@@ -21,22 +23,22 @@ function KakaoJoinContent() {
     e.preventDefault();
     
     if (!formData.username || !formData.password) {
-      alert('계정명과 비밀번호를 입력해주세요.');
+      showToast('계정명과 비밀번호를 입력해주세요.', 'warning');
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      alert('비밀번호가 일치하지 않습니다.');
+      showToast('비밀번호가 일치하지 않습니다.', 'warning');
       return;
     }
 
     if (formData.password.length < 6) {
-      alert('비밀번호는 최소 6자 이상이어야 합니다.');
+      showToast('비밀번호는 최소 6자 이상이어야 합니다.', 'warning');
       return;
     }
 
     if (!oauthCode) {
-      alert('OAuth 코드가 없습니다.');
+      showToast('OAuth 코드가 없습니다.', 'error');
       router.push('/oauth/fail');
       return;
     }
@@ -50,14 +52,14 @@ function KakaoJoinContent() {
       });
 
       if (result.result) {
-        alert('회원가입이 완료되었습니다.');
+        showToast('회원가입이 완료되었습니다.', 'success');
         router.push('/');
       } else {
-        alert(result.reason || '회원가입에 실패했습니다.');
+        showToast(result.reason || '회원가입에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('회원가입에 실패했습니다.');
+      showToast('회원가입에 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

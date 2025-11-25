@@ -249,12 +249,12 @@ export function useBattleSocket(options: UseBattleSocketOptions) {
     });
 
     // 플레이어 참가/나가기
-    const unsubPlayerJoined = onBattleEvent('player_joined', (data: any) => {
-      pushLog(`장수 ${data.generalId} 참가`);
+    const unsubPlayerJoined = onBattleEvent('player_joined', () => {
+      pushLog('새 장수가 전투에 참가했습니다.');
     });
-
-    const unsubPlayerLeft = onBattleEvent('player_left', (data: any) => {
-      pushLog(`장수 ${data.generalId} 퇴장`);
+ 
+    const unsubPlayerLeft = onBattleEvent('player_left', () => {
+      pushLog('장수가 전투에서 퇴장했습니다.');
     });
 
     return () => {

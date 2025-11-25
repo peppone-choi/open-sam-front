@@ -7,6 +7,7 @@ import TopBackBar from '@/components/common/TopBackBar';
 import TipTapEditor from '@/components/editor/TipTapEditor';
 import { cn } from '@/lib/utils';
 import GamePageLayout from '@/components/layout/GamePageLayout';
+import { useToast } from '@/contexts/ToastContext';
 
 interface BoardArticle {
   no: number;
@@ -33,6 +34,7 @@ function BoardContent() {
   const searchParams = useSearchParams();
   const serverID = params?.server as string;
   const isSecret = searchParams?.get('isSecret') === 'true';
+  const { showToast } = useToast();
 
   const [articles, setArticles] = useState<BoardArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +60,7 @@ function BoardContent() {
       }
     } catch (err) {
       console.error(err);
-      alert('게시물을 불러오는데 실패했습니다.');
+      showToast('게시물을 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -66,7 +68,7 @@ function BoardContent() {
 
   async function submitArticle() {
     if (!newArticle.title || !newArticle.text) {
-      alert('제목과 내용을 입력해주세요.');
+      showToast('제목과 내용을 입력해주세요.', 'warning');
       return;
     }
 
@@ -81,20 +83,21 @@ function BoardContent() {
       if (result.result) {
         setNewArticle({ title: '', text: '' });
         setIsWriting(false);
+        showToast('게시물이 등록되었습니다.', 'success');
         await loadArticles();
       } else {
-        alert(result.reason || '게시물 등록에 실패했습니다.');
+        showToast(result.reason || '게시물 등록에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('게시물 등록에 실패했습니다.');
+      showToast('게시물 등록 중 오류가 발생했습니다.', 'error');
     }
   }
 
   async function submitComment(articleNo: number) {
     const text = newComments[articleNo]?.trim();
     if (!text) {
-      alert('댓글 내용을 입력해주세요.');
+      showToast('댓글 내용을 입력해주세요.', 'warning');
       return;
     }
 
@@ -108,13 +111,14 @@ function BoardContent() {
 
       if (result.result) {
         setNewComments((prev) => ({ ...prev, [articleNo]: '' }));
+        showToast('댓글이 등록되었습니다.', 'success');
         await loadArticles();
       } else {
-        alert(result.reason || '댓글 등록에 실패했습니다.');
+        showToast(result.reason || '댓글 등록에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('댓글 등록에 실패했습니다.');
+      showToast('댓글 등록 중 오류가 발생했습니다.', 'error');
     }
   }
 

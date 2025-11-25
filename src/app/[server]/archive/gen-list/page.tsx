@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 function GenListContent() {
@@ -11,6 +12,7 @@ function GenListContent() {
   const searchParams = useSearchParams();
   const serverID = params?.server as string;
   const type = searchParams?.get('type') ? Number(searchParams.get('type')) : 9;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [generalList, setGeneralList] = useState<any[]>([]);
@@ -28,7 +30,7 @@ function GenListContent() {
       }
     } catch (err) {
       console.error(err);
-      alert('장수 목록을 불러오는데 실패했습니다.');
+      showToast('장수 목록을 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

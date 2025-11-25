@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 function HallOfFameContent() {
@@ -12,6 +13,7 @@ function HallOfFameContent() {
   const serverID = params?.server as string;
   const seasonIdx = searchParams?.get('seasonIdx') ? Number(searchParams.get('seasonIdx')) : null;
   const scenarioIdx = searchParams?.get('scenarioIdx') ? Number(searchParams.get('scenarioIdx')) : null;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [scenarioList, setScenarioList] = useState<any[]>([]);
@@ -35,7 +37,7 @@ function HallOfFameContent() {
       }
     } catch (err) {
       console.error(err);
-      alert('명예의 전당 정보를 불러오는데 실패했습니다.');
+      showToast('명예의 전당 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

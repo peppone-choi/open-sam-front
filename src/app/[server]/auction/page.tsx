@@ -5,6 +5,7 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 function AuctionContent() {
   const params = useParams();
@@ -12,6 +13,7 @@ function AuctionContent() {
   const router = useRouter();
   const serverID = params?.server as string;
   const isResAuction = searchParams?.get('type') !== 'unique';
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [auctionData, setAuctionData] = useState<any>(null);
@@ -43,7 +45,7 @@ function AuctionContent() {
       }
     } catch (err) {
       console.error(err);
-      alert('경매 정보를 불러오는데 실패했습니다.');
+      showToast('경매 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -55,7 +57,7 @@ function AuctionContent() {
 
     const bidAmount = parseInt(amount, 10);
     if (isNaN(bidAmount) || bidAmount <= 0) {
-      alert('올바른 금액을 입력해주세요.');
+      showToast('올바른 금액을 입력해주세요.', 'warning');
       return;
     }
 
@@ -81,19 +83,19 @@ function AuctionContent() {
             serverID,
           });
         } else {
-          alert('알 수 없는 경매 유형입니다.');
+          showToast('알 수 없는 경매 유형입니다.', 'error');
           return;
         }
       }
       
       if (result.result) {
-        alert('입찰이 완료되었습니다.');
+        showToast('입찰이 완료되었습니다.', 'success');
         loadAuctionData();
       } else {
-        alert(result.reason || '입찰에 실패했습니다.');
+        showToast(result.reason || '입찰에 실패했습니다.', 'error');
       }
     } catch (err: any) {
-      alert(err.message || '입찰 중 오류가 발생했습니다.');
+      showToast(err.message || '입찰 중 오류가 발생했습니다.', 'error');
     }
   };
 
@@ -146,14 +148,14 @@ function AuctionContent() {
                         <div className={cn(
                           "text-sm font-bold",
                           auctionType === 'resource' 
-                            ? (auction.type === 'BuyRice' ? "text-orange-400" : "text-yellow-400")
+                            ? (auction.type === 'BuyRice' ? "text-green-400" : "text-yellow-400")
                             : "text-purple-400"
                         )}>
                           {auctionType === 'resource' 
                             ? (auction.type === 'BuyRice' ? '쌀 구매' : '쌀 판매') 
                             : auction.title}
                         </div>
-                        <div className="text-xs text-gray-500 flex items-center gap-1">
+                        <div className="text-xs text-gray-400 flex items-center gap-1">
                           <span>by</span>
                           <span className="text-gray-300">{auction.hostName}</span>
                         </div>
@@ -173,32 +175,32 @@ function AuctionContent() {
                       <div className="space-y-2">
                         {auctionType === 'resource' ? (
                           <div className="flex justify-between items-center p-2 bg-black/20 rounded">
-                            <span className="text-gray-500 text-xs uppercase font-bold">수량</span>
+                            <span className="text-gray-400 text-xs uppercase font-bold">수량</span>
                             <span className="font-mono font-bold text-white">{auction.amount.toLocaleString()}</span>
                           </div>
                         ) : (
                           <div className="flex justify-between items-center p-2 bg-black/20 rounded">
-                            <span className="text-gray-500 text-xs uppercase font-bold">대상</span>
+                            <span className="text-gray-400 text-xs uppercase font-bold">대상</span>
                             <span className="font-bold text-white">{auction.target}</span>
                           </div>
                         )}
                         
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500">시작가</span>
+                          <span className="text-gray-400">시작가</span>
                           <span className="font-mono text-gray-400">{(auction.startBidAmount || 0).toLocaleString()}</span>
                         </div>
                         
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500">종료일</span>
+                          <span className="text-gray-400">종료일</span>
                           <span className="text-gray-400 text-xs">{new Date(auction.closeDate).toLocaleString('ko-KR')}</span>
                         </div>
                       </div>
 
                       {auction.highestBid && (
                         <div className="mt-2 pt-2 border-t border-white/5">
-                          <div className="text-xs text-gray-500 mb-1">현재 최고 입찰</div>
+                          <div className="text-xs text-gray-400 mb-1">현재 최고 입찰</div>
                           <div className="flex justify-between items-center">
-                            <span className="text-yellow-500 font-bold">{auction.highestBid.amount.toLocaleString()}</span>
+                            <span className="text-yellow-400 font-bold">{auction.highestBid.amount.toLocaleString()}</span>
                             <span className="text-xs text-gray-400">{auction.highestBid.generalName}</span>
                           </div>
                         </div>

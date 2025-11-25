@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 interface BoardArticle {
@@ -29,6 +30,7 @@ interface BoardComment {
 export default function BoardPatchPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [articles, setArticles] = useState<BoardArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +55,7 @@ export default function BoardPatchPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('게시물을 불러오는데 실패했습니다.');
+      showToast('게시물을 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

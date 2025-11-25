@@ -9,11 +9,16 @@
 export function formatOfficerLevelText(
   officerLevel: number, 
   nationLevel?: number,
-  officerTitles?: Record<string, Record<string, string>>
+  officerTitles?: Record<string | number, string | Record<string, string>>
 ): string {
   // 백엔드에서 officerTitles를 받은 경우
   if (officerTitles && officerTitles[String(officerLevel)]) {
     const levelMap = officerTitles[String(officerLevel)];
+    
+    // levelMap이 문자열인 경우 직접 반환
+    if (typeof levelMap === 'string') {
+      return levelMap;
+    }
     
     // nationLevel이 있고 해당 레벨의 관직명이 있으면 반환
     if (nationLevel !== undefined && levelMap[String(nationLevel)]) {

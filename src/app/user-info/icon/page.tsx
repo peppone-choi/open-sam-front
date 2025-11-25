@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './page.module.css';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function IconManagePage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [currentIcon, setCurrentIcon] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export default function IconManagePage() {
       }
     } catch (err) {
       console.error(err);
-      alert('사용자 정보를 불러오는데 실패했습니다.');
+      showToast('사용자 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -38,12 +40,12 @@ export default function IconManagePage() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('이미지 파일만 업로드 가능합니다.');
+      showToast('이미지 파일만 업로드 가능합니다.', 'warning');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('파일 크기는 5MB 이하여야 합니다.');
+      showToast('파일 크기는 5MB 이하여야 합니다.', 'warning');
       return;
     }
 
@@ -57,7 +59,7 @@ export default function IconManagePage() {
 
   async function handleUpload() {
     if (!selectedFile) {
-      alert('파일을 선택해주세요.');
+      showToast('파일을 선택해주세요.', 'warning');
       return;
     }
 
@@ -75,16 +77,16 @@ export default function IconManagePage() {
       const result = await response.json();
 
       if (result.result) {
-        alert('전용 아이콘이 업로드되었습니다.');
+        showToast('전용 아이콘이 업로드되었습니다.', 'success');
         setCurrentIcon(result.url);
         setSelectedFile(null);
         setPreviewUrl(null);
       } else {
-        alert(result.reason || '업로드에 실패했습니다.');
+        showToast(result.reason || '업로드에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('업로드에 실패했습니다.');
+      showToast('업로드에 실패했습니다.', 'error');
     } finally {
       setUploading(false);
     }

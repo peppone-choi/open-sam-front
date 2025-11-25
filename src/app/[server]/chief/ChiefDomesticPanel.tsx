@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { SammoAPI, type ChiefFinancePayload, type ChiefPolicyPayload, type ChiefWarSettingPayload } from '@/lib/api/sammo';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 interface ChiefDomesticPanelProps {
   serverID: string;
@@ -13,6 +14,7 @@ interface ChiefDomesticPanelProps {
 }
 
 export default function ChiefDomesticPanel({ serverID, policy, warSettingCnt, finance, onUpdate }: ChiefDomesticPanelProps) {
+  const { showToast } = useToast();
   const [rate, setRate] = useState<number>(0);
   const [bill, setBill] = useState<number>(0);
   const [secretLimit, setSecretLimit] = useState<number>(0);
@@ -33,14 +35,14 @@ export default function ChiefDomesticPanel({ serverID, policy, warSettingCnt, fi
     try {
       const result = await SammoAPI.NationSetRate({ amount: rate, serverID });
       if (result.result) {
-        alert('세율이 변경되었습니다.');
+        showToast('세율이 변경되었습니다.', 'success');
         onUpdate();
       } else {
-        alert(result.reason || '세율 변경 실패');
+        showToast(result.reason || '세율 변경 실패', 'error');
       }
     } catch (e) {
       console.error(e);
-      alert('오류가 발생했습니다.');
+      showToast('세율 변경 중 오류가 발생했습니다.', 'error');
     }
   };
 
@@ -48,14 +50,14 @@ export default function ChiefDomesticPanel({ serverID, policy, warSettingCnt, fi
     try {
       const result = await SammoAPI.NationSetBill({ amount: bill, serverID });
       if (result.result) {
-        alert('징병비가 변경되었습니다.');
+        showToast('징병비가 변경되었습니다.', 'success');
         onUpdate();
       } else {
-        alert(result.reason || '징병비 변경 실패');
+        showToast(result.reason || '징병비 변경 실패', 'error');
       }
     } catch (e) {
       console.error(e);
-      alert('오류가 발생했습니다.');
+      showToast('징병비 변경 중 오류가 발생했습니다.', 'error');
     }
   };
 
@@ -63,14 +65,14 @@ export default function ChiefDomesticPanel({ serverID, policy, warSettingCnt, fi
     try {
       const result = await SammoAPI.NationSetSecretLimit({ amount: secretLimit, serverID });
       if (result.result) {
-        alert('기밀 권한이 변경되었습니다.');
+        showToast('기밀 권한이 변경되었습니다.', 'success');
         onUpdate();
       } else {
-        alert(result.reason || '기밀 권한 변경 실패');
+        showToast(result.reason || '기밀 권한 변경 실패', 'error');
       }
     } catch (e) {
       console.error(e);
-      alert('오류가 발생했습니다.');
+      showToast('기밀 권한 변경 중 오류가 발생했습니다.', 'error');
     }
   };
 
@@ -79,13 +81,14 @@ export default function ChiefDomesticPanel({ serverID, policy, warSettingCnt, fi
       const result = await SammoAPI.NationSetBlockWar({ value, serverID });
       if (result.result) {
         setBlockWar(value);
+        showToast('전쟁 금지 설정이 변경되었습니다.', 'success');
         onUpdate();
       } else {
-        alert(result.reason || '설정 실패');
+        showToast(result.reason || '설정 실패', 'error');
       }
     } catch (e) {
       console.error(e);
-      alert('오류가 발생했습니다.');
+      showToast('설정 변경 중 오류가 발생했습니다.', 'error');
     }
   };
 
@@ -94,13 +97,14 @@ export default function ChiefDomesticPanel({ serverID, policy, warSettingCnt, fi
       const result = await SammoAPI.NationSetBlockScout({ value, serverID });
       if (result.result) {
         setBlockScout(value);
+        showToast('정찰 금지 설정이 변경되었습니다.', 'success');
         onUpdate();
       } else {
-        alert(result.reason || '설정 실패');
+        showToast(result.reason || '설정 실패', 'error');
       }
     } catch (e) {
       console.error(e);
-      alert('오류가 발생했습니다.');
+      showToast('설정 변경 중 오류가 발생했습니다.', 'error');
     }
   };
 

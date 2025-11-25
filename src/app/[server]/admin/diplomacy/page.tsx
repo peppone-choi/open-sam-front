@@ -35,7 +35,6 @@ export default function AdminDiplomacyPage() {
       }
     } catch (error) {
       console.error('[AdminDiplomacy] load error', error);
-      // alert('외교 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }

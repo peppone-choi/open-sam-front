@@ -1,6 +1,16 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface HighRiskCommandConfirmModalProps {
   isOpen: boolean;
@@ -31,81 +41,74 @@ export default function HighRiskCommandConfirmModal({
     }
   }, [isOpen, expectedInput]);
 
-  if (!isOpen) return null;
-
   const needsInput = Boolean(expectedInput && expectedInput.trim().length > 0);
   const canConfirm = !needsInput || inputValue.trim() === expectedInput!.trim();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-      <div
-        className="w-full max-w-md rounded-lg border border-white/20 bg-[#14141a] text-sm text-gray-100 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-5 py-4 border-b border-white/10">
-          <h2 className="text-lg font-bold text-center">{title}</h2>
-        </div>
-
-        <div className="px-5 py-4 space-y-3">
-          <div className="text-xs text-gray-300 break-words">
-            <span className="font-semibold">요약:&nbsp;</span>
-            <span>{brief}</span>
+    <Dialog open={isOpen} onClose={onCancel}>
+      <DialogContent className="sm:max-w-md bg-[#14141a] border-red-500/50 text-gray-100 shadow-xl shadow-red-900/20">
+        <DialogHeader className="items-center gap-2">
+          <div className="p-3 rounded-full bg-red-500/10 text-red-500 animate-pulse">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
           </div>
+          <DialogTitle className="text-xl font-bold text-red-100 text-center">{title}</DialogTitle>
+          <DialogDescription className="text-gray-300 text-center break-words w-full">
+            <span className="font-semibold text-gray-200">요약: </span>
+            {brief}
+          </DialogDescription>
+        </DialogHeader>
 
+        <div className="py-2 space-y-4">
           {details.length > 0 && (
-            <div className="space-y-1 text-xs text-gray-200">
+            <div className="space-y-1 text-sm text-gray-300 bg-black/20 p-3 rounded-md">
               {details.map((line, idx) => (
-                <div key={idx} className="break-words">
-                  • {line}
-                </div>
+                <div key={idx} className="break-words">• {line}</div>
               ))}
             </div>
           )}
 
-          <div className="rounded-md bg-red-900/30 px-3 py-2 text-xs text-red-200 border border-red-700/60">
+          <div className="rounded-md bg-red-900/30 px-3 py-2 text-xs text-red-200 border border-red-700/60 font-medium text-center">
             이 명령은 실행 후 되돌릴 수 없습니다.
           </div>
 
           {needsInput && (
-            <div className="space-y-1 text-xs">
-              <div className="text-gray-200">
+            <div className="space-y-2">
+              <p className="text-sm text-gray-200">
                 {requireInputLabel || '안전을 위해 아래에 확인 문구를 입력해주세요.'}
-              </div>
-              <input
-                type="text"
+              </p>
+              <Input
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                className="mt-1 w-full rounded border border-white/20 bg-black/40 px-2 py-1 text-sm text-gray-100 outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                className="bg-black/40 border-white/20 text-gray-100 focus-visible:ring-red-500/50"
+                placeholder={expectedInput}
               />
-              <div className="text-[10px] text-gray-400">
+              <p className="text-[10px] text-gray-400">
                 대소문자를 포함하여 정확히 입력해야 합니다.
-              </div>
+              </p>
             </div>
           )}
         </div>
 
-        <div className="flex gap-3 border-t border-white/10 px-5 py-3 text-sm">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 rounded border border-white/30 px-3 py-2 text-gray-100 hover:bg-white/10 transition-colors"
+        <DialogFooter className="flex-row gap-2 sm:justify-between sm:space-x-2">
+          <Button 
+            type="button" 
+            variant="secondary" 
+            onClick={onCancel} 
+            className="flex-1 border-white/30 text-gray-100 hover:bg-white/10 hover:text-white"
           >
             취소
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="destructive"
+            onClick={onConfirm}
             disabled={!canConfirm}
-            onClick={canConfirm ? onConfirm : undefined}
-            className={`flex-1 rounded px-3 py-2 font-semibold transition-colors ${
-              canConfirm
-                ? 'bg-red-600 text-white hover:bg-red-500'
-                : 'cursor-not-allowed bg-red-900/40 text-red-300/60'
-            }`}
+            className="flex-1 bg-red-600 hover:bg-red-500"
           >
-            확인
-          </button>
-        </div>
-      </div>
-    </div>
+            확인 (실행)
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -103,12 +103,13 @@ export const useGameStore = create<GameStore>((set) => ({
       if (data.cells && Array.isArray(data.cells)) {
         data.cells.forEach((cell: any) => {
           if (cell.type === 'star_system' && cell.label) {
+            const faction = !cell.faction || cell.faction === 'neutral' ? 'none' : cell.faction;
             starSystems.push({
               id: `sys-${cell.x}-${cell.y}`,
               name: cell.label,
               gridX: cell.x,
               gridY: cell.y,
-              faction: cell.faction || 'none',
+              faction,
               planets: []
             });
           }
@@ -126,7 +127,8 @@ export const useGameStore = create<GameStore>((set) => ({
             gridX: fleet.x,
             gridY: fleet.y,
             size: fleet.cpLoad?.mcp || 0,
-            status: fleet.status || 'idle'
+            status: fleet.status || 'idle',
+            unitCount: typeof fleet.totalShips === 'number' ? fleet.totalShips : undefined,
           });
         });
       }

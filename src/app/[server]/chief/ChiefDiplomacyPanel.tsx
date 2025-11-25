@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { SammoAPI, type ChiefNoticePayload } from '@/lib/api/sammo';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 interface ChiefDiplomacyPanelProps {
   serverID: string;
@@ -13,6 +14,7 @@ interface ChiefDiplomacyPanelProps {
 
 export default function ChiefDiplomacyPanel({ serverID, notices, onUpdate }: ChiefDiplomacyPanelProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [notice, setNotice] = useState('');
   const [scoutMsg, setScoutMsg] = useState('');
 
@@ -25,14 +27,14 @@ export default function ChiefDiplomacyPanel({ serverID, notices, onUpdate }: Chi
     try {
       const result = await SammoAPI.NationSetNotice({ msg: notice, serverID });
       if (result.result) {
-        alert('국가 공지가 변경되었습니다.');
+        showToast('국가 공지가 변경되었습니다.', 'success');
         onUpdate();
       } else {
-        alert(result.reason || '공지 변경 실패');
+        showToast(result.reason || '공지 변경 실패', 'error');
       }
     } catch (e) {
       console.error(e);
-      alert('오류가 발생했습니다.');
+      showToast('공지 변경 중 오류가 발생했습니다.', 'error');
     }
   };
 
@@ -40,14 +42,14 @@ export default function ChiefDiplomacyPanel({ serverID, notices, onUpdate }: Chi
     try {
       const result = await SammoAPI.NationSetScoutMsg({ msg: scoutMsg, serverID });
       if (result.result) {
-        alert('임관 권유 메시지가 변경되었습니다.');
+        showToast('임관 권유 메시지가 변경되었습니다.', 'success');
         onUpdate();
       } else {
-        alert(result.reason || '메시지 변경 실패');
+        showToast(result.reason || '메시지 변경 실패', 'error');
       }
     } catch (e) {
       console.error(e);
-      alert('오류가 발생했습니다.');
+      showToast('메시지 변경 중 오류가 발생했습니다.', 'error');
     }
   };
 

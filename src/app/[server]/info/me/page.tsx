@@ -4,11 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 export default function MyPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [basicInfo, setBasicInfo] = useState<any>(null);
@@ -68,13 +70,13 @@ export default function MyPage() {
       });
 
       if (result.result) {
-        alert('설정이 저장되었습니다.');
+        showToast('설정이 저장되었습니다.', 'success');
       } else {
-        alert(result.reason || '설정 저장에 실패했습니다.');
+        showToast(result.reason || '설정 저장에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('설정 저장에 실패했습니다.');
+      showToast('설정 저장에 실패했습니다.', 'error');
     } finally {
       setSaving(false);
     }

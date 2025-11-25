@@ -4,11 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import styles from './page.module.css';
 
 export default function InstallDBPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -27,7 +29,7 @@ export default function InstallDBPage() {
 
   async function handleSubmit() {
     if (!formData.db_name || !formData.db_user) {
-      alert('DB 이름과 사용자를 입력해주세요.');
+      showToast('DB 이름과 사용자를 입력해주세요.', 'warning');
       return;
     }
 
@@ -41,14 +43,14 @@ export default function InstallDBPage() {
       });
 
       if (result.result) {
-        alert('DB 설정이 완료되었습니다.');
+        showToast('DB 설정이 완료되었습니다.', 'success');
         router.push(`/${serverID}/install`);
       } else {
-        alert(result.reason || 'DB 설정에 실패했습니다.');
+        showToast(result.reason || 'DB 설정에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('DB 설정에 실패했습니다.');
+      showToast('DB 설정에 실패했습니다.', 'error');
     }
   }
 

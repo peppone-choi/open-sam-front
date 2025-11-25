@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { useGameStore } from '@/stores/gameStore';
 import { useGin7Store } from '@/stores/gin7Store';
 import { loghApi } from '@/lib/api/logh';
+import { useToast } from '@/contexts/ToastContext';
 
 /**
  * LOGH Game Screen
@@ -50,6 +51,7 @@ const FORMATION_NAME_MAP: Record<string, string> = {
 const formatNumber = (value: number | undefined | null) => (typeof value === 'number' ? value.toLocaleString() : '0');
 
 export default function LoghGamePage() {
+  const { showToast } = useToast();
   const [commander, setCommander] = useState<Commander | null>(null);
   const [fleet, setFleet] = useState<Fleet | null>(null);
   const [loading, setLoading] = useState(true);
@@ -115,10 +117,10 @@ export default function LoghGamePage() {
         });
       }
 
-      alert(`커맨드 "${commandName}" 실행 완료!`);
+      showToast(`커맨드 "${commandName}" 실행 완료!`, 'success');
       await loadGameData();
     } catch (error: any) {
-      alert(`커맨드 실행 실패: ${error.message ?? String(error)}`);
+      showToast(`커맨드 실행 실패: ${error.message ?? String(error)}`, 'error');
     }
   }
 

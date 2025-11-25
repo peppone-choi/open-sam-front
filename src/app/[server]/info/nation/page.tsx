@@ -2,18 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { SammoAPI } from '@/lib/api/sammo';
+import { SammoAPI, type NationInfo, type GetFrontInfoResponse } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import NationBasicCard from '@/components/cards/NationBasicCard';
-import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function NationInfoPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
-  const [nationData, setNationData] = useState<any>(null);
-  const [globalData, setGlobalData] = useState<any>(null);
+  const [nationData, setNationData] = useState<NationInfo | null>(null);
+  const [globalData, setGlobalData] = useState<GetFrontInfoResponse['global'] | null>(null);
 
   useEffect(() => {
     loadNationData();
@@ -30,14 +31,7 @@ export default function NationInfoPage() {
         lastGlobalHistoryID: 0,
       }).catch(() => null);
 
-      const nationResult = await SammoAPI.NationGetNationInfo({
-        serverID,
-        generalID: frontInfoResult?.general?.no,
-      }).catch(() => null);
-
-      if (nationResult?.result) {
-        setNationData(nationResult.nation);
-      } else if (frontInfoResult?.result && frontInfoResult.nation) {
+      if (frontInfoResult?.result && frontInfoResult.nation) {
         setNationData(frontInfoResult.nation);
       }
 
@@ -46,7 +40,7 @@ export default function NationInfoPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('세력 정보를 불러오는데 실패했습니다.');
+      showToast('세력 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

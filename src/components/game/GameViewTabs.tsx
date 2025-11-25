@@ -32,50 +32,25 @@ export default function GameViewTabs({
   mapData, 
   onCityClick 
 }: Props) {
-  const [activeTab, setActiveTab] = useState<TabType>('map');
+  // 삼국지 모드(현재 기본)에서는 전술맵 탭을 제거하고 전략맵만 표시
+  const activeTab: TabType = 'map';
 
   return (
     <div className={styles.container}>
-      {/* 탭 헤더 */}
-      <div className={styles.tabHeader}>
-        <button
-          className={`${styles.tabBtn} ${activeTab === 'map' ? styles.active : ''}`}
-          onClick={() => setActiveTab('map')}
-        >
-          <span className={styles.tabIcon}>🗺️</span>
-          <span className={styles.tabLabel}>전략 맵</span>
-        </button>
-        <button
-          className={`${styles.tabBtn} ${activeTab === 'tactical' ? styles.active : ''}`}
-          onClick={() => setActiveTab('tactical')}
-        >
-          <span className={styles.tabIcon}>⚔️</span>
-          <span className={styles.tabLabel}>전술 맵</span>
-        </button>
-      </div>
+      {/* 탭 헤더 제거 (단일 뷰 강제) */}
+      {/* <div className={styles.tabHeader}> ... </div> */}
 
-      {/* 탭 컨텐츠 */}
+      {/* 탭 컨텐츠 (항상 전략 맵) */}
       <div className={styles.tabContent}>
-        {activeTab === 'map' && (
-          <div className={styles.mapWrapper}>
-            <MapViewer
-              serverID={serverID}
-              mapData={mapData}
-              myCity={cityId}
-              onCityClick={onCityClick}
-              isFullWidth={true}
-            />
-          </div>
-        )}
-
-        {activeTab === 'tactical' && (
-          <TacticalMapPanel
+        <div className={styles.mapWrapper}>
+          <MapViewer
             serverID={serverID}
-            generalId={generalId}
-            cityId={cityId}
-            cityName={cityName}
+            mapData={mapData}
+            myCity={cityId}
+            onCityClick={onCityClick}
+            isFullWidth={true}
           />
-        )}
+        </div>
       </div>
     </div>
   );

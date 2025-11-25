@@ -4,11 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import styles from './page.module.css';
 
 export default function SecretBoardPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [articles, setArticles] = useState<any[]>([]);
@@ -26,7 +28,7 @@ export default function SecretBoardPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('기밀 게시물을 불러오는데 실패했습니다.');
+      showToast('기밀 게시물을 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 interface BoardArticle {
@@ -29,6 +30,7 @@ interface BoardComment {
 export default function BoardRequestPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   const [articles, setArticles] = useState<BoardArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +54,7 @@ export default function BoardRequestPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('게시물을 불러오는데 실패했습니다.');
+      showToast('게시물을 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -60,7 +62,7 @@ export default function BoardRequestPage() {
 
   async function submitArticle() {
     if (!newArticle.title || !newArticle.text) {
-      alert('제목과 내용을 입력해주세요.');
+      showToast('제목과 내용을 입력해주세요.', 'warning');
       return;
     }
 
@@ -77,11 +79,11 @@ export default function BoardRequestPage() {
         setIsWriting(false);
         await loadArticles();
       } else {
-        alert(result.reason || '게시물 등록에 실패했습니다.');
+        showToast(result.reason || '게시물 등록에 실패했습니다.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('게시물 등록에 실패했습니다.');
+      showToast('게시물 등록에 실패했습니다.', 'error');
     }
   }
 

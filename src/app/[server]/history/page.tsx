@@ -76,34 +76,34 @@ export default function HistoryPage() {
   const formattedYearMonth = historyData ? `${historyData.year}년 ${historyData.month}월` : '최근 기록';
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background-main p-4 font-sans text-foreground md:p-6 lg:p-8">
+    <div className="relative min-h-screen overflow-hidden bg-gray-950 p-4 font-sans text-gray-100 md:p-6 lg:p-8">
       <div className="pointer-events-none absolute inset-0 bg-hero-pattern opacity-20" />
       <div className="pointer-events-none absolute -top-28 right-0 h-80 w-80 rounded-full bg-violet-500/20 blur-[160px]" />
 
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col gap-6">
         <TopBackBar title="연감" reloadable onReload={loadHistory} />
 
-        <div className="rounded-2xl border border-white/5 bg-background-secondary/70 p-5 shadow-lg">
-          <label className="text-sm font-semibold text-foreground">{INFO_TEXT.history.filterLabel}</label>
+        <div className="rounded-2xl border border-white/5 bg-gray-900/70 p-5 shadow-lg">
+          <label className="text-sm font-semibold text-gray-100">{INFO_TEXT.history.filterLabel}</label>
           <div className="mt-3 flex flex-col gap-3 md:flex-row">
             <input
               type="text"
               value={yearMonth}
               onChange={(e) => setYearMonth(e.target.value)}
               placeholder={INFO_TEXT.history.filterPlaceholder}
-              className="w-full rounded-lg border border-white/10 bg-background-tertiary/40 px-4 py-2.5 text-sm text-white placeholder-foreground-dim focus:border-primary/50 focus:outline-none"
+              className="w-full rounded-lg border border-white/10 bg-gray-800/40 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-blue-500/50 focus:outline-none"
             />
             <button
               type="button"
               onClick={loadHistory}
-              className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-hover"
+              className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500"
             >
               조회
             </button>
             {detailPath && (
               <Link
                 href={detailPath}
-                className="rounded-lg border border-white/10 px-6 py-2.5 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-white"
+                className="rounded-lg border border-white/10 px-6 py-2.5 text-sm font-semibold text-gray-100 transition hover:border-blue-500/40 hover:text-white"
               >
                 상세 보기
               </Link>
@@ -156,7 +156,7 @@ export default function HistoryPage() {
             />
           </>
         ) : (
-          <div className="flex flex-col items-center gap-2 text-foreground-muted">
+          <div className="flex flex-col items-center gap-2 text-gray-400">
             <div className="text-4xl">🗒️</div>
             <p>연감 데이터를 찾을 수 없습니다.</p>
           </div>

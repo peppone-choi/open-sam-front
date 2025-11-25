@@ -44,6 +44,11 @@ export interface Fleet {
   gridY: number;
   size: number;
   status: 'idle' | 'moving' | 'battle';
+  /**
+   * Backend-derived unit count (IFleet.totalShips).
+   * Used for 300-unit grid limit checks when available.
+   */
+  unitCount?: number;
 }
 
 // Job Authority Card (P.26)

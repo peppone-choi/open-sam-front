@@ -4,12 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
+import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
 
 export default function EmperiorDetailPage() {
   const params = useParams();
   const serverID = params?.server as string;
   const id = params?.id as string;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [emperiorDetail, setEmperiorDetail] = useState<any>(null);
@@ -31,7 +33,7 @@ export default function EmperiorDetailPage() {
       }
     } catch (err) {
       console.error(err);
-      alert('왕조 상세 정보를 불러오는데 실패했습니다.');
+      showToast('왕조 상세 정보를 불러오는데 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }

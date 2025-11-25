@@ -108,8 +108,8 @@ function HistoryYearMonthContent() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background-main p-4 font-sans text-foreground md:p-6 lg:p-8">
-      <div className="pointer-events-none absolute inset-0 bg-hero-pattern opacity-20" />
+    <div className="relative min-h-screen overflow-hidden bg-gray-950 p-4 font-sans text-gray-100 md:p-6 lg:p-8">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(55,65,81,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(55,65,81,0.1)_1px,transparent_1px)] bg-[size:14px_24px] opacity-20" />
       <div className="pointer-events-none absolute -top-32 left-1/4 h-72 w-72 rounded-full bg-blue-500/20 blur-[140px]" />
 
       <div className="relative z-10">
@@ -154,24 +154,24 @@ function HistoryYearMonthContent() {
             </div>
 
             {hasMapSnapshot(historyData.map) && (
-              <div className="overflow-hidden rounded-2xl border border-white/5 bg-background-secondary/70 shadow-lg">
-                <div className="border-b border-white/5 bg-primary/10 px-6 py-3 text-lg font-semibold text-primary">
+              <div className="overflow-hidden rounded-2xl border border-white/5 bg-gray-900/70 shadow-lg">
+                <div className="border-b border-white/5 bg-blue-500/10 px-6 py-3 text-lg font-semibold text-blue-300">
                   천하도 스냅샷
                 </div>
-                <div className="h-[520px] bg-background-tertiary/40">
+                <div className="h-[520px] bg-gray-800/40">
                   <MapViewer serverID={queryServerID} mapData={historyData.map} isFullWidth />
                 </div>
               </div>
             )}
 
             {historyData.nations && historyData.nations.length > 0 && (
-              <div className="overflow-hidden rounded-2xl border border-white/5 bg-background-secondary/70 shadow-lg">
+              <div className="overflow-hidden rounded-2xl border border-white/5 bg-gray-900/70 shadow-lg">
                 <div className="border-b border-white/5 bg-emerald-500/10 px-6 py-3 text-lg font-semibold text-emerald-200">
                   {INFO_TEXT.history.nationTableTitle}
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-white/5 text-foreground">
+                    <thead className="bg-white/5 text-gray-100">
                       <tr>
                         <th className="px-4 py-3 text-left">국가</th>
                         <th className="px-4 py-3 text-right">국력</th>
@@ -197,7 +197,7 @@ function HistoryYearMonthContent() {
                             {(nation.power ?? 0).toLocaleString()}
                           </td>
                           <td className="px-4 py-3 text-right font-mono text-blue-200">{(nation.gennum ?? 0).toLocaleString()}</td>
-                          <td className="px-4 py-3 text-right text-foreground-muted">{nation.cities?.length ?? 0}</td>
+                          <td className="px-4 py-3 text-right text-gray-400">{nation.cities?.length ?? 0}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -214,7 +214,7 @@ function HistoryYearMonthContent() {
             />
           </div>
         ) : (
-          <div className="mt-20 flex flex-col items-center gap-2 text-foreground-muted">
+          <div className="mt-20 flex flex-col items-center gap-2 text-gray-400">
             <div className="text-4xl">🗒️</div>
             <p>연감 데이터를 찾을 수 없습니다.</p>
           </div>
@@ -228,7 +228,7 @@ export default function HistoryYearMonthPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-background-main">
+        <div className="flex min-h-screen items-center justify-center bg-gray-950">
           <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-white" />
         </div>
       }
