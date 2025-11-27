@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import TopBackBar from '@/components/common/TopBackBar';
+import SelectColor from '../SelectColor';
 import styles from './CommandForm.module.css';
 
 interface NationType {
@@ -128,25 +129,12 @@ export default function FoundNationCommandForm({
           </div>
           <div className={styles.formField}>
             <label>색상:</label>
-            <div className={styles.colorSelect}>
-              <select
-                className={styles.selectInput}
-                value={selectedColorID}
-                onChange={(e) => setSelectedColorID(Number(e.target.value))}
-              >
-                {colors.map((color, idx) => (
-                  <option key={idx} value={idx}>
-                    색상 {idx + 1}
-                  </option>
-                ))}
-              </select>
-              <div
-                className={styles.colorPreview}
-                style={{ backgroundColor: colors[selectedColorID] || '#808080' }}
-              >
-                {colors[selectedColorID] || '#808080'}
-              </div>
-            </div>
+            <SelectColor
+              value={selectedColorID}
+              colors={colors}
+              onChange={setSelectedColorID}
+              placeholder="색상 선택"
+            />
           </div>
           <div className={styles.formField}>
             <label>성향:</label>

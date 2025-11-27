@@ -1,7 +1,12 @@
 'use client';
 
 import React from 'react';
-import { TROOP_ICONS, BATTLE_VOXELS, TERRAIN_TILES, TACTICAL_OBJECTS } from '@/constants/assets';
+import { UNIT_ASSETS, TERRAIN_TILES, TACTICAL_OBJECTS } from '@/constants/assets';
+// @ts-ignore - Dynamic import for optional component
+import VoxelViewer from '@/components/game/VoxelViewer';
+
+// Fallback for optional BATTLE_VOXELS
+const BATTLE_VOXELS: Record<string, string> = {};
 
 export default function AssetGalleryPage() {
     return (
@@ -9,22 +14,29 @@ export default function AssetGalleryPage() {
             <h1 className="text-3xl font-bold mb-8 text-center">Asset Gallery</h1>
 
             <section className="mb-12">
-                <h2 className="text-2xl font-bold mb-4 border-b border-gray-700 pb-2">Troop Icons (2D UI)</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {Object.entries(TROOP_ICONS).map(([key, path]) => (
-                        <div key={key} className="bg-gray-800 p-4 rounded-lg flex flex-col items-center">
-                            <div className="w-16 h-16 bg-gray-700 rounded mb-2 flex items-center justify-center overflow-hidden">
-                                <img
-                                    src={path}
-                                    alt={key}
-                                    className="w-full h-full object-contain"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
-                                        (e.target as HTMLImageElement).parentElement!.innerText = 'MISSING';
-                                    }}
-                                />
+                <h2 className="text-2xl font-bold mb-4 border-b border-gray-700 pb-2">Troop Assets (ID Mapped)</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                    {Object.entries(UNIT_ASSETS).map(([id, assets]) => (
+                        <div key={id} className="bg-gray-800 p-4 rounded-lg flex flex-col items-center gap-3">
+                            <div className="flex gap-2">
+                                {/* Icon */}
+                                <div className="w-12 h-12 bg-gray-700 rounded flex items-center justify-center overflow-hidden border border-white/10" title="2D Icon">
+                                    <img
+                                        src={assets.icon}
+                                        alt={`Icon ${id}`}
+                                        className="w-full h-full object-contain"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                            (e.target as HTMLImageElement).parentElement!.innerText = 'ICON';
+                                        }}
+                                    />
+                                </div>
+                                {/* Voxel */}
+                                <div className="w-12 h-12 flex items-center justify-center" title="3D Voxel">
+                                    <VoxelViewer imageUrl={assets.icon} size={48} />
+                                </div>
                             </div>
-                            <span className="text-xs text-gray-400 font-mono text-center">{key}</span>
+                            <span className="text-xs text-gray-400 font-mono text-center">ID: {id}</span>
                         </div>
                     ))}
                 </div>

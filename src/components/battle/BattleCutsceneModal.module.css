@@ -20,11 +20,11 @@
 .cutsceneContainer {
   position: relative;
   display: flex;
-  gap: 2rem;
-  background: linear-gradient(to bottom, #1a1a2e, #16213e);
-  border: 3px solid #d4af37;
-  border-radius: 12px;
-  padding: 2rem;
+  gap: var(--space-xl);
+  background: var(--battle-bg);
+  border: 3px solid var(--battle-gold-alt);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
   min-width: 900px;
   min-height: 400px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
@@ -35,7 +35,7 @@
   top: 10px;
   right: 20px;
   color: rgba(255, 255, 255, 0.5);
-  font-size: 0.85rem;
+  font-size: var(--font-size-sm);
 }
 
 /* 유닛 패널 */
@@ -44,7 +44,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: var(--gap-md);
   transition: all 0.3s ease-out;
 }
 
@@ -62,8 +62,8 @@
   position: relative;
   width: 150px;
   height: 150px;
-  border: 3px solid #666;
-  border-radius: 8px;
+  border: 3px solid var(--game-panel-border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
@@ -81,10 +81,10 @@
   left: -5px;
   right: -5px;
   bottom: -5px;
-  border: 3px solid #d4af37;
-  border-radius: 8px;
+  border: 3px solid var(--battle-gold-alt);
+  border-radius: var(--radius-lg);
   box-shadow: 
-    0 0 20px #d4af37, 
+    0 0 20px var(--battle-gold-alt), 
     inset 0 0 20px rgba(212, 175, 55, 0.3);
   animation: pulse 0.5s infinite;
   pointer-events: none;
@@ -94,13 +94,13 @@
   0%, 100% { 
     opacity: 1;
     box-shadow: 
-      0 0 20px #d4af37, 
+      0 0 20px var(--battle-gold-alt), 
       inset 0 0 20px rgba(212, 175, 55, 0.3);
   }
   50% { 
     opacity: 0.6;
     box-shadow: 
-      0 0 30px #d4af37, 
+      0 0 30px var(--battle-gold-alt), 
       inset 0 0 30px rgba(212, 175, 55, 0.5);
   }
 }
@@ -133,11 +133,11 @@
   align-items: center;
   justify-content: center;
   font-size: 2rem;
-  color: #ff0000;
-  font-weight: bold;
+  color: var(--battle-damage);
+  font-weight: var(--font-weight-bold);
   text-shadow: 
     0 0 10px black,
-    0 0 20px #ff0000;
+    0 0 20px var(--battle-damage);
   animation: deathFadeIn 0.5s;
 }
 
@@ -154,45 +154,45 @@
 
 /* 유닛 정보 */
 .unitInfo {
-  color: white;
+  color: var(--text-main);
   text-align: center;
   min-width: 200px;
 }
 
 .generalName {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #d4af37;
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--battle-gold-alt);
+  margin-bottom: var(--space-sm);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .unitType {
-  font-size: 1rem;
-  color: #aaa;
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-md);
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
 }
 
 .stats {
   display: flex;
-  gap: 1rem;
+  gap: var(--gap-md);
   justify-content: center;
-  font-size: 0.9rem;
-  color: #ccc;
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
 }
 
 .stats div {
   background: rgba(255, 255, 255, 0.1);
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  padding: var(--pad-1) var(--pad-2);
+  border-radius: var(--radius-sm);
 }
 
 .crew {
-  font-size: 1.1rem;
-  color: white;
-  font-weight: bold;
-  margin-top: 0.5rem;
+  font-size: var(--font-size-lg);
+  color: var(--text-main);
+  font-weight: var(--font-weight-bold);
+  margin-top: var(--space-sm);
 }
 
 /* 애니메이션 영역 */
@@ -207,11 +207,11 @@
 
 .resultText {
   font-size: 3rem;
-  font-weight: bold;
-  color: #ff0000;
+  font-weight: var(--font-weight-bold);
+  color: var(--battle-damage);
   text-shadow: 
     0 0 20px black,
-    0 0 40px #ff0000;
+    0 0 40px var(--battle-damage);
   animation: resultPulse 0.5s;
 }
 

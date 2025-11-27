@@ -1,0 +1,49 @@
+.container {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 0.25rem;
+}
+
+.distanceGroup {
+  margin-bottom: 0.5rem;
+  line-height: 1.8;
+}
+
+.distanceLabel {
+  color: #adb5bd;
+  margin-right: 0.25rem;
+}
+
+.cityLink {
+  cursor: pointer;
+  text-decoration: underline;
+  transition: opacity 0.2s;
+}
+
+.cityLink:hover {
+  opacity: 0.8;
+}
+
+/* 거리별 색상 */
+.distance1 {
+  color: magenta;
+}
+
+.distance2 {
+  color: orange;
+}
+
+.distance3 {
+  color: yellow;
+}
+
+.distanceDefault {
+  color: #6c757d;
+}
+
+.separator {
+  color: #6c757d;
+  margin: 0 0.25rem;
+}
+

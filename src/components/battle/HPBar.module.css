@@ -2,9 +2,9 @@
   position: relative;
   width: 200px;
   height: 24px;
-  background: #333;
-  border: 2px solid #666;
-  border-radius: 4px;
+  background: var(--game-grid-border);
+  border: 2px solid var(--game-panel-border);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -13,7 +13,7 @@
   top: 0;
   left: 0;
   height: 100%;
-  background: linear-gradient(to bottom, #ff4444, #cc0000);
+  background: var(--battle-hp-fill);
   transition: width 0.5s ease-out;
 }
 
@@ -26,9 +26,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-weight: bold;
-  font-size: 0.9rem;
+  color: var(--text-main);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
   text-shadow: 0 0 3px black;
   z-index: 1;
 }

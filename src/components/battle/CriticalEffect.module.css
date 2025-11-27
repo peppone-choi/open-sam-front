@@ -12,12 +12,12 @@
 .criticalText {
   position: absolute;
   font-size: 3rem;
-  font-weight: bold;
-  color: #ff0000;
+  font-weight: var(--font-weight-bold);
+  color: var(--battle-damage);
   text-shadow: 
-    0 0 10px #ffff00,
-    0 0 20px #ff0000,
-    0 0 30px #ff0000,
+    0 0 10px var(--battle-critical),
+    0 0 20px var(--battle-damage),
+    0 0 30px var(--battle-damage),
     2px 2px 4px rgba(0, 0, 0, 0.8);
   animation: criticalBounce 0.6s ease-out;
 }
@@ -59,10 +59,10 @@
 .criticalStar {
   position: absolute;
   font-size: 6rem;
-  color: #ffff00;
+  color: var(--battle-critical);
   text-shadow: 
-    0 0 20px #ffff00,
-    0 0 40px #ff0000;
+    0 0 20px var(--battle-critical),
+    0 0 40px var(--battle-damage);
   animation: starSpin 0.8s ease-out;
   opacity: 0;
 }

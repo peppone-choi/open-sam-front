@@ -1,0 +1,279 @@
+/* 군대 이동 마커 스타일 */
+
+.movementContainer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* SVG 경로 */
+.pathSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.pathLine {
+  stroke-width: 2;
+  fill: none;
+}
+
+.pathBackground {
+  opacity: 0.3;
+  stroke-dasharray: 8 4;
+  animation: dashMove 1s linear infinite;
+}
+
+.pathProgress {
+  opacity: 0.8;
+  stroke-width: 3;
+}
+
+.arrowLine {
+  stroke-width: 1;
+  opacity: 0.5;
+  stroke-dasharray: 4 4;
+}
+
+@keyframes dashMove {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+/* 군대 마커 */
+.troopMarker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--nation-color) 0%, rgba(0,0,0,0.3) 100%);
+  border: 2px solid var(--nation-color);
+  box-shadow: 
+    0 2px 8px rgba(0,0,0,0.4),
+    0 0 12px var(--nation-color);
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 60;
+}
+
+.troopMarker:hover,
+.troopMarker.hovered {
+  transform: translate(-50%, -50%) scale(1.2);
+  box-shadow: 
+    0 4px 16px rgba(0,0,0,0.5),
+    0 0 20px var(--nation-color);
+  z-index: 70;
+}
+
+.troopMarker.selected {
+  transform: translate(-50%, -50%) scale(1.3);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* 상태별 스타일 */
+.troopMarker.scheduled {
+  opacity: 0.7;
+  border-style: dashed;
+}
+
+.troopMarker.marching {
+  animation: march 0.5s ease-in-out infinite alternate;
+}
+
+.troopMarker.arriving {
+  animation: arrive 0.3s ease-in-out infinite;
+}
+
+.troopMarker.completed {
+  opacity: 0.5;
+}
+
+/* 아군/적군 스타일 */
+.troopMarker.friendly {
+  /* 기본 스타일 */
+}
+
+.troopMarker.enemy {
+  border-color: #ff4444;
+  box-shadow: 
+    0 2px 8px rgba(255,0,0,0.4),
+    0 0 12px rgba(255,0,0,0.6);
+}
+
+/* 방향 표시 */
+.directionIndicator {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(var(--angle));
+  font-size: 14px;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  opacity: 0.9;
+}
+
+/* 타입 아이콘 */
+.typeIcon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* 병력 수 */
+.troopCount {
+  font-size: 8px;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+/* 도시 마커 */
+.cityMarker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid;
+  background: transparent;
+  opacity: 0.6;
+  z-index: 55;
+}
+
+.cityMarker.destination {
+  animation: destinationPulse 1.5s ease-in-out infinite;
+}
+
+/* 툴팁 */
+.tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  min-width: 150px;
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  z-index: 100;
+  pointer-events: none;
+}
+
+.tooltipHeader {
+  padding: 6px 10px;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.tooltipBody {
+  padding: 8px 10px;
+  color: #e0e0e0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.progressBar {
+  height: 4px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+  margin: 6px 0 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.progressText {
+  text-align: right;
+  font-size: 10px;
+  color: #aaa;
+}
+
+/* 애니메이션 */
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 
+      0 2px 8px rgba(0,0,0,0.4),
+      0 0 12px var(--nation-color);
+  }
+  50% {
+    box-shadow: 
+      0 4px 16px rgba(0,0,0,0.6),
+      0 0 24px var(--nation-color);
+  }
+}
+
+@keyframes march {
+  0% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  100% {
+    transform: translate(-50%, -50%) translateY(-3px);
+  }
+}
+
+@keyframes arrive {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+@keyframes destinationPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .troopMarker {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .typeIcon {
+    font-size: 10px;
+  }
+  
+  .troopCount {
+    font-size: 7px;
+  }
+  
+  .tooltip {
+    min-width: 120px;
+  }
+  
+  .tooltipHeader,
+  .tooltipBody {
+    font-size: 10px;
+  }
+}
+

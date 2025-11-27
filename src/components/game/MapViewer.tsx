@@ -3,14 +3,26 @@
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback } from 'react';
 import { type GetMapResponse } from '@/lib/api/sammo';
 import MapCityDetail from './MapCityDetail';
+import MovementLayer from './MovementLayer';
+import { TroopMovement, MovementFilterOptions } from '@/types/movement';
 import styles from './MapViewer.module.css';
 
 interface MapViewerProps {
   serverID: string;
   mapData: GetMapResponse;
   myCity?: number;
+  myGeneralIds?: number[]; // 내 장수들의 ID
   onCityClick?: (cityId: number) => void;
   isFullWidth?: boolean; // 전체 너비 사용 여부
+  
+  // 군대 이동 시각화
+  movements?: TroopMovement[];
+  showMovements?: boolean;
+  movementFilter?: MovementFilterOptions;
+  onMovementClick?: (movement: TroopMovement) => void;
+  onCancelMovement?: (movementId: string) => Promise<void>;
+  onGoToCommandScreen?: (generalId: number) => void; // 커맨드 예약 화면으로 이동
+  onTrackMovement?: (movement: TroopMovement) => void;
 }
 
 interface ParsedCity {
@@ -29,9 +41,24 @@ interface ParsedCity {
   clickable: number;
 }
 
-export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFullWidth = true }: MapViewerProps) {
+export default function MapViewer({ 
+  serverID, 
+  mapData, 
+  myCity, 
+  myGeneralIds = [],
+  onCityClick, 
+  isFullWidth = true,
+  movements = [],
+  showMovements = true,
+  movementFilter,
+  onMovementClick,
+  onCancelMovement,
+  onGoToCommandScreen,
+  onTrackMovement,
+}: MapViewerProps) {
   // serverID는 이미 props에 포함되어 있음
   const [hideCityName, setHideCityName] = useState(false);
+  const [showMovementLayer, setShowMovementLayer] = useState(showMovements);
   const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
   const [activatedCity, setActivatedCity] = useState<{
     id: number;
@@ -367,6 +394,22 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
             도시가 없습니다. parsedCities: {parsedCities.length}
           </div>
         )}
+        {/* 군대 이동 레이어 */}
+        {showMovementLayer && movements.length > 0 && (
+          <MovementLayer
+            movements={movements}
+            currentTurn={(mapData as any).turn ?? 0}
+            myNationId={mapData.myNation ?? undefined}
+            myGeneralIds={myGeneralIds}
+            filter={movementFilter}
+            isFullWidth={isFullWidth}
+            onMovementClick={onMovementClick}
+            onCancelMovement={onCancelMovement}
+            onGoToCommandScreen={onGoToCommandScreen}
+            onTrackOnMap={onTrackMovement}
+          />
+        )}
+        
         {/* 버튼 스택 (가장 위) */}
         <div className={styles.mapButtonStack}>
           <button
@@ -378,6 +421,17 @@ export default function MapViewer({ serverID, mapData, myCity, onCityClick, isFu
           >
             도시명 표시: {hideCityName ? 'OFF' : 'ON'}
           </button>
+          {movements.length > 0 && (
+            <button
+              type="button"
+              className={`btn btn-secondary btn-sm btn-minimum ${showMovementLayer ? 'active' : ''}`}
+              onClick={() => {
+                setShowMovementLayer(!showMovementLayer);
+              }}
+            >
+              군대이동: {showMovementLayer ? 'ON' : 'OFF'}
+            </button>
+          )}
           <button
             type="button"
             className="btn btn-primary btn-sm btn-minimum"

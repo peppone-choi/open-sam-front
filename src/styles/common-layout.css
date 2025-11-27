@@ -1,5 +1,15 @@
-/* 공통 게임 페이지 레이아웃 스타일 */
+/**
+ * 공통 게임 페이지 레이아웃 스타일
+ * 
+ * 의존성: globals.css의 CSS 변수 정의 필요
+ * - 색상: --color-surface, --color-border, --color-text, --accent
+ * - 간격: --space-*, --gap-*, --pad-*
+ * - 반경: --radius-*
+ * - 그림자: --shadow-*
+ * - 전환: --motion-*, --easing-*
+ */
 
+/* 레이아웃 전용 변수 */
 :root {
   --layout-max-width: 1100px;
   --layout-padding: var(--space-lg);

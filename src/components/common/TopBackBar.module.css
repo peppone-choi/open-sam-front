@@ -52,3 +52,44 @@
 .btn:active {
     transform: translateY(0);
 }
+
+/* Vue 호환 레이아웃 - 그리드 기반 */
+.topBackBar {
+    display: grid;
+    grid-template-columns: 90px 90px 1fr 90px 90px;
+    max-width: 1000px;
+    width: 100%;
+    margin: auto;
+    height: 32px;
+}
+
+.topBackBarTeleport {
+    grid-template-columns: 90px 90px 1fr 180px;
+}
+
+.teleportZone {
+    height: 32px;
+}
+
+.btnToggle {
+    position: relative;
+}
+
+.btnToggleOn {
+    background: var(--color-info, #0dcaf0);
+    color: #000;
+    border-color: var(--color-info, #0dcaf0);
+}
+
+.btnToggleOn:hover {
+    background: var(--color-info-hover, #31d2f2);
+    border-color: var(--color-info-hover, #31d2f2);
+}
+
+/* 타이틀 중앙 정렬 */
+.title {
+    text-align: center;
+    line-height: 32px;
+    font-size: 18px;
+    margin: 0;
+}

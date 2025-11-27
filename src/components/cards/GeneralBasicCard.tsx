@@ -5,6 +5,7 @@ import SammoBar from '../game/SammoBar';
 
 import NationFlag from '../common/NationFlag';
 import { Badge } from "@/components/ui/badge";
+import { Tooltip } from "@/components/ui/tooltip";
 import { formatInjury } from '@/utils/formatInjury';
 import { calcInjury } from '@/utils/calcInjury';
 import { formatGeneralTypeCall } from '@/utils/formatGeneralTypeCall';
@@ -12,6 +13,22 @@ import { TroopIconDisplay } from '../common/TroopIconDisplay';
 import type { ColorSystem } from '@/types/colorSystem';
 import { getCrewTypeDisplayName } from '@/utils/unitTypeMapping';
 import { useUnitConst } from '@/hooks/useUnitConst';
+
+/** 아이템/특기 등의 상세 정보 타입 (Vue의 GameIActionInfo 대응) */
+export interface ActionInfo {
+  value: string;
+  name: string;
+  info?: string;
+}
+
+/** 아이템 정보 맵 타입 */
+export interface ItemInfoMap {
+  item?: Record<string, ActionInfo>;
+  crewtype?: Record<string, ActionInfo>;
+  personality?: Record<string, ActionInfo>;
+  specialDomestic?: Record<string, ActionInfo>;
+  specialWar?: Record<string, ActionInfo>;
+}
 
 interface GeneralBasicCardProps {
   general: {
@@ -50,9 +67,14 @@ interface GeneralBasicCardProps {
     atmos?: number;
     specialDomestic?: string;
     specialWar?: string;
+    /** 내정 특기 습득 가능 연령 */
+    specage?: number;
+    /** 전투 특기 습득 가능 연령 */
+    specage2?: number;
     explevel?: number;
     experience?: number;
     age?: number;
+    city?: number;
     defence_train?: number;
     killturn?: number;
     troop?: number;
@@ -94,6 +116,8 @@ interface GeneralBasicCardProps {
     name: string;
   } | number | string | null;
   turnTerm?: number;
+  /** 마지막 턴 실행 시간 (서버 시간 기준) - Vue와 동일한 정확한 계산을 위해 */
+  lastExecuted?: Date;
   gameConst?: {
     chiefStatMin?: number;
     statGradeLevel?: number;
@@ -102,6 +126,8 @@ interface GeneralBasicCardProps {
   };
   cityConst?: Record<number, { name: string }>;
   colorSystem?: ColorSystem;
+  /** 아이템/병종/성격/특기 상세 정보 (tooltip용) */
+  itemInfo?: ItemInfoMap;
 }
 
 // 경험치 임계값 (기본값)
@@ -135,6 +161,54 @@ function getItemName(item: string | undefined | any): string {
     return '-';
   }
   return String(item);
+}
+
+/**
+ * 아이템 정보 조회 (이름 + tooltip 정보)
+ * Vue의 gameConstStore.iActionInfo 동작을 대체
+ */
+function getItemInfo(
+  itemKey: string | undefined,
+  infoMap: Record<string, ActionInfo> | undefined
+): { name: string; info?: string } {
+  if (!itemKey || itemKey === 'None') {
+    return { name: '-' };
+  }
+  
+  if (infoMap && infoMap[itemKey]) {
+    return {
+      name: infoMap[itemKey].name,
+      info: infoMap[itemKey].info || undefined
+    };
+  }
+  
+  return { name: getItemName(itemKey) };
+}
+
+/**
+ * 특기 정보 조회 (특기가 없으면 습득 가능 연령 표시)
+ * Vue의 specialDomestic/specialWar 처리 로직 대체
+ */
+function getSpecialInfo(
+  specialKey: string | undefined,
+  age: number,
+  specage: number | undefined,
+  infoMap: Record<string, ActionInfo> | undefined
+): { name: string; info?: string } {
+  if (!specialKey || specialKey === 'None') {
+    // 특기가 없으면 습득 가능 연령 표시 (Vue 동작과 동일)
+    const targetAge = Math.max(age + 1, specage || 0);
+    return { name: `${targetAge}세`, info: '특기 습득 가능 연령' };
+  }
+  
+  if (infoMap && infoMap[specialKey]) {
+    return {
+      name: infoMap[specialKey].name,
+      info: infoMap[specialKey].info || undefined
+    };
+  }
+  
+  return { name: getItemName(specialKey) };
 }
 
 function getCrewtypeId(crewtype: GeneralBasicCardProps['general']['crewtype']): number | null {
@@ -208,9 +282,11 @@ export default function GeneralBasicCard({
   nation, 
   troopInfo,
   turnTerm = 60,
+  lastExecuted,
   gameConst,
   cityConst,
-  colorSystem
+  colorSystem,
+  itemInfo
 }: GeneralBasicCardProps) {
   const [showStacks, setShowStacks] = useState(false);
   const normalizedTroopInfo = useMemo(() => {
@@ -255,28 +331,73 @@ export default function GeneralBasicCard({
       ? (colorSystem?.warning || 'yellow') 
       : (colorSystem?.error || 'red');
 
+  // Vue와 동일한 nextExecuteMinute 계산 로직
+  // lastExecuted가 있으면 서버 시간 기준으로 정확히 계산
   const nextExecuteMinute = useMemo(() => {
     if (!general.turntime) return 0;
     
-    const turnTime = typeof general.turntime === 'string' 
-      ? new Date(general.turntime) 
-      : (general.turntime instanceof Date ? general.turntime : new Date());
+    let turnTime: Date;
+    if (typeof general.turntime === 'string') {
+      // "YYYY-MM-DD HH:MM:SS" 형식 파싱
+      turnTime = new Date(general.turntime.replace(' ', 'T'));
+      if (isNaN(turnTime.getTime())) {
+        turnTime = new Date(general.turntime);
+      }
+    } else if (general.turntime instanceof Date) {
+      turnTime = general.turntime;
+    } else {
+      return 0;
+    }
     
+    // Vue 로직: lastExecuted가 있으면 서버 시간 기준으로 계산
+    if (lastExecuted) {
+      if (turnTime.getTime() < lastExecuted.getTime()) {
+        // turntime이 lastExecuted보다 이전이면 turnTerm만큼 더함
+        turnTime = new Date(turnTime.getTime() + turnTerm * 60000);
+      }
+      const remainingMs = turnTime.getTime() - lastExecuted.getTime();
+      return Math.max(0, Math.min(999, Math.floor(remainingMs / 60000)));
+    }
+    
+    // lastExecuted가 없으면 클라이언트 시간 기준으로 계산 (fallback)
     const now = new Date();
     const remainingMs = turnTime.getTime() - now.getTime();
     
     if (remainingMs <= 0) {
       const nextTurnTime = new Date(turnTime.getTime() + turnTerm * 60000);
       const nextRemainingMs = nextTurnTime.getTime() - now.getTime();
-      return Math.max(0, Math.floor(nextRemainingMs / 60000));
+      return Math.max(0, Math.min(999, Math.floor(nextRemainingMs / 60000)));
     }
     
-    return Math.max(0, Math.floor(remainingMs / 60000));
-  }, [general.turntime, turnTerm]);
+    return Math.max(0, Math.min(999, Math.floor(remainingMs / 60000)));
+  }, [general.turntime, turnTerm, lastExecuted]);
 
   const nextExp = nextExpLevelRemain(general.experience || 0, general.explevel || 0);
 
   const officerCityName = general.officer_city && cityConst?.[general.officer_city]?.name || '';
+
+  // 아이템 정보 (이름 + tooltip)
+  const horseInfo = useMemo(() => getItemInfo(general.horse, itemInfo?.item), [general.horse, itemInfo?.item]);
+  const weaponInfo = useMemo(() => getItemInfo(general.weapon, itemInfo?.item), [general.weapon, itemInfo?.item]);
+  const bookInfo = useMemo(() => getItemInfo(general.book, itemInfo?.item), [general.book, itemInfo?.item]);
+  const itemInfoData = useMemo(() => getItemInfo(general.item, itemInfo?.item), [general.item, itemInfo?.item]);
+  const personalInfo = useMemo(() => getItemInfo(general.personal, itemInfo?.personality), [general.personal, itemInfo?.personality]);
+  const crewtypeInfo = useMemo(() => getItemInfo(
+    typeof general.crewtype === 'string' ? general.crewtype : 
+    typeof general.crewtype === 'number' ? String(general.crewtype) : 
+    general.crewtype?.id ? String(general.crewtype.id) : undefined,
+    itemInfo?.crewtype
+  ), [general.crewtype, itemInfo?.crewtype]);
+
+  // 특기 정보 (특기가 없으면 습득 가능 연령 표시)
+  const specialDomesticInfo = useMemo(() => 
+    getSpecialInfo(general.specialDomestic, age, general.specage, itemInfo?.specialDomestic),
+    [general.specialDomestic, age, general.specage, itemInfo?.specialDomestic]
+  );
+  const specialWarInfo = useMemo(() => 
+    getSpecialInfo(general.specialWar, age, general.specage2, itemInfo?.specialWar),
+    [general.specialWar, age, general.specage2, itemInfo?.specialWar]
+  );
   const unitStacks = general.unitStacks;
   const totalStackTroops = unitStacks?.totalTroops;
   const totalStackCount = unitStacks?.stackCount ?? unitStacks?.stacks?.length ?? 0;
@@ -353,10 +474,12 @@ export default function GeneralBasicCard({
                   ))}
                 </div>
               ) : (
-                <Badge variant="outline" className="gap-1.5 font-normal">
-                  {crewtypeId ? <TroopIconDisplay crewtype={crewtypeId} size={16} /> : null}
-                  <span>{crewtypeLabel}</span>
-                </Badge>
+                <Tooltip content={crewtypeInfo.info}>
+                  <Badge variant="outline" className="gap-1.5 font-normal cursor-help">
+                    {crewtypeId ? <TroopIconDisplay crewtype={crewtypeId} size={16} /> : null}
+                    <span>{crewtypeLabel}</span>
+                  </Badge>
+                </Tooltip>
               )}
               {canToggleStacks ? (
                 <button 
@@ -511,13 +634,25 @@ export default function GeneralBasicCard({
 
         <div className="col-start-2 row-start-3 grid grid-cols-[auto_1fr] content-start px-4 py-3 gap-y-1.5 gap-x-4 text-xs overflow-y-auto sm:grid-cols-[auto_1fr_auto_1fr] md:grid-cols-[auto_1fr_auto_1fr_auto_1fr_auto_1fr]">
           <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">명마</div>
-          <div className="text-white/90 font-medium truncate">{getItemName(general.horse)}</div>
+          <div className="text-white/90 font-medium truncate">
+            <Tooltip content={horseInfo.info}>
+              <span>{horseInfo.name}</span>
+            </Tooltip>
+          </div>
 
           <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">무기</div>
-          <div className="text-white/90 font-medium truncate">{getItemName(general.weapon)}</div>
+          <div className="text-white/90 font-medium truncate">
+            <Tooltip content={weaponInfo.info}>
+              <span>{weaponInfo.name}</span>
+            </Tooltip>
+          </div>
 
           <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">서적</div>
-          <div className="text-white/90 font-medium truncate">{getItemName(general.book)}</div>
+          <div className="text-white/90 font-medium truncate">
+            <Tooltip content={bookInfo.info}>
+              <span>{bookInfo.name}</span>
+            </Tooltip>
+          </div>
 
           <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">자금</div>
           <div className="text-white/90 font-medium truncate">{(general.gold || 0).toLocaleString()}</div>
@@ -526,7 +661,11 @@ export default function GeneralBasicCard({
           <div className="text-white/90 font-medium truncate">{(general.rice || 0).toLocaleString()}</div>
 
           <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">도구</div>
-          <div className="text-white/90 font-medium truncate">{getItemName(general.item)}</div>
+          <div className="text-white/90 font-medium truncate">
+            <Tooltip content={itemInfoData.info}>
+              <span>{itemInfoData.name}</span>
+            </Tooltip>
+          </div>
 
           <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">훈련</div>
           <div className="text-white/90 font-medium truncate">{Math.round(displayTrain).toLocaleString()}</div>
@@ -537,26 +676,41 @@ export default function GeneralBasicCard({
           <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">성격</div>
           <div className="text-white/90 font-medium truncate">
             {general.personal && general.personal !== 'None' ? (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
-                {getItemName(general.personal)}
-              </Badge>
+              <Tooltip content={personalInfo.info}>
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 cursor-help">
+                  {personalInfo.name}
+                </Badge>
+              </Tooltip>
             ) : '-'}
           </div>
 
           <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">특기</div>
           <div className="text-white/90 font-medium truncate flex gap-1 items-center">
-            {general.specialDomestic && general.specialDomestic !== 'None' && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
-                {getItemName(general.specialDomestic)}
+            {/* 내정 특기 - 없으면 습득 가능 연령 표시 */}
+            <Tooltip content={specialDomesticInfo.info}>
+              <Badge 
+                variant="secondary" 
+                className={`text-[10px] px-1.5 py-0 h-5 cursor-help ${
+                  (!general.specialDomestic || general.specialDomestic === 'None') 
+                    ? 'opacity-60' : ''
+                }`}
+              >
+                {specialDomesticInfo.name}
               </Badge>
-            )}
-            {general.specialWar && general.specialWar !== 'None' && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
-                {getItemName(general.specialWar)}
+            </Tooltip>
+            <span className="text-white/30">/</span>
+            {/* 전투 특기 - 없으면 습득 가능 연령 표시 */}
+            <Tooltip content={specialWarInfo.info}>
+              <Badge 
+                variant="secondary" 
+                className={`text-[10px] px-1.5 py-0 h-5 cursor-help ${
+                  (!general.specialWar || general.specialWar === 'None') 
+                    ? 'opacity-60' : ''
+                }`}
+              >
+                {specialWarInfo.name}
               </Badge>
-            )}
-            {(!general.specialDomestic || general.specialDomestic === 'None') && 
-             (!general.specialWar || general.specialWar === 'None') && '-'}
+            </Tooltip>
           </div>
 
           <div className="text-white/40 font-medium text-right pr-1 whitespace-nowrap">연령</div>

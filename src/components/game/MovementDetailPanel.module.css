@@ -1,0 +1,385 @@
+/* 이동 상세 패널 스타일 */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.panel {
+  background: #1a1a2e;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 헤더 */
+.header {
+  padding: 16px;
+  color: white;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.generalInfo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.portrait {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.generalName {
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.nationName {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.closeButton {
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.closeButton:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* 본문 */
+.body {
+  padding: 16px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.section {
+  margin-bottom: 16px;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: bold;
+  color: #888;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 이동 경로 */
+.route {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.cityBox {
+  flex: 1;
+  text-align: center;
+}
+
+.cityLabel {
+  display: block;
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.cityName {
+  display: block;
+  font-size: 15px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.arrow {
+  font-size: 20px;
+  color: #4488ff;
+  animation: arrowPulse 1s ease-in-out infinite;
+}
+
+@keyframes arrowPulse {
+  0%, 100% { transform: translateX(0); opacity: 1; }
+  50% { transform: translateX(3px); opacity: 0.7; }
+}
+
+/* 상태 그리드 */
+.statusGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.statusItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+}
+
+.statusLabel {
+  font-size: 13px;
+  color: #888;
+}
+
+.statusValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+}
+
+/* 진행바 */
+.progressContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  max-width: 150px;
+}
+
+.progressBar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.progressText {
+  font-size: 12px;
+  color: #aaa;
+  min-width: 35px;
+  text-align: right;
+}
+
+/* 병력 정보 */
+.troopInfo {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.troopRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.troopRow:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.troopLabel {
+  font-size: 13px;
+  color: #888;
+}
+
+.troopValue {
+  font-size: 14px;
+  font-weight: bold;
+  color: #ff8844;
+}
+
+/* 시간 정보 */
+.timeInfo {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.timeRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.timeRow:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.timeLabel {
+  font-size: 13px;
+  color: #888;
+}
+
+.timeValue {
+  font-size: 14px;
+  color: #44aaff;
+}
+
+/* 에러 */
+.error {
+  background: rgba(255, 68, 68, 0.2);
+  border: 1px solid rgba(255, 68, 68, 0.4);
+  border-radius: 6px;
+  padding: 10px;
+  color: #ff6666;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+/* 정보 메시지 */
+.infoMessage {
+  background: rgba(68, 136, 255, 0.15);
+  border: 1px solid rgba(68, 136, 255, 0.3);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: #88aaff;
+  font-size: 12px;
+  text-align: center;
+  width: 100%;
+}
+
+/* 푸터 (액션 버튼) */
+.footer {
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  flex: 1;
+  min-width: 100px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #4488ff;
+  color: white;
+}
+
+.actionButton:hover {
+  background: #5599ff;
+  transform: translateY(-1px);
+}
+
+.actionButton:active {
+  transform: translateY(0);
+}
+
+.actionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.actionButton.secondary {
+  background: #555;
+}
+
+.actionButton.secondary:hover {
+  background: #666;
+}
+
+.actionButton.danger {
+  background: #cc3333;
+}
+
+.actionButton.danger:hover {
+  background: #dd4444;
+}
+
+/* 반응형 */
+@media (max-width: 480px) {
+  .panel {
+    width: 95%;
+    max-height: 85vh;
+  }
+  
+  .header {
+    padding: 12px;
+  }
+  
+  .portrait {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .generalName {
+    font-size: 16px;
+  }
+  
+  .body {
+    padding: 12px;
+  }
+  
+  .footer {
+    padding: 10px 12px;
+  }
+  
+  .actionButton {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+

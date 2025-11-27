@@ -79,6 +79,12 @@ export default function MessagePanel({
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const messageListRef = useRef<HTMLDivElement>(null);
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastRefreshRef = useRef<number>(0);
+
+  // 자동 갱신 설정 (Vue와 동일한 2.5초 간격 체크, 5초 실제 갱신)
+  const AUTO_REFRESH_INTERVAL = 2500;
+  const MIN_REFRESH_GAP = 5000;
 
   // nationID 변경 시 재야인데 국가/외교 탭이면 전체 탭으로 전환
   useEffect(() => {
@@ -86,6 +92,30 @@ export default function MessagePanel({
       setActiveTab('public');
     }
   }, [nationID]);
+
+  // 자동 갱신 타이머 설정
+  useEffect(() => {
+    const startAutoRefresh = () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+
+      refreshIntervalRef.current = setInterval(() => {
+        const now = Date.now();
+        if (now - lastRefreshRef.current >= MIN_REFRESH_GAP) {
+          loadMessages(true, true); // silent refresh
+        }
+      }, AUTO_REFRESH_INTERVAL);
+    };
+
+    startAutoRefresh();
+
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, [activeTab, generalID, serverID]);
 
   useEffect(() => {
     setMessages([]);
@@ -100,15 +130,20 @@ export default function MessagePanel({
     }
   }, [showSendForm]);
 
-  async function loadMessages(reset: boolean = false) {
+  async function loadMessages(reset: boolean = false, silent: boolean = false) {
     try {
-      if (reset) {
+      if (reset && !silent) {
         setLoading(true);
         setOffset(0);
-      } else {
+      } else if (!reset) {
         setLoadingMore(true);
       }
-      setError(null);
+      if (!silent) {
+        setError(null);
+      }
+      
+      // 자동 갱신 시간 기록
+      lastRefreshRef.current = Date.now();
 
       const currentOffset = reset ? 0 : offset;
       const limit = 15;
@@ -123,24 +158,41 @@ export default function MessagePanel({
 
       if (result.success && result.messages) {
         if (reset) {
-          setMessages(result.messages || []);
+          // silent refresh일 때 새 메시지만 추가 (기존 메시지 유지하며 중복 제거)
+          if (silent && messages.length > 0) {
+            const existingIds = new Set(messages.map(m => m.id));
+            const newMessages = result.messages.filter(m => !existingIds.has(m.id));
+            if (newMessages.length > 0) {
+              setMessages(prev => [...newMessages, ...prev]);
+              // 새 메시지 알림 (Toast)
+              showToast(`새 메시지 ${newMessages.length}개`, 'info');
+            }
+          } else {
+            setMessages(result.messages || []);
+          }
         } else {
           setMessages(prev => [...prev, ...(result.messages || [])]);
         }
         
-        setHasMore(result.hasMore ?? (result.messages?.length || 0) >= limit);
-        setOffset(currentOffset + result.messages.length);
-      } else {
+        if (!silent) {
+          setHasMore(result.hasMore ?? (result.messages?.length || 0) >= limit);
+          setOffset(currentOffset + result.messages.length);
+        }
+      } else if (!silent) {
         setError(result.message || '메시지를 불러오는데 실패했습니다.');
       }
     } catch (err: any) {
       console.error('Failed to load messages:', err);
-      setError('메시지를 불러오는데 실패했습니다.');
-      if (reset) {
-        setMessages([]);
+      if (!silent) {
+        setError('메시지를 불러오는데 실패했습니다.');
+        if (reset) {
+          setMessages([]);
+        }
       }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
       setLoadingMore(false);
     }
   }

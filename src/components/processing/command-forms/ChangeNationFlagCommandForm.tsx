@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import TopBackBar from '@/components/common/TopBackBar';
+import SelectColor from '../SelectColor';
 import styles from './CommandForm.module.css';
 
 interface ChangeNationFlagCommandFormProps {
@@ -34,23 +35,12 @@ export default function ChangeNationFlagCommandForm({
         <div className={styles.formRow}>
           <div className={styles.formField}>
             <label>색상:</label>
-            <div className={styles.colorSelect}>
-              {colors.map((color, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  className={`${styles.toggleButton} ${selectedColorID === index ? styles.active : ''}`}
-                  onClick={() => setSelectedColorID(index)}
-                  style={{
-                    backgroundColor: color,
-                    color: '#fff',
-                    border: selectedColorID === index ? '2px solid #007bff' : '1px solid #6c757d'
-                  }}
-                >
-                  {index}
-                </button>
-              ))}
-            </div>
+            <SelectColor
+              value={selectedColorID}
+              colors={colors}
+              onChange={setSelectedColorID}
+              placeholder="색상 선택"
+            />
           </div>
 
           <div className={styles.formActions}>

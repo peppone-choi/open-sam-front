@@ -1,22 +1,22 @@
 .battleMap {
   position: relative;
   display: grid;
-  background-color: #1a1a1a;
-  border: 2px solid #444;
+  background-color: var(--bg-tertiary);
+  border: 2px solid var(--game-panel-border);
   margin: 20px auto;
   overflow: visible;
 }
 
 .gridCell {
-  border: 1px solid #333;
-  background-color: #222;
+  border: 1px solid var(--game-grid-border);
+  background-color: var(--game-grid-bg);
   cursor: pointer;
   position: relative;
 }
 
 .gridCell:hover {
-  background-color: #2a2a2a;
-  border-color: #555;
+  background-color: var(--game-grid-hover);
+  border-color: var(--game-panel-border);
 }
 
 .battleUnit {
@@ -27,38 +27,38 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  font-weight: bold;
-  transition: all 0.1s ease;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  transition: all var(--transition-fast);
   z-index: 10;
 }
 
 .battleUnit.attacker {
-  background-color: rgba(200, 50, 50, 0.8);
-  border-color: #ff4444;
+  background-color: var(--game-attacker);
+  border-color: var(--game-attacker-border);
   color: white;
 }
 
 .battleUnit.defender {
-  background-color: rgba(50, 50, 200, 0.8);
-  border-color: #4444ff;
+  background-color: var(--game-defender);
+  border-color: var(--game-defender-border);
   color: white;
 }
 
 .battleUnit.selected {
   border-width: 3px;
-  box-shadow: 0 0 10px rgba(255, 255, 0, 0.8);
+  box-shadow: 0 0 10px var(--game-selected);
   z-index: 20;
 }
 
 .unitIcon {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 1;
 }
 
 .unitCrew {
   font-size: 8px;
-  margin-top: 2px;
+  margin-top: var(--space-xs);
   line-height: 1;
 }
 
@@ -73,8 +73,8 @@
 .gridLabelX {
   position: absolute;
   top: -18px;
-  font-size: 10px;
-  color: #888;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
   text-align: center;
   width: 15px;
   transform: translateX(-50%);
@@ -83,8 +83,8 @@
 .gridLabelY {
   position: absolute;
   left: -25px;
-  font-size: 10px;
-  color: #888;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
   text-align: right;
   width: 20px;
   line-height: 15px;

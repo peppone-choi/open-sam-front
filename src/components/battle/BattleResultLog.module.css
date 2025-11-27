@@ -1,0 +1,359 @@
+/* 전투 결과 컨테이너 */
+.battleResultContainer {
+  background: var(--battle-bg);
+  border: 1px solid var(--game-grid-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+  color: var(--text-main);
+  font-family: 'Noto Sans KR', -apple-system, sans-serif;
+}
+
+/* 전투 헤더 */
+.battleHeader {
+  text-align: center;
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--game-grid-border);
+}
+
+.battleTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--battle-gold);
+  margin-bottom: var(--space-sm);
+}
+
+.battleMeta {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.separator {
+  margin: 0 var(--space-sm);
+  color: var(--game-panel-border);
+}
+
+/* 양측 유닛 컨테이너 */
+.unitsContainer {
+  display: flex;
+  align-items: stretch;
+  gap: var(--gap-sm);
+  margin-bottom: var(--space-md);
+}
+
+/* 유닛 카드 */
+.unitCard {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm);
+  border: 2px solid transparent;
+  transition: border-color var(--transition-fast);
+}
+
+.unitCard.attacker {
+  border-color: var(--battle-attacker-light);
+}
+
+.unitCard.defender {
+  border-color: var(--battle-defender-light);
+}
+
+.unitCard.winner {
+  border-color: var(--battle-gold);
+  box-shadow: 0 0 15px var(--battle-winner-glow);
+}
+
+.unitHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.roleTag {
+  font-size: var(--font-size-xs);
+  padding: var(--pad-1) var(--pad-2);
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.attacker .roleTag {
+  background: var(--battle-attacker-light);
+  color: var(--battle-attacker-text);
+}
+
+.defender .roleTag {
+  background: var(--battle-defender-light);
+  color: var(--battle-defender-text);
+}
+
+.winnerTag {
+  font-size: var(--font-size-xs);
+  padding: var(--pad-1) var(--pad-2);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--battle-gold), var(--log-orange));
+  color: var(--color-surface-2);
+  font-weight: var(--font-weight-bold);
+}
+
+.generalName {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-xs);
+}
+
+.nationName {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--space-xs);
+}
+
+.unitType {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+  padding: var(--pad-1) var(--pad-2);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-sm);
+  display: inline-block;
+}
+
+.crewInfo {
+  font-size: var(--font-size-sm);
+}
+
+.crewRow {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--pad-1) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.crewRow:last-child {
+  border-bottom: none;
+}
+
+.crewLabel {
+  color: var(--text-muted);
+}
+
+.crewValue {
+  color: var(--text-main);
+}
+
+.killValue {
+  color: var(--battle-kill);
+  font-weight: var(--font-weight-semibold);
+}
+
+.deadValue {
+  color: var(--battle-dead);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* VS 컨테이너 */
+.vsContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-sm);
+}
+
+.vsText {
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  color: var(--game-panel-border);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* 섹션 타이틀 */
+.sectionTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--battle-gold);
+  margin-bottom: var(--space-sm);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--game-grid-border);
+}
+
+/* 결과 요약 */
+.resultSummary {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+/* 로그 컨테이너 */
+.logContainer {
+  font-family: 'Consolas', 'Monaco', 'Noto Sans KR', monospace;
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+.logEntry {
+  padding: var(--pad-1) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.logEntry:last-child {
+  border-bottom: none;
+}
+
+.logEntry.phase {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.logEntry.attack {
+  color: var(--log-orange);
+}
+
+.logEntry.damage {
+  color: var(--battle-dead);
+}
+
+.logEntry.skill {
+  color: var(--battle-skill);
+}
+
+.logEntry.critical {
+  color: var(--log-yellow);
+  font-weight: var(--font-weight-semibold);
+}
+
+.logEntry.death {
+  color: var(--battle-dead);
+  font-weight: var(--font-weight-bold);
+}
+
+.logEntry.result {
+  color: var(--battle-result);
+}
+
+.logEntry.info {
+  color: var(--battle-info);
+}
+
+/* 상세 섹션 */
+.detailSection {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.detailSummary {
+  padding: var(--space-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  transition: background var(--transition-fast);
+}
+
+.detailSummary:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.detailSection[open] .detailSummary {
+  border-bottom: 1px solid var(--game-grid-border);
+}
+
+.detailSection .logContainer {
+  padding: var(--space-sm);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* 전투 목록 */
+.battleListContainer {
+  background: var(--color-surface-2);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+}
+
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--game-grid-border);
+}
+
+.listHeader h3 {
+  margin: 0;
+  font-size: var(--font-size-md);
+  color: var(--battle-gold);
+}
+
+.count {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.battleList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.emptyMessage {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--game-panel-border);
+  font-size: var(--font-size-sm);
+}
+
+.loadMoreButton {
+  width: 100%;
+  padding: var(--space-sm);
+  margin-top: var(--space-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--game-grid-border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.loadMoreButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+}
+
+/* 스크롤바 */
+.logContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.logContainer::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.logContainer::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.logContainer::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 반응형 */
+@media (max-width: 600px) {
+  .unitsContainer {
+    flex-direction: column;
+  }
+
+  .vsContainer {
+    padding: var(--space-sm) 0;
+  }
+
+  .vsText {
+    font-size: var(--font-size-md);
+  }
+}

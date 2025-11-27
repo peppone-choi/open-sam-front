@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import { JosaUtil } from '@/lib/utils/josaUtil';
 import { useToast } from '@/contexts/ToastContext';
+import { StoredActionsHelper } from '@/lib/utils/StoredActionsHelper';
 import {
   RecruitCommandForm,
   MoveCommandForm,
@@ -609,6 +610,23 @@ export default function CommandProcessingClient({
     };
   }
 
+  // StoredActionsHelper 인스턴스 (최근 액션 저장용)
+  const storedActionsHelperRef = useRef<StoredActionsHelper | null>(null);
+
+  // 최근 액션 저장을 위한 헬퍼 초기화
+  useEffect(() => {
+    if (typeof window !== 'undefined' && serverID) {
+      // mapName과 unitSet은 실제 게임 설정에서 가져와야 하지만,
+      // 여기서는 기본값 사용 (추후 게임 상태에서 가져오도록 개선 가능)
+      storedActionsHelperRef.current = new StoredActionsHelper(
+        serverID,
+        isChief ? 'nation' : 'general',
+        'default', // mapName
+        'default'  // unitSet
+      );
+    }
+  }, [serverID, isChief]);
+
   async function executeReserve(args: any, brief: string) {
     const turnList = turnListParam?.split('_').map(Number) || [0];
 
@@ -632,6 +650,13 @@ export default function CommandProcessingClient({
     }
 
     if (result.result ?? result.success) {
+      // 최근 액션 저장
+      storedActionsHelperRef.current?.pushRecentActions({
+        action: command,
+        brief: brief,
+        arg: args ?? {},
+      });
+
       router.push(`/${serverID}/${isChief ? 'chief' : 'game'}`);
     } else {
       showToast(result.reason || result.message || '명령 등록에 실패했습니다.', 'error');

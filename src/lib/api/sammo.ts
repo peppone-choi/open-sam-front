@@ -264,6 +264,8 @@ export interface GetFrontInfoResponse {
     name: string;
     color: string;
     level: number;
+    onlineGen?: number; // 국가 내 접속자 수
+    notice?: { msg: string };
     [key: string]: any;
   } | null;
   city: {
@@ -3387,4 +3389,1184 @@ export class SammoAPI {
       body: JSON.stringify(params),
     });
   }
+
+  // ============================================================
+  // Auction API (누락된 함수들)
+  // ============================================================
+
+  /**
+   * 군량 구매 경매 생성
+   */
+  static async OpenBuyRiceAuction(params: {
+    amount: number;
+    closeTurnCnt: number;
+    startBidAmount: number;
+    finishBidAmount: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    auctionID?: number;
+  }> {
+    const body: Record<string, any> = {
+      amount: params.amount,
+      closeTurnCnt: params.closeTurnCnt,
+      startBidAmount: params.startBidAmount,
+      finishBidAmount: params.finishBidAmount,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/auction/open-buy-rice-auction', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 군량 판매 경매 생성
+   */
+  static async OpenSellRiceAuction(params: {
+    amount: number;
+    closeTurnCnt: number;
+    startBidAmount: number;
+    finishBidAmount: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    auctionID?: number;
+  }> {
+    const body: Record<string, any> = {
+      amount: params.amount,
+      closeTurnCnt: params.closeTurnCnt,
+      startBidAmount: params.startBidAmount,
+      finishBidAmount: params.finishBidAmount,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/auction/open-sell-rice-auction', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 유니크 아이템 경매 상세 조회
+   */
+  static async GetUniqueItemAuctionDetail(params: {
+    auctionID: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    auction?: {
+      auctionID: number;
+      itemID: string;
+      itemName: string;
+      itemType: string;
+      hostGeneralID: number;
+      hostGeneralName: string;
+      closeDate: string;
+      startBidAmount: number;
+      currentBidAmount: number;
+      bidderGeneralID?: number;
+      bidderGeneralName?: string;
+      bidHistory?: Array<{
+        generalID: number;
+        generalName: string;
+        amount: number;
+        date: string;
+      }>;
+    };
+    reason?: string;
+  }> {
+    const query = new URLSearchParams();
+    query.append('auctionID', String(params.auctionID));
+    if (params.session_id) {
+      query.append('session_id', params.session_id);
+    } else if (params.serverID) {
+      query.append('session_id', params.serverID);
+    }
+    return this.request(`/api/auction/get-unique-auction-detail?${query.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * 유니크 아이템 경매 생성
+   */
+  static async OpenUniqueAuction(params: {
+    itemID: string;
+    amount: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    auctionID?: number;
+  }> {
+    const body: Record<string, any> = {
+      itemID: params.itemID,
+      amount: params.amount,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/auction/open-unique-auction', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  // ============================================================
+  // General API (누락된 함수들)
+  // ============================================================
+
+  /**
+   * 장수 가입 (Vue SammoAPI.General.Join 대응)
+   */
+  static async GeneralJoin(params: {
+    name: string;
+    nationID?: number;
+    leadership: number;
+    strength: number;
+    intel: number;
+    politics: number;
+    charm: number;
+    character: string;
+    trait: string;
+    city?: number;
+    pic?: boolean;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    generalID?: number;
+  }> {
+    const body: Record<string, any> = { ...params };
+    if (params.serverID && !body.session_id) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/general/join', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 장수 로그 조회
+   */
+  static async GetGeneralLog(params: {
+    reqType: 'action' | 'battle' | 'history' | 'personal';
+    reqTo?: number;
+    generalID?: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    logs?: Array<{
+      id: number;
+      text: string;
+      date: string;
+    }>;
+    reason?: string;
+  }> {
+    const query = new URLSearchParams();
+    query.append('reqType', params.reqType);
+    if (params.reqTo) query.append('reqTo', String(params.reqTo));
+    if (params.generalID) query.append('generalID', String(params.generalID));
+    if (params.session_id) {
+      query.append('session_id', params.session_id);
+    } else if (params.serverID) {
+      query.append('session_id', params.serverID);
+    }
+    return this.request(`/api/general/get-general-log?${query.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * 아이템 버리기
+   */
+  static async DropItem(params: {
+    itemType: 'horse' | 'weapon' | 'book' | 'item';
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    const body: Record<string, any> = {
+      itemType: params.itemType,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/general/drop-item', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 게임 시작 전 사망 처리
+   */
+  static async DieOnPrestart(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    const body: Record<string, any> = {};
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/general/die-on-prestart', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 즉시 퇴각
+   */
+  static async InstantRetreat(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    const body: Record<string, any> = {};
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/general/instant-retreat', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 건국 후보 설정
+   */
+  static async BuildNationCandidate(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    const body: Record<string, any> = {};
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/general/build-nation-candidate', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  // ============================================================
+  // Global API (누락된 함수들)
+  // ============================================================
+
+  /**
+   * 토큰 기반 장수 목록 조회
+   */
+  static async GlobalGeneralListWithToken(params?: {
+    token?: string;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    generalList?: any[];
+  }> {
+    const body: Record<string, any> = {};
+    if (params?.token) body.token = params.token;
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/global/general-list-with-token', {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * 캐시된 지도 조회
+   */
+  static async GlobalGetCachedMap(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    cityList?: number[][];
+    nationList?: Array<[number, string, string, number, string, string, string, string]>;
+    myCity?: number | null;
+    myNation?: number | null;
+    spyList?: Record<number, number>;
+    shownByGeneralList?: number[];
+    startYear?: number;
+    year?: number;
+    month?: number;
+    version?: number;
+    history?: string[]; // 중원 정세 히스토리
+  }> {
+    const query = new URLSearchParams();
+    if (params?.session_id) {
+      query.append('session_id', params.session_id);
+    } else if (params?.serverID) {
+      query.append('session_id', params.serverID);
+    }
+    return this.request(`/api/global/get-cached-map?${query.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * 현재 역사 조회
+   */
+  static async GlobalGetCurrentHistory(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    history?: Array<{
+      id: number;
+      text: string;
+      date: string;
+    }>;
+    year?: number;
+    month?: number;
+  }> {
+    const query = new URLSearchParams();
+    if (params?.session_id) {
+      query.append('session_id', params.session_id);
+    } else if (params?.serverID) {
+      query.append('session_id', params.serverID);
+    }
+    return this.request(`/api/global/get-current-history?${query.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * 턴 엔진 실행 (관리자)
+   */
+  static async GlobalExecuteEngine(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    reqRefresh?: boolean;
+    executedTurn?: number;
+  }> {
+    const body: Record<string, any> = {};
+    if (params?.session_id) {
+      body.serverID = params.session_id;
+    } else if (params?.serverID) {
+      body.serverID = params.serverID;
+    }
+    return this.request('/api/global/execute-engine', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  // ============================================================
+  // InheritAction API (계승 포인트 - 전체 누락)
+  // ============================================================
+
+  /**
+   * 숨겨진 버프 구매
+   */
+  static async InheritBuyHiddenBuff(params: {
+    type: 'leadership' | 'strength' | 'intel' | 'politics' | 'charm' | 'warSpecial' | 'domesticSpecial';
+    level: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    remainPoint?: number;
+  }> {
+    const body: Record<string, any> = {
+      type: params.type,
+      level: params.level,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/inherit-action/buy-hidden-buff', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 랜덤 유니크 아이템 구매
+   */
+  static async InheritBuyRandomUnique(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    itemName?: string;
+    itemType?: string;
+    remainPoint?: number;
+  }> {
+    const body: Record<string, any> = {};
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/inherit-action/buy-random-unique', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 특수 전쟁 리셋
+   */
+  static async InheritResetSpecialWar(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    remainPoint?: number;
+  }> {
+    const body: Record<string, any> = {};
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/inherit-action/reset-special-war', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 턴 시간 리셋
+   */
+  static async InheritResetTurnTime(params?: {
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    remainPoint?: number;
+  }> {
+    const body: Record<string, any> = {};
+    if (params?.session_id) {
+      body.session_id = params.session_id;
+    } else if (params?.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/inherit-action/reset-turn-time', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 다음 특수 전쟁 설정
+   */
+  static async InheritSetNextSpecialWar(params: {
+    type: string;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    remainPoint?: number;
+  }> {
+    const body: Record<string, any> = {
+      type: params.type,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/inherit-action/set-next-special-war', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 계승 로그 추가 조회
+   */
+  static async InheritGetMoreLog(params: {
+    lastID: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    logs?: Array<{
+      id: number;
+      text: string;
+      date: string;
+    }>;
+    reason?: string;
+  }> {
+    const query = new URLSearchParams();
+    query.append('lastID', String(params.lastID));
+    if (params.session_id) {
+      query.append('session_id', params.session_id);
+    } else if (params.serverID) {
+      query.append('session_id', params.serverID);
+    }
+    return this.request(`/api/inherit-action/get-more-log?${query.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * 소유자 확인
+   */
+  static async InheritCheckOwner(params: {
+    destGeneralID: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    isOwner?: boolean;
+  }> {
+    const body: Record<string, any> = {
+      destGeneralID: params.destGeneralID,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/inherit-action/check-owner', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 스탯 리셋
+   */
+  static async InheritResetStat(params: {
+    leadership?: number;
+    strength?: number;
+    intel?: number;
+    politics?: number;
+    charm?: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    remainPoint?: number;
+  }> {
+    const body: Record<string, any> = {};
+    if (params.leadership !== undefined) body.leadership = params.leadership;
+    if (params.strength !== undefined) body.strength = params.strength;
+    if (params.intel !== undefined) body.intel = params.intel;
+    if (params.politics !== undefined) body.politics = params.politics;
+    if (params.charm !== undefined) body.charm = params.charm;
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/inherit-action/reset-stat', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  // ============================================================
+  // Message API (누락된 함수들)
+  // ============================================================
+
+  /**
+   * 메시지 삭제
+   */
+  static async DeleteMessage(params: {
+    msgID: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    const body: Record<string, any> = {
+      msgID: params.msgID,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/message/delete-message', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 메시지 응답 결정 (외교 제의 등)
+   */
+  static async DecideMessageResponse(params: {
+    msgID: number;
+    response: boolean;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    const body: Record<string, any> = {
+      msgID: params.msgID,
+      response: params.response,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/message/decide-message-response', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 이전 메시지 조회
+   */
+  static async GetOldMessage(params: {
+    to: number;
+    type: 'private' | 'diplomacy' | 'nation' | 'all';
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    messages?: Array<{
+      msgID: number;
+      from: number;
+      fromName: string;
+      to: number;
+      toName: string;
+      text: string;
+      date: string;
+      msgType: string;
+      isRead: boolean;
+    }>;
+    reason?: string;
+  }> {
+    const query = new URLSearchParams();
+    query.append('to', String(params.to));
+    query.append('type', params.type);
+    if (params.session_id) {
+      query.append('session_id', params.session_id);
+    } else if (params.serverID) {
+      query.append('session_id', params.serverID);
+    }
+    return this.request(`/api/message/get-old-message?${query.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * 최근 메시지 읽음 처리
+   */
+  static async ReadLatestMessage(params: {
+    type: 'diplomacy' | 'private';
+    msgID: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    const body: Record<string, any> = {
+      type: params.type,
+      msgID: params.msgID,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/message/read-latest-message', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    });
+  }
+
+  // ============================================================
+  // Nation API (누락된 함수들)
+  // ============================================================
+
+  /**
+   * 국가 장수 로그 조회
+   */
+  static async NationGetGeneralLog(params: {
+    generalID: number;
+    reqType: 'action' | 'battle' | 'history' | 'personal';
+    reqTo?: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    logs?: Array<{
+      id: number;
+      text: string;
+      date: string;
+    }>;
+    reason?: string;
+  }> {
+    const query = new URLSearchParams();
+    query.append('generalID', String(params.generalID));
+    query.append('reqType', params.reqType);
+    if (params.reqTo) query.append('reqTo', String(params.reqTo));
+    if (params.session_id) {
+      query.append('session_id', params.session_id);
+    } else if (params.serverID) {
+      query.append('session_id', params.serverID);
+    }
+    return this.request(`/api/nation/get-general-log?${query.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  // ============================================================
+  // Troop API (누락된 함수들)
+  // ============================================================
+
+  /**
+   * 부대명 변경
+   */
+  static async TroopSetTroopName(params: {
+    troopID: number;
+    troopName: string;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    const body: Record<string, any> = {
+      troopID: params.troopID,
+      troopName: params.troopName,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/troop/set-troop-name', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 부대에서 강퇴
+   */
+  static async TroopKickFromTroop(params: {
+    troopID: number;
+    generalID: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    const body: Record<string, any> = {
+      troopID: params.troopID,
+      generalID: params.generalID,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/troop/kick-from-troop', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    });
+  }
+
+  // ============================================================
+  // Vote API (누락된 함수들)
+  // ============================================================
+
+  /**
+   * 투표 코멘트 추가
+   */
+  static async VoteAddComment(params: {
+    voteID: number;
+    text: string;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    commentID?: number;
+  }> {
+    const body: Record<string, any> = {
+      voteID: params.voteID,
+      text: params.text,
+    };
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/vote/add-comment', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  /**
+   * 투표 상세 조회
+   */
+  static async VoteGetVoteDetail(params: {
+    voteID: number;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    vote?: {
+      voteID: number;
+      title: string;
+      options: Array<{
+        optionID: number;
+        text: string;
+        count: number;
+      }>;
+      multipleOptions?: number;
+      endDate?: string;
+      isEnded: boolean;
+      mySelection?: number[];
+      comments?: Array<{
+        commentID: number;
+        generalID: number;
+        generalName: string;
+        text: string;
+        date: string;
+      }>;
+    };
+    reason?: string;
+  }> {
+    const query = new URLSearchParams();
+    query.append('voteID', String(params.voteID));
+    if (params.session_id) {
+      query.append('session_id', params.session_id);
+    } else if (params.serverID) {
+      query.append('session_id', params.serverID);
+    }
+    return this.request(`/api/vote/get-vote-detail?${query.toString()}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * 새 투표 생성
+   */
+  static async VoteNewVote(params: {
+    title: string;
+    options: string[];
+    multipleOptions?: number;
+    endDate?: string;
+    keepOldVote?: boolean;
+    serverID?: string;
+    session_id?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    voteID?: number;
+  }> {
+    const body: Record<string, any> = {
+      title: params.title,
+      options: params.options,
+    };
+    if (params.multipleOptions !== undefined) body.multipleOptions = params.multipleOptions;
+    if (params.endDate) body.endDate = params.endDate;
+    if (params.keepOldVote !== undefined) body.keepOldVote = params.keepOldVote;
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+    return this.request('/api/vote/new-vote', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
+  // ============================================================
+  // Admin Root API (SammoRootAPI.ts 대응)
+  // ============================================================
+
+  /**
+   * 이메일 주소 차단 (관리자)
+   * Vue SammoRootAPI.Admin.BanEmailAddress 대응
+   */
+  static async AdminBanEmailAddress(params: {
+    email: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/admin/ban-email-address', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * 사용자 차단 (관리자)
+   */
+  static async AdminBanUser(params: {
+    userID: number | string;
+    reason?: string;
+    duration?: number; // 차단 기간 (일), 0이면 영구
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/admin/ban-user', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * 사용자 차단 해제 (관리자)
+   */
+  static async AdminUnbanUser(params: {
+    userID: number | string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/admin/unban-user', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * 서버 공지 설정 (관리자)
+   */
+  static async AdminSetNotice(params: {
+    message: string;
+    serverID?: string;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/admin/set-notice', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * 게임 리셋 (관리자)
+   */
+  static async AdminResetGame(params: {
+    serverID: string;
+    scenarioId?: string;
+    confirm?: boolean;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+  }> {
+    return this.request('/api/admin/reset-game', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * 장수 수정 (관리자)
+   */
+  static async AdminUpdateGeneral(params: {
+    generalID: number;
+    updates: Record<string, any>;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    general?: any;
+  }> {
+    return this.request('/api/admin/update-general', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * 국가 수정 (관리자)
+   */
+  static async AdminUpdateNation(params: {
+    nationID: number;
+    updates: Record<string, any>;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    nation?: any;
+  }> {
+    return this.request('/api/admin/update-nation', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * 도시 수정 (관리자)
+   */
+  static async AdminUpdateCity(params: {
+    cityID: number;
+    updates: Record<string, any>;
+  }): Promise<{
+    result: boolean;
+    reason?: string;
+    city?: any;
+  }> {
+    return this.request('/api/admin/update-city', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * 게임 로그 조회 (관리자)
+   */
+  static async AdminGetLogs(params?: {
+    type?: 'error' | 'action' | 'battle' | 'system';
+    limit?: number;
+    offset?: number;
+    from?: string;
+    to?: string;
+  }): Promise<{
+    result: boolean;
+    logs?: any[];
+    total?: number;
+  }> {
+    return this.request('/api/admin/logs', {
+      method: 'POST',
+      body: JSON.stringify(params || {}),
+    });
+  }
+
+  /**
+   * 서버 상태 조회 (관리자)
+   */
+  static async AdminGetServerStatus(): Promise<{
+    result: boolean;
+    status?: {
+      uptime: number;
+      memory: {
+        used: number;
+        total: number;
+      };
+      connections: number;
+      lastTurnTime?: string;
+      nextTurnTime?: string;
+      isLocked: boolean;
+      version: string;
+    };
+  }> {
+    return this.request('/api/admin/server-status', {
+      method: 'GET',
+    });
+  }
+
+  // ============================================================
+  // 군대 이동 시각화 API
+  // ============================================================
+
+  /**
+   * 군대 이동 정보 조회
+   * 지도에 표시할 예약된/진행 중인 군대 이동 목록
+   */
+  static async GetTroopMovements(params: {
+    serverID?: string;
+    session_id?: string;
+    includeEnemy?: boolean;
+  }): Promise<{
+    result: boolean;
+    movements?: TroopMovementResponse[];
+    count?: number;
+    reason?: string;
+  }> {
+    return this.request('/api/game/troop-movements', {
+      method: 'POST',
+      body: JSON.stringify({
+        session_id: params.session_id || params.serverID,
+        includeEnemy: params.includeEnemy ?? true,
+      }),
+    });
+  }
+}
+
+/** 군대 이동 응답 타입 */
+export interface TroopMovementResponse {
+  id: string;
+  generalId: number;
+  generalName: string;
+  generalIcon?: string;
+  nationId: number;
+  nationName: string;
+  nationColor: string;
+  troops: number;
+  crewType?: number;
+  crewTypeName?: string;
+  fromCityId: number;
+  fromCityName: string;
+  fromX: number;
+  fromY: number;
+  toCityId: number;
+  toCityName: string;
+  toX: number;
+  toY: number;
+  status: 'scheduled' | 'marching' | 'arriving' | 'completed';
+  type: 'normal' | 'deploy' | 'forceMarch' | 'retreat' | 'supply';
+  scheduledTurn?: number;
+  startTurn?: number;
+  arrivalTurn?: number;
+  progress?: number;
+  isEnemy?: boolean;
+  isVisible?: boolean;
 }

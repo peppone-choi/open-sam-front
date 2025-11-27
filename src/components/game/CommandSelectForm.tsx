@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import styles from './CommandSelectDialog.module.css';
 import type { ColorSystem } from '@/types/colorSystem';
 
@@ -18,6 +18,15 @@ export interface CommandTableCategory {
   values: CommandItem[];
 }
 
+/**
+ * 카테고리 꾸미기 정보 (Vue의 CategoryDecoration 대응)
+ */
+export interface CategoryDecoration {
+  name: string;
+  altName?: string;
+  // 확장 가능: icon, color, backgroundColor 등
+}
+
 interface CommandSelectFormProps {
   commandTable: CommandTableCategory[];
   onClose?: () => void;
@@ -30,6 +39,12 @@ interface CommandSelectFormProps {
   style?: React.CSSProperties;
   className?: string;
   hideHeader?: boolean;
+  /** 카테고리별 꾸미기 정보 (대체 이름 등) */
+  categoryInfo?: Record<string, Omit<CategoryDecoration, 'name'>>;
+  /** 초기 활성화된 카테고리 */
+  activatedCategory?: string;
+  /** 카테고리 변경 콜백 */
+  onCategoryChange?: (category: string) => void;
 }
 
 export default function CommandSelectForm({
@@ -44,14 +59,41 @@ export default function CommandSelectForm({
   style,
   className,
   hideHeader = false,
+  categoryInfo,
+  activatedCategory,
+  onCategoryChange,
 }: CommandSelectFormProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>(activatedCategory || '');
+
+  // activatedCategory prop 변경 시 동기화
+  useEffect(() => {
+    if (activatedCategory) {
+      setSelectedCategory(activatedCategory);
+    }
+  }, [activatedCategory]);
 
   useEffect(() => {
     if (!selectedCategory && commandTable.length > 0) {
-      setSelectedCategory(commandTable[0].category);
+      const initialCategory = activatedCategory || commandTable[0].category;
+      setSelectedCategory(initialCategory);
     }
-  }, [commandTable, selectedCategory]);
+  }, [commandTable, selectedCategory, activatedCategory]);
+
+  /**
+   * 카테고리의 표시 이름을 가져옵니다 (altName이 있으면 altName 사용)
+   */
+  const getCategoryDisplayName = useCallback((category: string): string => {
+    const decoration = categoryInfo?.[category];
+    return decoration?.altName || category;
+  }, [categoryInfo]);
+
+  /**
+   * 카테고리 선택 핸들러
+   */
+  const handleCategorySelect = useCallback((category: string) => {
+    setSelectedCategory(category);
+    onCategoryChange?.(category);
+  }, [onCategoryChange]);
 
   if (commandTable.length === 0) {
     return (
@@ -144,9 +186,9 @@ export default function CommandSelectForm({
             className={`${styles.categoryButton} ${
               resolvedCategory.category === category.category ? styles.active : ''
             }`}
-            onClick={() => setSelectedCategory(category.category)}
+            onClick={() => handleCategorySelect(category.category)}
           >
-            {category.category}
+            {getCategoryDisplayName(category.category)}
           </button>
         ))}
       </div>

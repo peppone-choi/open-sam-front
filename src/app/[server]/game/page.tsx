@@ -14,11 +14,13 @@ import CommandMenuPanel from '@/components/game/CommandMenuPanel';
 import VersionModal from '@/components/game/VersionModal';
 import GlobalMenu from '@/components/game/GlobalMenu';
 import GameInfoPanel from '@/components/game/GameInfoPanel';
+import GameBottomBar from '@/components/game/GameBottomBar';
 import { useSocket } from '@/hooks/useSocket';
 import { convertLog } from '@/utils/convertLog';
 import '@/styles/log.css';
 import { makeAccentColors } from '@/types/colorSystem';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/contexts/ToastContext';
 
 // --- Color Utilities ---
 function normalizeHexColor(hex?: string): string {
@@ -50,6 +52,7 @@ export default function GamePage() {
   const params = useParams();
   const router = useRouter();
   const serverID = params?.server as string;
+  const { showToast } = useToast();
 
   // --- State ---
   const [frontInfo, setFrontInfo] = useState<GetFrontInfoResponse | null>(null);
@@ -60,8 +63,23 @@ export default function GamePage() {
   const [error, setError] = useState<string | null>(null);
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
   const [reservedReloadKey, setReservedReloadKey] = useState(0);
+  const [asyncReady, setAsyncReady] = useState(false); // 서버 갱신 상태
 
   const loadingRef = useRef(false);
+  
+  // 투표 알림 상태 (localStorage 기반)
+  const [lastVoteState, setLastVoteState] = useState<number>(() => {
+    if (typeof window === 'undefined') return 0;
+    const key = `state.${serverID}.lastVote`;
+    return parseInt(localStorage.getItem(key) ?? '0', 10);
+  });
+  
+  // lastVoteState 변경 시 localStorage 저장
+  useEffect(() => {
+    if (typeof window === 'undefined' || !serverID) return;
+    const key = `state.${serverID}.lastVote`;
+    localStorage.setItem(key, lastVoteState.toString());
+  }, [lastVoteState, serverID]);
 
   // --- Socket.IO ---
   const socketOptions = useMemo(() => ({ sessionId: serverID, autoConnect: !!serverID }), [serverID]);
@@ -98,18 +116,32 @@ export default function GamePage() {
       if (menuData?.success) setGlobalMenu(menuData.menu || []);
       if (constData?.result) setGameConst(constData.data.gameConst || constData.data.gameSettings);
 
+      // 투표/설문조사 알림 체크
+      if (frontInfoData.global?.lastVoteID) {
+        const lastVoteID = frontInfoData.global.lastVoteID;
+        const myLastVote = (frontInfoData as any).aux?.myLastVote ?? 0;
+        if (lastVoteID > lastVoteState && lastVoteID > myLastVote) {
+          setLastVoteState(lastVoteID);
+          showToast('새로운 설문조사가 있습니다.', 'warning');
+        }
+      }
+      
+      setAsyncReady(true);
+
     } catch (err) {
       setError(err instanceof Error ? err.message : '데이터 로드 실패');
+      showToast(err instanceof Error ? err.message : '데이터 로드 실패', 'error');
     } finally {
       setLoading(false);
       loadingRef.current = false;
     }
-  }, [serverID]);
+  }, [serverID, lastVoteState, showToast]);
 
   const reloadAllData = useCallback(async () => {
     await loadData();
     setReservedReloadKey(prev => prev + 1);
-  }, [loadData]);
+    showToast('갱신 완료', 'success');
+  }, [loadData, showToast]);
 
   useEffect(() => {
     if (serverID) loadData();
@@ -219,16 +251,43 @@ export default function GamePage() {
     if (funcCall === 'showVersion') setIsVersionModalOpen(true);
   };
 
-  const handleCityClick = (cityId: number) => {
-    if (serverID && cityId > 0) router.push(`/${serverID}/info/current-city?cityId=${cityId}`);
-  };
+  // 도시 클릭 핸들러 (Ctrl+클릭 지원)
+  const handleCityClick = useCallback((cityId: number, event?: MouseEvent | React.MouseEvent) => {
+    if (!serverID || cityId <= 0) return;
+    
+    const url = `/${serverID}/info/current-city?cityId=${cityId}`;
+    
+    // Ctrl+클릭 또는 Cmd+클릭(Mac)인 경우 새 탭에서 열기
+    if (event && (event.ctrlKey || event.metaKey)) {
+      window.open(url, '_blank');
+      return;
+    }
+    
+    router.push(url);
+  }, [serverID, router]);
+
+  // 빠른 스크롤 이동 함수
+  const scrollToSelector = useCallback((selector: string) => {
+    const element = document.querySelector(selector);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
+
+  // showSecret 계산 (Vue와 동일한 로직)
+  const showSecret = useMemo(() => {
+    if (!frontInfo) return false;
+    if ((frontInfo.general?.permission ?? 0) >= 1) return true;
+    if ((frontInfo.general?.officerLevel ?? 0) >= 2) return true;
+    return false;
+  }, [frontInfo]);
 
   const mainControlProps = useMemo(() => {
     if (!frontInfo?.general || !frontInfo?.nation || !frontInfo?.global) return null;
     
     return {
       permission: frontInfo.general.permission || 0,
-      showSecret: (frontInfo.general.officerLevel || 0) >= 5, // 5등급 이상 (가정)
+      showSecret, // Vue와 동일한 로직 적용
       myLevel: frontInfo.general.officerLevel || 0,
       nationLevel: frontInfo.nation.level || 0,
       nationId: frontInfo.nation.id || 0,
@@ -237,17 +296,62 @@ export default function GamePage() {
       isBettingActive: frontInfo.global.isBettingActive || false,
       colorSystem,
     };
-  }, [frontInfo, colorSystem]);
+  }, [frontInfo, colorSystem, showSecret]);
 
-  if (error) return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">{error}</div>;
-  if (!frontInfo) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">로딩 중...</div>;
+  // 에러 상태
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white flex-col gap-4">
+        <div className="text-red-400 text-lg">{error}</div>
+        <button 
+          onClick={() => { setError(null); loadData(); }}
+          className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+        >
+          다시 시도
+        </button>
+      </div>
+    );
+  }
+  
+  // 서버 갱신 중 상태 (asyncReady = false)
+  if (!asyncReady && loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white flex-col gap-4">
+        <div className="animate-spin w-8 h-8 border-2 border-white/30 border-t-white rounded-full" />
+        <div className="text-gray-400">서버 갱신 중입니다...</div>
+      </div>
+    );
+  }
+  
+  // 데이터 로딩 중
+  if (!frontInfo) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white flex-col gap-4">
+        <div className="animate-spin w-8 h-8 border-2 border-white/30 border-t-white rounded-full" />
+        <div className="text-gray-400">로딩 중...</div>
+      </div>
+    );
+  }
 
   const generalLogs = frontInfo.recentRecord?.general ?? [];
   const personalLogs = frontInfo.recentRecord?.history ?? [];
   const globalLogs = frontInfo.recentRecord?.global ?? [];
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col font-sans selection:bg-primary selection:text-white">
+    <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col font-sans selection:bg-primary selection:text-white pb-16 lg:pb-0">
+      {/* Top GlobalMenu (데스크탑) */}
+      <div className="hidden lg:block w-full bg-black/40 border-b border-white/5">
+        <div className="max-w-[1920px] mx-auto px-4 py-1">
+          <GlobalMenu
+            menu={globalMenu}
+            globalInfo={frontInfo.global}
+            onMenuClick={handleMenuClick}
+            nationColor={frontInfo.nation?.color}
+            colorSystem={colorSystem}
+          />
+        </div>
+      </div>
+
       {/* Top Bar */}
       <header className="w-full bg-black/60 backdrop-blur border-b border-white/10 shadow-sm px-4 py-2 flex justify-between items-center z-40">
          <div className="flex items-center gap-4">
@@ -258,7 +362,6 @@ export default function GamePage() {
                 <span className="text-xs text-gray-400">
                   턴 {frontInfo.global.turnterm}분 / 다음 {nextTurnTimeLabel}
                 </span>
-
             </div>
             <div className="h-8 w-px bg-white/10 mx-2" />
             <div className="flex flex-col">
@@ -269,14 +372,48 @@ export default function GamePage() {
             </div>
          </div>
          <div className="flex items-center gap-2">
-            <button onClick={reloadAllData} disabled={loading} className="px-3 py-1.5 text-xs font-bold rounded bg-white/10 hover:bg-white/20 text-white transition-colors">
-               갱신
+            <button onClick={reloadAllData} disabled={loading} className="px-3 py-1.5 text-xs font-bold rounded bg-white/10 hover:bg-white/20 text-white transition-colors disabled:opacity-50">
+               {loading ? '갱신중...' : '갱신'}
             </button>
             <Link href="/entrance" className="px-3 py-1.5 text-xs font-bold rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 transition-colors">
                나가기
             </Link>
          </div>
       </header>
+
+      {/* 접속중인 국가 & 접속자 정보 */}
+      <div className="w-full bg-black/30 border-b border-white/5 px-4 py-1.5 flex flex-wrap justify-between items-center text-xs gap-2">
+        <div className="flex items-center gap-4">
+          <span className="text-gray-400">
+            접속중인 국가: <span className="text-white font-medium">{frontInfo.global.onlineNations || '-'}</span>
+          </span>
+          <span className="text-gray-500">|</span>
+          <span className="text-gray-400">
+            【 접속자 】 <span className="text-white font-medium">{frontInfo.nation?.onlineGen ?? 0}명</span>
+          </span>
+        </div>
+        {/* 빠른 스크롤 버튼 (데스크탑) */}
+        <div className="hidden md:flex items-center gap-2">
+          <button 
+            onClick={() => scrollToSelector('#reservedCommandPanel')}
+            className="px-2 py-1 text-[10px] bg-gray-800 hover:bg-gray-700 rounded transition-colors"
+          >
+            명령으로
+          </button>
+          <button 
+            onClick={() => scrollToSelector('.mapView')}
+            className="px-2 py-1 text-[10px] bg-gray-800 hover:bg-gray-700 rounded transition-colors"
+          >
+            지도
+          </button>
+          <button 
+            onClick={() => scrollToSelector('.messagePanel')}
+            className="px-2 py-1 text-[10px] bg-gray-800 hover:bg-gray-700 rounded transition-colors"
+          >
+            메시지
+          </button>
+        </div>
+      </div>
 
       {/* Main Layout Grid */}
       <div className="flex-1 w-full max-w-[1920px] mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 pb-20">
@@ -292,7 +429,7 @@ export default function GamePage() {
               colorSystem={colorSystem}
             />
             {/* 1. Map Section */}
-            <div className="min-h-[600px] rounded-xl border border-white/10 bg-black/60 shadow-2xl relative flex flex-col">
+            <div className="mapView min-h-[600px] rounded-xl border border-white/10 bg-black/60 shadow-2xl relative flex flex-col">
                {/* Map Header Overlay */}
                <div className="absolute top-0 left-0 right-0 z-10 p-3 flex justify-between pointer-events-none">
                   <div className="bg-black/60 backdrop-blur px-3 py-1.5 rounded-lg border border-white/10 pointer-events-auto shadow-lg">
@@ -335,7 +472,7 @@ export default function GamePage() {
                 <div className="flex flex-col gap-4">
                    {/* General Card */}
                    {frontInfo.general && frontInfo.nation && (
-                      <div className="rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden h-fit">
+                      <div className="generalInfo rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden h-fit">
                          <GeneralBasicCard
                            general={frontInfo.general}
                            nation={frontInfo.nation}
@@ -348,7 +485,7 @@ export default function GamePage() {
                    
                    {/* City Card */}
                    {frontInfo.city && (
-                      <div className="rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden h-fit">
+                      <div className="cityInfo rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden h-fit">
                          <CityBasicCard 
                            city={frontInfo.city} 
                            cityConstMap={frontInfo.cityConstMap}
@@ -359,7 +496,7 @@ export default function GamePage() {
 
                    {/* Nation Card */}
                    {frontInfo.nation && (
-                      <div className="rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden h-fit">
+                      <div className="nationInfo rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden h-fit">
                          <NationBasicCard
                            nation={frontInfo.nation}
                            global={frontInfo.global}
@@ -373,7 +510,7 @@ export default function GamePage() {
                 {/* Logs Column */}
                 <div className="flex flex-col gap-4 h-full">
                    {/* Messages */}
-                   <div className="rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden flex flex-col flex-1 min-h-[300px]">
+                   <div className="messagePanel rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden flex flex-col flex-1 min-h-[300px]">
                       <div className="px-4 py-2 bg-white/5 border-b border-white/5 flex justify-between items-center">
                          <h3 className="font-bold text-sm text-white flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -401,7 +538,7 @@ export default function GamePage() {
                          </h3>
                       </div>
                       <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-4">
-                      <div>
+                          <div className="PublicRecord">
                              <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> 장수 동향
                              </div>
@@ -409,7 +546,7 @@ export default function GamePage() {
                                 {renderLogList(generalLogs, 10)}
                              </div>
                           </div>
-                          <div>
+                          <div className="GeneralLog">
                              <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 내 기록
                              </div>
@@ -417,7 +554,7 @@ export default function GamePage() {
                                 {renderLogList(personalLogs, 10)}
                              </div>
                           </div>
-                          <div>
+                          <div className="WorldHistory">
                              <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> 중원 정세
                              </div>
@@ -425,7 +562,6 @@ export default function GamePage() {
                                 {renderLogList(globalLogs, 5)}
                              </div>
                           </div>
-
                       </div>
                    </div>
                 </div>
@@ -433,7 +569,7 @@ export default function GamePage() {
          </div>
 
          {/* Right Column: Command (3 cols) */}
-         <div className="lg:col-span-3 flex flex-col h-full">
+         <div id="reservedCommandPanel" className="lg:col-span-3 flex flex-col h-full">
             <div className="rounded-xl border border-white/10 bg-gray-900/60 backdrop-blur shadow-xl flex flex-col h-full min-h-[850px]">
                <div className="px-4 py-3 bg-white/5 border-b border-white/5 flex justify-between items-center">
                   <h3 className="font-bold text-sm text-white flex items-center gap-2">
@@ -457,6 +593,33 @@ export default function GamePage() {
             </div>
          </div>
 
+      </div>
+
+      {/* Bottom GlobalMenu (데스크탑) */}
+      <div className="hidden lg:block w-full bg-black/40 border-t border-white/5 mt-auto">
+        <div className="max-w-[1920px] mx-auto px-4 py-1">
+          <GlobalMenu
+            menu={globalMenu}
+            globalInfo={frontInfo.global}
+            onMenuClick={handleMenuClick}
+            nationColor={frontInfo.nation?.color}
+            colorSystem={colorSystem}
+          />
+        </div>
+      </div>
+
+      {/* 모바일 하단바 */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
+        <GameBottomBar
+          onRefresh={reloadAllData}
+          isLoading={loading}
+          nationColor={frontInfo.nation?.color}
+          colorSystem={colorSystem}
+          globalMenu={globalMenu}
+          globalInfo={frontInfo.global}
+          onMenuClick={handleMenuClick}
+          mainControlProps={mainControlProps}
+        />
       </div>
 
       <VersionModal

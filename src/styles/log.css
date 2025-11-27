@@ -1,5 +1,6 @@
 /**
  * 게임 로그 커스텀 태그 스타일
+ * CSS 변수 사용으로 테마 지원
  */
 
 /* 크기 */
@@ -7,43 +8,43 @@
   font-size: 0.85em;
 }
 
-/* 색상 */
+/* 색상 - CSS 변수 사용 */
 .log-red {
-  color: red;
+  color: var(--log-red);
 }
 
 .log-blue {
-  color: blue;
+  color: var(--log-blue);
 }
 
 .log-green {
-  color: green;
+  color: var(--log-green);
 }
 
 .log-yellow {
-  color: yellow;
+  color: var(--log-yellow);
 }
 
 .log-cyan {
-  color: cyan;
+  color: var(--log-cyan);
 }
 
 .log-magenta {
-  color: magenta;
+  color: var(--log-magenta);
 }
 
 .log-lime {
-  color: limegreen;
+  color: var(--log-lime);
 }
 
 .log-skyblue {
-  color: skyblue;
+  color: var(--log-skyblue);
 }
 
 .log-orange {
-  color: orangered;
+  color: var(--log-orange);
 }
 
 .log-white {
-  color: white;
+  color: var(--log-white);
 }

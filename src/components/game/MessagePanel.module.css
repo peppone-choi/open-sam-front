@@ -1,7 +1,7 @@
 .messagePanel {
     width: 100%;
-    color: white;
-    border-top: solid 1px gray;
+    color: var(--text-main);
+    border-top: solid 1px var(--text-muted);
     height: auto;
     max-height: 400px;
     overflow-y: auto;
@@ -10,13 +10,13 @@
 .messagePanelHeader {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    border-bottom: solid 1px gray;
+    border-bottom: solid 1px var(--text-muted);
 }
 
 .boardHeader {
-    padding: 0.5rem;
+    padding: var(--pad-2);
     text-align: center;
-    border-right: solid 1px gray;
+    border-right: solid 1px var(--text-muted);
     cursor: pointer;
 }
 
@@ -44,17 +44,17 @@
 .messageListHeader {
     display: flex;
     justify-content: flex-end;
-    padding: 0.5rem;
-    border-bottom: solid 1px gray;
+    padding: var(--pad-2);
+    border-bottom: solid 1px var(--text-muted);
 }
 
 .sendMessageButton {
-    padding: 0.5rem 1rem;
-    color: white;
+    padding: var(--pad-2) var(--pad-4);
+    color: var(--text-main);
     border: none;
-    border-radius: 0.25rem;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: var(--font-size-sm);
 }
 
 .sendMessageButton:hover {
@@ -64,86 +64,86 @@
 .messageList {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding-top: 0.5rem;
+    gap: var(--gap-sm);
+    padding-top: var(--pad-2);
     max-height: 300px;
     overflow-y: auto;
 }
 
 .messageItem {
-    padding: 0.5rem;
-    border-radius: 0.25rem;
+    padding: var(--pad-2);
+    border-radius: var(--radius-sm);
 }
 
 .systemMessage {
-    border-left: 3px solid #e94560;
+    border-left: 3px solid var(--secondary);
 }
 
 .publicMessage {
 }
 
 .nationalMessage {
-    border-left: 3px solid #28a745;
+    border-left: 3px solid var(--battle-result);
 }
 
 .privateMessage {
-    background-color: #2a2a1a;
-    border-left: 3px solid #ffc107;
+    background-color: rgba(42, 42, 26, 0.5);
+    border-left: 3px solid var(--log-yellow);
 }
 
 .diplomacyMessage {
-    background-color: #1a1a2a;
-    border-left: 3px solid #6f42c1;
+    background-color: rgba(26, 26, 42, 0.5);
+    border-left: 3px solid var(--accent);
 }
 
 .messageDate {
-    font-size: 0.75rem;
-    color: #adb5bd;
-    margin-bottom: 0.25rem;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-bottom: var(--space-xs);
 }
 
 .messageText {
-    color: #fff;
+    color: var(--text-main);
     line-height: 1.5;
     word-wrap: break-word;
 }
 
 .messagePanelBody {
-    padding: 1rem;
+    padding: var(--space-md);
     height: auto;
 }
 
 .messagePlaceholder {
     text-align: center;
-    color: #888;
-    padding: 2rem;
+    color: var(--text-muted);
+    padding: var(--space-xl);
 }
 
 .sendForm {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
+    gap: var(--gap-md);
+    padding: var(--space-md);
 }
 
 .sendFormHeader {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: solid 1px gray;
-    padding-bottom: 0.5rem;
+    border-bottom: solid 1px var(--text-muted);
+    padding-bottom: var(--pad-2);
 }
 
 .sendFormHeader h3 {
     margin: 0;
-    font-size: 1rem;
+    font-size: var(--font-size-md);
 }
 
 .closeButton {
     background: none;
     border: none;
-    color: white;
-    font-size: 1.25rem;
+    color: var(--text-main);
+    font-size: var(--font-size-lg);
     cursor: pointer;
     padding: 0;
     width: 24px;
@@ -154,73 +154,73 @@
 }
 
 .closeButton:hover {
-    background-color: #444;
-    border-radius: 0.25rem;
+    background-color: var(--game-panel-border);
+    border-radius: var(--radius-sm);
 }
 
 .sendFormSelect {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--gap-sm);
 }
 
 .selectBox {
     flex: 1;
-    padding: 0.5rem;
-    background-color: #2a2a2a;
-    color: white;
-    border: solid 1px gray;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
+    padding: var(--pad-2);
+    background-color: var(--game-panel-bg);
+    color: var(--text-main);
+    border: solid 1px var(--text-muted);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
 }
 
 .selectBox option {
-    background-color: #2a2a2a;
-    color: white;
+    background-color: var(--game-panel-bg);
+    color: var(--text-main);
 }
 
 .sendTextarea {
     width: 100%;
-    padding: 0.5rem;
-    background-color: #2a2a2a;
-    color: white;
-    border: solid 1px gray;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
+    padding: var(--pad-2);
+    background-color: var(--game-panel-bg);
+    color: var(--text-main);
+    border: solid 1px var(--text-muted);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
     font-family: inherit;
     resize: vertical;
 }
 
 .sendTextarea:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: var(--primary);
 }
 
 .sendError {
-    color: #ff4444;
-    font-size: 0.875rem;
-    padding: 0.5rem;
-    background-color: #3a1a1a;
-    border-radius: 0.25rem;
+    color: var(--game-attacker-border);
+    font-size: var(--font-size-sm);
+    padding: var(--pad-2);
+    background-color: rgba(58, 26, 26, 0.5);
+    border-radius: var(--radius-sm);
 }
 
 .sendFormActions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.5rem;
+    gap: var(--gap-sm);
 }
 
 .sendButton {
-    padding: 0.5rem 1.5rem;
-    background-color: #007bff;
-    color: white;
+    padding: var(--pad-2) var(--space-lg);
+    background-color: var(--primary);
+    color: var(--text-main);
     border: none;
-    border-radius: 0.25rem;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: var(--font-size-sm);
 }
 
 .sendButton:hover:not(:disabled) {
-    background-color: #0056b3;
+    background-color: var(--primary-hover);
 }
 
 .sendButton:disabled {
@@ -231,27 +231,27 @@
 .loadMoreContainer {
     display: flex;
     justify-content: center;
-    padding: 1rem 0;
+    padding: var(--space-md) 0;
 }
 
 .loadMoreButton {
-    padding: 0.5rem 1.5rem;
-    background-color: #28a745;
-    color: white;
+    padding: var(--pad-2) var(--space-lg);
+    background-color: var(--battle-result);
+    color: var(--text-main);
     border: none;
-    border-radius: 0.25rem;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: var(--font-size-sm);
 }
 
 .loadMoreButton:hover:not(:disabled) {
-    background-color: #218838;
+    background-color: var(--battle-kill);
 }
 
 .loadMoreButton:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    background-color: #555;
+    background-color: var(--game-panel-border);
 }
 
 @media (min-width: 1000px) {
@@ -264,4 +264,3 @@
         grid-column: 1 / 3;
     }
 }
-

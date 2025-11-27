@@ -12,11 +12,11 @@
 .evadeText {
   position: absolute;
   font-size: 2.5rem;
-  font-weight: bold;
-  color: #00ffff;
+  font-weight: var(--font-weight-bold);
+  color: var(--battle-evade);
   text-shadow: 
-    0 0 10px #00ffff,
-    0 0 20px #0088ff,
+    0 0 10px var(--battle-evade),
+    0 0 20px var(--game-active-border),
     2px 2px 4px rgba(0, 0, 0, 0.8);
   animation: evadeSlide 0.8s ease-out;
 }
@@ -41,10 +41,10 @@
 .missText {
   position: absolute;
   font-size: 3.5rem;
-  font-weight: bold;
-  color: #ffffff;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
   text-shadow: 
-    0 0 10px #00ffff,
+    0 0 10px var(--battle-evade),
     2px 2px 4px rgba(0, 0, 0, 0.8);
   animation: missFade 0.8s ease-out;
   opacity: 0;
@@ -72,7 +72,7 @@
   position: absolute;
   width: 200%;
   height: 2px;
-  background: linear-gradient(to right, transparent, #00ffff, transparent);
+  background: linear-gradient(to right, transparent, var(--battle-evade), transparent);
   animation: traceSlide 0.4s ease-out;
 }
 

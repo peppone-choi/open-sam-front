@@ -15,7 +15,7 @@
 .slashSvg {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 0 5px white);
+  filter: drop-shadow(0 0 5px var(--text-main));
 }
 
 .slashPath {
@@ -42,8 +42,8 @@
 
 .arrow {
   font-size: 4rem;
-  color: #ffa500;
-  text-shadow: 0 0 10px #ff8800;
+  color: var(--battle-arrow);
+  text-shadow: 0 0 10px var(--battle-arrow);
   animation: arrowFly 0.5s ease-in-out;
 }
 
@@ -93,8 +93,8 @@
 
 .burstStar {
   font-size: 5rem;
-  color: #ff00ff;
-  text-shadow: 0 0 20px #ff00ff, 0 0 40px #8a2be2;
+  color: var(--log-magenta);
+  text-shadow: 0 0 20px var(--log-magenta), 0 0 40px var(--battle-magic);
   animation: burstSpin 0.5s ease-out;
 }
 

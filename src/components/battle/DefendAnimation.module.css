@@ -11,11 +11,11 @@
 .damageNumber {
   position: absolute;
   font-size: 3rem;
-  font-weight: bold;
-  color: #ff0000;
+  font-weight: var(--font-weight-bold);
+  color: var(--battle-damage);
   text-shadow: 
     0 0 10px black, 
-    0 0 20px #ff0000,
+    0 0 20px var(--battle-damage),
     2px 2px 4px rgba(0, 0, 0, 0.8);
   animation: damageRise 1s forwards;
   z-index: 3;

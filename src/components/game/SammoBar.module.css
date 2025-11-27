@@ -1,7 +1,7 @@
 .sammoBar {
     position: relative;
-    border-top: solid 1px #888;
-    border-bottom: solid 1px #333;
+    border-top: solid 1px var(--text-muted);
+    border-bottom: solid 1px var(--game-grid-border);
     margin: auto;
 }
 
@@ -9,15 +9,11 @@
     position: absolute;
     left: 0;
     width: 100%;
-    background-color: #333;
+    background-color: var(--game-grid-border);
 }
 
 .sammoBarIn {
     position: absolute;
     left: 0;
-    background-color: #0cf;
+    background-color: var(--game-positive);
 }
-
-
-
-

@@ -6,33 +6,33 @@
 .selectInput {
   display: flex;
   align-items: center;
-  padding: 0.5rem;
-  background-color: #495057;
-  border: 1px solid #6c757d;
-  border-radius: 0.25rem;
-  color: #fff;
+  padding: var(--pad-2);
+  background-color: var(--game-panel-border);
+  border: 1px solid var(--text-muted);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
   cursor: pointer;
   min-height: 2.5rem;
 }
 
 .selectInput:hover {
-  background-color: #5a6268;
+  background-color: var(--color-surface-3);
 }
 
 .placeholder {
-  color: #adb5bd;
+  color: var(--text-muted);
 }
 
 .nationBadge {
-  margin-left: 0.5rem;
-  font-size: 0.875rem;
-  color: #adb5bd;
+  margin-left: var(--space-sm);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
 }
 
 .arrow {
   margin-left: auto;
-  font-size: 0.75rem;
-  color: #adb5bd;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
 }
 
 .dropdown {
@@ -40,28 +40,28 @@
   top: 100%;
   left: 0;
   right: 0;
-  z-index: 1000;
-  background-color: #495057;
-  border: 1px solid #6c757d;
-  border-radius: 0.25rem;
-  margin-top: 0.25rem;
+  z-index: var(--z-modal);
+  background-color: var(--game-panel-border);
+  border: 1px solid var(--text-muted);
+  border-radius: var(--radius-sm);
+  margin-top: var(--space-xs);
   max-height: 400px;
   overflow-y: auto;
 }
 
 .searchInput {
   width: 100%;
-  padding: 0.5rem;
-  background-color: #343a40;
+  padding: var(--pad-2);
+  background-color: var(--game-grid-border);
   border: none;
-  border-bottom: 1px solid #6c757d;
-  color: #fff;
-  font-size: 0.875rem;
+  border-bottom: 1px solid var(--text-muted);
+  color: var(--text-main);
+  font-size: var(--font-size-sm);
 }
 
 .searchInput:focus {
   outline: none;
-  background-color: #3e444a;
+  background-color: var(--color-surface-3);
 }
 
 .options {
@@ -70,27 +70,26 @@
 }
 
 .groupHeader {
-  padding: 0.5rem;
-  font-weight: bold;
-  font-size: 0.875rem;
+  padding: var(--pad-2);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
 }
 
 .option {
-  padding: 0.5rem;
+  padding: var(--pad-2);
   cursor: pointer;
-  color: #fff;
-  border-bottom: 1px solid #6c757d;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--text-muted);
 }
 
 .option:hover {
-  background-color: #5a6268;
+  background-color: var(--color-surface-3);
 }
 
 .option.selected {
-  background-color: #007bff;
+  background-color: var(--primary);
 }
 
 .option.selected:hover {
-  background-color: #0056b3;
+  background-color: var(--primary-hover);
 }
-

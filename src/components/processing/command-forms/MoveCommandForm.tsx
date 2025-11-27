@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import type { GetMapResponse } from '@/lib/api/sammo';
 import SelectCity from '../SelectCity';
+import CitiesBasedOnDistance from '../CitiesBasedOnDistance';
 import MapViewer from '@/components/game/MapViewer';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './CommandForm.module.css';
@@ -182,6 +183,20 @@ export default function MoveCommandForm({
             </button>
           </div>
         </div>
+
+        {/* 거리별 도시 목록 */}
+        {distanceList && Object.keys(distanceList).length > 0 && (
+          <CitiesBasedOnDistance
+            distanceList={distanceList}
+            citiesMap={cities}
+            onSelect={(cityId) => {
+              setSelectedCityID(cityId);
+              if (error) {
+                setError(null);
+              }
+            }}
+          />
+        )}
       </div>
     </div>
   );
