@@ -1,0 +1,734 @@
+/* ===== TotalWarUnitCard.module.css =====
+   토탈워 스타일 부대 카드
+   - 다크 테마 + 금색 악센트
+   - 동양적 문양/테두리
+===== */
+
+/* ===== 컨테이너 ===== */
+.container {
+  position: relative;
+  width: 320px;
+  padding: 16px;
+  background: linear-gradient(145deg, rgba(20, 15, 10, 0.95), rgba(35, 25, 15, 0.95));
+  border: 2px solid #8b7355;
+  border-radius: 8px;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 215, 0, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+  color: #e0d8c8;
+  font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  overflow: hidden;
+}
+
+.container.empty {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: dashed;
+  border-color: #5a4a3a;
+}
+
+.emptyContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.emptyIcon {
+  font-size: 32px;
+  opacity: 0.5;
+}
+
+.emptyText {
+  color: #6a5a4a;
+  font-size: 14px;
+}
+
+/* ===== 동양적 코너 장식 ===== */
+.cornerDecor {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cornerDecor::before,
+.cornerDecor::after {
+  content: '';
+  position: absolute;
+  background: linear-gradient(135deg, #ffd700, #b8860b);
+}
+
+.topLeft {
+  top: 4px;
+  left: 4px;
+}
+
+.topLeft::before {
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 2px;
+}
+
+.topLeft::after {
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 16px;
+}
+
+.topRight {
+  top: 4px;
+  right: 4px;
+}
+
+.topRight::before {
+  top: 0;
+  right: 0;
+  width: 16px;
+  height: 2px;
+}
+
+.topRight::after {
+  top: 0;
+  right: 0;
+  width: 2px;
+  height: 16px;
+}
+
+.bottomLeft {
+  bottom: 4px;
+  left: 4px;
+}
+
+.bottomLeft::before {
+  bottom: 0;
+  left: 0;
+  width: 16px;
+  height: 2px;
+}
+
+.bottomLeft::after {
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  height: 16px;
+}
+
+.bottomRight {
+  bottom: 4px;
+  right: 4px;
+}
+
+.bottomRight::before {
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 2px;
+}
+
+.bottomRight::after {
+  bottom: 0;
+  right: 0;
+  width: 2px;
+  height: 16px;
+}
+
+/* ===== 헤더 ===== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(139, 115, 85, 0.4);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.categoryIcon {
+  font-size: 28px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.nameSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.squadName {
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.generalName {
+  font-size: 12px;
+  color: #9a8a7a;
+  margin-top: 2px;
+}
+
+.headerRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.stateTag {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #fff;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.killCount {
+  font-size: 12px;
+  color: #ff6b6b;
+}
+
+/* ===== 병력 섹션 ===== */
+.soldierSection {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(139, 115, 85, 0.3);
+  border-radius: 6px;
+}
+
+.soldierMain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.soldierIcon {
+  font-size: 18px;
+}
+
+.soldierLabel {
+  color: #9a8a7a;
+  font-size: 13px;
+}
+
+.soldierValue {
+  margin-left: auto;
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+.soldierMax {
+  font-size: 14px;
+  color: #7a6a5a;
+  font-weight: normal;
+}
+
+.soldierBarTrack {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.soldierBarFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease-out;
+}
+
+/* ===== 스탯 바 ===== */
+.statSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.statBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.statLabel {
+  width: 36px;
+  font-size: 12px;
+  color: #9a8a7a;
+  text-align: right;
+}
+
+.barTrack {
+  flex: 1;
+  position: relative;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(139, 115, 85, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.barFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 3px;
+}
+
+.barValue {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  z-index: 1;
+}
+
+/* ===== 전투 능력 ===== */
+.combatStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.combatStat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.combatIcon {
+  font-size: 14px;
+}
+
+.combatLabel {
+  font-size: 11px;
+  color: #8a7a6a;
+}
+
+.combatValue {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: bold;
+  color: #e0d8c8;
+}
+
+/* ===== 탭 섹션 ===== */
+.tabSection {
+  margin-bottom: 16px;
+}
+
+.tabNav {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.tabBtn {
+  flex: 1;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #8a7a6a;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(139, 115, 85, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tabBtn:hover {
+  color: #c0b0a0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.tabBtn.active {
+  color: #ffd700;
+  background: rgba(139, 115, 85, 0.3);
+  border-color: #ffd700;
+}
+
+.tabContent {
+  min-height: 80px;
+}
+
+.currentInfo {
+  margin-top: 10px;
+  padding: 8px;
+  font-size: 11px;
+  color: #8a7a6a;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* ===== 진형 버튼 ===== */
+.formationGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.formationBtn {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #9a8a7a;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(139, 115, 85, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.formationBtn:hover:not(:disabled) {
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(139, 115, 85, 0.6);
+  transform: scale(1.05);
+}
+
+.formationBtn.active {
+  color: #ffd700;
+  background: rgba(139, 115, 85, 0.3);
+  border-color: #ffd700;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.formationBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.formationIcon {
+  font-size: 16px;
+  letter-spacing: -2px;
+}
+
+/* ===== 자세 버튼 ===== */
+.stanceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.stanceBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px;
+  font-size: 12px;
+  color: #9a8a7a;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(139, 115, 85, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.stanceBtn:hover:not(:disabled) {
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.stanceBtn.active {
+  color: #fff;
+  background: rgba(139, 115, 85, 0.2);
+}
+
+.stanceBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.stanceIcon {
+  font-size: 20px;
+}
+
+.stanceName {
+  font-size: 11px;
+  font-weight: bold;
+}
+
+/* ===== 능력 섹션 ===== */
+.abilitySection {
+  padding-top: 12px;
+  border-top: 1px solid rgba(139, 115, 85, 0.3);
+}
+
+.sectionTitle {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  font-weight: bold;
+  color: #9a8a7a;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.abilityGrid {
+  display: flex;
+  gap: 8px;
+}
+
+.abilityBtn {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: linear-gradient(145deg, rgba(60, 50, 40, 0.8), rgba(40, 30, 20, 0.8));
+  border: 2px solid rgba(139, 115, 85, 0.5);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  overflow: hidden;
+}
+
+.abilityBtn:hover:not(:disabled) {
+  border-color: #ffd700;
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+}
+
+.abilityBtn.active {
+  border-color: #4CAF50;
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.5);
+}
+
+.abilityBtn.cooldown {
+  filter: grayscale(0.5);
+}
+
+.abilityBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.abilityIcon {
+  z-index: 1;
+}
+
+.cooldownOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  transition: height 0.1s linear;
+}
+
+.cooldownText {
+  position: absolute;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  z-index: 2;
+}
+
+/* ===== 컴팩트 모드 ===== */
+.container.compact {
+  width: auto;
+  min-width: 180px;
+  padding: 10px 14px;
+}
+
+.compactHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.compactHeader .categoryIcon {
+  font-size: 18px;
+}
+
+.compactHeader .squadName {
+  flex: 1;
+  font-size: 13px;
+  color: #e0d8c8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compactHeader .soldierCount {
+  font-size: 12px;
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.compactBars {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.compactBar {
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.compactStatus {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #8a7a6a;
+}
+
+/* ===== 카드 덱 (하단 부대 목록) ===== */
+.cardDeck {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #8b7355 rgba(0, 0, 0, 0.3);
+}
+
+.cardDeck::-webkit-scrollbar {
+  height: 6px;
+}
+
+.cardDeck::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+
+.cardDeck::-webkit-scrollbar-thumb {
+  background: #8b7355;
+  border-radius: 3px;
+}
+
+.deckCard {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  min-width: 160px;
+  background: linear-gradient(145deg, rgba(30, 25, 20, 0.9), rgba(45, 35, 25, 0.9));
+  border: 1px solid rgba(139, 115, 85, 0.4);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deckCard:hover {
+  border-color: rgba(139, 115, 85, 0.7);
+  background: linear-gradient(145deg, rgba(40, 35, 30, 0.9), rgba(55, 45, 35, 0.9));
+}
+
+.deckCard.selected {
+  border-color: #ffd700;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+}
+
+.deckIcon {
+  font-size: 24px;
+}
+
+.deckInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.deckName {
+  display: block;
+  font-size: 12px;
+  font-weight: bold;
+  color: #e0d8c8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.deckBarTrack {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 2px;
+}
+
+.deckBarFill {
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.deckCount {
+  font-size: 10px;
+  color: #8a7a6a;
+}
+
+.deckState {
+  font-size: 10px;
+  font-weight: bold;
+}
+
+/* ===== 반응형 ===== */
+@media (max-width: 768px) {
+  .container {
+    width: 280px;
+    padding: 12px;
+  }
+
+  .squadName {
+    font-size: 16px;
+  }
+
+  .combatStats {
+    grid-template-columns: 1fr;
+  }
+
+  .formationGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .deckCard {
+    min-width: 140px;
+  }
+}
+
+
+
+
+
+

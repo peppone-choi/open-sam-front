@@ -3,10 +3,10 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  background: #ffffff;
+  background: rgba(0, 0, 0, 0.3);
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .header {
@@ -14,15 +14,18 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-bottom: 2px solid #5568d3;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .title {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
   color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .controls {
@@ -33,68 +36,71 @@
 
 .filterSelect {
   padding: 6px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
-  background: #ffffff;
-  font-size: 14px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #ffffff;
+  font-size: 13px;
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
 }
 
 .filterSelect:hover {
-  border-color: #667eea;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .filterSelect:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
 }
 
 .autoScrollBtn,
 .clearBtn {
   padding: 6px 10px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .autoScrollBtn:hover,
 .clearBtn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .autoScrollBtn.active {
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(56, 189, 248, 0.3);
+  border-color: rgba(56, 189, 248, 0.5);
 }
 
 .logContainer {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
-  background: #f9f9f9;
+  padding: 12px;
+  background: transparent;
 }
 
 .logContainer::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .logContainer::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
 
 .logContainer::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
 }
 
 .logContainer::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .emptyState {
@@ -103,39 +109,56 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #999;
+  color: rgba(255, 255, 255, 0.5);
   text-align: center;
 }
 
 .emptyState p {
   margin: 8px 0;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .emptyHint {
-  font-size: 14px !important;
-  color: #bbb !important;
+  font-size: 12px !important;
+  color: rgba(255, 255, 255, 0.3) !important;
 }
 
 .logList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .logEntry {
-  padding: 12px;
-  background: #ffffff;
-  border-left: 4px solid #4A90E2;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 3px solid #4A90E2;
   border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.2s;
   animation: slideIn 0.3s ease-out;
 }
 
 .logEntry:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.08);
   transform: translateX(2px);
+}
+
+/* 중요 로그 하이라이트 */
+.logEntry.important {
+  background: rgba(234, 179, 8, 0.15);
+  border-left-color: #eab308;
+  animation: highlightPulse 2s ease-out;
+}
+
+.logEntry.critical {
+  background: rgba(239, 68, 68, 0.15);
+  border-left-color: #ef4444;
+  animation: highlightPulse 2s ease-out;
+}
+
+.logEntry.success {
+  background: rgba(34, 197, 94, 0.15);
+  border-left-color: #22c55e;
 }
 
 @keyframes slideIn {
@@ -149,45 +172,130 @@
   }
 }
 
+@keyframes highlightPulse {
+  0%, 100% {
+    box-shadow: none;
+  }
+  25% {
+    box-shadow: 0 0 8px rgba(234, 179, 8, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(234, 179, 8, 0.3);
+  }
+}
+
 .logHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .logType {
   display: inline-block;
-  padding: 3px 8px;
+  padding: 2px 6px;
   background: #4A90E2;
   color: #ffffff;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: bold;
   text-transform: uppercase;
   border-radius: 3px;
 }
 
 .logTime {
-  font-size: 12px;
-  color: #999;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
   font-family: monospace;
 }
 
 .logText {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #333;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
   word-break: break-word;
 }
 
 .footer {
-  padding: 10px 16px;
-  background: #f5f5f5;
-  border-top: 1px solid #ddd;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   text-align: center;
 }
 
 .logCount {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* 새 로그 알림 뱃지 */
+.newLogBadge {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  background: rgba(56, 189, 248, 0.9);
+  color: white;
   font-size: 12px;
-  color: #666;
+  font-weight: bold;
+  border-radius: 20px;
+  cursor: pointer;
+  animation: bounce 1s ease-in-out infinite;
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-4px); }
+}
+
+/* 필터 버튼 그룹 */
+.filterGroup {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.filterButton {
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filterButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.filterButton.active {
+  background: rgba(56, 189, 248, 0.3);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #ffffff;
+}
+
+/* 검색 입력 */
+.searchInput {
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+  font-size: 12px;
+  width: 120px;
+  transition: all 0.2s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #38bdf8;
+  width: 160px;
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.3);
 }

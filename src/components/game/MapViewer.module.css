@@ -43,11 +43,24 @@
     height: 100%;
     position: relative;
     overflow: hidden; /* 도시가 튀어나가지 않도록 */
-    touch-action: manipulation;
+    touch-action: none; /* 브라우저 기본 제스처 비활성화 - 커스텀 줌/팬 처리 */
     user-select: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: contain;
+    cursor: grab;
+}
+
+.mapBody.isDragging {
+    cursor: grabbing;
+}
+
+/* 줌/팬 가능한 컨텐츠 레이어 */
+.zoomableContent {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    will-change: transform;
 }
 
 .mapBglayer1,
@@ -119,6 +132,86 @@
     bottom: 0;
     text-align: right;
     z-index: 10;
+}
+
+/* 줌 컨트롤 버튼 */
+.zoomControls {
+    position: absolute;
+    left: 15px;
+    bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 20;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    border-radius: 8px;
+    padding: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.zoomButton {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.zoomButton:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+}
+
+.zoomButton:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.zoomIndicator {
+    width: 32px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.zoomIndicator:hover {
+    color: #fff;
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+}
+
+/* 모바일에서 줌 컨트롤 크기 증가 */
+@media (max-width: 768px) {
+    .zoomControls {
+        left: 10px;
+        bottom: 10px;
+    }
+    
+    .zoomButton {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .zoomIndicator {
+        width: 40px;
+        height: 28px;
+        font-size: 11px;
+    }
 }
 
 .cityTooltip {

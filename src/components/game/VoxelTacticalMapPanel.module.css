@@ -1,0 +1,395 @@
+/* VoxelTacticalMapPanel - Phaser + Three.js 기반 전술맵 */
+
+.container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  background-color: #0a0a15;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* 캔버스 컨테이너 */
+.canvasContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* 로딩 오버레이 */
+.loadingOverlay {
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(10, 10, 21, 0.95);
+  color: #eee;
+  font-size: 1.25rem;
+}
+
+.loadingContent {
+  text-align: center;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #4A90E2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 상단 HUD */
+.topHud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 12px 16px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+  pointer-events: none;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.locationInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cityIcon {
+  font-size: 1.5rem;
+}
+
+.cityName {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.viewMode {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(100, 100, 100, 0.5);
+  color: #ddd;
+}
+
+/* 전투 통계 */
+.battleStats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  pointer-events: auto;
+}
+
+.attackerStats,
+.defenderStats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.attackerStats {
+  color: #4A90E2;
+}
+
+.defenderStats {
+  color: #E24A4A;
+}
+
+.teamIcon {
+  font-size: 1.25rem;
+}
+
+.soldiers {
+  font-size: 1rem;
+  font-weight: 700;
+  min-width: 60px;
+}
+
+.kills {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.vsText {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #888;
+}
+
+/* 전투 컨트롤 */
+.battleControls {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.startButton,
+.pauseButton {
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.startButton {
+  background: linear-gradient(135deg, #e24a4a 0%, #c92a2a 100%);
+}
+
+.startButton:hover {
+  background: linear-gradient(135deg, #f55a5a 0%, #d93a3a 100%);
+  transform: scale(1.05);
+}
+
+.pauseButton {
+  background: linear-gradient(135deg, #4a90e2 0%, #2a7ac9 100%);
+}
+
+.pauseButton:hover {
+  background: linear-gradient(135deg, #5aa0f2 0%, #3a8ad9 100%);
+}
+
+.victoryBanner {
+  padding: 12px 32px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #FFD700;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 2px solid #FFD700;
+  border-radius: 8px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  animation: victoryPulse 1s ease-in-out infinite;
+}
+
+@keyframes victoryPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.speedControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #aaa;
+  font-size: 0.875rem;
+}
+
+.speedControl button {
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  color: #aaa;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.speedControl button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.speedControl button.active {
+  background: rgba(74, 144, 226, 0.5);
+  border-color: #4A90E2;
+  color: #fff;
+}
+
+/* 주둔 부대 정보 (평화 시) */
+.garrisonInfo {
+  position: absolute;
+  top: 70px;
+  right: 16px;
+  z-index: 10;
+  width: 200px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.75);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+}
+
+.garrisonHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-weight: 600;
+}
+
+.garrisonCount {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.garrisonList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.garrisonUnit {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.unitName {
+  font-size: 0.8125rem;
+  color: #ddd;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+.unitTroops {
+  font-size: 0.75rem;
+  color: #7ED321;
+  font-weight: 600;
+}
+
+.moreUnits {
+  font-size: 0.75rem;
+  color: #888;
+  text-align: center;
+  padding: 4px;
+}
+
+/* 로그 오버레이 */
+.logOverlay {
+  position: absolute;
+  bottom: 120px;
+  left: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 400px;
+}
+
+.logEntry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.75);
+  border-radius: 6px;
+  animation: fadeInOut 5s ease-in-out forwards;
+  backdrop-filter: blur(4px);
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateX(-20px); }
+  10% { opacity: 1; transform: translateX(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.logIcon {
+  font-size: 1rem;
+}
+
+.logText {
+  font-size: 0.8125rem;
+  color: #ddd;
+  line-height: 1.4;
+}
+
+/* 조작 안내 */
+.controls {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  padding: 6px 16px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
+  color: #888;
+  font-size: 0.75rem;
+}
+
+.controls p {
+  margin: 0;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .battleStats {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+  }
+  
+  .vsText {
+    display: none;
+  }
+  
+  .garrisonInfo {
+    width: 160px;
+    right: 8px;
+  }
+  
+  .battleControls {
+    flex-direction: column;
+    bottom: 80px;
+    padding: 10px 16px;
+  }
+  
+  .speedControl {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+
+

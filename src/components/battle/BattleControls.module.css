@@ -1,0 +1,708 @@
+/* ===== BattleControls.module.css =====
+   삼국지 5 스타일 전투 컨트롤 패널
+   액션 버튼, 전투 로그, 결과 표시
+===== */
+
+/* === 컨트롤 패널 === */
+.controlsPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  border: 2px solid #3d5a80;
+  border-radius: 8px;
+  padding: 12px;
+  font-family: 'DungGeunMo', 'Galmuri11', 'Press Start 2P', monospace;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  max-width: 320px;
+}
+
+/* === 전투 상태 요약 === */
+.battleSummary {
+  padding-bottom: 12px;
+  border-bottom: 1px solid #3d5a80;
+}
+
+.teamSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.teamBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 6px;
+  min-width: 80px;
+}
+
+.teamBox.ally {
+  background: linear-gradient(135deg, rgba(66, 135, 245, 0.3) 0%, rgba(66, 135, 245, 0.1) 100%);
+  border: 1px solid #4287f5;
+}
+
+.teamBox.enemy {
+  background: linear-gradient(135deg, rgba(245, 66, 66, 0.3) 0%, rgba(245, 66, 66, 0.1) 100%);
+  border: 1px solid #f54242;
+}
+
+.teamLabel {
+  font-size: 10px;
+  color: #aaa;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.teamCount {
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.vsBox {
+  font-size: 14px;
+  font-weight: bold;
+  color: #666;
+  padding: 0 8px;
+}
+
+/* === 선택된 유닛 정보 === */
+.selectedInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid #ffd700;
+  border-radius: 6px;
+}
+
+.selectedName {
+  color: #ffd700;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.selectedStatus {
+  display: flex;
+  gap: 4px;
+}
+
+.statusBadge {
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 9px;
+  color: #888;
+}
+
+/* === 액션 섹션 === */
+.actionSection {
+  padding: 8px 0;
+}
+
+.actionRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.actionBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border: 2px solid;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.actionBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.actionBtn .btnIcon {
+  font-size: 20px;
+}
+
+.actionBtn .btnText {
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.actionBtn.moveBtn {
+  border-color: #4287f5;
+  color: #4287f5;
+}
+
+.actionBtn.moveBtn:hover:not(:disabled) {
+  background: rgba(66, 135, 245, 0.2);
+  box-shadow: 0 0 15px rgba(66, 135, 245, 0.4);
+}
+
+.actionBtn.attackBtn {
+  border-color: #f54242;
+  color: #f54242;
+}
+
+.actionBtn.attackBtn:hover:not(:disabled) {
+  background: rgba(245, 66, 66, 0.2);
+  box-shadow: 0 0 15px rgba(245, 66, 66, 0.4);
+}
+
+.actionBtn.waitBtn {
+  border-color: #888;
+  color: #888;
+}
+
+.actionBtn.waitBtn:hover:not(:disabled) {
+  background: rgba(136, 136, 136, 0.2);
+}
+
+/* === 턴 섹션 === */
+.turnSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.turnBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 16px;
+  border: 2px solid;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.turnBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.turnBtn .btnIcon {
+  font-size: 16px;
+}
+
+.turnBtn .btnText {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.turnBtn.endTurnBtn {
+  border-color: #4caf50;
+  color: #4caf50;
+}
+
+.turnBtn.endTurnBtn:hover:not(:disabled) {
+  background: rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+}
+
+.turnBtn.autoBtn {
+  border-color: #ff9800;
+  color: #ff9800;
+}
+
+.turnBtn.autoBtn:hover:not(:disabled) {
+  background: rgba(255, 152, 0, 0.2);
+}
+
+.turnBtn.autoBtn.active {
+  background: rgba(255, 152, 0, 0.3);
+  box-shadow: 0 0 15px rgba(255, 152, 0, 0.5);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* === 속도 섹션 === */
+.speedSection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.speedLabel {
+  color: #888;
+  font-size: 11px;
+}
+
+.speedButtons {
+  display: flex;
+  gap: 4px;
+}
+
+.speedBtn {
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #3d5a80;
+  border-radius: 4px;
+  color: #aaa;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.speedBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.speedBtn.active {
+  background: rgba(66, 135, 245, 0.3);
+  border-color: #4287f5;
+  color: #4287f5;
+}
+
+/* ===== 전투 로그 패널 ===== */
+.logPanel {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #3d5a80;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.logPanel.expanded {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 350px;
+  z-index: 1000;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+
+.logHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid #3d5a80;
+}
+
+.logTitle {
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.logControls {
+  display: flex;
+  gap: 4px;
+}
+
+.logBtn {
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #3d5a80;
+  border-radius: 4px;
+  color: #888;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.logBtn.active {
+  background: rgba(66, 135, 245, 0.2);
+  border-color: #4287f5;
+  color: #4287f5;
+}
+
+.logContainer {
+  padding: 8px;
+  overflow-y: auto;
+  transition: max-height 0.3s;
+}
+
+.logContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.logContainer::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.logContainer::-webkit-scrollbar-thumb {
+  background: #3d5a80;
+  border-radius: 3px;
+}
+
+.emptyLog {
+  color: #666;
+  font-size: 11px;
+  text-align: center;
+  padding: 20px;
+}
+
+.logEntry {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-left: 3px solid;
+  margin-bottom: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 0 4px 4px 0;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.logIcon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.logText {
+  color: #ccc;
+  font-size: 11px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* 로그 타입별 스타일 */
+.log_phase {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.log_attack {
+  background: rgba(255, 68, 68, 0.1);
+}
+
+.log_critical {
+  background: rgba(255, 215, 0, 0.15);
+}
+
+.log_death {
+  background: rgba(136, 136, 136, 0.1);
+}
+
+/* ===== 승패 오버레이 ===== */
+.winnerOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 6px;
+  animation: winnerFadeIn 0.5s ease-out;
+}
+
+@keyframes winnerFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.winnerOverlay.player {
+  border: 3px solid #ffd700;
+  box-shadow: inset 0 0 50px rgba(255, 215, 0, 0.2);
+}
+
+.winnerOverlay.enemy {
+  border: 3px solid #f54242;
+  box-shadow: inset 0 0 50px rgba(245, 66, 66, 0.2);
+}
+
+.winnerText {
+  font-size: 24px;
+  font-weight: bold;
+  animation: winnerPop 0.5s ease-out;
+}
+
+.winnerOverlay.player .winnerText {
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.winnerOverlay.enemy .winnerText {
+  color: #f54242;
+  text-shadow: 0 0 20px rgba(245, 66, 66, 0.5);
+}
+
+@keyframes winnerPop {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ===== 빠른 액션 바 (모바일) ===== */
+.quickBar {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 100%);
+  border-top: 2px solid #3d5a80;
+}
+
+.quickBtn {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quickBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.quickBtn.moveBtn {
+  border-color: #4287f5;
+}
+
+.quickBtn.moveBtn:active:not(:disabled) {
+  background: rgba(66, 135, 245, 0.4);
+  transform: scale(0.95);
+}
+
+.quickBtn.attackBtn {
+  border-color: #f54242;
+}
+
+.quickBtn.attackBtn:active:not(:disabled) {
+  background: rgba(245, 66, 66, 0.4);
+  transform: scale(0.95);
+}
+
+.quickBtn.waitBtn {
+  border-color: #888;
+}
+
+.quickBtn.waitBtn:active:not(:disabled) {
+  background: rgba(136, 136, 136, 0.4);
+  transform: scale(0.95);
+}
+
+.quickBtn.endTurnBtn {
+  border-color: #4caf50;
+}
+
+.quickBtn.endTurnBtn:active:not(:disabled) {
+  background: rgba(76, 175, 80, 0.4);
+  transform: scale(0.95);
+}
+
+/* ===== 전투 결과 모달 ===== */
+.resultModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 2000;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.resultContent {
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  border: 3px solid #3d5a80;
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 320px;
+  animation: modalSlide 0.3s ease-out;
+}
+
+@keyframes modalSlide {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.resultHeader {
+  text-align: center;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #3d5a80;
+}
+
+.resultHeader.player {
+  border-color: #ffd700;
+}
+
+.resultHeader.enemy {
+  border-color: #f54242;
+}
+
+.resultIcon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.resultTitle {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.resultHeader.player .resultTitle {
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.resultHeader.enemy .resultTitle {
+  color: #f54242;
+  text-shadow: 0 0 20px rgba(245, 66, 66, 0.5);
+}
+
+.resultStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.statColumn {
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
+
+.statHeader {
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #3d5a80;
+}
+
+.statItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  color: #aaa;
+  font-size: 12px;
+}
+
+.statValue {
+  color: #fff;
+  font-weight: bold;
+}
+
+.resultButtons {
+  display: flex;
+  gap: 12px;
+}
+
+.resultBtn {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #3d5a80;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #aaa;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.resultBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.resultBtn.primary {
+  border-color: #4287f5;
+  color: #4287f5;
+}
+
+.resultBtn.primary:hover {
+  background: rgba(66, 135, 245, 0.2);
+}
+
+/* === 반응형 === */
+@media (max-width: 768px) {
+  .controlsPanel {
+    max-width: 100%;
+    border-radius: 0;
+  }
+
+  .logPanel.expanded {
+    width: calc(100% - 40px);
+    left: 20px;
+    right: 20px;
+  }
+
+  .resultContent {
+    margin: 20px;
+    min-width: auto;
+    width: calc(100% - 40px);
+  }
+}
+
+
+
+

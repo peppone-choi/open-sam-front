@@ -1,0 +1,304 @@
+/* BattleScene.module.css - 전투 메인 화면 스타일 */
+
+.battleScene {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #0a0a0f;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 배경 레이어 */
+.backgroundLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.gradientOverlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 100%);
+}
+
+.particleEffect {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.1), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.15), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.1), transparent),
+    radial-gradient(2px 2px at 130px 80px, rgba(255, 255, 255, 0.1), transparent);
+  background-size: 200px 100px;
+  animation: particleFloat 20s linear infinite;
+}
+
+@keyframes particleFloat {
+  from { background-position: 0 0; }
+  to { background-position: -200px 100px; }
+}
+
+/* 전투 콘텐츠 */
+.battleContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+/* 상단 바 */
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.armyInfo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 200px;
+}
+
+.armyInfo.attacker {
+  justify-content: flex-start;
+}
+
+.armyInfo.defender {
+  justify-content: flex-end;
+  flex-direction: row-reverse;
+}
+
+.nationBadge {
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.unitCount {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 1.25rem;
+  color: #e5e7eb;
+}
+
+.unitCount .alive {
+  font-weight: 700;
+  color: #4ade80;
+}
+
+.unitCount .divider {
+  color: #6b7280;
+}
+
+.unitCount .total {
+  color: #9ca3af;
+}
+
+/* 턴 표시 */
+.turnIndicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.turnNumber {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.phaseBadge {
+  padding: 8px 24px;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.phaseBadge.player {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+}
+
+.phaseBadge.enemy {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  color: white;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+}
+
+.phaseBadge.animation {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+/* 메인 전투 영역 */
+.mainBattleArea {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.mapContainer {
+  flex: 1;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 사이드 패널 */
+.sidePanel {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 하단 컨트롤 */
+.bottomControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leftControls,
+.rightControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.controlBtn {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #e5e7eb;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.controlBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.speedControl {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+}
+
+.speedBtn {
+  padding: 4px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #9ca3af;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.speedBtn:hover {
+  color: #e5e7eb;
+}
+
+.speedBtn.active {
+  background: #3b82f6;
+  color: white;
+}
+
+.endTurnBtn {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+.endTurnBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+.endTurnBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.exitBtn {
+  padding: 8px 16px;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  color: #f87171;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.exitBtn:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+/* 반응형 */
+@media (max-width: 1024px) {
+  .sidePanel {
+    width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .mainBattleArea {
+    flex-direction: column;
+  }
+
+  .sidePanel {
+    width: 100%;
+    flex-direction: row;
+    height: 180px;
+  }
+
+  .topBar {
+    padding: 8px 12px;
+  }
+
+  .bottomControls {
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+

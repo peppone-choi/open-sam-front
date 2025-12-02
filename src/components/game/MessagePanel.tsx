@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { SammoAPI } from '@/lib/api/sammo';
 import { useToast } from '@/contexts/ToastContext';
+import { useSocket } from '@/hooks/useSocket';
 import styles from './MessagePanel.module.css';
 
 import type { ColorSystem } from '@/types/colorSystem';
@@ -32,6 +33,7 @@ interface Message {
   dest_nation_name?: string;
   text: string;
   date: string;
+  read?: boolean;
 }
 
 type MessageType = 'system' | 'public' | 'national' | 'private' | 'diplomacy';
@@ -78,6 +80,17 @@ export default function MessagePanel({
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [unreadCount, setUnreadCount] = useState<Record<MessageType, number>>({
+    system: 0,
+    public: 0,
+    national: 0,
+    private: 0,
+    diplomacy: 0,
+  });
+  const [lastReadMsgId, setLastReadMsgId] = useState<Record<string, number>>({
+    private: 0,
+    diplomacy: 0,
+  });
   const messageListRef = useRef<HTMLDivElement>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastRefreshRef = useRef<number>(0);
@@ -85,6 +98,13 @@ export default function MessagePanel({
   // 자동 갱신 설정 (Vue와 동일한 2.5초 간격 체크, 5초 실제 갱신)
   const AUTO_REFRESH_INTERVAL = 2500;
   const MIN_REFRESH_GAP = 5000;
+
+  // Socket.io 연결 (실시간 메시지 수신)
+  const socketOptions = useMemo(() => ({ 
+    sessionId: serverID, 
+    autoConnect: !!serverID 
+  }), [serverID]);
+  const { socket, isConnected, subscribe } = useSocket(socketOptions);
 
   // nationID 변경 시 재야인데 국가/외교 탭이면 전체 탭으로 전환
   useEffect(() => {
@@ -123,6 +143,71 @@ export default function MessagePanel({
     setHasMore(true);
     loadMessages(true);
   }, [activeTab, generalID, serverID]);
+
+  // Socket.io 실시간 메시지 수신
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    // 새 메시지 이벤트 핸들러
+    const handleNewMessage = (data: {
+      messageId?: number;
+      id?: number;
+      type?: string;
+      channelType?: string;
+      text?: string;
+      message?: string;
+      senderName?: string;
+      src_general_name?: string;
+      src_nation_name?: string;
+      date?: string;
+      [key: string]: any;
+    }) => {
+      // 현재 탭과 메시지 타입이 일치하는지 확인
+      const msgType = data.type || data.channelType || 'public';
+      const shouldShow = activeTab === msgType || 
+        (activeTab === 'public' && msgType === 'all') ||
+        (activeTab === 'system' && msgType === 'system');
+
+      if (!shouldShow) return;
+
+      // 새 메시지 객체 생성
+      const newMessage: Message = {
+        id: data.messageId || data.id || Date.now(),
+        type: msgType,
+        src_general_name: data.senderName || data.src_general_name,
+        src_nation_name: data.src_nation_name,
+        text: data.text || data.message || '',
+        date: data.date || new Date().toISOString(),
+        ...data
+      };
+
+      // 중복 체크 후 메시지 추가
+      setMessages(prev => {
+        const exists = prev.some(m => m.id === newMessage.id);
+        if (exists) return prev;
+        return [newMessage, ...prev];
+      });
+
+      // 새 메시지 알림
+      const senderInfo = newMessage.src_general_name || newMessage.src_nation_name || '알 수 없음';
+      showToast(`새 메시지: ${senderInfo}`, 'info');
+    };
+
+    // 이벤트 구독
+    const unsubscribe = subscribe('message:new', handleNewMessage);
+    
+    // 외교 메시지 이벤트도 구독
+    const unsubscribeDiplomacy = subscribe('nation:diplomacy', (data: any) => {
+      if (activeTab === 'diplomacy') {
+        handleNewMessage({ ...data, type: 'diplomacy' });
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      unsubscribeDiplomacy();
+    };
+  }, [socket, isConnected, activeTab, subscribe, showToast]);
 
   useEffect(() => {
     if (showSendForm) {
@@ -196,6 +281,49 @@ export default function MessagePanel({
       setLoadingMore(false);
     }
   }
+
+  // 메시지 읽음 표시 API 호출
+  async function markMessagesAsRead(type: 'private' | 'diplomacy', msgId: number) {
+    if (!serverID || msgId <= lastReadMsgId[type]) return;
+    
+    try {
+      const result = await SammoAPI.ReadLatestMessage({
+        type,
+        msgID: msgId,
+        serverID,
+      });
+      
+      if (result.result) {
+        setLastReadMsgId(prev => ({
+          ...prev,
+          [type]: Math.max(prev[type], msgId)
+        }));
+        
+        // 읽음 처리된 메시지 업데이트
+        setMessages(prev => prev.map(m => 
+          m.id <= msgId ? { ...m, read: true } : m
+        ));
+        
+        // 읽지 않은 메시지 수 업데이트
+        setUnreadCount(prev => ({
+          ...prev,
+          [type]: Math.max(0, prev[type] - 1)
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to mark message as read:', err);
+    }
+  }
+
+  // 탭 전환 시 읽음 처리
+  useEffect(() => {
+    if ((activeTab === 'private' || activeTab === 'diplomacy') && messages.length > 0) {
+      const latestMsg = messages[0];
+      if (latestMsg && !latestMsg.read) {
+        markMessagesAsRead(activeTab, latestMsg.id);
+      }
+    }
+  }, [activeTab, messages]);
 
   const handleLoadMore = () => {
     if (!loadingMore && hasMore) {
@@ -357,6 +485,7 @@ export default function MessagePanel({
           style={{
             backgroundColor: activeTab === 'private' ? colorSystem?.buttonHover : colorSystem?.buttonBg,
             color: colorSystem?.buttonText,
+            position: 'relative',
           }}
           onClick={() => {
             setActiveTab('private');
@@ -364,6 +493,23 @@ export default function MessagePanel({
           }}
         >
           개인
+          {unreadCount.private > 0 && (
+            <span style={{
+              position: 'absolute',
+              top: '-4px',
+              right: '-4px',
+              backgroundColor: colorSystem?.error || '#ef4444',
+              color: '#fff',
+              fontSize: '10px',
+              fontWeight: 'bold',
+              padding: '2px 5px',
+              borderRadius: '9999px',
+              minWidth: '16px',
+              textAlign: 'center',
+            }}>
+              {unreadCount.private > 99 ? '99+' : unreadCount.private}
+            </span>
+          )}
         </div>
         {nationID !== 0 && permissionLevel >= 1 && (
           <div
@@ -371,6 +517,7 @@ export default function MessagePanel({
             style={{
               backgroundColor: activeTab === 'diplomacy' ? colorSystem?.buttonHover : colorSystem?.buttonBg,
               color: colorSystem?.buttonText,
+              position: 'relative',
             }}
             onClick={() => {
               setActiveTab('diplomacy');
@@ -378,6 +525,23 @@ export default function MessagePanel({
             }}
           >
             외교
+            {unreadCount.diplomacy > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-4px',
+                right: '-4px',
+                backgroundColor: colorSystem?.error || '#ef4444',
+                color: '#fff',
+                fontSize: '10px',
+                fontWeight: 'bold',
+                padding: '2px 5px',
+                borderRadius: '9999px',
+                minWidth: '16px',
+                textAlign: 'center',
+              }}>
+                {unreadCount.diplomacy > 99 ? '99+' : unreadCount.diplomacy}
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -516,23 +680,37 @@ export default function MessagePanel({
                     msg.type === 'private' ? styles.privateMessage :
                     styles.publicMessage
                   }`;
+                  const isUnread = !msg.read && (msg.type === 'private' || msg.type === 'diplomacy');
                   return (
                     <div 
                       key={msg.id} 
                       style={{
-                        backgroundColor: colorSystem?.pageBg,
-                        border: '1px solid ' + (colorSystem?.borderLight || '#444'),
+                        backgroundColor: isUnread ? 'rgba(59, 130, 246, 0.1)' : colorSystem?.pageBg,
+                        border: '1px solid ' + (isUnread ? 'rgba(59, 130, 246, 0.3)' : (colorSystem?.borderLight || '#444')),
                         borderLeft: '3px solid ' + (
                           msg.type === 'system' ? colorSystem?.error : 
                           msg.type === 'national' ? colorSystem?.success : 
                           msg.type === 'diplomacy' ? colorSystem?.special :
+                          isUnread ? '#3b82f6' :
                           colorSystem?.border
                         ),
                         borderRadius: '4px',
                         padding: '0.75rem',
                         marginBottom: '0.5rem',
+                        position: 'relative',
                       }}
                     >
+                      {isUnread && (
+                        <span style={{
+                          position: 'absolute',
+                          top: '8px',
+                          right: '8px',
+                          width: '8px',
+                          height: '8px',
+                          backgroundColor: '#3b82f6',
+                          borderRadius: '50%',
+                        }} title="읽지 않음" />
+                      )}
                       <div 
                         className={messageClass}
                         style={{

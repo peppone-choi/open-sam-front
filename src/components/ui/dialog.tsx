@@ -7,15 +7,62 @@ interface DialogProps {
   open: boolean
   onClose: () => void
   children: React.ReactNode
+  /** 다이얼로그 제목 요소의 ID (aria-labelledby용) */
+  titleId?: string
+  /** 다이얼로그 설명 요소의 ID (aria-describedby용) */
+  descriptionId?: string
 }
 
-const Dialog = ({ open, onClose, children }: DialogProps) => {
+const Dialog = ({ open, onClose, children, titleId, descriptionId }: DialogProps) => {
+  const dialogRef = React.useRef<HTMLDivElement>(null)
+  const previousActiveElement = React.useRef<HTMLElement | null>(null)
+
+  // ESC 키 처리 및 포커스 트랩
   React.useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
+    if (!open) return
+
+    // 이전 포커스 요소 저장
+    previousActiveElement.current = document.activeElement as HTMLElement
+    
+    // 다이얼로그로 포커스 이동
+    setTimeout(() => {
+      dialogRef.current?.focus()
+    }, 0)
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose()
+        return
+      }
+
+      // 포커스 트랩
+      if (e.key === "Tab" && dialogRef.current) {
+        const focusableElements = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        const firstElement = focusableElements[0]
+        const lastElement = focusableElements[focusableElements.length - 1]
+
+        if (e.shiftKey && document.activeElement === firstElement) {
+          e.preventDefault()
+          lastElement?.focus()
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+          e.preventDefault()
+          firstElement?.focus()
+        }
+      }
     }
-    if (open) window.addEventListener("keydown", handleEsc)
-    return () => window.removeEventListener("keydown", handleEsc)
+
+    // body 스크롤 방지
+    document.body.style.overflow = "hidden"
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+      document.body.style.overflow = ""
+      // 이전 포커스 요소로 복원
+      previousActiveElement.current?.focus()
+    }
   }, [open, onClose])
 
   if (!open) return null
@@ -29,7 +76,15 @@ const Dialog = ({ open, onClose, children }: DialogProps) => {
         aria-hidden="true"
       />
       {/* Wrapper to position content */}
-      <div className="z-50 w-full max-w-lg relative">
+      <div 
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+        tabIndex={-1}
+        className="z-50 w-full max-w-lg relative outline-none"
+      >
         {children}
       </div>
     </div>
@@ -78,31 +133,41 @@ const DialogFooter = ({
 )
 DialogFooter.displayName = "DialogFooter"
 
-const DialogTitle = React.forwardRef<
-  HTMLHeadingElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  <h2
-    ref={ref}
-    className={cn(
-      "text-lg font-semibold leading-none tracking-tight text-white",
-      className
-    )}
-    {...props}
-  />
-))
+interface DialogTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
+  /** aria-labelledby 연결용 ID */
+  id?: string
+}
+
+const DialogTitle = React.forwardRef<HTMLHeadingElement, DialogTitleProps>(
+  ({ className, id = "dialog-title", ...props }, ref) => (
+    <h2
+      ref={ref}
+      id={id}
+      className={cn(
+        "text-lg font-semibold leading-none tracking-tight text-white",
+        className
+      )}
+      {...props}
+    />
+  )
+)
 DialogTitle.displayName = "DialogTitle"
 
-const DialogDescription = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
-  <p
-    ref={ref}
-    className={cn("text-sm text-gray-400", className)}
-    {...props}
-  />
-))
+interface DialogDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {
+  /** aria-describedby 연결용 ID */
+  id?: string
+}
+
+const DialogDescription = React.forwardRef<HTMLParagraphElement, DialogDescriptionProps>(
+  ({ className, id = "dialog-description", ...props }, ref) => (
+    <p
+      ref={ref}
+      id={id}
+      className={cn("text-sm text-gray-400", className)}
+      {...props}
+    />
+  )
+)
 DialogDescription.displayName = "DialogDescription"
 
 export {

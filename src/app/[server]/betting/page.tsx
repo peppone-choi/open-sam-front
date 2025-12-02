@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
@@ -13,6 +13,7 @@ interface BettingSummary {
   description?: string;
   type?: string;
   finished?: boolean;
+  result?: string; // 결과 (우승자 등)
   openYearMonth?: number;
   closeYearMonth?: number;
   selectCnt?: number;
@@ -27,6 +28,113 @@ interface BettingDetailState {
   remainPoint?: number;
   year?: number;
   month?: number;
+}
+
+// 배당률 바 차트 컴포넌트
+function OddsBar({ 
+  entries, 
+  winningKey 
+}: { 
+  entries: [string, number][]; 
+  winningKey?: string;
+}) {
+  const total = entries.reduce((sum, [, val]) => sum + val, 0);
+  if (total === 0) return null;
+
+  const maxAmount = Math.max(...entries.map(([, val]) => val));
+
+  return (
+    <div className="space-y-2">
+      {entries.map(([key, amount]) => {
+        const percentage = (amount / total) * 100;
+        const odds = total > 0 && amount > 0 ? (total / amount).toFixed(2) : '-';
+        const isWinner = winningKey === key;
+        
+        let label = key;
+        try {
+          const parsed = JSON.parse(key);
+          if (Array.isArray(parsed)) {
+            label = parsed.join(', ');
+          } else {
+            label = String(parsed);
+          }
+        } catch {
+          label = key;
+        }
+
+        return (
+          <div key={key} className="space-y-1">
+            <div className="flex justify-between items-center text-xs">
+              <span className={cn(
+                "flex items-center gap-2",
+                isWinner ? "text-yellow-400 font-bold" : "text-gray-300"
+              )}>
+                {isWinner && <span className="text-yellow-500">🏆</span>}
+                {label}
+              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-gray-500 font-mono">{percentage.toFixed(1)}%</span>
+                <span className={cn(
+                  "font-mono font-bold",
+                  isWinner ? "text-yellow-400" : "text-blue-400"
+                )}>
+                  x{odds}
+                </span>
+              </div>
+            </div>
+            <div className="h-4 bg-black/30 rounded-full overflow-hidden relative">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-500",
+                  isWinner 
+                    ? "bg-gradient-to-r from-yellow-600 to-yellow-400" 
+                    : "bg-gradient-to-r from-blue-700 to-blue-500"
+                )}
+                style={{ width: `${percentage}%` }}
+              />
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono text-white/70">
+                {amount.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// 베팅 결과 배지
+function ResultBadge({ finished, hasWon }: { finished: boolean; hasWon?: boolean }) {
+  if (!finished) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-900/30 border border-green-500/30 text-green-400 text-xs font-bold rounded-full">
+        <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+        진행 중
+      </span>
+    );
+  }
+  
+  if (hasWon === true) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-900/30 border border-yellow-500/30 text-yellow-400 text-xs font-bold rounded-full">
+        🎉 당첨!
+      </span>
+    );
+  }
+  
+  if (hasWon === false) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-800 border border-gray-700 text-gray-400 text-xs font-bold rounded-full">
+        💔 미당첨
+      </span>
+    );
+  }
+  
+  return (
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-800 border border-gray-700 text-gray-400 text-xs font-bold rounded-full">
+      종료됨
+    </span>
+  );
 }
 
 const normalizeBettingList = (raw: any): BettingSummary[] => {
@@ -83,14 +191,11 @@ export default function BettingPage() {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [betAmount, setBetAmount] = useState('');
   const [placing, setPlacing] = useState(false);
+  const autoRefreshRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    loadBettingList();
-  }, [serverID]);
-
-  async function loadBettingList() {
+  const loadBettingList = useCallback(async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setListError(null);
       const result = await SammoAPI.BettingGetBettingList({ serverID });
       if (!result.result && result.success === false) {
@@ -112,12 +217,30 @@ export default function BettingPage() {
       }
     } catch (err) {
       console.error(err);
-      setListError('베팅 정보를 불러오는데 실패했습니다.');
+      if (!silent) setListError('베팅 정보를 불러오는데 실패했습니다.');
       setBettingList([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  }
+  }, [serverID]);
+
+  useEffect(() => {
+    loadBettingList();
+  }, [loadBettingList]);
+
+  // 자동 새로고침 (30초마다)
+  useEffect(() => {
+    autoRefreshRef.current = setInterval(() => {
+      loadBettingList(true);
+    }, 30000);
+
+    return () => {
+      if (autoRefreshRef.current) {
+        clearInterval(autoRefreshRef.current);
+      }
+    };
+  }, [loadBettingList]);
+
 
   useEffect(() => {
     if (selectedBettingId == null) {
@@ -215,7 +338,7 @@ export default function BettingPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
-      <TopBackBar title="베 팅 장" reloadable={true} onReload={loadBettingList} />
+      <TopBackBar title="베 팅 장" reloadable={true} onReload={() => loadBettingList()} />
       {loading ? (
         <div className="flex justify-center items-center h-[50vh]">
            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
@@ -241,26 +364,43 @@ export default function BettingPage() {
                       "w-full text-left p-4 rounded-xl border transition-all duration-200",
                       betting.id === selectedBettingId 
                         ? "bg-blue-900/30 border-blue-500 ring-1 ring-blue-500/50" 
-                        : "bg-gray-900/50 border-white/5 hover:border-white/20 hover:bg-gray-800/50"
+                        : betting.finished
+                          ? "bg-gray-900/30 border-white/5 hover:border-white/20 opacity-75"
+                          : "bg-gray-900/50 border-white/5 hover:border-white/20 hover:bg-gray-800/50"
                     )}
                     onClick={() => setSelectedBettingId(betting.id)}
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <div className="font-bold text-white">{betting.title || `베팅 #${betting.id}`}</div>
-                      <span className={cn(
-                        "text-xs px-2 py-0.5 rounded font-bold",
-                        betting.finished ? "bg-gray-700 text-gray-300" : "bg-green-600 text-white"
+                      <div className={cn(
+                        "font-bold",
+                        betting.finished ? "text-gray-400" : "text-white"
                       )}>
-                        {betting.finished ? '종료' : '진행 중'}
-                      </span>
+                        {betting.title || `베팅 #${betting.id}`}
+                      </div>
+                      <ResultBadge finished={betting.finished || false} />
                     </div>
                     {betting.description && (
                       <p className="text-xs text-gray-400 line-clamp-2 mb-3">{betting.description}</p>
                     )}
+                    
+                    {/* 결과 표시 (종료된 경우) */}
+                    {betting.finished && betting.result && (
+                      <div className="mb-3 p-2 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                        <div className="text-xs text-yellow-500 font-bold flex items-center gap-1">
+                          <span>🏆</span>
+                          <span>결과: {betting.result}</span>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="grid grid-cols-2 gap-y-1 text-xs text-gray-500">
                       <div>종류: {betting.type || '-'}</div>
                       <div>선택 수: {betting.selectCnt ?? 1}</div>
-                      <div className="col-span-2">총 베팅액: {(betting.totalAmount || 0).toLocaleString()} 금</div>
+                      <div className="col-span-2 flex items-center gap-1">
+                        <span>총 베팅액:</span>
+                        <span className="font-mono text-yellow-500 font-bold">{(betting.totalAmount || 0).toLocaleString()}</span>
+                        <span>금</span>
+                      </div>
                     </div>
                   </button>
                 ))}
@@ -366,6 +506,20 @@ export default function BettingPage() {
                       </div>
                     )}
 
+                    {/* 배당률 시각화 */}
+                    {bettingDetailEntries.length > 0 && (
+                      <div className="mb-6 p-4 bg-black/20 rounded-xl border border-white/5">
+                        <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                          배당률 현황
+                        </h4>
+                        <OddsBar 
+                          entries={bettingDetailEntries} 
+                          winningKey={detail.bettingInfo?.result}
+                        />
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-auto pt-6 border-t border-white/10">
                       <div>
                         <h4 className="font-bold text-white mb-3 text-sm uppercase tracking-wider">전체 베팅 현황</h4>
@@ -378,15 +532,31 @@ export default function BettingPage() {
                                 <tr>
                                   <th className="px-3 py-2 font-medium">선택</th>
                                   <th className="px-3 py-2 font-medium text-right">총 금액</th>
+                                  <th className="px-3 py-2 font-medium text-right">배당</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-white/5">
-                                {bettingDetailEntries.map(([typeKey, amount]) => (
-                                  <tr key={typeKey}>
-                                    <td className="px-3 py-2 text-gray-300">{renderBettingTypeLabel(typeKey)}</td>
-                                    <td className="px-3 py-2 text-right font-mono text-yellow-500">{(amount || 0).toLocaleString()}</td>
-                                  </tr>
-                                ))}
+                                {bettingDetailEntries.map(([typeKey, amount]) => {
+                                  const total = bettingDetailEntries.reduce((sum, [, val]) => sum + val, 0);
+                                  const odds = total > 0 && amount > 0 ? (total / amount).toFixed(2) : '-';
+                                  const isWinner = detail.bettingInfo?.result === typeKey;
+                                  return (
+                                    <tr key={typeKey} className={isWinner ? 'bg-yellow-900/20' : ''}>
+                                      <td className={cn(
+                                        "px-3 py-2",
+                                        isWinner ? "text-yellow-400 font-bold" : "text-gray-300"
+                                      )}>
+                                        {isWinner && '🏆 '}
+                                        {renderBettingTypeLabel(typeKey)}
+                                      </td>
+                                      <td className="px-3 py-2 text-right font-mono text-yellow-500">{(amount || 0).toLocaleString()}</td>
+                                      <td className={cn(
+                                        "px-3 py-2 text-right font-mono font-bold",
+                                        isWinner ? "text-yellow-400" : "text-blue-400"
+                                      )}>x{odds}</td>
+                                    </tr>
+                                  );
+                                })}
                               </tbody>
                             </table>
                           )}
@@ -398,22 +568,57 @@ export default function BettingPage() {
                           {myBettingEntries.length === 0 ? (
                             <div className="p-4 text-center text-xs text-gray-500">베팅한 내역이 없습니다.</div>
                           ) : (
-                            <table className="w-full text-xs text-left">
-                              <thead className="bg-white/5 text-gray-400">
-                                <tr>
-                                  <th className="px-3 py-2 font-medium">선택</th>
-                                  <th className="px-3 py-2 font-medium text-right">금액</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-white/5">
-                                {myBettingEntries.map(([typeKey, amount]) => (
-                                  <tr key={typeKey}>
-                                    <td className="px-3 py-2 text-gray-300">{renderBettingTypeLabel(typeKey)}</td>
-                                    <td className="px-3 py-2 text-right font-mono text-green-400">{(amount || 0).toLocaleString()}</td>
+                            <>
+                              <table className="w-full text-xs text-left">
+                                <thead className="bg-white/5 text-gray-400">
+                                  <tr>
+                                    <th className="px-3 py-2 font-medium">선택</th>
+                                    <th className="px-3 py-2 font-medium text-right">금액</th>
+                                    <th className="px-3 py-2 font-medium text-right">결과</th>
                                   </tr>
-                                ))}
-                              </tbody>
-                            </table>
+                                </thead>
+                                <tbody className="divide-y divide-white/5">
+                                  {myBettingEntries.map(([typeKey, amount]) => {
+                                    const isWinner = detail.bettingInfo?.result === typeKey;
+                                    const total = bettingDetailEntries.reduce((sum, [, val]) => sum + val, 0);
+                                    const betOnThis = bettingDetailEntries.find(([k]) => k === typeKey)?.[1] || 0;
+                                    const potentialWin = betOnThis > 0 ? Math.floor((amount / betOnThis) * total) : 0;
+                                    
+                                    return (
+                                      <tr key={typeKey} className={isWinner && detail.bettingInfo?.finished ? 'bg-yellow-900/20' : ''}>
+                                        <td className="px-3 py-2 text-gray-300">{renderBettingTypeLabel(typeKey)}</td>
+                                        <td className="px-3 py-2 text-right font-mono text-green-400">{(amount || 0).toLocaleString()}</td>
+                                        <td className="px-3 py-2 text-right">
+                                          {detail.bettingInfo?.finished ? (
+                                            isWinner ? (
+                                              <span className="text-yellow-400 font-bold">+{potentialWin.toLocaleString()}</span>
+                                            ) : (
+                                              <span className="text-red-400">-{(amount || 0).toLocaleString()}</span>
+                                            )
+                                          ) : (
+                                            <span className="text-gray-500">대기 중</span>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                              {detail.bettingInfo?.finished && (
+                                <div className={cn(
+                                  "p-3 border-t border-white/5 text-center",
+                                  myBettingEntries.some(([k]) => k === detail.bettingInfo?.result)
+                                    ? "bg-yellow-900/20 text-yellow-400"
+                                    : "bg-red-900/20 text-red-400"
+                                )}>
+                                  <span className="font-bold">
+                                    {myBettingEntries.some(([k]) => k === detail.bettingInfo?.result)
+                                      ? '🎉 축하합니다! 당첨되었습니다!'
+                                      : '아쉽게도 당첨되지 않았습니다.'}
+                                  </span>
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>

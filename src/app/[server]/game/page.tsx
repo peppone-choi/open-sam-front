@@ -356,7 +356,7 @@ export default function GamePage() {
       <header className="w-full bg-black/60 backdrop-blur border-b border-white/10 shadow-sm px-4 py-2 flex justify-between items-center z-40">
          <div className="flex items-center gap-4">
             <div className="flex flex-col">
-               <span className="text-lg font-bold text-white" style={{ color: colorSystem.base }}>
+               <span className="text-lg font-bold text-white" style={{ color: colorSystem.accent }}>
                   {frontInfo.global.year}년 {frontInfo.global.month}월
                </span>
                 <span className="text-xs text-gray-400">
@@ -416,10 +416,10 @@ export default function GamePage() {
       </div>
 
       {/* Main Layout Grid */}
-      <div className="flex-1 w-full max-w-[1920px] mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 pb-20">
+      <div className="flex-1 w-full max-w-[1920px] mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-4 pb-20">
          
          {/* Left Column: Map + Info (9 cols) */}
-         <div className="lg:col-span-9 flex flex-col gap-4">
+         <div className="lg:col-span-9 flex flex-col gap-2 sm:gap-4">
             <GameInfoPanel
               frontInfo={frontInfo}
               serverName={frontInfo.global.serverName || ''}
@@ -428,18 +428,18 @@ export default function GamePage() {
               nationColor={frontInfo.nation?.color}
               colorSystem={colorSystem}
             />
-            {/* 1. Map Section */}
-            <div className="mapView min-h-[600px] rounded-xl border border-white/10 bg-black/60 shadow-2xl relative flex flex-col">
-               {/* Map Header Overlay */}
-               <div className="absolute top-0 left-0 right-0 z-10 p-3 flex justify-between pointer-events-none">
-                  <div className="bg-black/60 backdrop-blur px-3 py-1.5 rounded-lg border border-white/10 pointer-events-auto shadow-lg">
-                     <span className="text-xs text-gray-400 mr-2">현재 위치</span>
-                     <span className="text-base font-bold text-white">{frontInfo.city?.name}</span>
+            {/* 1. Map Section - 모바일에서 높이 조정 */}
+            <div className="mapView min-h-[350px] sm:min-h-[500px] lg:min-h-[600px] rounded-xl border border-white/10 bg-black/60 shadow-2xl relative flex flex-col">
+               {/* Map Header Overlay - 모바일 최적화 */}
+               <div className="absolute top-0 left-0 right-0 z-10 p-2 sm:p-3 flex flex-col sm:flex-row justify-between gap-2 pointer-events-none">
+                  <div className="bg-black/60 backdrop-blur px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-white/10 pointer-events-auto shadow-lg inline-flex items-center w-fit">
+                     <span className="text-[10px] sm:text-xs text-gray-400 mr-1 sm:mr-2">현재 위치</span>
+                     <span className="text-sm sm:text-base font-bold text-white">{frontInfo.city?.name}</span>
                   </div>
                   {frontInfo.nation?.notice && (
-                     <div className="bg-yellow-900/90 backdrop-blur px-4 py-2 rounded-lg border border-yellow-500/30 max-w-lg pointer-events-auto shadow-lg">
-                        <div className="text-[10px] font-bold text-yellow-400 mb-0.5 uppercase tracking-wider">국가 방침</div>
-                        <div className="text-sm text-white leading-snug" dangerouslySetInnerHTML={{__html: frontInfo.nation.notice.msg}} />
+                     <div className="bg-yellow-900/90 backdrop-blur px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-yellow-500/30 max-w-full sm:max-w-lg pointer-events-auto shadow-lg">
+                        <div className="text-[9px] sm:text-[10px] font-bold text-yellow-400 mb-0.5 uppercase tracking-wider">국가 방침</div>
+                        <div className="text-xs sm:text-sm text-white leading-snug line-clamp-2 sm:line-clamp-none" dangerouslySetInnerHTML={{__html: frontInfo.nation.notice.msg}} />
                      </div>
                   )}
                </div>
@@ -466,13 +466,13 @@ export default function GamePage() {
                />
             )}
 
-            {/* 2. Info & Logs Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[600px]">
+            {/* 2. Info & Logs Row - 모바일 반응형 개선 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 min-h-[400px] sm:min-h-[600px]">
                 {/* Info Column */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2 sm:gap-4">
                    {/* General Card */}
                    {frontInfo.general && frontInfo.nation && (
-                      <div className="generalInfo rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden h-fit">
+                      <div className="generalInfo rounded-lg sm:rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden h-fit">
                          <GeneralBasicCard
                            general={frontInfo.general}
                            nation={frontInfo.nation}
@@ -485,7 +485,7 @@ export default function GamePage() {
                    
                    {/* City Card */}
                    {frontInfo.city && (
-                      <div className="cityInfo rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden h-fit">
+                      <div className="cityInfo rounded-lg sm:rounded-xl border border-white/10 bg-gray-900/40 backdrop-blur shadow-lg overflow-hidden h-fit">
                          <CityBasicCard 
                            city={frontInfo.city} 
                            cityConstMap={frontInfo.cityConstMap}
@@ -524,7 +524,7 @@ export default function GamePage() {
                             nationID={frontInfo.nation?.id || 0}
                             permissionLevel={frontInfo.general?.permission || 0}
                             nationColor={frontInfo.nation?.color}
-                            colorSystem={{...colorSystem, accent: colorSystem.base}}
+                            colorSystem={{...colorSystem, accent: colorSystem.accent}}
                          />
                       </div>
                    </div>
@@ -568,17 +568,19 @@ export default function GamePage() {
             </div>
          </div>
 
-         {/* Right Column: Command (3 cols) */}
-         <div id="reservedCommandPanel" className="lg:col-span-3 flex flex-col h-full">
-            <div className="rounded-xl border border-white/10 bg-gray-900/60 backdrop-blur shadow-xl flex flex-col h-full min-h-[850px]">
-               <div className="px-4 py-3 bg-white/5 border-b border-white/5 flex justify-between items-center">
-                  <h3 className="font-bold text-sm text-white flex items-center gap-2">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+         {/* Right Column: Command (3 cols) - 모바일에서는 전체 폭 */}
+         <div id="reservedCommandPanel" className="lg:col-span-3 flex flex-col h-full order-first lg:order-none">
+            <div className="rounded-lg sm:rounded-xl border border-white/10 bg-gray-900/60 backdrop-blur shadow-xl flex flex-col h-full min-h-[500px] sm:min-h-[700px] lg:min-h-[850px]">
+               <div className="px-3 sm:px-4 py-2 sm:py-3 bg-white/5 border-b border-white/5 flex justify-between items-center sticky top-0 z-10">
+                  <h3 className="font-bold text-xs sm:text-sm text-white flex items-center gap-2">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:w-4 sm:h-4"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
                      명령 예약
                   </h3>
-                  <span className="text-[10px] text-gray-500 bg-black/20 px-2 py-0.5 rounded">Auto-Sync</span>
+                  <div className="flex items-center gap-2">
+                     <span className="text-[9px] sm:text-[10px] text-gray-500 bg-black/20 px-1.5 sm:px-2 py-0.5 rounded">Auto-Sync</span>
+                  </div>
                </div>
-               <div className="flex-1 p-0">
+               <div className="flex-1 p-0 overflow-auto">
                   {frontInfo.general && (
                      <PartialReservedCommand
                        generalID={frontInfo.general.no}

@@ -510,6 +510,113 @@
     cursor: not-allowed;
 }
 
+/* 명령 취소 버튼 */
+.cancelButton {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    opacity: 0;
+}
+
+.commandCell:hover .cancelButton {
+    opacity: 1;
+}
+
+.cancelButton:hover:not(:disabled) {
+    background-color: rgba(239, 68, 68, 0.4);
+    border-color: #ef4444;
+    transform: scale(1.1);
+}
+
+/* 드래그 관련 스타일 */
+.turnCell.dragging {
+    opacity: 0.5;
+    background: rgba(56, 189, 248, 0.3) !important;
+}
+
+.turnCell.dragOver {
+    border-top: 2px solid #38bdf8;
+    background: rgba(56, 189, 248, 0.15) !important;
+}
+
+.commandRow {
+    display: contents;
+    transition: background-color 0.2s;
+}
+
+.commandRow:hover .turnCell,
+.commandRow:hover .yearMonthCell,
+.commandRow:hover .timeCell,
+.commandRow:hover .commandCell {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 진행중인 명령 강조 */
+.commandCell.executing {
+    position: relative;
+}
+
+.commandCell.executing::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 100%);
+    animation: executePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes executePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* 휴식 명령 스타일 */
+.commandCell.rest {
+    color: var(--prc-muted-text);
+    font-style: italic;
+}
+
+/* 시간 표시 개선 */
+.timeCell.imminent {
+    background-color: rgba(234, 179, 8, 0.2) !important;
+    color: #fbbf24;
+    font-weight: bold;
+}
+
+.timeCell.urgent {
+    background-color: rgba(239, 68, 68, 0.2) !important;
+    color: #ef4444;
+    font-weight: bold;
+    animation: urgentBlink 1s ease-in-out infinite;
+}
+
+@keyframes urgentBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* 진행 표시 바 */
+.progressBar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #38bdf8 0%, #0ea5e9 100%);
+    transition: width 0.3s ease-out;
+}
+
 .content {
     color: var(--prc-text-color);
     padding: 0.5rem;

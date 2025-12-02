@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, ReactNode } from 'react';
+import React, { useState, useRef, useEffect, ReactNode, useId } from 'react';
 
 interface TooltipProps {
   content: ReactNode;
@@ -11,8 +11,10 @@ interface TooltipProps {
 }
 
 /**
- * 간단한 CSS 기반 Tooltip 컴포넌트
- * Vue의 v-b-tooltip.hover 동작을 대체
+ * 접근성을 갖춘 CSS 기반 Tooltip 컴포넌트
+ * - role="tooltip" 적용
+ * - aria-describedby로 트리거와 연결
+ * - 포커스/블러 이벤트 지원
  */
 export function Tooltip({ 
   content, 
@@ -26,6 +28,7 @@ export function Tooltip({
   const triggerRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const tooltipId = useId();
 
   const showTooltip = () => {
     timeoutRef.current = setTimeout(() => {
@@ -97,6 +100,7 @@ export function Tooltip({
         onMouseLeave={hideTooltip}
         onFocus={showTooltip}
         onBlur={hideTooltip}
+        aria-describedby={isVisible ? tooltipId : undefined}
         className={`inline-block ${className}`}
       >
         {children}
@@ -104,6 +108,9 @@ export function Tooltip({
       {isVisible && (
         <div
           ref={tooltipRef}
+          id={tooltipId}
+          role="tooltip"
+          aria-hidden={!isVisible}
           className="fixed z-[9999] px-3 py-2 text-xs font-medium text-white bg-gray-900/95 rounded-lg shadow-lg backdrop-blur-sm border border-white/10 max-w-xs pointer-events-none animate-fadeIn"
           style={{
             left: coords.x,
@@ -119,6 +126,7 @@ export function Tooltip({
               position === 'left' ? 'right-[-5px] top-1/2 -translate-y-1/2 border-t border-r' :
               'left-[-5px] top-1/2 -translate-y-1/2 border-b border-l'
             }`}
+            aria-hidden="true"
           />
         </div>
       )}
@@ -157,4 +165,7 @@ export function SimpleTooltip({
 }
 
 export default Tooltip;
+
+
+
 

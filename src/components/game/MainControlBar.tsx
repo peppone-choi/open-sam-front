@@ -158,18 +158,26 @@ export default function MainControlBar({
               </Link>
               <button
                 type="button"
+                aria-haspopup="menu"
+                aria-expanded={auctionDropdownOpen}
+                aria-label="경매장 메뉴 열기"
                 className={cn(buttonBaseClass, defaultClass, "rounded-l-none w-10 px-0 flex items-center justify-center")}
                 onClick={() => setAuctionDropdownOpen(!auctionDropdownOpen)}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("transition-transform", auctionDropdownOpen ? "rotate-180" : "")}><path d="m6 9 6 6 6-6" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("transition-transform", auctionDropdownOpen ? "rotate-180" : "")} aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
               </button>
             </div>
 
             {auctionDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-space-panel border border-white/10 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+              <div 
+                role="menu"
+                aria-label="경매장 유형 선택"
+                className="absolute top-full left-0 right-0 mt-1 z-50 bg-space-panel border border-white/10 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+              >
                 <Link
                   href={`${basePath}/auction`}
                   target="_blank"
+                  role="menuitem"
                   className="block w-full text-left px-4 py-2 text-xs hover:bg-primary hover:text-white transition-colors"
                   onClick={() => setAuctionDropdownOpen(false)}
                 >
@@ -178,6 +186,7 @@ export default function MainControlBar({
                 <Link
                   href={`${basePath}/auction?type=unique`}
                   target="_blank"
+                  role="menuitem"
                   className="block w-full text-left px-4 py-2 text-xs hover:bg-primary hover:text-white transition-colors border-t border-white/5"
                   onClick={() => setAuctionDropdownOpen(false)}
                 >

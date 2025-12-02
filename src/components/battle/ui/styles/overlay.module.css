@@ -1,0 +1,1063 @@
+/**
+ * 복셀 전투 UI 오버레이 스타일
+ * 다크 테마, 반투명 배경, 모바일 반응형
+ */
+
+/* ============================================================================
+   CSS 변수 (다크 테마)
+   ============================================================================ */
+:root {
+  --overlay-bg: rgba(15, 15, 20, 0.85);
+  --overlay-bg-solid: rgba(20, 20, 28, 0.95);
+  --overlay-border: rgba(255, 215, 0, 0.3);
+  --overlay-border-hover: rgba(255, 215, 0, 0.6);
+  --overlay-glow: rgba(255, 215, 0, 0.15);
+  --overlay-text: #e8e8f0;
+  --overlay-text-muted: #8888aa;
+  --overlay-accent: #ffd700;
+  --overlay-accent-dim: rgba(255, 215, 0, 0.7);
+  
+  /* 팀 컬러 */
+  --team-attacker: #4a9eff;
+  --team-attacker-bg: rgba(74, 158, 255, 0.2);
+  --team-defender: #ff4a4a;
+  --team-defender-bg: rgba(255, 74, 74, 0.2);
+  
+  /* 상태 컬러 */
+  --status-idle: #8888aa;
+  --status-moving: #4a9eff;
+  --status-fighting: #ff6b35;
+  --status-routing: #ff4a4a;
+  
+  /* 게이지 컬러 */
+  --health-high: #4ade80;
+  --health-mid: #facc15;
+  --health-low: #ef4444;
+  --morale-high: #a855f7;
+  --morale-mid: #8b5cf6;
+  --morale-low: #6b21a8;
+  
+  /* 그림자 */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(255, 215, 0, 0.3);
+  
+  /* 트랜지션 */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 400ms ease-out;
+}
+
+/* ============================================================================
+   메인 오버레이 컨테이너
+   ============================================================================ */
+.overlayContainer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  font-family: 'Noto Sans KR', 'Pretendard', sans-serif;
+  overflow: hidden;
+}
+
+.overlayContainer * {
+  box-sizing: border-box;
+}
+
+/* ============================================================================
+   상단 HUD
+   ============================================================================ */
+.topHud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 12px;
+  pointer-events: auto;
+  gap: 16px;
+}
+
+.hudPanel {
+  background: var(--overlay-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--overlay-border);
+  border-radius: 8px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.hudPanel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* 팀 정보 */
+.teamInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 140px;
+}
+
+.teamInfoAttacker {
+  align-items: flex-end;
+}
+
+.teamInfoDefender {
+  align-items: flex-start;
+}
+
+.teamName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--overlay-text);
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+}
+
+.teamStats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--overlay-text-muted);
+}
+
+.troopCount {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.troopCountAttacker {
+  color: var(--team-attacker);
+}
+
+.troopCountDefender {
+  color: var(--team-defender);
+}
+
+/* 게이지 바 */
+.gaugeBar {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 3px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.gaugeFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width var(--transition-normal);
+}
+
+.gaugeFillHealth {
+  background: linear-gradient(90deg, var(--health-high), var(--health-mid));
+}
+
+.gaugeFillMorale {
+  background: linear-gradient(90deg, var(--morale-high), var(--morale-mid));
+}
+
+/* 중앙 타이머 */
+.centerInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px;
+  border-left: 1px solid var(--overlay-border);
+  border-right: 1px solid var(--overlay-border);
+}
+
+.battleTimer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--overlay-accent);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.timerIcon {
+  font-size: 20px;
+  opacity: 0.8;
+}
+
+.battlePhase {
+  font-size: 11px;
+  color: var(--overlay-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.phaseReady {
+  color: var(--status-idle);
+}
+
+.phaseRunning {
+  color: var(--health-high);
+}
+
+.phasePaused {
+  color: var(--status-moving);
+}
+
+.phaseEnded {
+  color: var(--overlay-accent);
+}
+
+/* 전황 점수 */
+.battleScore {
+  margin-top: 8px;
+  width: 200px;
+}
+
+.scoreBar {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  display: flex;
+  overflow: hidden;
+}
+
+.scoreBarAttacker {
+  height: 100%;
+  background: var(--team-attacker);
+  transition: width var(--transition-normal);
+}
+
+.scoreBarDefender {
+  height: 100%;
+  background: var(--team-defender);
+  transition: width var(--transition-normal);
+}
+
+/* ============================================================================
+   미니맵
+   ============================================================================ */
+.minimapContainer {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  pointer-events: auto;
+}
+
+.minimapWrapper {
+  background: var(--overlay-bg-solid);
+  border: 1px solid var(--overlay-border);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: var(--shadow-lg);
+}
+
+.minimapHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--overlay-border);
+}
+
+.minimapTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--overlay-accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.minimapLegend {
+  display: flex;
+  gap: 8px;
+  font-size: 10px;
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+}
+
+.minimapCanvas {
+  border-radius: 4px;
+  cursor: crosshair;
+  display: block;
+}
+
+.minimapViewport {
+  position: absolute;
+  border: 2px solid var(--overlay-accent);
+  background: rgba(255, 215, 0, 0.1);
+  pointer-events: none;
+  border-radius: 2px;
+}
+
+.minimapCollapseBtn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  background: var(--overlay-bg-solid);
+  border: 1px solid var(--overlay-border);
+  border-radius: 50%;
+  color: var(--overlay-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all var(--transition-fast);
+}
+
+.minimapCollapseBtn:hover {
+  border-color: var(--overlay-border-hover);
+  color: var(--overlay-accent);
+}
+
+/* ============================================================================
+   유닛 정보 패널
+   ============================================================================ */
+.unitPanelContainer {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  pointer-events: auto;
+  width: 280px;
+}
+
+.unitPanel {
+  background: var(--overlay-bg-solid);
+  border: 1px solid var(--overlay-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.unitPanelEmpty {
+  padding: 24px;
+  text-align: center;
+  color: var(--overlay-text-muted);
+  font-size: 13px;
+}
+
+.unitPanelHeader {
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.1) 0%, transparent 100%);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--overlay-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.unitIcon {
+  width: 48px;
+  height: 48px;
+  background: var(--overlay-bg);
+  border: 2px solid var(--overlay-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.unitIconAttacker {
+  border-color: var(--team-attacker);
+}
+
+.unitIconDefender {
+  border-color: var(--team-defender);
+}
+
+.unitTitle {
+  flex: 1;
+}
+
+.unitName {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--overlay-text);
+  margin-bottom: 2px;
+}
+
+.unitType {
+  font-size: 12px;
+  color: var(--overlay-text-muted);
+}
+
+.unitState {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.stateIdle {
+  background: rgba(136, 136, 170, 0.2);
+  color: var(--status-idle);
+}
+
+.stateMoving {
+  background: rgba(74, 158, 255, 0.2);
+  color: var(--status-moving);
+}
+
+.stateFighting {
+  background: rgba(255, 107, 53, 0.2);
+  color: var(--status-fighting);
+}
+
+.stateRouting {
+  background: rgba(255, 74, 74, 0.2);
+  color: var(--status-routing);
+}
+
+.stateDead {
+  background: rgba(100, 100, 100, 0.2);
+  color: #666;
+}
+
+.unitPanelBody {
+  padding: 16px;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--overlay-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--overlay-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.statBarContainer {
+  flex: 1;
+  margin-left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statBar {
+  flex: 1;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.statBarFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width var(--transition-normal);
+}
+
+.healthBarFill {
+  background: linear-gradient(90deg, var(--health-high), #22c55e);
+}
+
+.healthBarFillMid {
+  background: linear-gradient(90deg, var(--health-mid), #eab308);
+}
+
+.healthBarFillLow {
+  background: linear-gradient(90deg, var(--health-low), #dc2626);
+}
+
+.moraleBarFill {
+  background: linear-gradient(90deg, var(--morale-high), var(--morale-mid));
+}
+
+.generalInfo {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--overlay-border);
+}
+
+.generalName {
+  font-size: 13px;
+  color: var(--overlay-accent);
+  font-weight: 600;
+}
+
+.generalBonus {
+  font-size: 11px;
+  color: var(--overlay-text-muted);
+  margin-top: 4px;
+}
+
+/* ============================================================================
+   속도 컨트롤
+   ============================================================================ */
+.speedControlContainer {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.speedControlPanel {
+  background: var(--overlay-bg-solid);
+  border: 1px solid var(--overlay-border);
+  border-radius: 24px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--shadow-md);
+}
+
+.playPauseBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--overlay-accent);
+  border: none;
+  color: #1a1a2e;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-glow);
+}
+
+.playPauseBtn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+}
+
+.playPauseBtn:active {
+  transform: scale(0.95);
+}
+
+.speedButtons {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+  padding-left: 12px;
+  border-left: 1px solid var(--overlay-border);
+}
+
+.speedBtn {
+  width: 36px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid var(--overlay-border);
+  border-radius: 4px;
+  color: var(--overlay-text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.speedBtn:hover {
+  border-color: var(--overlay-border-hover);
+  color: var(--overlay-text);
+}
+
+.speedBtnActive {
+  background: var(--overlay-accent);
+  border-color: var(--overlay-accent);
+  color: #1a1a2e;
+}
+
+/* ============================================================================
+   전투 로그
+   ============================================================================ */
+.battleLogContainer {
+  position: absolute;
+  top: 80px;
+  left: 16px;
+  pointer-events: auto;
+  width: 320px;
+  max-height: calc(100vh - 220px);
+}
+
+.battleLogPanel {
+  background: var(--overlay-bg-solid);
+  border: 1px solid var(--overlay-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.battleLogHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.08) 0%, transparent 100%);
+  border-bottom: 1px solid var(--overlay-border);
+}
+
+.battleLogTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--overlay-accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.battleLogCollapseBtn {
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: 1px solid var(--overlay-border);
+  border-radius: 4px;
+  color: var(--overlay-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all var(--transition-fast);
+}
+
+.battleLogCollapseBtn:hover {
+  border-color: var(--overlay-border-hover);
+  color: var(--overlay-text);
+}
+
+.battleLogList {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 8px 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--overlay-border) transparent;
+}
+
+.battleLogList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.battleLogList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.battleLogList::-webkit-scrollbar-thumb {
+  background: var(--overlay-border);
+  border-radius: 3px;
+}
+
+.battleLogItem {
+  display: flex;
+  align-items: flex-start;
+  padding: 6px 14px;
+  gap: 10px;
+  transition: background var(--transition-fast);
+}
+
+.battleLogItem:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.logTimestamp {
+  font-size: 10px;
+  color: var(--overlay-text-muted);
+  min-width: 42px;
+  font-variant-numeric: tabular-nums;
+}
+
+.logIcon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+}
+
+.logMessage {
+  flex: 1;
+  font-size: 12px;
+  color: var(--overlay-text);
+  line-height: 1.4;
+}
+
+/* 로그 타입별 색상 */
+.logTypeBattleStart {
+  color: var(--overlay-accent);
+}
+
+.logTypeBattleEnd {
+  color: var(--overlay-accent);
+  font-weight: 600;
+}
+
+.logTypeUnitKilled {
+  color: var(--health-low);
+}
+
+.logTypeSquadRouting {
+  color: var(--status-routing);
+}
+
+.logTypeSquadRallied {
+  color: var(--health-high);
+}
+
+.logTypeSquadDestroyed {
+  color: var(--health-low);
+  font-weight: 600;
+}
+
+.logTypeGeneralSkill {
+  color: var(--morale-high);
+  font-weight: 600;
+}
+
+.logTypeMoraleChange {
+  color: var(--morale-mid);
+}
+
+.battleLogCollapsed {
+  max-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ============================================================================
+   추가 컨트롤 버튼 (설정, 전체화면 등)
+   ============================================================================ */
+.extraControls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.extraBtn {
+  width: 36px;
+  height: 36px;
+  background: var(--overlay-bg-solid);
+  border: 1px solid var(--overlay-border);
+  border-radius: 8px;
+  color: var(--overlay-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all var(--transition-fast);
+}
+
+.extraBtn:hover {
+  border-color: var(--overlay-border-hover);
+  color: var(--overlay-text);
+}
+
+/* ============================================================================
+   승리 / 패배 오버레이
+   ============================================================================ */
+.resultOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  z-index: 200;
+}
+
+.resultBanner {
+  background: var(--overlay-bg-solid);
+  border: 2px solid var(--overlay-accent);
+  border-radius: 16px;
+  padding: 40px 60px;
+  text-align: center;
+  box-shadow: var(--shadow-glow), var(--shadow-lg);
+  animation: resultAppear 0.5s ease-out;
+}
+
+@keyframes resultAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.resultIcon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: iconBounce 0.6s ease-out 0.3s both;
+}
+
+@keyframes iconBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+.resultTitle {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--overlay-accent);
+  margin-bottom: 8px;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.resultSubtitle {
+  font-size: 16px;
+  color: var(--overlay-text-muted);
+}
+
+/* ============================================================================
+   반응형 (태블릿)
+   ============================================================================ */
+@media (max-width: 1024px) {
+  .topHud {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .hudPanel {
+    padding: 10px 16px;
+    gap: 16px;
+  }
+  
+  .teamInfo {
+    min-width: 100px;
+  }
+  
+  .battleTimer {
+    font-size: 22px;
+  }
+  
+  .battleScore {
+    width: 150px;
+  }
+  
+  .battleLogContainer {
+    width: 280px;
+  }
+  
+  .unitPanelContainer {
+    width: 240px;
+  }
+}
+
+/* ============================================================================
+   반응형 (모바일)
+   ============================================================================ */
+@media (max-width: 640px) {
+  .topHud {
+    padding: 6px;
+    gap: 6px;
+  }
+  
+  .hudPanel {
+    padding: 8px 12px;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .teamName {
+    font-size: 12px;
+  }
+  
+  .troopCount {
+    font-size: 14px;
+  }
+  
+  .centerInfo {
+    border: none;
+    padding: 0;
+    width: 100%;
+    order: -1;
+  }
+  
+  .battleTimer {
+    font-size: 18px;
+  }
+  
+  .battleScore {
+    width: 100%;
+  }
+  
+  /* 미니맵 축소 */
+  .minimapContainer {
+    bottom: 80px;
+    right: 8px;
+  }
+  
+  /* 유닛 패널 숨기기 또는 축소 */
+  .unitPanelContainer {
+    width: 100%;
+    left: 8px;
+    right: 8px;
+    bottom: 80px;
+    max-width: calc(100% - 16px);
+  }
+  
+  .unitPanel {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  
+  /* 전투 로그 */
+  .battleLogContainer {
+    width: calc(100% - 16px);
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: 100px;
+    max-height: 150px;
+  }
+  
+  /* 속도 컨트롤 */
+  .speedControlPanel {
+    padding: 6px 12px;
+    border-radius: 20px;
+  }
+  
+  .playPauseBtn {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  
+  .speedBtn {
+    width: 32px;
+    height: 24px;
+    font-size: 11px;
+  }
+  
+  /* 추가 컨트롤 */
+  .extraControls {
+    top: 8px;
+    right: 8px;
+    gap: 6px;
+  }
+  
+  .extraBtn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}
+
+/* ============================================================================
+   애니메이션 유틸리티
+   ============================================================================ */
+.fadeIn {
+  animation: fadeIn var(--transition-normal) ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.slideInLeft {
+  animation: slideInLeft var(--transition-normal) ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slideInRight {
+  animation: slideInRight var(--transition-normal) ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slideInUp {
+  animation: slideInUp var(--transition-normal) ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+
+
+
+

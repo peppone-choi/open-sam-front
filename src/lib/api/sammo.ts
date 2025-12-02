@@ -843,6 +843,9 @@ export class SammoAPI {
       arg: params.arg || {},
       brief: params.brief,
     };
+    
+    console.log('[SammoAPI.CommandReserveCommand] params.arg:', JSON.stringify(params.arg));
+    console.log('[SammoAPI.CommandReserveCommand] body:', JSON.stringify(body));
 
     // serverID가 있으면 session_id로 매핑
     if (params.serverID && !body.session_id) {
@@ -2673,9 +2676,9 @@ export class SammoAPI {
   }
 
   static async AdminUpdateUser(params: {
-    userID: number;
+    userID: string | number;
     action: string;
-    data?: any;
+    data?: Record<string, unknown>;
   }): Promise<{
     result: boolean;
     reason?: string;
@@ -2842,6 +2845,7 @@ export class SammoAPI {
   }
 
   static async AdminUpdateGame(params: {
+    session_id?: string;
     action: string;
     data: Record<string, unknown>;
   }): Promise<{
@@ -2955,6 +2959,39 @@ export class SammoAPI {
     };
   }> {
     return this.request('/api/admin/session/reset', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  static async AdminSessionOpen(params: {
+    sessionId: string;
+  }): Promise<{
+    success: boolean;
+    message?: string;
+    session?: {
+      sessionId: string;
+      status: string;
+      nextTurntime?: string;
+    };
+  }> {
+    return this.request('/api/admin/session/open', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  static async AdminSessionClose(params: {
+    sessionId: string;
+  }): Promise<{
+    success: boolean;
+    message?: string;
+    session?: {
+      sessionId: string;
+      status: string;
+    };
+  }> {
+    return this.request('/api/admin/session/close', {
       method: 'POST',
       body: JSON.stringify(params),
     });
@@ -3099,6 +3136,40 @@ export class SammoAPI {
     return this.request('/api/diplomacy/process', {
       method: 'POST',
       body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * 외교 히스토리 조회
+   */
+  static async GetDiplomacyHistory(params?: {
+    serverID?: string;
+    session_id?: string;
+    nationId?: number;
+    limit?: number;
+  }): Promise<{
+    success: boolean;
+    result: boolean;
+    history?: Array<{
+      type: string;
+      srcNationId: number;
+      srcNationName: string;
+      destNationId: number;
+      destNationName: string;
+      oldState?: number;
+      newState?: number;
+      proposalType?: string;
+      message?: string;
+      timestamp?: string;
+      year?: number;
+      month?: number;
+      generalName?: string;
+    }>;
+    reason?: string;
+  }> {
+    return this.request('/api/diplomacy/history', {
+      method: 'POST',
+      body: JSON.stringify(params || {}),
     });
   }
 

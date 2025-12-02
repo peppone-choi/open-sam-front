@@ -1,0 +1,223 @@
+/* DamageNumber.module.css - 데미지 표시 스타일 */
+
+.damageNumber {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 100;
+  transform: translateX(-50%);
+}
+
+.numberText {
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  -webkit-text-stroke: 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    0 0 10px currentColor;
+}
+
+/* 일반 데미지 */
+.normal .numberText {
+  color: #f87171;
+}
+
+/* 크리티컬 */
+.critical .numberText {
+  color: #fbbf24;
+  font-size: 2.25rem;
+  animation: criticalPulse 0.2s ease-out;
+}
+
+.criticalLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fbbf24;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.8);
+}
+
+.criticalEffect {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.6) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+@keyframes criticalPulse {
+  0% { transform: scale(1.5); }
+  50% { transform: scale(2); }
+  100% { transform: scale(1.5); }
+}
+
+/* 회복 */
+.heal .numberText {
+  color: #4ade80;
+}
+
+.healEffect {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74, 222, 128, 0.5) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* 미스 */
+.miss .numberText {
+  color: #9ca3af;
+  font-size: 1.5rem;
+  font-style: italic;
+}
+
+/* 콤보 데미지 */
+.comboDamage {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.9) 0%, rgba(245, 158, 11, 0.9) 100%);
+  border-radius: 12px;
+  pointer-events: none;
+  z-index: 101;
+  transform: translateX(-50%);
+  box-shadow: 
+    0 0 20px rgba(251, 191, 36, 0.5),
+    0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.comboCount {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.totalDamage {
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #1f2937;
+}
+
+/* 상태 효과 텍스트 */
+.statusEffect {
+  position: absolute;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  z-index: 99;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.statusEffect.buff {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.9) 100%);
+  color: white;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+}
+
+.statusEffect.debuff {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.9) 0%, rgba(220, 38, 38, 0.9) 100%);
+  color: white;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+}
+
+.statusEffect.info {
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.9) 0%, rgba(107, 114, 128, 0.9) 100%);
+  color: white;
+}
+
+/* 스플래시 데미지 */
+.splashIndicator {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px dashed rgba(239, 68, 68, 0.6);
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: splashExpand 0.5s ease-out forwards;
+}
+
+@keyframes splashExpand {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* 레벨업 효과 */
+.levelUp {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+  z-index: 102;
+  transform: translateX(-50%);
+}
+
+.levelUpText {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fbbf24;
+  text-transform: uppercase;
+  text-shadow: 
+    0 0 20px rgba(251, 191, 36, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  animation: levelUpFloat 1.5s ease-out forwards;
+}
+
+.levelUpGlow {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.6) 0%, transparent 60%);
+  animation: levelUpGlowPulse 0.5s ease-out;
+}
+
+@keyframes levelUpFloat {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-80px);
+  }
+}
+
+@keyframes levelUpGlowPulse {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+

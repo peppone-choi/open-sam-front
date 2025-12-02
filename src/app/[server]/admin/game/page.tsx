@@ -13,6 +13,8 @@ type ServerStatusKey = 'preparing' | 'running' | 'paused' | 'finished' | 'united
 type AdminAction =
   | 'serverName'
   | 'scenario'
+  | 'scenarioText'
+  | 'serverCnt'
   | 'msg'
   | 'log'
   | 'starttime'
@@ -29,6 +31,8 @@ type AdminActionValue = string | number | boolean | undefined;
 interface AdminGameSettings {
   serverName?: string;
   scenario?: string;
+  scenarioText?: string;
+  serverCnt?: number;
   msg?: string;
   log?: string;
   starttime?: string;
@@ -77,6 +81,8 @@ export default function AdminGamePage() {
   // 폼 상태
   const [serverName, setServerName] = useState('');
   const [scenario, setScenario] = useState('');
+  const [scenarioText, setScenarioText] = useState('');
+  const [serverCnt, setServerCnt] = useState(1);
   const [msg, setMsg] = useState('');
   const [log, setLog] = useState('');
   const [starttime, setStarttime] = useState('');
@@ -117,6 +123,8 @@ export default function AdminGamePage() {
         setSettings(data);
         setServerName(data.serverName || '');
         setScenario(data.scenario || '');
+        setScenarioText(data.scenarioText || '');
+        setServerCnt(data.serverCnt || 1);
         setMsg(data.msg || '');
         setStarttime(data.starttime ? data.starttime.substring(0, 19) : '');
         setMaxgeneral(data.maxgeneral || 300);
@@ -150,6 +158,12 @@ export default function AdminGamePage() {
           break;
         case 'scenario':
           payload.scenario = scenario.trim();
+          break;
+        case 'scenarioText':
+          payload.scenarioText = scenarioText.trim();
+          break;
+        case 'serverCnt':
+          payload.serverCnt = serverCnt;
           break;
         case 'msg':
           payload.msg = msg;
@@ -335,8 +349,8 @@ export default function AdminGamePage() {
           
           <div className="space-y-4">
             {[
-              { label: '서버 이름', value: serverName, setter: setServerName, action: 'serverName', ph: '서버 표시 이름' },
-              { label: '시나리오 설명', value: scenario, setter: setScenario, action: 'scenario', ph: '시나리오 설명' },
+              { label: '서버 이름', value: serverName, setter: setServerName, action: 'serverName', ph: '서버 표시 이름 (게임 화면 상단에 표시)' },
+              { label: '시나리오 설명', value: scenarioText, setter: setScenarioText, action: 'scenarioText', ph: '시나리오 설명 (게임 화면 하단에 표시)' },
               { label: '운영자 메시지', value: msg, setter: setMsg, action: 'msg', ph: '공지사항 등' },
             ].map((field) => (
               <div key={field.action} className="flex flex-col md:flex-row gap-2 md:items-center">
@@ -382,6 +396,26 @@ export default function AdminGamePage() {
 
             {/* Grid for numeric inputs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-4">
+              <div className="flex flex-col md:flex-row gap-2 md:items-center">
+                <label className="w-32 text-sm font-medium text-gray-400">기수</label>
+                <div className="flex-1 flex gap-2">
+                  <input
+                    type="number"
+                    value={serverCnt}
+                    min={1}
+                    onChange={(e) => setServerCnt(Number(e.target.value))}
+                    className="w-24 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-right focus:outline-none focus:border-blue-500/50 transition-colors text-white"
+                  />
+                  <span className="flex items-center text-gray-400 text-sm">기</span>
+                  <button 
+                    onClick={() => void handleSubmit('serverCnt')}
+                    className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
+                  >
+                    변경
+                  </button>
+                </div>
+              </div>
+
               <div className="flex flex-col md:flex-row gap-2 md:items-center">
                 <label className="w-32 text-sm font-medium text-gray-400">최대 장수</label>
                 <div className="flex-1 flex gap-2">

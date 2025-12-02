@@ -1,0 +1,504 @@
+/* ===== BattleUnitCard.module.css =====
+   삼국지 5 스타일 유닛 정보 카드
+   HP 바, 사기 바, 병사 수 표시
+===== */
+
+/* === 카드 컨테이너 === */
+.card {
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  border: 2px solid #3d5a80;
+  border-radius: 8px;
+  padding: 12px;
+  min-width: 260px;
+  font-family: 'DungGeunMo', 'Galmuri11', 'Press Start 2P', monospace;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.card.ally {
+  border-color: #4287f5;
+  box-shadow: 
+    0 4px 20px rgba(66, 135, 245, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.card.enemy {
+  border-color: #f54242;
+  box-shadow: 
+    0 4px 20px rgba(245, 66, 66, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.card.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  border-style: dashed;
+  border-color: #555;
+}
+
+.emptyText {
+  color: #666;
+  font-size: 14px;
+}
+
+/* === 컴팩트 모드 === */
+.card.compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  min-width: 180px;
+}
+
+.compactInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.compactName {
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compactBars {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.miniBar {
+  flex: 1;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.miniBarFill {
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.compactCrew {
+  color: #aaa;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+/* === 헤더 === */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.headerLeft {
+  display: flex;
+  gap: 8px;
+}
+
+.teamBadge {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.card.ally .teamBadge {
+  background: linear-gradient(135deg, #4287f5 0%, #2d5aa8 100%);
+  color: white;
+}
+
+.card.enemy .teamBadge {
+  background: linear-gradient(135deg, #f54242 0%, #a82d2d 100%);
+  color: white;
+}
+
+.typeBadge {
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 10px;
+  color: #ccc;
+}
+
+.closeBtn {
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 4px;
+  color: #888;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* === 메인 정보 === */
+.mainInfo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.portraitWrapper {
+  position: relative;
+  border: 2px solid #4a5a6f;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  image-rendering: pixelated;
+}
+
+.portraitFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2d3a4f 0%, #1a2332 100%);
+  font-size: 28px;
+  border-radius: 8px;
+}
+
+.nameSection {
+  flex: 1;
+}
+
+.generalName {
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0 0 4px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.unitTypeName {
+  color: #aaa;
+  font-size: 12px;
+}
+
+/* === 바 섹션 === */
+.barsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.barContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.barLabel {
+  width: 32px;
+  color: #888;
+  font-size: 11px;
+  text-align: right;
+}
+
+.barTrack {
+  flex: 1;
+  position: relative;
+  height: 18px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #3d5a80;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.barFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  transition: width 0.5s ease-out;
+}
+
+.barText {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  z-index: 1;
+}
+
+/* === 병력 섹션 === */
+.crewSection {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #3d5a80;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.crewMain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.crewIcon {
+  font-size: 16px;
+}
+
+.crewLabel {
+  color: #888;
+  font-size: 12px;
+}
+
+.crewValue {
+  margin-left: auto;
+  color: #ffd700;
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+.crewBar {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.crewBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd700 0%, #ffaa00 100%);
+  transition: width 0.3s;
+}
+
+/* === 스탯 섹션 === */
+.statsSection {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.statRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statIcon {
+  font-size: 14px;
+}
+
+.statLabel {
+  color: #888;
+  font-size: 11px;
+}
+
+.statValue {
+  margin-left: auto;
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+/* === 상태 섹션 === */
+.statusSection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.statusTag {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== 미니 카드 ===== */
+.miniCard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #3d5a80;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.miniCard:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #5a7a9f;
+}
+
+.miniCard.selected {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.miniCard.ally {
+  border-left: 3px solid #4287f5;
+}
+
+.miniCard.enemy {
+  border-left: 3px solid #f54242;
+}
+
+.miniPortrait {
+  flex-shrink: 0;
+}
+
+.miniInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.miniName {
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.miniHpBar {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 2px;
+}
+
+.miniHpFill {
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.miniCrew {
+  color: #888;
+  font-size: 10px;
+}
+
+.miniActed {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+}
+
+/* ===== 유닛 목록 패널 ===== */
+.unitListPanel {
+  background: linear-gradient(180deg, rgba(26, 26, 46, 0.9) 0%, rgba(22, 33, 62, 0.9) 100%);
+  border: 2px solid #3d5a80;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid #3d5a80;
+}
+
+.listTitle {
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.listCount {
+  color: #aaa;
+  font-size: 12px;
+}
+
+.deadCount {
+  color: #f54242;
+}
+
+.listBody {
+  padding: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* 스크롤바 스타일 */
+.listBody::-webkit-scrollbar {
+  width: 6px;
+}
+
+.listBody::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.listBody::-webkit-scrollbar-thumb {
+  background: #3d5a80;
+  border-radius: 3px;
+}
+
+.listBody::-webkit-scrollbar-thumb:hover {
+  background: #5a7a9f;
+}
+
+/* === 반응형 === */
+@media (max-width: 768px) {
+  .card {
+    min-width: 220px;
+    padding: 10px;
+  }
+
+  .generalName {
+    font-size: 16px;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+

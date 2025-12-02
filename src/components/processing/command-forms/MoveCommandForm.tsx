@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import type { GetMapResponse } from '@/lib/api/sammo';
@@ -42,6 +42,7 @@ export default function MoveCommandForm({
   const [mapDataState, setMapDataState] = useState<GetMapResponse | null>(mapData || null);
   const [loadingMap, setLoadingMap] = useState(!mapData);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
 
   // 맵 데이터 로드
@@ -75,17 +76,10 @@ export default function MoveCommandForm({
   }
 
 
-  const handleSubmit = () => {
-    // 천도, 증축 등은 현재 도시 선택 불가가 아닐 수 있음.
-    // 그러나 MoveCommandForm은 기본적으로 "이동"이라 대상이 필요함.
-    // 증축/감축은 현재 도시 대상일 수 있음.
-    // 하지만 processing에 왔다는 건 대상 선택이 필요하다는 뜻?
-    // 만약 증축이 "현재 도시"라면 processing 없이 바로 실행되어야 함 (reqArg=0).
-    // 만약 "다른 도시"를 증축해주는거라면 선택 필요.
-    // 일반적으로 증축/감축은 "현재 도시"임.
-    // 따라서 processing에 안 올 것임. 만약 온다면 선택 가능한 것.
-    // 수몰, 초토화는 "선택된 도시"임.
+  const handleSubmit = useCallback(async () => {
+    if (isSubmitting) return;
     
+    // 유효성 검사
     if (selectedCityID === 0) {
       setError('도시를 선택해주세요.');
       return;
@@ -97,8 +91,14 @@ export default function MoveCommandForm({
     }
     
     setError(null);
-    onSubmit({ destCityID: selectedCityID });
-  };
+    setIsSubmitting(true);
+    
+    try {
+      await onSubmit({ destCityID: selectedCityID });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [isSubmitting, selectedCityID, commandName, currentCity, onSubmit]);
 
 
   const getDescription = () => {
@@ -177,9 +177,18 @@ export default function MoveCommandForm({
              </p>
            )}
            <div className={styles.formActions}>
-
-            <button type="button" onClick={handleSubmit} className={styles.submitButton}>
-              {commandName}
+            <button 
+              type="button" 
+              onClick={handleSubmit} 
+              className={styles.submitButton}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center gap-2 justify-center">
+                  <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                  처리 중...
+                </span>
+              ) : commandName}
             </button>
           </div>
         </div>

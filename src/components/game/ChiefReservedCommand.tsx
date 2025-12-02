@@ -1,6 +1,6 @@
 'use client';
  
-import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import styles from './PartialReservedCommand.module.css';
@@ -9,6 +9,15 @@ import DragSelect from '../common/DragSelect';
 import { useToast } from '@/contexts/ToastContext';
 import { StoredActionsHelper, type TurnObj, type StoredAction } from '@/lib/utils/StoredActionsHelper';
 import { SammoAPI } from '@/lib/api/sammo';
+import { 
+    TurnCell, 
+    YearMonthCell, 
+    TimeCell, 
+    CommandCell, 
+    ActionCell,
+    OfficerBadge,
+    type ProcessedTurn 
+} from './ReservedCommandCells';
 
 
 interface ClipboardAction {
@@ -131,16 +140,16 @@ export default function ChiefReservedCommand({
         return `${first}턴부터 ${last}턴까지 ${sorted.length}턴 선택됨`;
     }, [selectedTurnIndices]);
  
-    const selectAll = () => {
+    const selectAll = useCallback(() => {
         const newSet = new Set<number>();
         processedTurns.forEach(t => newSet.add(t.index));
         setSelectedTurnIndices(newSet);
-    };
+    }, [processedTurns]);
 
-    const clearSelection = () => setSelectedTurnIndices(new Set());
+    const clearSelection = useCallback(() => setSelectedTurnIndices(new Set()), []);
     
     // 당기기/미루기 기능
-    const pushCommand = async (amount: number) => {
+    const pushCommand = useCallback(async (amount: number) => {
         try {
             await SammoAPI.NationCommandPushCommand({ serverID, amount });
             showToast(`${amount > 0 ? '미루기' : '당기기'} 완료`, 'success');
@@ -149,10 +158,10 @@ export default function ChiefReservedCommand({
             console.error(e);
             showToast(e.message || '명령 이동에 실패했습니다.', 'error');
         }
-    };
+    }, [serverID, showToast, onReload]);
     
     // 반복 기능
-    const repeatCommand = async (amount: number) => {
+    const repeatCommand = useCallback(async (amount: number) => {
         try {
             await SammoAPI.NationCommandRepeatCommand({ serverID, amount });
             showToast(`${amount}턴 반복 완료`, 'success');
@@ -161,26 +170,28 @@ export default function ChiefReservedCommand({
             console.error(e);
             showToast(e.message || '반복에 실패했습니다.', 'error');
         }
-    };
+    }, [serverID, showToast, onReload]);
     
     // 에디트 모드 토글
-    const toggleEditMode = () => {
-        const newMode = !isEditMode;
-        setIsEditMode(newMode);
-        storedActionsHelperRef.current?.setEditMode(newMode);
-        if (!newMode) {
-            setQuickReserveTarget(null);
-        }
-    };
+    const toggleEditMode = useCallback(() => {
+        setIsEditMode(prev => {
+            const newMode = !prev;
+            storedActionsHelperRef.current?.setEditMode(newMode);
+            if (!newMode) {
+                setQuickReserveTarget(null);
+            }
+            return newMode;
+        });
+    }, []);
     
     // 최근 액션 저장
-    const saveRecentAction = (action: TurnObj) => {
+    const saveRecentAction = useCallback((action: TurnObj) => {
         storedActionsHelperRef.current?.pushRecentActions(action);
         setRecentActions(storedActionsHelperRef.current?.getRecentActions() || []);
-    };
+    }, []);
     
     // 보관함에 저장
-    const handleSaveToStorage = () => {
+    const handleSaveToStorage = useCallback(() => {
         if (selectedTurnIndices.size === 0) {
             showToast('먼저 턴을 선택해주세요.', 'warning');
             return;
@@ -201,14 +212,14 @@ export default function ChiefReservedCommand({
         setStoredActions(storedActionsHelperRef.current?.getStoredActions() || new Map());
         showToast('보관함에 저장되었습니다.', 'success');
         clearSelection();
-    };
+    }, [selectedTurnIndices, processedTurns, clearSelection, showToast]);
     
     // 보관함에서 삭제
-    const handleDeleteFromStorage = (key: string) => {
+    const handleDeleteFromStorage = useCallback((key: string) => {
         storedActionsHelperRef.current?.deleteStoredActions(key);
         setStoredActions(storedActionsHelperRef.current?.getStoredActions() || new Map());
         showToast('보관함에서 삭제되었습니다.', 'success');
-    };
+    }, [showToast]);
     
     // 클립보드 상태
     const [clipboard, setClipboard] = useState<StoredAction[] | undefined>(undefined);
@@ -221,7 +232,7 @@ export default function ChiefReservedCommand({
     }, [serverID]);
     
     // 선택된 턴의 액션 추출
-    const extractSelectedActions = (): StoredAction[] => {
+    const extractSelectedActions = useCallback((): StoredAction[] => {
         const sorted = Array.from(selectedTurnIndices).sort((a, b) => a - b);
         const minIdx = sorted[0] ?? 0;
         
@@ -232,10 +243,10 @@ export default function ChiefReservedCommand({
                 turnObj: { action: t.action, arg: t.arg, brief: t.brief }
             };
         });
-    };
+    }, [selectedTurnIndices, processedTurns]);
     
     // 클립보드 잘라내기
-    const clipboardCut = async () => {
+    const clipboardCut = useCallback(async () => {
         if (selectedTurnIndices.size === 0) {
             showToast('먼저 턴을 선택해주세요.', 'warning');
             return;
@@ -248,10 +259,10 @@ export default function ChiefReservedCommand({
         // 선택된 턴 비우기
         await eraseSelectedTurns();
         showToast('잘라내기 완료', 'success');
-    };
+    }, [selectedTurnIndices, extractSelectedActions, showToast]);
     
     // 클립보드 복사
-    const clipboardCopy = () => {
+    const clipboardCopy = useCallback(() => {
         if (selectedTurnIndices.size === 0) {
             showToast('먼저 턴을 선택해주세요.', 'warning');
             return;
@@ -262,10 +273,10 @@ export default function ChiefReservedCommand({
         storedActionsHelperRef.current?.setClipboard(actions);
         showToast('복사 완료', 'success');
         clearSelection();
-    };
+    }, [selectedTurnIndices, extractSelectedActions, clearSelection, showToast]);
     
     // 클립보드 붙여넣기
-    const clipboardPaste = async () => {
+    const clipboardPaste = useCallback(async () => {
         if (!clipboard || clipboard.length === 0) {
             showToast('클립보드가 비어있습니다.', 'warning');
             return;
@@ -282,10 +293,10 @@ export default function ChiefReservedCommand({
         await reserveBulkCommands(actions);
         showToast('붙여넣기 완료', 'success');
         clearSelection();
-    };
+    }, [clipboard, selectedTurnIndices, clearSelection, showToast]);
     
     // 텍스트로 복사 (클립보드에 텍스트 형태로)
-    const clipboardTextCopy = async () => {
+    const clipboardTextCopy = useCallback(async () => {
         if (selectedTurnIndices.size === 0) {
             showToast('먼저 턴을 선택해주세요.', 'warning');
             return;
@@ -311,10 +322,10 @@ export default function ChiefReservedCommand({
         }
         
         clearSelection();
-    };
+    }, [selectedTurnIndices, processedTurns, clearSelection, showToast]);
     
     // 선택된 턴 비우기
-    const eraseSelectedTurns = async () => {
+    const eraseSelectedTurns = useCallback(async () => {
         if (selectedTurnIndices.size === 0) {
             showToast('먼저 턴을 선택해주세요.', 'warning');
             return;
@@ -335,10 +346,10 @@ export default function ChiefReservedCommand({
             console.error(e);
             showToast(e.message || '비우기에 실패했습니다.', 'error');
         }
-    };
+    }, [selectedTurnIndices, serverID, clearSelection, showToast, onReload]);
     
     // 지우고 당기기
-    const eraseAndPull = async () => {
+    const eraseAndPull = useCallback(async () => {
         if (selectedTurnIndices.size === 0) {
             showToast('먼저 턴을 선택해주세요.', 'warning');
             return;
@@ -399,10 +410,10 @@ export default function ChiefReservedCommand({
             console.error(e);
             showToast(e.message || '지우고 당기기에 실패했습니다.', 'error');
         }
-    };
+    }, [selectedTurnIndices, viewMaxTurn, processedTurns, serverID, pushCommand, eraseSelectedTurns, clearSelection, showToast, onReload]);
     
     // 뒤로 밀기
-    const pushEmpty = async () => {
+    const pushEmpty = useCallback(async () => {
         if (selectedTurnIndices.size === 0) {
             showToast('먼저 턴을 선택해주세요.', 'warning');
             return;
@@ -457,10 +468,10 @@ export default function ChiefReservedCommand({
             console.error(e);
             showToast(e.message || '뒤로 밀기에 실패했습니다.', 'error');
         }
-    };
+    }, [selectedTurnIndices, viewMaxTurn, processedTurns, serverID, pushCommand, clearSelection, showToast, onReload]);
     
     // 선택한 패턴 반복하기
-    const subRepeatCommand = async () => {
+    const subRepeatCommand = useCallback(async () => {
         if (selectedTurnIndices.size === 0) {
             showToast('먼저 턴을 선택해주세요.', 'warning');
             return;
@@ -482,10 +493,10 @@ export default function ChiefReservedCommand({
         await reserveBulkCommands(amplified);
         showToast('반복하기 완료', 'success');
         clearSelection();
-    };
+    }, [selectedTurnIndices, viewMaxTurn, extractSelectedActions, clearSelection, showToast]);
     
     // 액션 확장 (시작 위치들에 맞게 복제)
-    const amplifyActions = (rawActions: StoredAction[], startPositions: number[]): StoredAction[] => {
+    const amplifyActions = useCallback((rawActions: StoredAction[], startPositions: number[]): StoredAction[] => {
         const result: StoredAction[] = [];
         
         for (const start of startPositions) {
@@ -498,10 +509,10 @@ export default function ChiefReservedCommand({
         }
         
         return result;
-    };
+    }, []);
     
     // 벌크 명령 예약
-    const reserveBulkCommands = async (actions: StoredAction[]) => {
+    const reserveBulkCommands = useCallback(async (actions: StoredAction[]) => {
         // 같은 턴에 대한 명령 병합
         const turnActionMap = new Map<number, TurnObj>();
         
@@ -543,10 +554,10 @@ export default function ChiefReservedCommand({
             console.error(e);
             showToast(e.message || '명령 예약에 실패했습니다.', 'error');
         }
-    };
+    }, [viewMaxTurn, serverID, showToast, onReload]);
     
     // 보관함 적용
-    const applyStoredActions = async (actions: StoredAction[]) => {
+    const applyStoredActions = useCallback(async (actions: StoredAction[]) => {
         if (selectedTurnIndices.size === 0) {
             showToast('적용할 시작 위치를 선택해주세요.', 'warning');
             return;
@@ -558,10 +569,10 @@ export default function ChiefReservedCommand({
         await reserveBulkCommands(amplified);
         showToast('보관함 적용 완료', 'success');
         clearSelection();
-    };
+    }, [selectedTurnIndices, amplifyActions, reserveBulkCommands, clearSelection, showToast]);
     
     // 최근 액션 적용
-    const applyRecentAction = async (action: TurnObj) => {
+    const applyRecentAction = useCallback(async (action: TurnObj) => {
         if (selectedTurnIndices.size === 0) {
             showToast('적용할 턴을 선택해주세요.', 'warning');
             return;
@@ -581,18 +592,18 @@ export default function ChiefReservedCommand({
             console.error(e);
             showToast(e.message || '적용에 실패했습니다.', 'error');
         }
-    };
+    }, [selectedTurnIndices, serverID, clearSelection, showToast, onReload]);
     
     // 범위 선택 (홀수턴, 짝수턴, N턴 간격)
-    const selectByStep = (offset: number, step: number) => {
+    const selectByStep = useCallback((offset: number, step: number) => {
         const newSet = new Set<number>();
         for (let i = offset; i < viewMaxTurn; i += step) {
             newSet.add(i);
         }
         setSelectedTurnIndices(newSet);
-    };
+    }, [viewMaxTurn]);
  
-    const navigateToCommandProcessing = (cmd: CommandItem, indices: number[]) => {
+    const navigateToCommandProcessing = useCallback((cmd: CommandItem, indices: number[]) => {
         if (!serverID) return;
 
         const uniqueTurns = Array.from(new Set(indices))
@@ -610,12 +621,10 @@ export default function ChiefReservedCommand({
         params.set('is_chief', 'true');
 
         const encodedCommand = encodeURIComponent(cmd.value);
-        // TODO: dev 확인용 예시 경로
-        // 예) /s1/processing/국호변경?turnList=0_1&is_chief=true
         router.push(`/${serverID}/processing/${encodedCommand}?${params.toString()}`);
-    };
+    }, [serverID, router, showToast]);
 
-    const handleCommandSelect = (cmd: CommandItem, indices?: number[]) => {
+    const handleCommandSelect = useCallback((cmd: CommandItem, indices?: number[]) => {
         const targetIndices =
             indices && indices.length > 0
                 ? indices
@@ -633,27 +642,33 @@ export default function ChiefReservedCommand({
         setQuickReserveTarget(null);
         setIsMenuOpen(false);
         navigateToCommandProcessing(cmd, targetIndices);
-    };
+    }, [selectedTurnIndices, quickReserveTarget, navigateToCommandProcessing, showToast]);
 
 
-    const handleDragEnd = (ids: number[]) => {
-        const newSet = new Set(selectedTurnIndices);
-        ids.forEach(id => newSet.add(id));
-        setSelectedTurnIndices(newSet);
-    };
+    const handleDragEnd = useCallback((ids: number[]) => {
+        setSelectedTurnIndices(prev => {
+            const newSet = new Set(prev);
+            ids.forEach(id => newSet.add(id));
+            return newSet;
+        });
+    }, []);
 
-    const handleToggleTurn = (index: number) => {
-        const newSet = new Set(selectedTurnIndices);
-        if (newSet.has(index)) newSet.delete(index);
-        else newSet.add(index);
-        setSelectedTurnIndices(newSet);
-    };
+    const handleToggleTurn = useCallback((index: number) => {
+        setSelectedTurnIndices(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(index)) newSet.delete(index);
+            else newSet.add(index);
+            return newSet;
+        });
+    }, []);
 
-    const addSelectedTurns = (ids: number[]) => {
-        const newSet = new Set(selectedTurnIndices);
-        ids.forEach(id => newSet.add(id));
-        setSelectedTurnIndices(newSet);
-    };
+    const addSelectedTurns = useCallback((ids: number[]) => {
+        setSelectedTurnIndices(prev => {
+            const newSet = new Set(prev);
+            ids.forEach(id => newSet.add(id));
+            return newSet;
+        });
+    }, []);
 
     const quickReserveStyle: React.CSSProperties = {
         position: 'absolute',
@@ -668,11 +683,8 @@ export default function ChiefReservedCommand({
 
     return (
         <div className={styles.container} style={{ color: colorSystem?.text }}>
-            {/* Header Info */}
-            <div className="flex items-center justify-between bg-gray-800 p-2 mb-2 rounded">
-                <div style={{ color: '#aaffff' }}>{officer?.name}</div>
-                <div>{officer?.officerLevelText}</div>
-            </div>
+            {/* Header Info - 권한 배지 */}
+            <OfficerBadge officer={officer} colorSystem={colorSystem} />
 
             {/* Control Pad */}
             <div className={styles.toolbar}>

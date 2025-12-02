@@ -1,0 +1,189 @@
+/* TacticalMap.module.css - 3D 전술 맵 스타일 */
+
+.tacticalMapContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #0a0a0f;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.canvasContainer {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.canvasContainer canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 모드 컨트롤 */
+.modeControls {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.modeBtn {
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #e5e7eb;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modeBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.modeBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.modeBtn.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-color: #3b82f6;
+  color: white;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+}
+
+/* 미니맵 */
+.minimap {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 120px;
+  height: 120px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.minimapGrid {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: 
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 10px 10px;
+}
+
+.minimapUnit {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 6px currentColor;
+}
+
+.minimapUnit.ally {
+  background: #3b82f6;
+  color: #3b82f6;
+}
+
+.minimapUnit.enemy {
+  background: #ef4444;
+  color: #ef4444;
+}
+
+/* 호버 정보 */
+.hoverInfo {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #e5e7eb;
+  font-size: 0.875rem;
+  pointer-events: none;
+}
+
+/* 카메라 컨트롤 힌트 */
+.controlHint {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 6px;
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+/* 로딩 */
+.loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.loadingSpinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .minimap {
+    width: 80px;
+    height: 80px;
+    top: 8px;
+    right: 8px;
+  }
+
+  .minimapGrid {
+    background-size: 8px 8px;
+  }
+
+  .minimapUnit {
+    width: 6px;
+    height: 6px;
+  }
+
+  .modeControls {
+    bottom: 8px;
+    padding: 6px;
+    gap: 4px;
+  }
+
+  .modeBtn {
+    padding: 8px 12px;
+    font-size: 0.75rem;
+  }
+}
+
+

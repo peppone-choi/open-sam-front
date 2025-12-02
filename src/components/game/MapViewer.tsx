@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback, memo } from 'react';
 import { type GetMapResponse } from '@/lib/api/sammo';
 import MapCityDetail from './MapCityDetail';
 import MovementLayer from './MovementLayer';
+import TerritoryOverlay from './TerritoryOverlay';
 import { TroopMovement, MovementFilterOptions } from '@/types/movement';
+import { useMapTransform } from '@/hooks/useMapTransform';
 import styles from './MapViewer.module.css';
 
 interface MapViewerProps {
@@ -12,7 +14,7 @@ interface MapViewerProps {
   mapData: GetMapResponse;
   myCity?: number;
   myGeneralIds?: number[]; // 내 장수들의 ID
-  onCityClick?: (cityId: number) => void;
+  onCityClick?: (cityId: number, event?: MouseEvent | React.MouseEvent) => void;
   isFullWidth?: boolean; // 전체 너비 사용 여부
   
   // 군대 이동 시각화
@@ -23,6 +25,9 @@ interface MapViewerProps {
   onCancelMovement?: (movementId: string) => Promise<void>;
   onGoToCommandScreen?: (generalId: number) => void; // 커맨드 예약 화면으로 이동
   onTrackMovement?: (movement: TroopMovement) => void;
+  
+  // 경로 표시
+  highlightPath?: number[]; // 강조할 도시 ID 배열 (이동 경로)
 }
 
 interface ParsedCity {
@@ -41,7 +46,7 @@ interface ParsedCity {
   clickable: number;
 }
 
-export default function MapViewer({ 
+function MapViewerComponent({ 
   serverID, 
   mapData, 
   myCity, 
@@ -55,10 +60,12 @@ export default function MapViewer({
   onCancelMovement,
   onGoToCommandScreen,
   onTrackMovement,
+  highlightPath = [],
 }: MapViewerProps) {
   // serverID는 이미 props에 포함되어 있음
   const [hideCityName, setHideCityName] = useState(false);
   const [showMovementLayer, setShowMovementLayer] = useState(showMovements);
+  const [showTerritory, setShowTerritory] = useState(false);
   const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
   const [activatedCity, setActivatedCity] = useState<{
     id: number;
@@ -77,6 +84,22 @@ export default function MapViewer({
   const [tooltipSize, setTooltipSize] = useState({ width: 0, height: 0 });
   const mapBodyRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+
+  // 줌/팬 기능
+  const {
+    containerRef: zoomContainerRef,
+    contentRef: zoomContentRef,
+    transformStyle,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    isDragging,
+    zoomPercent,
+  } = useMapTransform({
+    minScale: 0.5,
+    maxScale: 4,
+    initialScale: 1,
+  });
 
   const updateMapBounds = useCallback(() => {
     if (!mapBodyRef.current) {
@@ -152,13 +175,20 @@ export default function MapViewer({
     });
   }, [mapData]);
 
-  function handleCityClick(e: React.MouseEvent, city: ParsedCity) {
+  // 클릭된 도시 상태 (시각적 피드백용)
+  const [clickedCityId, setClickedCityId] = useState<number | null>(null);
+
+  const handleCityClick = useCallback((e: React.MouseEvent, city: ParsedCity) => {
     e.preventDefault();
     
     // 도시 ID가 0이거나 클릭 불가능한 경우 무시
     if (city.id === 0 || city.clickable === 0) {
       return;
     }
+    
+    // 시각적 피드백 - 클릭된 도시 강조
+    setClickedCityId(city.id);
+    setTimeout(() => setClickedCityId(null), 300);
     
     // Ctrl+클릭 또는 Cmd+클릭 시 새 탭에서 열기
     if (e.ctrlKey || e.metaKey) {
@@ -167,13 +197,11 @@ export default function MapViewer({
       return;
     }
     
-    // 단일 탭으로 즉시 이동
-    if (onCityClick) {
-      onCityClick(city.id);
-    }
-  }
+    // 이벤트 객체와 함께 콜백 호출
+    onCityClick?.(city.id, e);
+  }, [serverID, onCityClick]);
 
-  function handleCityTouchEnd(e: React.TouchEvent, city: ParsedCity) {
+  const handleCityTouchEnd = useCallback((e: React.TouchEvent, city: ParsedCity) => {
     e.preventDefault();
     
     // 도시 ID가 0이거나 클릭 불가능한 경우 무시
@@ -181,11 +209,18 @@ export default function MapViewer({
       return;
     }
     
-    // 단일 탭으로 즉시 이동
-    if (onCityClick) {
-      onCityClick(city.id);
-    }
-  }
+    // 시각적 피드백
+    setClickedCityId(city.id);
+    setTimeout(() => setClickedCityId(null), 300);
+    
+    // 콜백 호출
+    onCityClick?.(city.id);
+  }, [onCityClick]);
+
+  // 도시가 경로에 포함되어 있는지 확인
+  const isInHighlightPath = useCallback((cityId: number) => {
+    return highlightPath.includes(cityId);
+  }, [highlightPath]);
 
   // 레벨을 텍스트로 변환
   const getLevelText = (level: number): string => {
@@ -367,48 +402,177 @@ export default function MapViewer({
           {mapData.year}년 {mapData.month}월
         </span>
       </div>
-      <div ref={mapBodyRef} className={styles.mapBody}>
-        {/* 배경 레이어들 (먼저 렌더링) */}
-        <div className={styles.mapBglayer1} style={{ backgroundImage: `url(${backgroundImage})` }}></div>
-        <div className={styles.mapBglayer2}></div>
-        <div className={styles.mapBgroad}></div>
-        {/* 도시 마커들 (나중에 렌더링 - DOM 순서로 위에 표시) */}
-        {parsedCities.length > 0 ? (
-          parsedCities.map((city) => (
-            <MapCityDetail
-              key={city.id}
-              city={city}
-              isMyCity={city.id === myCity}
-              isSelected={city.id === selectedCityId}
-              hideCityName={hideCityName}
-              onMouseEnter={handleCityMouseEnter}
-              onMouseLeave={handleCityMouseLeave}
-              onClick={handleCityClick}
-              onTouchStart={handleCityTouchStart}
-              onTouchEnd={handleCityTouchEnd}
-              onToggleCityName={() => setHideCityName(!hideCityName)}
+      {/* 줌 컨테이너 */}
+      <div 
+        ref={(el) => {
+          // @ts-ignore - 두 ref를 모두 연결
+          zoomContainerRef.current = el;
+          // @ts-ignore
+          mapBodyRef.current = el;
+        }} 
+        className={`${styles.mapBody} ${isDragging ? styles.isDragging : ''}`}
+      >
+        {/* 줌/팬 적용 레이어 */}
+        <div 
+          ref={zoomContentRef}
+          className={styles.zoomableContent}
+          style={transformStyle}
+        >
+          {/* 배경 레이어들 (먼저 렌더링) */}
+          <div className={styles.mapBglayer1} style={{ backgroundImage: `url(${backgroundImage})` }}></div>
+          <div className={styles.mapBglayer2}></div>
+          <div className={styles.mapBgroad}></div>
+          
+          {/* 세력 영역 오버레이 */}
+          {showTerritory && mapData.nationList && (
+            <TerritoryOverlay
+              cities={parsedCities.map((c) => ({
+                id: c.id,
+                name: c.name,
+                nationID: c.nationID,
+                x: c.x,
+                y: c.y,
+              }))}
+              nations={mapData.nationList.map((n) => ({
+                id: n[0],
+                name: n[1],
+                color: n[2],
+              }))}
+              opacity={0.2}
+              myNationId={mapData.myNation}
             />
-          ))
-        ) : (
-          <div style={{ position: 'absolute', top: '10px', left: '10px', color: 'red', zIndex: 100 }}>
-            도시가 없습니다. parsedCities: {parsedCities.length}
-          </div>
-        )}
-        {/* 군대 이동 레이어 */}
-        {showMovementLayer && movements.length > 0 && (
-          <MovementLayer
-            movements={movements}
-            currentTurn={(mapData as any).turn ?? 0}
-            myNationId={mapData.myNation ?? undefined}
-            myGeneralIds={myGeneralIds}
-            filter={movementFilter}
-            isFullWidth={isFullWidth}
-            onMovementClick={onMovementClick}
-            onCancelMovement={onCancelMovement}
-            onGoToCommandScreen={onGoToCommandScreen}
-            onTrackOnMap={onTrackMovement}
-          />
-        )}
+          )}
+          {/* 경로 표시 레이어 (도시 마커 아래에 렌더링) */}
+          {highlightPath.length > 1 && (
+            <svg 
+              className={styles.pathLayer}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                pointerEvents: 'none',
+                zIndex: 0,
+              }}
+            >
+              <defs>
+                <marker
+                  id="arrowhead"
+                  markerWidth="10"
+                  markerHeight="7"
+                  refX="9"
+                  refY="3.5"
+                  orient="auto"
+                >
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#FFD700" />
+                </marker>
+              </defs>
+              {highlightPath.slice(0, -1).map((cityId, idx) => {
+                const fromCity = parsedCities.find(c => c.id === cityId);
+                const toCity = parsedCities.find(c => c.id === highlightPath[idx + 1]);
+                if (!fromCity || !toCity) return null;
+                
+                const LEFT_OFFSET = 14;
+                const TOP_OFFSET = 20;
+                const x1 = ((fromCity.x - LEFT_OFFSET) / 1000) * 100;
+                const y1 = ((fromCity.y - TOP_OFFSET) / 675) * 100;
+                const x2 = ((toCity.x - LEFT_OFFSET) / 1000) * 100;
+                const y2 = ((toCity.y - TOP_OFFSET) / 675) * 100;
+                
+                return (
+                  <line
+                    key={`path-${cityId}-${highlightPath[idx + 1]}`}
+                    x1={`${x1}%`}
+                    y1={`${y1}%`}
+                    x2={`${x2}%`}
+                    y2={`${y2}%`}
+                    stroke="#FFD700"
+                    strokeWidth="3"
+                    strokeDasharray="8,4"
+                    markerEnd="url(#arrowhead)"
+                    style={{
+                      filter: 'drop-shadow(0 0 4px rgba(255, 215, 0, 0.8))',
+                    }}
+                  />
+                );
+              })}
+            </svg>
+          )}
+          {/* 도시 마커들 (나중에 렌더링 - DOM 순서로 위에 표시) */}
+          {parsedCities.length > 0 ? (
+            parsedCities.map((city) => (
+              <MapCityDetail
+                key={city.id}
+                city={city}
+                isMyCity={city.id === myCity}
+                isSelected={city.id === selectedCityId || city.id === clickedCityId || isInHighlightPath(city.id)}
+                hideCityName={hideCityName}
+                onMouseEnter={handleCityMouseEnter}
+                onMouseLeave={handleCityMouseLeave}
+                onClick={handleCityClick}
+                onTouchStart={handleCityTouchStart}
+                onTouchEnd={handleCityTouchEnd}
+                onToggleCityName={() => setHideCityName(!hideCityName)}
+              />
+            ))
+          ) : (
+            <div style={{ position: 'absolute', top: '10px', left: '10px', color: 'red', zIndex: 100 }}>
+              도시가 없습니다. parsedCities: {parsedCities.length}
+            </div>
+          )}
+          {/* 군대 이동 레이어 */}
+          {showMovementLayer && movements.length > 0 && (
+            <MovementLayer
+              movements={movements}
+              currentTurn={(mapData as any).turn ?? 0}
+              myNationId={mapData.myNation ?? undefined}
+              myGeneralIds={myGeneralIds}
+              filter={movementFilter}
+              isFullWidth={isFullWidth}
+              onMovementClick={onMovementClick}
+              onCancelMovement={onCancelMovement}
+              onGoToCommandScreen={onGoToCommandScreen}
+              onTrackOnMap={onTrackMovement}
+            />
+          )}
+        </div>
+
+        {/* 줌 컨트롤 (고정 위치) */}
+        <div className={styles.zoomControls}>
+          <button
+            type="button"
+            className={styles.zoomButton}
+            onClick={zoomIn}
+            title="확대 (마우스 휠 / 핀치)"
+            aria-label="확대"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className={styles.zoomIndicator}
+            onClick={resetZoom}
+            title="더블 클릭/탭으로 리셋"
+            aria-label={`현재 줌: ${zoomPercent}%`}
+          >
+            {zoomPercent}%
+          </button>
+          <button
+            type="button"
+            className={styles.zoomButton}
+            onClick={zoomOut}
+            title="축소 (마우스 휠 / 핀치)"
+            aria-label="축소"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+        </div>
         
         {/* 버튼 스택 (가장 위) */}
         <div className={styles.mapButtonStack}>
@@ -419,7 +583,16 @@ export default function MapViewer({
               setHideCityName(!hideCityName);
             }}
           >
-            도시명 표시: {hideCityName ? 'OFF' : 'ON'}
+            도시명: {hideCityName ? 'OFF' : 'ON'}
+          </button>
+          <button
+            type="button"
+            className={`btn btn-secondary btn-sm btn-minimum ${showTerritory ? 'active' : ''}`}
+            onClick={() => {
+              setShowTerritory(!showTerritory);
+            }}
+          >
+            세력권: {showTerritory ? 'ON' : 'OFF'}
           </button>
           {movements.length > 0 && (
             <button
@@ -429,7 +602,7 @@ export default function MapViewer({
                 setShowMovementLayer(!showMovementLayer);
               }}
             >
-              군대이동: {showMovementLayer ? 'ON' : 'OFF'}
+              이동: {showMovementLayer ? 'ON' : 'OFF'}
             </button>
           )}
           <button
@@ -479,3 +652,20 @@ export default function MapViewer({
     </div>
   );
 }
+
+// React.memo로 최적화 - 지도 데이터가 변경되지 않으면 리렌더링 방지
+const MapViewer = memo(MapViewerComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.serverID === nextProps.serverID &&
+    prevProps.myCity === nextProps.myCity &&
+    prevProps.isFullWidth === nextProps.isFullWidth &&
+    prevProps.showMovements === nextProps.showMovements &&
+    prevProps.mapData.year === nextProps.mapData.year &&
+    prevProps.mapData.month === nextProps.mapData.month &&
+    prevProps.movements?.length === nextProps.movements?.length &&
+    prevProps.highlightPath?.length === nextProps.highlightPath?.length &&
+    JSON.stringify(prevProps.highlightPath) === JSON.stringify(nextProps.highlightPath)
+  );
+});
+
+export default MapViewer;

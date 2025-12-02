@@ -1,0 +1,394 @@
+/* UnitInfoPanel.module.css - 유닛 정보 패널 스타일 */
+
+.panelContainer {
+  width: 100%;
+  background: linear-gradient(180deg, rgba(26, 26, 46, 0.95) 0%, rgba(15, 15, 26, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.panelContainer.empty {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #6b7280;
+}
+
+.emptyIcon {
+  font-size: 2.5rem;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: 0.875rem;
+}
+
+/* 헤더 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.headerLeft {
+  display: flex;
+  gap: 8px;
+}
+
+.teamBadge,
+.typeBadge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.closeBtn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 6px;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.closeBtn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* 프로필 섹션 */
+.profileSection {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+}
+
+.portrait {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgba(251, 191, 36, 0.5);
+  flex-shrink: 0;
+}
+
+.portraitFallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.profileInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.generalName {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #e5e7eb;
+}
+
+.crewInfo {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.crewIcon {
+  font-size: 0.875rem;
+}
+
+.crewCount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e5e7eb;
+}
+
+.crewMax {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* 게이지 섹션 */
+.gaugeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 16px 16px;
+}
+
+.gaugeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gaugeLabel {
+  width: 32px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-align: right;
+}
+
+.gaugeBar {
+  flex: 1;
+  position: relative;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.gaugeFill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.3s ease;
+}
+
+.gaugeText {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* 탭 네비게이션 */
+.tabNav {
+  display: flex;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.tabBtn {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tabBtn:hover {
+  color: #9ca3af;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tabBtn.active {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+}
+
+/* 탭 콘텐츠 */
+.tabContent {
+  padding: 12px 16px;
+  min-height: 80px;
+}
+
+/* 스탯 탭 */
+.statsTab {
+  display: flex;
+  flex-direction: column;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.statIcon {
+  font-size: 1rem;
+}
+
+.statLabel {
+  flex: 1;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.statValue {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* 특기/장비 탭 */
+.skillsTab,
+.itemsTab {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.noData {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+/* 스킬 아이템 */
+.skillItem {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.skillIcon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(168, 85, 247, 0.2);
+  border-radius: 8px;
+  font-size: 1.25rem;
+}
+
+.skillInfo {
+  flex: 1;
+}
+
+.skillName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin-bottom: 2px;
+}
+
+.skillDesc {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  line-height: 1.4;
+}
+
+/* 장비 아이템 */
+.equipItem {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.equipSlot {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px dashed rgba(59, 130, 246, 0.4);
+  border-radius: 8px;
+  font-size: 1.25rem;
+}
+
+.equipInfo {
+  flex: 1;
+}
+
+.equipName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.equipStats {
+  font-size: 0.7rem;
+  color: #22c55e;
+}
+
+/* 상태 섹션 */
+.statusSection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.statusTag {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* 반응형 */
+@media (max-width: 640px) {
+  .profileSection {
+    padding: 12px;
+  }
+
+  .portrait {
+    width: 56px;
+    height: 56px;
+  }
+
+  .generalName {
+    font-size: 1.125rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+

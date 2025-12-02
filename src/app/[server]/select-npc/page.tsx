@@ -154,6 +154,10 @@ export default function SelectNPCPage() {
   }
 
   async function handleRefresh() {
+    // 이미 로딩 중이면 무시 (중복 클릭 방지)
+    if (loading) {
+      return;
+    }
     if (pickMoreSeconds > 0) {
       showToast(`${pickMoreSeconds}초 후에 다시 뽑을 수 있습니다.`, 'info');
       return;
@@ -289,15 +293,15 @@ export default function SelectNPCPage() {
               <button
                 type="button"
                 onClick={handleRefresh}
-                disabled={pickMoreSeconds > 0}
+                disabled={loading || pickMoreSeconds > 0}
                 className={cn(
                   "px-6 py-2 rounded-lg text-sm font-bold transition-all",
-                  pickMoreSeconds > 0 
+                  (loading || pickMoreSeconds > 0)
                     ? "bg-gray-700 text-gray-400 cursor-not-allowed" 
                     : "bg-blue-600 hover:bg-blue-500 text-white shadow hover:shadow-blue-500/30"
                 )}
               >
-                {pickMoreSeconds > 0 ? `다시 뽑기 (${pickMoreSeconds}초)` : '다시 뽑기'}
+                {loading ? '로딩 중...' : pickMoreSeconds > 0 ? `다시 뽑기 (${pickMoreSeconds}초)` : '다시 뽑기'}
               </button>
             </div>
 

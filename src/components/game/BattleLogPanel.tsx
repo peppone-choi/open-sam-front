@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSocket } from '@/hooks/useSocket';
 import styles from './BattleLogPanel.module.css';
 
@@ -8,6 +8,8 @@ import styles from './BattleLogPanel.module.css';
  * 전투 로그 패널
  * - 실시간 전투 로그 표시
  * - 자동 스크롤
+ * - 중요 로그 하이라이트
+ * - 검색 및 필터링
  */
 
 interface LogEntry {
@@ -16,6 +18,7 @@ interface LogEntry {
   type: 'action' | 'damage' | 'status' | 'result' | 'general' | 'history';
   timestamp: Date;
   generalId?: number;
+  importance?: 'normal' | 'important' | 'critical' | 'success';
 }
 
 interface Props {
@@ -23,11 +26,27 @@ interface Props {
   generalId?: number;
 }
 
+// 중요 키워드 감지
+const IMPORTANT_KEYWORDS = ['점령', '함락', '승리', '패배', '사망', '전투', '전쟁'];
+const CRITICAL_KEYWORDS = ['멸망', '통일', '수도', '전멸'];
+const SUCCESS_KEYWORDS = ['성공', '완료', '획득', '레벨업'];
+
+function detectImportance(text: string): LogEntry['importance'] {
+  const cleanText = text.replace(/<[^>]*>/g, '');
+  
+  if (CRITICAL_KEYWORDS.some(k => cleanText.includes(k))) return 'critical';
+  if (SUCCESS_KEYWORDS.some(k => cleanText.includes(k))) return 'success';
+  if (IMPORTANT_KEYWORDS.some(k => cleanText.includes(k))) return 'important';
+  return 'normal';
+}
+
 export default function BattleLogPanel({ serverID, generalId }: Props) {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [filter, setFilter] = useState<'all' | 'battle' | 'general' | 'global'>('all');
   const [autoScroll, setAutoScroll] = useState(true);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [newLogCount, setNewLogCount] = useState(0);
   const logContainerRef = useRef<HTMLDivElement>(null);
 
   // Socket.IO
@@ -99,8 +118,14 @@ export default function BattleLogPanel({ serverID, generalId }: Props) {
         text: data.logText,
         type: data.logType || 'action',
         timestamp: new Date(data.timestamp),
+        importance: detectImportance(data.logText),
       };
       setLogs((prev) => [newLog, ...prev].slice(0, 200)); // 최대 200개
+      
+      // 자동 스크롤이 꺼져있으면 새 로그 카운트 증가
+      if (!autoScroll) {
+        setNewLogCount(prev => prev + 1);
+      }
     };
 
     socket.on('battle:log', handleBattleLog);
@@ -113,8 +138,14 @@ export default function BattleLogPanel({ serverID, generalId }: Props) {
         type: data.logType === 'action' ? 'general' : 'history',
         timestamp: new Date(data.timestamp),
         generalId: data.generalId,
+        importance: detectImportance(data.logText),
       };
       setLogs((prev) => [newLog, ...prev].slice(0, 200));
+      
+      // 자동 스크롤이 꺼져있으면 새 로그 카운트 증가
+      if (!autoScroll) {
+        setNewLogCount(prev => prev + 1);
+      }
     });
 
     return () => {
@@ -130,14 +161,40 @@ export default function BattleLogPanel({ serverID, generalId }: Props) {
     }
   }, [logs, autoScroll]);
 
-  // 로그 필터링
-  const filteredLogs = logs.filter((log) => {
-    if (filter === 'all') return true;
-    if (filter === 'battle') return ['action', 'damage', 'status', 'result'].includes(log.type);
-    if (filter === 'general') return log.type === 'general' && log.generalId === generalId;
-    if (filter === 'global') return log.type === 'history' && log.generalId === 0;
-    return true;
-  });
+  // 로그 필터링 (메모이제이션)
+  const filteredLogs = useMemo(() => {
+    let result = logs;
+    
+    // 타입 필터
+    if (filter !== 'all') {
+      result = result.filter((log) => {
+        if (filter === 'battle') return ['action', 'damage', 'status', 'result'].includes(log.type);
+        if (filter === 'general') return log.type === 'general' && log.generalId === generalId;
+        if (filter === 'global') return log.type === 'history' && log.generalId === 0;
+        return true;
+      });
+    }
+    
+    // 검색어 필터
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(log => {
+        const cleanText = log.text.replace(/<[^>]*>/g, '').toLowerCase();
+        return cleanText.includes(query);
+      });
+    }
+    
+    return result;
+  }, [logs, filter, searchQuery, generalId]);
+
+  // 스크롤 최하단으로 이동 (새 로그 알림 클릭 시)
+  const scrollToBottom = useCallback(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = 0;
+      setNewLogCount(0);
+      setAutoScroll(true);
+    }
+  }, []);
 
   // 로그 색상
   const getLogColor = (type: string): string => {
@@ -170,15 +227,22 @@ export default function BattleLogPanel({ serverID, generalId }: Props) {
       <div className={styles.header}>
         <h3 className={styles.title}>📜 게임 로그</h3>
         <div className={styles.controls}>
+          <input
+            type="text"
+            placeholder="검색..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={styles.searchInput}
+          />
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value as any)}
             className={styles.filterSelect}
           >
-            <option value="all">전체 로그</option>
-            <option value="battle">전투 로그</option>
-            <option value="general">장수 동향</option>
-            <option value="global">중원 정세</option>
+            <option value="all">전체</option>
+            <option value="battle">전투</option>
+            <option value="general">장수</option>
+            <option value="global">정세</option>
           </select>
           <button
             onClick={() => setAutoScroll(!autoScroll)}
@@ -218,36 +282,51 @@ export default function BattleLogPanel({ serverID, generalId }: Props) {
           </div>
         ) : (
           <div className={styles.logList}>
-            {filteredLogs.map((log, index) => (
-              <div
-                key={`${log.id}-${index}`}
-                className={styles.logEntry}
-                style={{ borderLeftColor: getLogColor(log.type) }}
-              >
-                <div className={styles.logHeader}>
-                  <span 
-                    className={styles.logType}
-                    style={{ backgroundColor: getLogColor(log.type) }}
-                  >
-                    {getLogTypeName(log.type)}
-                  </span>
-                  <span className={styles.logTime}>
-                    {log.timestamp.toLocaleTimeString('ko-KR', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                    })}
-                  </span>
+            {filteredLogs.map((log, index) => {
+              const importanceClass = log.importance && log.importance !== 'normal' 
+                ? styles[log.importance] 
+                : '';
+              
+              return (
+                <div
+                  key={`${log.id}-${index}`}
+                  className={`${styles.logEntry} ${importanceClass}`}
+                  style={{ borderLeftColor: getLogColor(log.type) }}
+                >
+                  <div className={styles.logHeader}>
+                    <span 
+                      className={styles.logType}
+                      style={{ backgroundColor: getLogColor(log.type) }}
+                    >
+                      {getLogTypeName(log.type)}
+                    </span>
+                    <span className={styles.logTime}>
+                      {log.timestamp.toLocaleTimeString('ko-KR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                  <div 
+                    className={styles.logText}
+                    dangerouslySetInnerHTML={{ 
+                      __html: formatLogText(log.text) 
+                    }}
+                  />
                 </div>
-                <div 
-                  className={styles.logText}
-                  dangerouslySetInnerHTML={{ 
-                    __html: formatLogText(log.text) 
-                  }}
-                />
-              </div>
-            ))}
+              );
+            })}
           </div>
+          {/* 새 로그 알림 뱃지 */}
+          {newLogCount > 0 && !autoScroll && (
+            <div 
+              className={styles.newLogBadge}
+              onClick={scrollToBottom}
+            >
+              ↑ 새 로그 {newLogCount}개
+            </div>
+          )}
         )}
       </div>
       <div className={styles.footer}>

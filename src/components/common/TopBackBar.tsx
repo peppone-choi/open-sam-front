@@ -61,6 +61,23 @@ export default function TopBackBar({
       return;
     }
 
+    // 현재 경로 분석 - 어드민 경로인 경우 우선 처리
+    const currentPath = window.location.pathname;
+    if (currentPath.includes('/admin')) {
+      const pathParts = currentPath.split('/').filter(Boolean);
+      const adminIndex = pathParts.indexOf('admin');
+      
+      // 어드민 하위 페이지인 경우 (예: /server/admin/general -> /server/admin)
+      if (adminIndex >= 0 && adminIndex < pathParts.length - 1) {
+        router.push(`/${serverID}/admin`);
+        return;
+      } else {
+        // 어드민 메인 페이지인 경우 entrance로
+        router.push('/entrance');
+        return;
+      }
+    }
+
     // Vue의 type에 따른 동작
     switch (type) {
       case 'normal':
@@ -85,20 +102,7 @@ export default function TopBackBar({
         }
         break;
       default:
-        // 기본 동작: 현재 경로 분석
-        const currentPath = window.location.pathname;
-        if (currentPath.includes('/admin')) {
-          const pathParts = currentPath.split('/').filter(Boolean);
-          const adminIndex = pathParts.indexOf('admin');
-          
-          if (adminIndex >= 0 && adminIndex < pathParts.length - 1) {
-            router.push(`/${serverID}/admin`);
-          } else {
-            router.push('/entrance');
-          }
-        } else {
-          router.push(`/${serverID}/game`);
-        }
+        router.push(`/${serverID}/game`);
     }
   }
 
@@ -117,19 +121,32 @@ export default function TopBackBar({
   }
 
   return (
-    <div className={`${styles.topBackBar} ${teleportZone ? styles.topBackBarTeleport : ''}`}>
+    <nav 
+      className={`${styles.topBackBar} ${teleportZone ? styles.topBackBarTeleport : ''}`}
+      aria-label="페이지 네비게이션"
+    >
       {/* 뒤로가기 버튼 */}
-      <button type="button" onClick={handleBack} className={styles.btn}>
+      <button 
+        type="button" 
+        onClick={handleBack} 
+        className={styles.btn}
+        aria-label={type === 'close' ? '창 닫기' : '이전 페이지로 돌아가기'}
+      >
         {backButtonText}
       </button>
       
       {/* 갱신 버튼 */}
       {reloadable ? (
-        <button type="button" onClick={handleReload} className={styles.btn}>
+        <button 
+          type="button" 
+          onClick={handleReload} 
+          className={styles.btn}
+          aria-label="페이지 새로고침"
+        >
           갱신
         </button>
       ) : (
-        <div />
+        <div aria-hidden="true" />
       )}
       
       {/* 타이틀 */}
@@ -142,19 +159,21 @@ export default function TopBackBar({
         <div id={teleportZone} className={styles.teleportZone} />
       ) : (
         <>
-          <div>&nbsp;</div>
+          <div aria-hidden="true">&nbsp;</div>
           {searchable !== undefined && (
             <button
               type="button"
               className={`${styles.btn} ${styles.btnToggle} ${isSearchOn ? styles.btnToggleOn : ''}`}
               onClick={handleSearchToggle}
+              aria-pressed={isSearchOn}
+              aria-label={`검색 기능 ${isSearchOn ? '끄기' : '켜기'}`}
             >
               {isSearchOn ? '검색 켜짐' : '검색 꺼짐'}
             </button>
           )}
         </>
       )}
-    </div>
+    </nav>
   );
 }
 

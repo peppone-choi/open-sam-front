@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import TopBackBar from '@/components/common/TopBackBar';
 import styles from './CommandForm.module.css';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -28,6 +28,18 @@ export default function SimpleCommandForm({
   onSubmit,
   onCancel
 }: SimpleCommandFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = useCallback(async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await onSubmit({});
+    } finally {
+      // 페이지 이동이 발생하므로 setState가 실행되지 않을 수 있음
+      setIsSubmitting(false);
+    }
+  }, [isSubmitting, onSubmit]);
   const hasCostPreview =
     (typeof costGold === 'number' && costGold > 0) ||
     (typeof costRice === 'number' && costRice > 0) ||
@@ -72,14 +84,21 @@ export default function SimpleCommandForm({
             <Button 
               variant="primary" 
               className="flex-1"
-              onClick={() => onSubmit({})}
+              onClick={handleSubmit}
+              disabled={isSubmitting}
             >
-              {commandName}
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                  처리 중...
+                </span>
+              ) : commandName}
             </Button>
             <Button 
               variant="secondary" 
               className="flex-1"
               onClick={onCancel}
+              disabled={isSubmitting}
             >
               취소
             </Button>

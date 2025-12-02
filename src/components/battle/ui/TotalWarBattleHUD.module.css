@@ -1,0 +1,539 @@
+/* ===== TotalWarBattleHUD.module.css =====
+   토탈워 스타일 통합 전투 HUD
+   - 다크 테마 + 금색 악센트
+   - 동양적 문양/테두리
+===== */
+
+/* ===== HUD 컨테이너 ===== */
+.hudContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 100;
+  font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+}
+
+.hudContainer > * {
+  pointer-events: auto;
+}
+
+/* ===== 상단 HUD ===== */
+.topHud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 20px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), transparent);
+}
+
+.teamPanel {
+  flex: 1;
+  max-width: 280px;
+}
+
+.teamBanner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px;
+  background: linear-gradient(145deg, rgba(20, 15, 10, 0.95), rgba(35, 25, 15, 0.95));
+  border: 2px solid;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.teamName {
+  font-size: 14px;
+  font-weight: bold;
+  color: #ffd700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.teamSoldiers {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.soldierCount {
+  font-size: 28px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.soldierTotal {
+  font-size: 16px;
+  color: #8a7a6a;
+}
+
+.teamBarTrack {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.teamBarFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease-out;
+}
+
+.killCount {
+  font-size: 12px;
+  color: #a09080;
+}
+
+/* ===== 중앙 패널 ===== */
+.centerPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.battleTimer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: linear-gradient(145deg, rgba(20, 15, 10, 0.95), rgba(35, 25, 15, 0.95));
+  border: 2px solid #8b7355;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.timerIcon {
+  font-size: 18px;
+}
+
+.timerValue {
+  font-size: 32px;
+  font-weight: bold;
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  letter-spacing: 2px;
+}
+
+.battleStateTag {
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.battleStateTag.preparing {
+  background: linear-gradient(135deg, #2196f3, #1565c0);
+}
+
+.battleStateTag.paused {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+
+.battleStateTag.ended {
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+}
+
+/* ===== 좌측 패널 (전투 로그) ===== */
+.leftPanel {
+  position: absolute;
+  left: 20px;
+  top: 120px;
+}
+
+/* ===== 우측 패널 (유닛 카드) ===== */
+.rightPanel {
+  position: absolute;
+  right: 20px;
+  top: 120px;
+}
+
+/* ===== 하단 패널 (부대 덱) ===== */
+.bottomPanel {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100vw - 500px);
+  background: linear-gradient(145deg, rgba(20, 15, 10, 0.9), rgba(35, 25, 15, 0.9));
+  border: 2px solid #8b7355;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== 전투 컨트롤 ===== */
+.battleControls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: linear-gradient(145deg, rgba(20, 15, 10, 0.95), rgba(35, 25, 15, 0.95));
+  border: 2px solid #8b7355;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.startBtn,
+.pauseBtn,
+.resumeBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.startBtn {
+  background: linear-gradient(135deg, #b71c1c, #8b0000);
+  box-shadow: 0 4px 12px rgba(183, 28, 28, 0.4);
+}
+
+.startBtn:hover {
+  background: linear-gradient(135deg, #c62828, #a00000);
+  transform: scale(1.05);
+}
+
+.pauseBtn {
+  background: linear-gradient(135deg, #1565c0, #0d47a1);
+  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.4);
+}
+
+.pauseBtn:hover {
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+}
+
+.resumeBtn {
+  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.4);
+}
+
+.resumeBtn:hover {
+  background: linear-gradient(135deg, #388e3c, #2e7d32);
+}
+
+.btnIcon {
+  font-size: 18px;
+}
+
+.btnText {
+  letter-spacing: 1px;
+}
+
+/* ===== 속도 컨트롤 ===== */
+.speedControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 16px;
+  border-left: 1px solid rgba(139, 115, 85, 0.4);
+}
+
+.speedLabel {
+  font-size: 13px;
+  color: #8a7a6a;
+}
+
+.speedBtn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #8a7a6a;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(139, 115, 85, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.speedBtn:hover {
+  color: #c0b0a0;
+  border-color: rgba(139, 115, 85, 0.6);
+}
+
+.speedBtn.active {
+  color: #ffd700;
+  background: rgba(139, 115, 85, 0.3);
+  border-color: #ffd700;
+}
+
+/* ===== 승리 오버레이 ===== */
+.victoryOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+}
+
+.victoryBanner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 80px;
+  background: linear-gradient(145deg, rgba(40, 30, 20, 0.98), rgba(60, 45, 30, 0.98));
+  border: 4px solid #ffd700;
+  border-radius: 16px;
+  box-shadow:
+    0 0 60px rgba(255, 215, 0, 0.4),
+    0 8px 40px rgba(0, 0, 0, 0.6);
+}
+
+.victoryIcon {
+  font-size: 72px;
+  animation: victoryBounce 1s ease infinite;
+}
+
+@keyframes victoryBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.victoryText {
+  font-size: 36px;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
+  letter-spacing: 4px;
+}
+
+.victoryGlow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 215, 0, 0.1) 0%,
+    transparent 70%
+  );
+  animation: victoryPulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes victoryPulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+/* ===== 도움말 패널 ===== */
+.helpPanel {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(139, 115, 85, 0.3);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.helpPanel p {
+  margin: 3px 0;
+  font-size: 11px;
+  color: #7a6a5a;
+}
+
+/* ===== 컴팩트 HUD ===== */
+.compactHud {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.compactTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.compactTime {
+  color: #fff;
+  font-family: 'Courier New', monospace;
+}
+
+/* ===== 반응형 ===== */
+@media (max-width: 1200px) {
+  .bottomPanel {
+    max-width: calc(100vw - 300px);
+  }
+
+  .teamBanner {
+    padding: 10px 12px;
+  }
+
+  .soldierCount {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 900px) {
+  .topHud {
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .teamPanel {
+    max-width: 200px;
+  }
+
+  .centerPanel {
+    order: -1;
+    width: 100%;
+  }
+
+  .leftPanel,
+  .rightPanel {
+    display: none;
+  }
+
+  .bottomPanel {
+    bottom: 80px;
+    max-width: calc(100vw - 40px);
+  }
+
+  .battleControls {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 16px;
+  }
+
+  .speedControl {
+    width: 100%;
+    justify-content: center;
+    padding-left: 0;
+    border-left: none;
+    padding-top: 10px;
+    border-top: 1px solid rgba(139, 115, 85, 0.3);
+  }
+
+  .helpPanel {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .timerValue {
+    font-size: 24px;
+  }
+
+  .startBtn,
+  .pauseBtn,
+  .resumeBtn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  .teamBanner {
+    padding: 8px 10px;
+  }
+
+  .teamName {
+    font-size: 12px;
+  }
+
+  .soldierCount {
+    font-size: 20px;
+  }
+}
+
+/* ===== 전황 게이지 (줄다리기) ===== */
+.battleScoreContainer {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.battleScoreBar {
+  position: relative;
+  display: flex;
+  height: 16px;
+  background: rgba(50, 50, 50, 0.8);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+.attackerScoreFill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.defenderScoreFill {
+  height: 100%;
+  margin-left: auto;
+  transition: width 0.3s ease;
+}
+
+.battleScoreCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.momentumIndicator {
+  font-size: 10px;
+  color: #ffd700;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  font-weight: bold;
+}
+
+.battleScoreLabels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.battleScoreTitle {
+  color: #d4af37;
+  font-size: 10px;
+}
+

@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import BattleMap, { BattleUnit } from '@/components/battle/BattleMap';
 import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
+import { BattleModeSwitchToggle } from './components/BattleModeSwitch';
 
 export default function BattleDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const serverID = params?.server as string;
   const battleId = params?.battleId as string;
   const { showToast } = useToast();
@@ -18,6 +20,13 @@ export default function BattleDetailPage() {
   const [battleData, setBattleData] = useState<any>(null);
   const [units, setUnits] = useState<BattleUnit[]>([]);
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+
+  // 모드 전환 핸들러
+  const handleModeChange = useCallback((mode: '2d' | 'voxel') => {
+    if (mode === 'voxel') {
+      router.push(`/${serverID}/battle/${battleId}/voxel`);
+    }
+  }, [router, serverID, battleId]);
 
   useEffect(() => {
     loadBattleData();
@@ -72,7 +81,15 @@ export default function BattleDetailPage() {
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
       <div className="max-w-[1400px] mx-auto space-y-6">
-        <TopBackBar title={`전투 #${battleId}`} reloadable onReload={loadBattleData} />
+        <div className="flex items-center justify-between gap-4">
+          <TopBackBar title={`전투 #${battleId}`} reloadable onReload={loadBattleData} />
+          
+          {/* 모드 전환 버튼 */}
+          <BattleModeSwitchToggle
+            currentMode="2d"
+            onModeChange={handleModeChange}
+          />
+        </div>
         
         {loading ? (
           <div className="min-h-[50vh] flex items-center justify-center">

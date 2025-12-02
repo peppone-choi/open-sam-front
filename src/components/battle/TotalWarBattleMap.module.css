@@ -1,0 +1,469 @@
+.container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: #1a1a2e;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* 상단 HUD */
+.topHud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+  pointer-events: none;
+}
+
+.teamStats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.attackerStats,
+.defenderStats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  min-width: 180px;
+}
+
+.attackerStats {
+  background: rgba(47, 79, 79, 0.9);
+  border: 2px solid #4682B4;
+  text-align: left;
+}
+
+.defenderStats {
+  background: rgba(139, 0, 0, 0.9);
+  border: 2px solid #FF6B6B;
+  text-align: right;
+}
+
+.teamName {
+  font-size: 14px;
+  font-weight: bold;
+  color: #FFD700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.soldiers {
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.kills {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.battleTime {
+  font-size: 32px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  font-family: 'Courier New', monospace;
+}
+
+/* ★ 중앙 패널 (시간 + 전황) */
+.centerPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 200px;
+}
+
+/* ★ 전황 게이지 */
+.battleScoreBar {
+  position: relative;
+  display: flex;
+  width: 180px;
+  height: 14px;
+  background: rgba(50, 50, 50, 0.8);
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+}
+
+.attackerScoreFill {
+  height: 100%;
+  background: linear-gradient(90deg, #4682B4, #5F9EA0);
+  transition: width 0.3s ease;
+}
+
+.defenderScoreFill {
+  height: 100%;
+  background: linear-gradient(90deg, #CD5C5C, #8B0000);
+  margin-left: auto;
+  transition: width 0.3s ease;
+}
+
+.scoreCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  color: #ffd700;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
+  font-weight: bold;
+  z-index: 2;
+}
+
+.scoreLabels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 180px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.attackerScoreLabel {
+  color: #4682B4;
+}
+
+.defenderScoreLabel {
+  color: #CD5C5C;
+}
+
+.scoreTitle {
+  color: #d4af37;
+  font-size: 10px;
+}
+
+/* 전투 컨트롤 */
+.battleControls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 12px;
+  border: 1px solid #444;
+}
+
+.startButton {
+  padding: 12px 32px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+  background: linear-gradient(135deg, #8B0000, #B22222);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.startButton:hover {
+  background: linear-gradient(135deg, #A52A2A, #CD5C5C);
+  transform: scale(1.05);
+}
+
+.pauseButton {
+  padding: 10px 24px;
+  font-size: 16px;
+  color: #fff;
+  background: #2F4F4F;
+  border: 1px solid #4682B4;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pauseButton:hover {
+  background: #3D6363;
+}
+
+.victoryBanner {
+  padding: 16px 32px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #FFD700;
+  background: linear-gradient(135deg, #1a1a2e, #2a2a4e);
+  border: 2px solid #FFD700;
+  border-radius: 8px;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.speedControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #aaa;
+  font-size: 14px;
+}
+
+.speedControl button {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #ccc;
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.speedControl button:hover {
+  background: #444;
+}
+
+.speedControl button.active {
+  color: #fff;
+  background: #4682B4;
+  border-color: #4682B4;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #aaa;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.checkbox input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* 성능 메트릭 표시 */
+.metrics {
+  padding: 6px 12px;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  color: #0f0;
+  background: rgba(0, 20, 0, 0.8);
+  border: 1px solid #0a0;
+  border-radius: 4px;
+}
+
+/* ★ 지원군 버튼 */
+.reinforcements {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.reinforceBtn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #fff;
+  background: linear-gradient(145deg, rgba(40, 40, 40, 0.9), rgba(20, 20, 20, 0.9));
+  border: 2px solid;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  animation: reinforcePulse 2s infinite;
+}
+
+.reinforceBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+@keyframes reinforcePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* 부대 정보 패널 */
+.squadPanel {
+  position: absolute;
+  right: 20px;
+  top: 100px;
+  width: 280px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid #444;
+  border-radius: 12px;
+  color: #fff;
+}
+
+.squadPanel h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: #FFD700;
+  border-bottom: 1px solid #444;
+  padding-bottom: 8px;
+}
+
+.squadPanel h4 {
+  margin: 16px 0 8px 0;
+  font-size: 14px;
+  color: #aaa;
+}
+
+.squadInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.infoRow span:first-child {
+  color: #888;
+}
+
+.barContainer {
+  width: 120px;
+  height: 12px;
+  background: #333;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.moraleBar {
+  height: 100%;
+  transition: width 0.3s, background-color 0.3s;
+}
+
+.fatigueBar {
+  height: 100%;
+  background: #FF9800;
+  transition: width 0.3s;
+}
+
+/* 상태 표시 */
+.idle { color: #4CAF50; }
+.moving { color: #2196F3; }
+.engaging { color: #FF9800; }
+.wavering { color: #FFC107; }
+.routing { color: #F44336; }
+.destroyed { color: #9E9E9E; }
+
+/* 진형 버튼 */
+.formationSelect,
+.stanceSelect {
+  margin-top: 12px;
+}
+
+.formationButtons,
+.stanceButtons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.formationButtons button {
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+  color: #aaa;
+  background: #2a2a3a;
+  border: 1px solid #444;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.formationButtons button:hover {
+  background: #3a3a4a;
+  color: #fff;
+}
+
+.formationButtons button.active {
+  color: #FFD700;
+  background: #3a3a5a;
+  border-color: #FFD700;
+}
+
+.stanceButtons button {
+  flex: 1;
+  padding: 8px;
+  font-size: 12px;
+  color: #aaa;
+  background: #2a2a3a;
+  border: 1px solid #444;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.stanceButtons button:hover {
+  background: #3a3a4a;
+  color: #fff;
+}
+
+.stanceButtons button.active {
+  color: #fff;
+  border-color: #4CAF50;
+}
+
+/* 도움말 패널 */
+.helpPanel {
+  position: absolute;
+  bottom: 80px;
+  left: 20px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 8px;
+  color: #888;
+  font-size: 12px;
+}
+
+.helpPanel p {
+  margin: 4px 0;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .teamStats {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .attackerStats,
+  .defenderStats {
+    text-align: center;
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .squadPanel {
+    right: 10px;
+    width: 240px;
+  }
+  
+  .battleControls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+

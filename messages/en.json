@@ -1,0 +1,148 @@
+{
+  "common": {
+    "logout": "Logout",
+    "adminBadge": "Admin",
+    "officialBadge": "Official Server",
+    "toastClose": "Close notification",
+    "unknown": "Unknown",
+    "characterAlt": "Character portrait",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "noResults": "No results"
+  },
+  "layout": {
+    "nav": {
+      "strategy": "Strategy",
+      "office": "Command",
+      "comm": "Communications"
+    },
+    "tooltips": {
+      "messenger": "Messenger",
+      "info": "Info Board",
+      "mail": "Mailbox",
+      "logout": "Logout"
+    },
+    "statusBar": {
+      "systemLabel": "System",
+      "year": "Year 796",
+      "datetime": "Jan 1 12:00",
+      "commandPoint": "Command: {current}/{max}",
+      "rank": "Rank: {rank}"
+    }
+  },
+  "controlBar": {
+    "title": "Command Center",
+    "sections": {
+      "domestic": "Domestic",
+      "military": "Military",
+      "diplomacy": "Diplomacy",
+      "information": "Information",
+      "personal": "Personal",
+      "special": "Special"
+    }
+  },
+  "logh": {
+    "radarActive": "Radar Active",
+    "autoResolveConfirm": "Activate fleet AI? Combat will be processed automatically.",
+    "autoResolveSuccess": "Combat ended. Winner: {winner}",
+    "autoResolveError": "Auto-resolve failed. Please try again later.",
+    "autoResolveIdleLabel": "⚡ Auto Combat",
+    "autoResolveActiveLabel": "🤖 AI Autopilot Active",
+    "shortcuts": {
+      "move": "F: Move Order",
+      "attack": "R: Attack Order",
+      "spineFormation": "Z: Spine Formation",
+      "concaveFormation": "X: Concave Formation"
+    },
+    "pointerGuide": {
+      "leftClick": {
+        "label": "Left Click",
+        "action": "Select Fleet"
+      },
+      "rightClick": {
+        "label": "Right Click",
+        "action": "Move Order"
+      },
+      "wheel": {
+        "label": "Scroll Wheel",
+        "action": "Zoom"
+      }
+    },
+    "positionLabel": "Position",
+    "zoomPrefix": "Zoom"
+  },
+  "portrait": {
+    "uploadFailed": "Portrait upload failed. Please try again later.",
+    "uploadErrorLog": "Portrait upload error"
+  },
+  "toast": {
+    "hookUsageError": "useToast must be used within ToastProvider."
+  },
+  "info": {
+    "history": {
+      "filterLabel": "Filter Date",
+      "filterPlaceholder": "e.g., 202401",
+      "snapshotLabel": "Snapshot Month",
+      "timelineTitle": "Major Records",
+      "timelineEmpty": "No records for selected month.",
+      "nationTableTitle": "Faction Status"
+    },
+    "world": {
+      "summaryTitle": "Active Nations",
+      "summaryDescription": "Number of factions and average power",
+      "personalConflictLabel": "Our Conflicts",
+      "personalConflictDescription": "Nations currently in conflict with us",
+      "globalConflictLabel": "Global Conflicts",
+      "globalConflictDescription": "Server-wide conflict/truce distribution",
+      "conflictLabel": "Disputed Cities",
+      "conflictDescription": "Cities under simultaneous conquest attempts",
+      "conflictNone": "None"
+    },
+    "entry": {
+      "joinSummaryTitle": "Create New General",
+      "selectSummaryTitle": "Select General",
+      "npcSummaryTitle": "Original Character",
+      "inheritSummaryTitle": "Legacy Status",
+      "timelineLabel": "Procedure Guide",
+      "joinTimelineTips": {
+        "trait": "Check stat limits based on traits.",
+        "stat": "Total must stay within range after random distribution.",
+        "icon": "Upload images under 5MB for custom icons."
+      }
+    }
+  },
+  "a11y": {
+    "skipToMain": "Skip to main content",
+    "navigation": "Page Navigation",
+    "backButton": "Go back to previous page",
+    "closeWindow": "Close window",
+    "refreshPage": "Refresh page",
+    "searchToggle": "Turn search {state}",
+    "searchOn": "on",
+    "searchOff": "off",
+    "notificationRegion": "Notification messages",
+    "tabList": "Game map view switcher",
+    "strategicMap": "Strategic",
+    "tacticalMap": "Tactical",
+    "auctionMenu": "Open auction menu",
+    "auctionType": "Select auction type"
+  },
+  "gameView": {
+    "strategic": "Strategic",
+    "tactical": "Tactical",
+    "loading": "🎮 Loading tactical map..."
+  }
+}
+
+

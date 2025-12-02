@@ -1,0 +1,527 @@
+/**
+ * CompactBattleView.module.css
+ * 600px 높이에 맞춘 컴팩트 토탈워 스타일 전투 UI
+ */
+
+/* ========================================
+   컨테이너
+   ======================================== */
+.container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  max-height: 100%;
+  background: #0a0a0f;
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: 'Noto Serif KR', 'Times New Roman', serif;
+}
+
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* ========================================
+   로딩 화면
+   ======================================== */
+.loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 15, 0.95);
+  z-index: 100;
+  color: #c0b0a0;
+  font-size: 14px;
+  gap: 16px;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #3a3530;
+  border-top-color: #d4af37;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   상단 HUD
+   ======================================== */
+.topHud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, 
+    rgba(15, 12, 8, 0.95) 0%,
+    rgba(20, 18, 14, 0.85) 60%,
+    transparent 100%
+  );
+  z-index: 50;
+  pointer-events: none;
+}
+
+.topHud > * {
+  pointer-events: auto;
+}
+
+/* 닫기 버튼 */
+.closeBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 25, 20, 0.9);
+  border: 1px solid #5a4a35;
+  border-radius: 4px;
+  color: #a09080;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 60;
+}
+
+.closeBtn:hover {
+  background: rgba(50, 40, 30, 0.95);
+  color: #ffd700;
+  border-color: #d4af37;
+}
+
+/* 팀 정보 */
+.teamInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+}
+
+.teamInfo.teamRight {
+  text-align: right;
+  align-items: flex-end;
+}
+
+.teamName {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.teamName[data-team="attacker"] {
+  color: #4a9eff;
+  text-shadow: 0 0 8px rgba(74, 158, 255, 0.4);
+}
+
+.teamName[data-team="defender"] {
+  color: #ff6b6b;
+  text-shadow: 0 0 8px rgba(255, 107, 107, 0.4);
+}
+
+.troopCount {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f5e6d3;
+  font-family: 'Cinzel', 'Times New Roman', serif;
+}
+
+.troopMax {
+  font-size: 11px;
+  color: #6a6a60;
+  margin-left: 4px;
+}
+
+/* ========================================
+   중앙 체력바
+   ======================================== */
+.centerPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  max-width: 300px;
+  margin: 0 12px;
+}
+
+.healthBar {
+  position: relative;
+  width: 100%;
+  height: 16px;
+  display: flex;
+  background: linear-gradient(180deg, #1a1815 0%, #0f0e0c 100%);
+  border: 1px solid #4a4035;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.attackerHealth {
+  height: 100%;
+  background: linear-gradient(180deg, #5a9adf 0%, #2a5a9f 100%);
+  transition: width 0.5s ease-out;
+}
+
+.defenderHealth {
+  height: 100%;
+  background: linear-gradient(180deg, #df5a5a 0%, #9f2a2a 100%);
+  margin-left: auto;
+  transition: width 0.5s ease-out;
+}
+
+.centerMark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  color: #d4af37;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
+  z-index: 5;
+}
+
+.battleTime {
+  font-size: 12px;
+  font-weight: 600;
+  color: #a09080;
+  font-family: 'Courier New', monospace;
+}
+
+/* ========================================
+   하단 HUD
+   ======================================== */
+.bottomHud {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: linear-gradient(0deg,
+    rgba(15, 12, 8, 0.95) 0%,
+    rgba(20, 18, 14, 0.85) 60%,
+    transparent 100%
+  );
+  z-index: 50;
+}
+
+/* 전투 컨트롤 */
+.battleControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.startBtn {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(180deg, #8b0000 0%, #5a0000 100%);
+  border: 2px solid #d4af37;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Cinzel', 'Times New Roman', serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.startBtn:hover {
+  background: linear-gradient(180deg, #a50000 0%, #700000 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.5);
+}
+
+.pauseBtn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #c0b0a0;
+  background: linear-gradient(180deg, #3a3530 0%, #2a2520 100%);
+  border: 1px solid #5a4a35;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pauseBtn:hover {
+  background: linear-gradient(180deg, #4a4540 0%, #3a3530 100%);
+  color: #ffd700;
+}
+
+.resultBadge {
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffd700;
+  background: linear-gradient(180deg, rgba(40, 35, 25, 0.95) 0%, rgba(25, 20, 15, 0.95) 100%);
+  border: 1px solid #d4af37;
+  border-radius: 4px;
+  animation: resultPulse 2s ease-in-out infinite;
+}
+
+@keyframes resultPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(212, 175, 55, 0.3); }
+  50% { box-shadow: 0 0 16px rgba(212, 175, 55, 0.5); }
+}
+
+/* 속도 조절 */
+.speedControl {
+  display: flex;
+  gap: 4px;
+}
+
+.speedBtn {
+  width: 32px;
+  height: 28px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8a8070;
+  background: linear-gradient(180deg, #2a2520 0%, #1a1815 100%);
+  border: 1px solid #3a3530;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.speedBtn:hover {
+  color: #c0b0a0;
+  border-color: #5a4a35;
+}
+
+.speedBtn.active {
+  color: #ffd700;
+  border-color: #d4af37;
+  background: linear-gradient(180deg, #3a3530 0%, #2a2520 100%);
+}
+
+/* 조작 힌트 */
+.hint {
+  font-size: 10px;
+  color: #5a5a50;
+}
+
+/* ========================================
+   승리 오버레이
+   ======================================== */
+.victoryOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.9) 100%);
+  z-index: 100;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.victoryContent {
+  text-align: center;
+  padding: 24px 40px;
+  background: linear-gradient(180deg, rgba(40, 35, 25, 0.95) 0%, rgba(25, 20, 15, 0.95) 100%);
+  border: 2px solid #d4af37;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+}
+
+.victoryTitle {
+  font-size: 12px;
+  color: #8a8070;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 8px;
+}
+
+.victoryWinner {
+  font-size: 24px;
+  font-weight: 700;
+  font-family: 'Cinzel', 'Times New Roman', serif;
+  margin-bottom: 4px;
+}
+
+.victoryWinner[data-winner="attacker"] {
+  color: #4a9eff;
+  text-shadow: 0 0 15px rgba(74, 158, 255, 0.5);
+}
+
+.victoryWinner[data-winner="defender"] {
+  color: #ff6b6b;
+  text-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+}
+
+.victorySubtitle {
+  font-size: 18px;
+  color: #ffd700;
+  font-family: 'Cinzel', 'Times New Roman', serif;
+}
+
+.victoryStats {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #3a3530;
+}
+
+.victoryStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 10px;
+  color: #6a6a60;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.statValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: #c0b0a0;
+}
+
+.closeResultBtn {
+  margin-top: 16px;
+  padding: 8px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c0b0a0;
+  background: linear-gradient(180deg, #3a3530 0%, #2a2520 100%);
+  border: 1px solid #5a4a35;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.closeResultBtn:hover {
+  color: #ffd700;
+  border-color: #d4af37;
+}
+
+/* ========================================
+   반응형
+   ======================================== */
+@media (max-width: 640px) {
+  .topHud {
+    height: 50px;
+    padding: 6px 8px;
+  }
+  
+  .teamInfo {
+    min-width: 80px;
+  }
+  
+  .teamName {
+    font-size: 9px;
+  }
+  
+  .troopCount {
+    font-size: 14px;
+  }
+  
+  .troopMax {
+    font-size: 9px;
+  }
+  
+  .centerPanel {
+    max-width: 180px;
+    margin: 0 8px;
+  }
+  
+  .healthBar {
+    height: 12px;
+  }
+  
+  .battleTime {
+    font-size: 10px;
+  }
+  
+  .bottomHud {
+    height: 44px;
+    padding: 6px 8px;
+  }
+  
+  .startBtn {
+    padding: 6px 14px;
+    font-size: 11px;
+  }
+  
+  .pauseBtn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  .speedBtn {
+    width: 28px;
+    height: 24px;
+    font-size: 10px;
+  }
+  
+  .hint {
+    display: none;
+  }
+  
+  .victoryContent {
+    padding: 16px 24px;
+  }
+  
+  .victoryWinner {
+    font-size: 18px;
+  }
+  
+  .victorySubtitle {
+    font-size: 14px;
+  }
+  
+  .victoryStats {
+    gap: 16px;
+  }
+}
+
+
+
+
+

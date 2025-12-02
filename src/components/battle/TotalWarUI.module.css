@@ -1,0 +1,894 @@
+/**
+ * TotalWarUI.module.css
+ * Total War 스타일 전투 UI
+ * 금속/청동 테마, 중앙 체력바, 미니맵, 유닛 카드
+ */
+
+/* ========================================
+   기본 컨테이너
+   ======================================== */
+.container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: #0a0a0f;
+  font-family: 'Noto Serif KR', 'Times New Roman', serif;
+}
+
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* ========================================
+   상단 HUD - 중앙 군대 체력바
+   ======================================== */
+.topBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(180deg, 
+    rgba(15, 12, 8, 0.95) 0%,
+    rgba(25, 20, 15, 0.9) 60%,
+    transparent 100%
+  );
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* 중앙 군대 정보 패널 */
+.armyPanel {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  pointer-events: auto;
+}
+
+/* 양측 진영 정보 */
+.attackerInfo,
+.defenderInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 180px;
+  padding: 8px 16px;
+}
+
+.attackerInfo {
+  align-items: flex-end;
+}
+
+.defenderInfo {
+  align-items: flex-start;
+}
+
+/* 진영 이름 */
+.factionName {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.attackerInfo .factionName {
+  color: #4a9eff;
+  text-shadow: 0 0 10px rgba(74, 158, 255, 0.5);
+}
+
+.defenderInfo .factionName {
+  color: #ff6b6b;
+  text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+}
+
+/* 병력 수 */
+.troopCount {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f5e6d3;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  font-family: 'Cinzel', 'Times New Roman', serif;
+}
+
+.troopMax {
+  font-size: 13px;
+  color: #8a8070;
+  margin-left: 4px;
+}
+
+/* 킬 카운터 */
+.killCount {
+  font-size: 10px;
+  color: #cc3333;
+  margin-top: 2px;
+}
+
+/* ========================================
+   중앙 체력바 (토탈워 스타일)
+   ======================================== */
+.healthBarContainer {
+  position: relative;
+  width: 400px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+/* 체력바 프레임 */
+.healthBarFrame {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg,
+    #2a2520 0%,
+    #1a1815 50%,
+    #0f0e0c 100%
+  );
+  border-top: 2px solid #5a4a35;
+  border-bottom: 2px solid #3a3025;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* 장식용 테두리 */
+.healthBarFrame::before,
+.healthBarFrame::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  width: 12px;
+  height: calc(100% + 8px);
+  background: linear-gradient(180deg,
+    #8b7355 0%,
+    #6b5a45 50%,
+    #4a4035 100%
+  );
+  border: 1px solid #9a8a70;
+}
+
+.healthBarFrame::before {
+  left: -6px;
+  border-radius: 3px 0 0 3px;
+}
+
+.healthBarFrame::after {
+  right: -6px;
+  border-radius: 0 3px 3px 0;
+}
+
+/* 실제 체력바 */
+.healthBars {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  overflow: hidden;
+}
+
+.attackerHealth {
+  height: 100%;
+  background: linear-gradient(180deg,
+    #5a9adf 0%,
+    #3a7abf 30%,
+    #2a5a9f 100%
+  );
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  transition: width 0.5s ease-out;
+}
+
+.defenderHealth {
+  height: 100%;
+  background: linear-gradient(180deg,
+    #df5a5a 0%,
+    #bf3a3a 30%,
+    #9f2a2a 100%
+  );
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  transition: width 0.5s ease-out;
+  margin-left: auto;
+}
+
+/* 중앙 구분선 */
+.centerDivider {
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  width: 4px;
+  height: calc(100% + 4px);
+  background: linear-gradient(180deg,
+    #d4af37 0%,
+    #b8960f 50%,
+    #8a7a30 100%
+  );
+  transform: translateX(-50%);
+  z-index: 5;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+}
+
+.centerDivider::before {
+  content: '⚔';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  color: #ffd700;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+}
+
+/* ========================================
+   속도 컨트롤 (우상단)
+   ======================================== */
+.speedControl {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: linear-gradient(180deg,
+    rgba(40, 35, 25, 0.95) 0%,
+    rgba(25, 22, 18, 0.95) 100%
+  );
+  border: 1px solid #5a4a35;
+  border-radius: 4px;
+  z-index: 100;
+}
+
+.speedLabel {
+  font-size: 10px;
+  color: #8a8070;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-right: 8px;
+}
+
+.speedBtn {
+  width: 36px;
+  height: 28px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #a09080;
+  background: linear-gradient(180deg,
+    #2a2520 0%,
+    #1a1815 100%
+  );
+  border: 1px solid #4a4035;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.speedBtn:hover {
+  color: #d4c4b0;
+  border-color: #6a5a45;
+  background: linear-gradient(180deg,
+    #3a3530 0%,
+    #2a2825 100%
+  );
+}
+
+.speedBtn.active {
+  color: #ffd700;
+  border-color: #d4af37;
+  background: linear-gradient(180deg,
+    #4a4035 0%,
+    #3a3530 100%
+  );
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+}
+
+/* ========================================
+   전투 시간 표시
+   ======================================== */
+.battleTimer {
+  position: absolute;
+  top: 58px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  font-weight: 600;
+  color: #d4c4b0;
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  z-index: 100;
+}
+
+/* ========================================
+   하단 컨트롤 패널
+   ======================================== */
+.bottomPanel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 140px;
+  background: linear-gradient(0deg,
+    rgba(15, 12, 8, 0.98) 0%,
+    rgba(25, 20, 15, 0.95) 70%,
+    transparent 100%
+  );
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* 유닛 카드 컨테이너 */
+.unitCards {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+/* 개별 유닛 카드 */
+.unitCard {
+  position: relative;
+  width: 72px;
+  height: 90px;
+  background: linear-gradient(180deg,
+    #2a2520 0%,
+    #1a1815 100%
+  );
+  border: 2px solid #4a4035;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.unitCard:hover {
+  transform: translateY(-4px);
+  border-color: #d4af37;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.unitCard.selected {
+  border-color: #ffd700;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+}
+
+.unitCard.attacker {
+  border-top: 3px solid #4a9eff;
+}
+
+.unitCard.defender {
+  border-top: 3px solid #ff6b6b;
+}
+
+/* 유닛 아이콘 */
+.unitIcon {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  background: linear-gradient(180deg,
+    rgba(40, 35, 30, 0.8) 0%,
+    rgba(30, 25, 20, 0.8) 100%
+  );
+}
+
+/* 유닛 정보 */
+.unitInfo {
+  padding: 4px;
+  text-align: center;
+}
+
+.unitName {
+  font-size: 9px;
+  color: #c0b0a0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.unitCount {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f5e6d3;
+}
+
+/* 유닛 체력바 */
+.unitHealthBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #1a1510;
+}
+
+.unitHealthFill {
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
+  transition: width 0.3s;
+}
+
+.unitHealthFill.low {
+  background: linear-gradient(90deg, #f44336, #ff9800);
+}
+
+.unitHealthFill.critical {
+  background: #f44336;
+  animation: criticalPulse 0.5s infinite;
+}
+
+@keyframes criticalPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ========================================
+   전투 컨트롤 버튼
+   ======================================== */
+.battleControls {
+  position: absolute;
+  bottom: 16px;
+  right: 20px;
+  display: flex;
+  gap: 12px;
+  pointer-events: auto;
+  z-index: 100;
+}
+
+.controlBtn {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Cinzel', 'Times New Roman', serif;
+}
+
+.startBtn {
+  color: #fff;
+  background: linear-gradient(180deg,
+    #8b0000 0%,
+    #660000 50%,
+    #4a0000 100%
+  );
+  border: 2px solid #d4af37;
+  box-shadow: 
+    0 4px 12px rgba(139, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.startBtn:hover {
+  background: linear-gradient(180deg,
+    #a50000 0%,
+    #800000 50%,
+    #5a0000 100%
+  );
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 16px rgba(139, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.pauseBtn {
+  color: #d4c4b0;
+  background: linear-gradient(180deg,
+    #3a3530 0%,
+    #2a2520 100%
+  );
+  border: 2px solid #5a4a35;
+}
+
+.pauseBtn:hover {
+  border-color: #7a6a55;
+  background: linear-gradient(180deg,
+    #4a4540 0%,
+    #3a3530 100%
+  );
+}
+
+/* ========================================
+   승리 배너
+   ======================================== */
+.victoryOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.9) 100%
+  );
+  z-index: 200;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.victoryBanner {
+  text-align: center;
+  padding: 40px 80px;
+  background: linear-gradient(180deg,
+    rgba(40, 35, 25, 0.95) 0%,
+    rgba(25, 20, 15, 0.95) 100%
+  );
+  border: 3px solid #d4af37;
+  border-radius: 8px;
+  box-shadow: 
+    0 0 40px rgba(212, 175, 55, 0.3),
+    inset 0 0 20px rgba(0, 0, 0, 0.5);
+  animation: victoryPulse 2s ease-in-out infinite;
+}
+
+@keyframes victoryPulse {
+  0%, 100% { box-shadow: 0 0 40px rgba(212, 175, 55, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.5); }
+  50% { box-shadow: 0 0 60px rgba(212, 175, 55, 0.5), inset 0 0 20px rgba(0, 0, 0, 0.5); }
+}
+
+.victoryTitle {
+  font-size: 18px;
+  color: #8a8070;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin-bottom: 12px;
+}
+
+.victoryFaction {
+  font-size: 36px;
+  font-weight: 700;
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  font-family: 'Cinzel', 'Times New Roman', serif;
+  margin-bottom: 8px;
+}
+
+.victorySubtitle {
+  font-size: 24px;
+  color: #f5e6d3;
+  font-family: 'Cinzel', 'Times New Roman', serif;
+}
+
+.victoryStats {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #4a4035;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+}
+
+.victoryStat {
+  text-align: center;
+}
+
+.victoryStatLabel {
+  font-size: 11px;
+  color: #8a8070;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.victoryStatValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: #d4c4b0;
+  margin-top: 4px;
+}
+
+/* ========================================
+   미니맵 (우하단)
+   ======================================== */
+.minimap {
+  position: absolute;
+  bottom: 160px;
+  right: 20px;
+  width: 180px;
+  height: 140px;
+  background: rgba(15, 12, 8, 0.9);
+  border: 2px solid #5a4a35;
+  border-radius: 4px;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.minimapCanvas {
+  width: 100%;
+  height: 100%;
+}
+
+.minimapFrame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  pointer-events: none;
+}
+
+/* ========================================
+   좌측 장군 정보 패널
+   ======================================== */
+.generalPanel {
+  position: absolute;
+  left: 20px;
+  top: 100px;
+  width: 200px;
+  background: linear-gradient(180deg,
+    rgba(40, 35, 25, 0.95) 0%,
+    rgba(25, 20, 15, 0.95) 100%
+  );
+  border: 1px solid #5a4a35;
+  border-radius: 4px;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.generalHeader {
+  padding: 8px 12px;
+  background: linear-gradient(180deg,
+    rgba(60, 50, 35, 0.8) 0%,
+    rgba(40, 35, 25, 0.8) 100%
+  );
+  border-bottom: 1px solid #4a4035;
+}
+
+.generalTitle {
+  font-size: 10px;
+  color: #8a8070;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.generalName {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffd700;
+  margin-top: 4px;
+}
+
+.generalContent {
+  padding: 12px;
+}
+
+.generalPortrait {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3a3530, #2a2520);
+  border: 2px solid #6a5a45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+.generalStats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.statLabel {
+  color: #8a8070;
+}
+
+.statValue {
+  color: #d4c4b0;
+  font-weight: 600;
+}
+
+.statBar {
+  width: 80px;
+  height: 6px;
+  background: #1a1815;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.statFill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.statFill.attack { background: linear-gradient(90deg, #ff6b6b, #cc5555); }
+.statFill.defense { background: linear-gradient(90deg, #4a9eff, #3a7adf); }
+.statFill.intel { background: linear-gradient(90deg, #9b59b6, #8e44ad); }
+.statFill.command { background: linear-gradient(90deg, #f39c12, #e67e22); }
+
+/* ========================================
+   조작 안내 (좌하단)
+   ======================================== */
+.controls {
+  position: absolute;
+  bottom: 16px;
+  left: 20px;
+  padding: 8px 16px;
+  background: rgba(15, 12, 8, 0.8);
+  border: 1px solid #3a3530;
+  border-radius: 4px;
+  z-index: 100;
+}
+
+.controls p {
+  margin: 0;
+  font-size: 11px;
+  color: #6a6a60;
+}
+
+.controls kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  margin: 0 2px;
+  background: #2a2520;
+  border: 1px solid #4a4035;
+  border-radius: 3px;
+  font-size: 10px;
+  color: #a09080;
+}
+
+/* ========================================
+   로딩 오버레이
+   ======================================== */
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    ellipse at center,
+    #1a1815 0%,
+    #0a0a0f 100%
+  );
+  z-index: 500;
+}
+
+.loadingIcon {
+  width: 80px;
+  height: 80px;
+  border: 3px solid #3a3530;
+  border-top-color: #d4af37;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 24px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loadingText {
+  font-size: 18px;
+  color: #d4c4b0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.loadingSubtext {
+  font-size: 12px;
+  color: #6a6a60;
+  margin-top: 8px;
+}
+
+/* ========================================
+   반응형
+   ======================================== */
+@media (max-width: 1024px) {
+  .healthBarContainer {
+    width: 300px;
+  }
+  
+  .attackerInfo,
+  .defenderInfo {
+    min-width: 140px;
+    padding: 6px 12px;
+  }
+  
+  .troopCount {
+    font-size: 18px;
+  }
+  
+  .generalPanel {
+    display: none;
+  }
+  
+  .unitCard {
+    width: 60px;
+    height: 76px;
+  }
+  
+  .unitIcon {
+    height: 40px;
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 768px) {
+  .healthBarContainer {
+    width: 200px;
+  }
+  
+  .attackerInfo,
+  .defenderInfo {
+    min-width: 100px;
+    padding: 4px 8px;
+  }
+  
+  .factionName {
+    font-size: 9px;
+  }
+  
+  .troopCount {
+    font-size: 14px;
+  }
+  
+  .minimap {
+    width: 120px;
+    height: 100px;
+    bottom: 120px;
+  }
+  
+  .unitCards {
+    gap: 4px;
+  }
+  
+  .unitCard {
+    width: 50px;
+    height: 64px;
+  }
+  
+  .unitIcon {
+    height: 32px;
+    font-size: 18px;
+  }
+  
+  .unitName {
+    font-size: 8px;
+  }
+  
+  .unitCount {
+    font-size: 9px;
+  }
+}
+
+
+
+
+

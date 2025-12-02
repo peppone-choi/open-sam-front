@@ -628,6 +628,8 @@ export default function CommandProcessingClient({
   }, [serverID, isChief]);
 
   async function executeReserve(args: any, brief: string) {
+    console.log('[CommandProcessingClient] executeReserve 호출 - args:', JSON.stringify(args), 'brief:', brief);
+    
     const turnList = turnListParam?.split('_').map(Number) || [0];
 
     let result: any;
@@ -664,6 +666,8 @@ export default function CommandProcessingClient({
   }
 
   async function handleSubmit(args: any, forceExecute = false) {
+    console.log('[CommandProcessingClient] handleSubmit 호출 - args:', JSON.stringify(args));
+    
     if (!command) {
       showToast('명령이 지정되지 않았습니다.', 'error');
       return;
@@ -1101,7 +1105,7 @@ export default function CommandProcessingClient({
           onCancel={handleCancel}
         />
       );
-    } else if (['부대재편성', 'che_부대재편성', 'reassignUnit'].includes(commandType)) {
+    } else if (['부대재편성', 'che_부대재편성', 'reassignUnit', '주둔 재배치', 'REASSIGN_UNIT'].includes(commandType)) {
       Component = (
         <ReassignUnitCommandForm
           commandName={commandName}

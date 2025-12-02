@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { SammoAPI, type NationStratFinanPayload } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
@@ -20,6 +20,159 @@ function calculateEndDate(year: number, month: number, term: number): {year: num
     year: Math.floor(totalMonths / 12),
     month: totalMonths % 12 || 12
   };
+}
+
+// 간단한 바 차트 컴포넌트
+interface BarChartProps {
+  data: { label: string; value: number; color: string }[];
+  maxValue?: number;
+  showLabels?: boolean;
+}
+
+function BarChart({ data, maxValue: providedMax, showLabels = true }: BarChartProps) {
+  const maxValue = providedMax || Math.max(...data.map(d => Math.abs(d.value)), 1);
+
+  return (
+    <div className="space-y-3">
+      {data.map((item, index) => {
+        const percentage = Math.min((Math.abs(item.value) / maxValue) * 100, 100);
+        return (
+          <div key={index} className="space-y-1">
+            {showLabels && (
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-400">{item.label}</span>
+                <span className="font-mono" style={{ color: item.color }}>
+                  {item.value >= 0 ? '+' : ''}{item.value.toLocaleString()}
+                </span>
+              </div>
+            )}
+            <div className="h-3 bg-black/30 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500 ease-out"
+                style={{
+                  width: `${percentage}%`,
+                  backgroundColor: item.color,
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// 도넛 차트 컴포넌트
+interface DonutChartProps {
+  income: number;
+  expense: number;
+  current: number;
+  label: string;
+  incomeColor: string;
+  expenseColor: string;
+}
+
+function DonutChart({ income, expense, current, label, incomeColor, expenseColor }: DonutChartProps) {
+  const total = income + Math.abs(expense);
+  const incomePercent = total > 0 ? (income / total) * 100 : 50;
+  const expensePercent = total > 0 ? (Math.abs(expense) / total) * 100 : 50;
+  
+  // SVG 도넛 차트 계산
+  const size = 120;
+  const strokeWidth = 16;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  
+  const incomeOffset = 0;
+  const expenseOffset = (incomePercent / 100) * circumference;
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg width={size} height={size} className="transform -rotate-90">
+          {/* Background */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke="rgba(255,255,255,0.1)"
+            strokeWidth={strokeWidth}
+          />
+          {/* Income Arc */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke={incomeColor}
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${(incomePercent / 100) * circumference} ${circumference}`}
+            strokeDashoffset={-incomeOffset}
+            strokeLinecap="round"
+            className="transition-all duration-500"
+          />
+          {/* Expense Arc */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke={expenseColor}
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${(expensePercent / 100) * circumference} ${circumference}`}
+            strokeDashoffset={-expenseOffset}
+            strokeLinecap="round"
+            className="transition-all duration-500"
+          />
+        </svg>
+        {/* Center Text */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-xs text-gray-500">{label}</span>
+          <span className="text-lg font-bold text-white">{current.toLocaleString()}</span>
+        </div>
+      </div>
+      
+      {/* Legend */}
+      <div className="flex gap-4 mt-3 text-xs">
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: incomeColor }} />
+          <span className="text-gray-400">수입</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: expenseColor }} />
+          <span className="text-gray-400">지출</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 수지 예측 게이지
+interface BudgetGaugeProps {
+  current: number;
+  projected: number;
+  label: string;
+  color: string;
+}
+
+function BudgetGauge({ current, projected, label, color }: BudgetGaugeProps) {
+  const change = projected - current;
+  const changePercent = current > 0 ? (change / current) * 100 : 0;
+  const isPositive = change >= 0;
+
+  return (
+    <div className="text-center">
+      <div className="text-xs text-gray-500 mb-1">{label}</div>
+      <div className="text-2xl font-bold" style={{ color }}>{projected.toLocaleString()}</div>
+      <div className={cn(
+        "text-xs font-medium mt-1",
+        isPositive ? "text-green-400" : "text-red-400"
+      )}>
+        {isPositive ? '▲' : '▼'} {Math.abs(change).toLocaleString()} ({isPositive ? '+' : ''}{changePercent.toFixed(1)}%)
+      </div>
+    </div>
+  );
 }
 
 export default function NationStratFinanPage() {
@@ -382,11 +535,77 @@ export default function NationStratFinanPage() {
           </div>
           <div className="p-6 space-y-8">
              
-             {/* Finance Grid */}
+             {/* Visual Budget Overview */}
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+               <div className="flex justify-center">
+                 <DonutChart
+                   income={Math.floor(incomeGold)}
+                   expense={Math.floor(outcome)}
+                   current={gold}
+                   label="자금"
+                   incomeColor="#FBBF24"
+                   expenseColor="#EF4444"
+                 />
+               </div>
+               <div className="flex justify-center">
+                 <DonutChart
+                   income={Math.floor(incomeRice)}
+                   expense={Math.floor(outcome)}
+                   current={rice}
+                   label="군량"
+                   incomeColor="#22C55E"
+                   expenseColor="#EF4444"
+                 />
+               </div>
+               <div className="flex flex-col justify-center items-center gap-6">
+                 <BudgetGauge 
+                   current={gold} 
+                   projected={Math.floor(gold + incomeGold - outcome)} 
+                   label="예상 자금"
+                   color="#FBBF24"
+                 />
+                 <BudgetGauge 
+                   current={rice} 
+                   projected={Math.floor(rice + incomeRice - outcome)} 
+                   label="예상 군량"
+                   color="#22C55E"
+                 />
+               </div>
+             </div>
+
+             {/* Income/Expense Bar Charts */}
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+               <div className="bg-black/20 border border-white/5 rounded-lg p-5">
+                 <h3 className="text-yellow-500 font-bold uppercase text-xs tracking-wider mb-4 flex items-center gap-2">
+                   <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
+                   자금 수입 내역
+                 </h3>
+                 <BarChart
+                   data={[
+                     { label: '단기수입', value: income.gold?.war || 0, color: '#FBBF24' },
+                     { label: '세금', value: Math.floor(income.gold?.city || 0), color: '#F59E0B' },
+                   ]}
+                 />
+               </div>
+               <div className="bg-black/20 border border-white/5 rounded-lg p-5">
+                 <h3 className="text-green-500 font-bold uppercase text-xs tracking-wider mb-4 flex items-center gap-2">
+                   <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                   군량 수입 내역
+                 </h3>
+                 <BarChart
+                   data={[
+                     { label: '둔전수입', value: Math.floor(income.rice?.wall || 0), color: '#22C55E' },
+                     { label: '세금', value: Math.floor(income.rice?.city || 0), color: '#16A34A' },
+                   ]}
+                 />
+               </div>
+             </div>
+
+             {/* Finance Grid - Detailed */}
              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                  {/* Gold */}
                  <div className="bg-black/20 border border-white/5 rounded-lg p-5 space-y-4">
-                    <h3 className="text-yellow-500 font-bold uppercase text-xs tracking-wider border-b border-white/5 pb-2 mb-2">자금 예산</h3>
+                    <h3 className="text-yellow-500 font-bold uppercase text-xs tracking-wider border-b border-white/5 pb-2 mb-2">자금 상세</h3>
                     <div className="space-y-2 text-sm">
                        <div className="flex justify-between">
                           <span className="text-gray-400">현재 자금</span>
@@ -419,7 +638,7 @@ export default function NationStratFinanPage() {
 
                  {/* Rice */}
                  <div className="bg-black/20 border border-white/5 rounded-lg p-5 space-y-4">
-                    <h3 className="text-green-500 font-bold uppercase text-xs tracking-wider border-b border-white/5 pb-2 mb-2">군량 예산</h3>
+                    <h3 className="text-green-500 font-bold uppercase text-xs tracking-wider border-b border-white/5 pb-2 mb-2">군량 상세</h3>
                     <div className="space-y-2 text-sm">
                        <div className="flex justify-between">
                           <span className="text-gray-400">현재 군량</span>

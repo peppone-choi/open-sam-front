@@ -531,8 +531,17 @@ export default function GeneralBasicCard({
         </div>
 
         <div className="col-start-2 row-start-2 px-4 py-2 border-b border-white/10 grid grid-cols-5 gap-2 bg-black/10">
-          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px">
-            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide">통솔</div>
+          {/* 통솔 */}
+          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px group cursor-default">
+            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60 group-hover:opacity-100 transition-opacity">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              통솔
+            </div>
             <div className="text-base font-bold text-white flex items-center gap-0.5 leading-none">
               <span style={{ color: injuryInfo[1] }}>
                 {calcInjury('leadership', {
@@ -548,13 +557,22 @@ export default function GeneralBasicCard({
                 </span>
               )}
             </div>
-            <div className="w-full h-[3px] bg-white/10 rounded-sm mt-1 overflow-hidden">
-              <SammoBar height={7} percent={((general.leadership_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
+            <div className="w-full h-[5px] bg-white/10 rounded-sm mt-1 overflow-hidden">
+              <SammoBar height={7} percent={((general.leadership_exp || 0) / statUpThreshold) * 100} barColor={displayColor} animated />
             </div>
           </div>
 
-          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px">
-            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide">무력</div>
+          {/* 무력 */}
+          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px group cursor-default">
+            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60 group-hover:opacity-100 transition-opacity">
+                <path d="M14.5 17.5 3 6V3h3l11.5 11.5"/>
+                <path d="M13 19l6-6"/>
+                <path d="m16 16 4 4"/>
+                <path d="m19 21 2-2"/>
+              </svg>
+              무력
+            </div>
             <div className="text-base font-bold text-white flex items-center gap-0.5 leading-none">
               <span style={{ color: injuryInfo[1] }}>
                 {calcInjury('strength', {
@@ -570,13 +588,20 @@ export default function GeneralBasicCard({
                 </span>
               )}
             </div>
-            <div className="w-full h-[3px] bg-white/10 rounded-sm mt-1 overflow-hidden">
-              <SammoBar height={7} percent={((general.strength_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
+            <div className="w-full h-[5px] bg-white/10 rounded-sm mt-1 overflow-hidden">
+              <SammoBar height={7} percent={((general.strength_exp || 0) / statUpThreshold) * 100} barColor={displayColor} animated />
             </div>
           </div>
 
-          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px">
-            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide">지력</div>
+          {/* 지력 */}
+          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px group cursor-default">
+            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60 group-hover:opacity-100 transition-opacity">
+                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.04"/>
+                <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.04"/>
+              </svg>
+              지력
+            </div>
             <div className="text-base font-bold text-white flex items-center gap-0.5 leading-none">
               <span style={{ color: injuryInfo[1] }}>
                 {calcInjury('intel', {
@@ -592,13 +617,26 @@ export default function GeneralBasicCard({
                 </span>
               )}
             </div>
-            <div className="w-full h-[3px] bg-white/10 rounded-sm mt-1 overflow-hidden">
-              <SammoBar height={7} percent={((general.intel_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
+            <div className="w-full h-[5px] bg-white/10 rounded-sm mt-1 overflow-hidden">
+              <SammoBar height={7} percent={((general.intel_exp || 0) / statUpThreshold) * 100} barColor={displayColor} animated />
             </div>
           </div>
 
-          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px">
-            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide">정치</div>
+          {/* 정치 */}
+          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px group cursor-default">
+            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60 group-hover:opacity-100 transition-opacity">
+                <path d="M3 21h18"/>
+                <path d="M9 8h1"/>
+                <path d="M9 12h1"/>
+                <path d="M9 16h1"/>
+                <path d="M14 8h1"/>
+                <path d="M14 12h1"/>
+                <path d="M14 16h1"/>
+                <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>
+              </svg>
+              정치
+            </div>
             <div className="text-base font-bold text-white flex items-center gap-0.5 leading-none">
               <span style={{ color: injuryInfo[1] }}>
                 {general.politics ?? 0}
@@ -609,13 +647,19 @@ export default function GeneralBasicCard({
                 </span>
               )}
             </div>
-            <div className="w-full h-[3px] bg-white/10 rounded-sm mt-1 overflow-hidden">
-              <SammoBar height={7} percent={((general.politics_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
+            <div className="w-full h-[5px] bg-white/10 rounded-sm mt-1 overflow-hidden">
+              <SammoBar height={7} percent={((general.politics_exp || 0) / statUpThreshold) * 100} barColor={displayColor} animated />
             </div>
           </div>
 
-          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px">
-            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide">매력</div>
+          {/* 매력 */}
+          <div className="flex flex-col items-center justify-center bg-white/5 rounded p-1 transition-all duration-200 border border-transparent hover:bg-white/10 hover:border-white/10 hover:-translate-y-px group cursor-default">
+            <div className="text-[10px] text-white/50 mb-1 font-medium tracking-wide flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60 group-hover:opacity-100 transition-opacity">
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+              </svg>
+              매력
+            </div>
             <div className="text-base font-bold text-white flex items-center gap-0.5 leading-none">
               <span style={{ color: injuryInfo[1] }}>
                 {general.charm ?? 0}
@@ -626,8 +670,8 @@ export default function GeneralBasicCard({
                 </span>
               )}
             </div>
-            <div className="w-full h-[3px] bg-white/10 rounded-sm mt-1 overflow-hidden">
-              <SammoBar height={7} percent={((general.charm_exp || 0) / statUpThreshold) * 100} barColor={displayColor} />
+            <div className="w-full h-[5px] bg-white/10 rounded-sm mt-1 overflow-hidden">
+              <SammoBar height={7} percent={((general.charm_exp || 0) / statUpThreshold) * 100} barColor={displayColor} animated />
             </div>
           </div>
         </div>

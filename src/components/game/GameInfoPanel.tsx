@@ -89,23 +89,16 @@ function GameInfoPanel({
     return map[value] ?? '불가';
   }, [global.npcMode]);
 
-  // 서버 이름 / 시나리오 이름 처리
-  const hasCustomServerName = global.serverName && global.serverName !== serverName;
-  const displayServerName = hasCustomServerName ? global.serverName : null;
-  const scenarioName = global.scenarioText || '게임';
+  // 서버 이름 처리: "서버이름 #기" 형식
+  // serverName이 있으면 우선 사용, 없으면 serverName prop 사용
+  const displayServerName = global.serverName || serverName || '게임';
   
   const serverTitle = useMemo(() => {
-    const parts: string[] = [];
-    if (displayServerName) {
-      parts.push(displayServerName);
-    } else {
-      parts.push(scenarioName);
-    }
     if (global.serverCnt > 0) {
-      parts.push(`${global.serverCnt}기`);
+      return `${displayServerName} ${global.serverCnt}기`;
     }
-    return parts.join(' ');
-  }, [displayServerName, scenarioName, global.serverCnt]);
+    return displayServerName;
+  }, [displayServerName, global.serverCnt]);
   
   return (
     <div 
