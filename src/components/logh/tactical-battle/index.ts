@@ -14,6 +14,7 @@ export { default as TacticalBattleCanvas } from './TacticalBattleCanvas';
 export { FleetHUD } from './FleetHUD';
 export { CommandPanel } from './CommandPanel';
 export { MiniMap } from './MiniMap';
+export { CommandQueuePanel } from './CommandQueuePanel';
 
 
 

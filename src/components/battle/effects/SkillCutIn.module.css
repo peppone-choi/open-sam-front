@@ -1,0 +1,237 @@
+/* SkillCutIn.module.css - 스킬 컷인 애니메이션 스타일 */
+
+.cutinOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* 배경 플래시 */
+.flashBackground {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* 속도선 컨테이너 */
+.speedLineContainer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.speedLine {
+  position: absolute;
+  left: 0;
+  width: 200%;
+  border-radius: 4px;
+}
+
+/* 대각선 슬래시 */
+.slashContainer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.slashGradient {
+  position: absolute;
+  inset: -50%;
+  transform: skewY(-10deg);
+}
+
+/* 메인 컨텐츠 */
+.mainContent {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 40px;
+  z-index: 10;
+}
+
+/* 포트레이트 섹션 */
+.portraitSection {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.portraitGlow {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  opacity: 0.6;
+  filter: blur(30px);
+  z-index: -1;
+}
+
+.portraitFrame {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  padding: 5px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+  box-shadow: 
+    0 0 30px rgba(251, 191, 36, 0.5),
+    inset 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.portrait {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center top;
+  background-color: #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.portraitFallback {
+  font-size: 5rem;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  font-family: 'Noto Serif KR', serif;
+}
+
+.generalName {
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  text-shadow: 
+    0 0 20px currentColor,
+    0 4px 10px rgba(0, 0, 0, 0.8);
+  font-family: 'Noto Serif KR', serif;
+  letter-spacing: 0.05em;
+}
+
+/* 스킬 섹션 */
+.skillSection {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.skillTypeBadge {
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.skillName {
+  font-size: 4.5rem;
+  font-weight: 900;
+  color: white;
+  margin: 0;
+  text-shadow: 
+    0 0 30px rgba(255, 255, 255, 0.5),
+    0 4px 20px rgba(0, 0, 0, 0.8),
+    0 0 60px rgba(251, 191, 36, 0.3);
+  font-family: 'Noto Serif KR', serif;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.skillNameGlow {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  font-size: 4.5rem;
+  font-weight: 900;
+  color: transparent;
+  font-family: 'Noto Serif KR', serif;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  z-index: -1;
+  transform: translateY(-50%);
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.1);
+}
+
+/* 파티클 */
+.particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: 0 0 10px currentColor;
+}
+
+/* 임팩트 버스트 */
+.impactBurst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  border: 4px solid;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .mainContent {
+    flex-direction: column;
+    gap: 30px;
+    padding: 0 20px;
+  }
+
+  .portraitFrame {
+    width: 120px;
+    height: 120px;
+  }
+
+  .portraitGlow {
+    width: 120px;
+    height: 120px;
+  }
+
+  .portraitFallback {
+    font-size: 3rem;
+  }
+
+  .generalName {
+    font-size: 1.5rem;
+  }
+
+  .skillName {
+    font-size: 2.5rem;
+  }
+
+  .skillNameGlow {
+    font-size: 2.5rem;
+  }
+
+  .skillTypeBadge {
+    padding: 6px 16px;
+    font-size: 0.75rem;
+  }
+}
+

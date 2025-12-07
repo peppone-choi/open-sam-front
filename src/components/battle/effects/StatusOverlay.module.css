@@ -1,0 +1,171 @@
+/* StatusOverlay.module.css - 상태 이상 오버레이 스타일 */
+
+.overlay {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 90;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+}
+
+.bgGlow {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.iconContainer {
+  position: relative;
+  z-index: 2;
+}
+
+.icon {
+  font-size: 2.5rem;
+  filter: drop-shadow(0 0 10px currentColor);
+}
+
+.label {
+  position: absolute;
+  bottom: -5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 
+    0 0 5px currentColor,
+    0 1px 3px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+}
+
+.particle {
+  position: absolute;
+  font-size: 1rem;
+  pointer-events: none;
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+/* 화계 불꽃 */
+.fireContainer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  pointer-events: none;
+}
+
+.flame {
+  position: absolute;
+  bottom: 0;
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 10px #ef4444);
+}
+
+/* 혼란 회전 링 */
+.confusionRing {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  pointer-events: none;
+}
+
+.confusionStar {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 0.9rem;
+  transform-origin: center center;
+}
+
+/* 기절 번개 */
+.stunFlash {
+  position: absolute;
+  top: -20px;
+  font-size: 2rem;
+  filter: drop-shadow(0 0 15px #eab308);
+}
+
+/* 방어 보호막 */
+.shieldRing {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border: 3px solid;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* 상태 아이콘 (HUD용) */
+.statusIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+/* 상태 효과 배지 */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  backdrop-filter: blur(4px);
+}
+
+.statusBadge.fire {
+  border: 1px solid #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.statusBadge.confusion {
+  border: 1px solid #a855f7;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+}
+
+.statusBadge.fear {
+  border: 1px solid #6366f1;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+.statusBadge.stun {
+  border: 1px solid #eab308;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.3);
+}
+
+.statusBadge.poison {
+  border: 1px solid #22c55e;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+}
+
+.statusBadge.buff {
+  border: 1px solid #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+.statusBadge.debuff {
+  border: 1px solid #f97316;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
+}
+
+.statusBadge.shield {
+  border: 1px solid #06b6d4;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+}
+
+.statusBadge.rage {
+  border: 1px solid #dc2626;
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.3);
+}
+

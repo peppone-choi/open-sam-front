@@ -1,0 +1,192 @@
+{
+  "tutorial": {
+    "common": {
+      "next": "다음",
+      "prev": "이전",
+      "skip": "튜토리얼 건너뛰기",
+      "complete": "완료",
+      "stepOf": "{{current}} / {{total}}",
+      "estimatedTime": "예상 소요 시간: {{minutes}}분"
+    },
+    "sequences": {
+      "basics": {
+        "name": "기본 조작 튜토리얼",
+        "description": "Gin7 게임의 기본 UI와 조작 방법을 알아봅니다."
+      },
+      "mapNavigation": {
+        "name": "은하 지도 탐색",
+        "description": "은하 지도의 상세 기능을 알아봅니다."
+      },
+      "fleetMovement": {
+        "name": "함대 이동",
+        "description": "함대를 선택하고 이동시키는 방법을 알아봅니다."
+      },
+      "combat": {
+        "name": "전투 시스템 기초",
+        "description": "전투의 기본 개념과 참여 방법을 알아봅니다."
+      },
+      "economy": {
+        "name": "내정 관리 기초",
+        "description": "행성 관리와 자원 생산의 기초를 알아봅니다."
+      }
+    },
+    "steps": {
+      "welcome": {
+        "title": "Gin7에 오신 것을 환영합니다!",
+        "description": "은하 영웅전설의 세계로 오신 것을 환영합니다. 이 튜토리얼에서 기본 조작법을 알아보겠습니다."
+      },
+      "topbarIntro": {
+        "title": "상단 바 소개",
+        "description": "상단 바에서는 현재 캐릭터 정보, 알림, 게임 시간을 확인할 수 있습니다."
+      },
+      "cpDisplay": {
+        "title": "커맨드 포인트 (CP)",
+        "description": "PCP(개인 커맨드 포인트)와 MCP(군사 커맨드 포인트)는 행동의 비용입니다. 시간이 지나면 자동으로 회복됩니다."
+      },
+      "notifications": {
+        "title": "알림",
+        "description": "중요한 이벤트가 발생하면 알림으로 알려드립니다. 클릭하여 자세한 내용을 확인하세요."
+      },
+      "sidemenuIntro": {
+        "title": "사이드 메뉴",
+        "description": "왼쪽 사이드 메뉴에서 주요 기능에 빠르게 접근할 수 있습니다."
+      },
+      "mapMenu": {
+        "title": "은하 지도",
+        "description": "은하 지도에서 성계와 행성을 확인하고 함대를 이동시킬 수 있습니다."
+      },
+      "mapZoom": {
+        "title": "지도 조작",
+        "description": "마우스 휠로 줌인/줌아웃, 드래그로 이동할 수 있습니다. 성계를 클릭하면 상세 정보가 표시됩니다."
+      },
+      "minimapIntro": {
+        "title": "미니맵",
+        "description": "우측 하단의 미니맵으로 현재 위치를 파악하고 빠르게 이동할 수 있습니다."
+      },
+      "fleetMenu": {
+        "title": "함대 관리",
+        "description": "함대 메뉴에서 보유한 함대를 확인하고 관리할 수 있습니다."
+      },
+      "characterMenu": {
+        "title": "캐릭터 정보",
+        "description": "캐릭터 메뉴에서 자신의 능력치, 계급, 소속을 확인할 수 있습니다."
+      },
+      "basicComplete": {
+        "title": "기본 조작 완료!",
+        "description": "축하합니다! 기본 조작을 모두 익혔습니다. 이제 은하를 탐험해보세요. 추가 튜토리얼은 도움말 메뉴에서 확인할 수 있습니다."
+      }
+    }
+  },
+  "tooltip": {
+    "categories": {
+      "stat": "능력치",
+      "command": "명령",
+      "term": "용어",
+      "unit": "유닛",
+      "faction": "세력"
+    },
+    "viewMore": "자세히 보기"
+  },
+  "advisor": {
+    "types": {
+      "tip": "팁",
+      "warning": "주의",
+      "suggestion": "제안",
+      "congratulation": "축하"
+    },
+    "dismiss": "확인",
+    "dismissPermanently": "다시 보지 않기",
+    "messages": {
+      "welcome": {
+        "title": "환영합니다!",
+        "content": "은하 영웅전설의 세계에 오신 것을 환영합니다. 튜토리얼을 진행하면 기본 조작법을 배울 수 있습니다."
+      },
+      "firstMap": {
+        "title": "은하 지도 팁",
+        "content": "마우스 휠로 줌, 드래그로 이동할 수 있습니다. 성계를 클릭하면 상세 정보를 볼 수 있어요."
+      },
+      "firstCombat": {
+        "title": "첫 전투!",
+        "content": "전투가 시작되었습니다! 진형을 선택하고 에너지 배분을 조절하여 유리한 상황을 만드세요."
+      },
+      "combatLosing": {
+        "title": "전투 상황 불리",
+        "content": "현재 전투에서 열세입니다. 퇴각을 고려해보세요. 함대를 보존하는 것도 전략입니다."
+      },
+      "lowResources": {
+        "title": "자원 부족 경고",
+        "content": "자원이 부족합니다. 생산 시설을 건설하거나 무역을 통해 자원을 확보하세요."
+      },
+      "promotionAvailable": {
+        "title": "승진 가능!",
+        "content": "경험치가 충분합니다. 인사 메뉴에서 승진을 신청할 수 있습니다."
+      }
+    }
+  },
+  "help": {
+    "title": "도움말 센터",
+    "searchPlaceholder": "도움말 검색...",
+    "noResults": "\"{{query}}\"에 대한 검색 결과가 없습니다.",
+    "categories": {
+      "basics": "기본 조작",
+      "map": "은하 지도",
+      "fleet": "함대 관리",
+      "combat": "전투",
+      "economy": "경제",
+      "politics": "정치",
+      "advanced": "고급",
+      "faq": "FAQ"
+    },
+    "articlesCount": "{{count}}개 문서"
+  },
+  "glossary": {
+    "stats": {
+      "pcp": {
+        "term": "PCP",
+        "description": "개인 커맨드 포인트(Personal Command Point). 개인적인 행동(이동, 내정, 외교 등)에 소모됩니다."
+      },
+      "mcp": {
+        "term": "MCP",
+        "description": "군사 커맨드 포인트(Military Command Point). 군사적 행동(전투 명령, 함대 지휘 등)에 소모됩니다."
+      },
+      "command": {
+        "term": "지휘력",
+        "description": "함대를 지휘하는 능력입니다. 지휘력이 높을수록 더 큰 함대를 효율적으로 운용할 수 있습니다."
+      },
+      "combat": {
+        "term": "전투력",
+        "description": "전술적 판단력과 전투 수행 능력입니다."
+      },
+      "politics": {
+        "term": "정치력",
+        "description": "정치적 협상과 외교 능력입니다."
+      },
+      "intelligence": {
+        "term": "지략",
+        "description": "전략적 사고와 정보 분석 능력입니다."
+      }
+    },
+    "factions": {
+      "empire": {
+        "term": "은하제국",
+        "description": "골든바움 왕조가 통치하는 전제군주국입니다."
+      },
+      "alliance": {
+        "term": "자유행성동맹",
+        "description": "민주주의를 표방하는 공화국입니다."
+      },
+      "phezzan": {
+        "term": "페잔",
+        "description": "양대 세력 사이에서 중립을 유지하는 상업 국가입니다."
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
+

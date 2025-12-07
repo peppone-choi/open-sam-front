@@ -20,6 +20,7 @@
     "build-storybook": "NODE_OPTIONS=\"--require ./storybook.next-config-shim.js\" storybook build"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.4.0",
     "@tiptap/extension-image": "^3.10.2",

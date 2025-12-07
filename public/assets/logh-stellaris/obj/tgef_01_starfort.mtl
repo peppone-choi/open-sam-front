@@ -1,0 +1,35 @@
+newmtl gaisburg _lod_01_diffuse
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.000 0.000 0.000
+map_Kd gaisburg _lod_01_diffuse.png
+
+newmtl gaisburg _lod_03_diffuse
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.000 0.000 0.000
+map_Kd gaisburg _lod_03_diffuse.png
+
+newmtl gaisburg _lod_04_diffuse
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.000 0.000 0.000
+map_Kd gaisburg _lod_04_diffuse.png
+
+newmtl gaisburg _lod_05_diffuse
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.000 0.000 0.000
+map_Kd gaisburg _lod_05_diffuse.png
+
+newmtl fortress_shpeare_core_diffuse
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.000 0.000 0.000
+map_Kd fortress_shpeare_core_diffuse.png
+
+newmtl gaisburg _lod_02_diffuse
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.000 0.000 0.000
+map_Kd gaisburg _lod_02_diffuse.png

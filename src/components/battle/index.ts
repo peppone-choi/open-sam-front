@@ -93,5 +93,27 @@ export type {
   BattleState as TotalWarBattleState,
 } from './ui';
 
+// 전투 이펙트 시스템 (Phase 5)
+export {
+  SkillCutIn,
+  DamageFloater,
+  DamageFloaterManager,
+  StatusOverlay,
+  StatusIcon,
+  EffectQueueProvider,
+  useEffectQueue,
+  BattleEffectsOverlay,
+  useBattleEffects,
+} from './effects';
+export type {
+  SkillCutInProps,
+  DamageFloaterProps,
+  DamageType,
+  StatusEffectType,
+  StatusOverlayProps,
+  BattleEffectsOverlayRef,
+  DamageFloaterManagerRef,
+} from './effects';
+
 
 

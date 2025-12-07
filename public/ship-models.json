@@ -1,0 +1,180 @@
+{
+  "empire_flagships": [
+    "GE_CommandShip_BrunhildUpgrade",
+    "GE_CommandShip_Jotunheim",
+    "GE_CommandShip_Nordlingen",
+    "GE_CommandShip_Tristan",
+    "GE_CommandShip_Vonkel",
+    "GE_CommandShip_Wilhelmina",
+    "tgef_01_LoGHFlagship_01",
+    "tgef_01_LoGHFlagship_02",
+    "tgef_01_LoGHFlagship_04",
+    "tgef_01_LoGHFlagship_05",
+    "tgef_01_LoGHFlagship_06",
+    "tgef_01_LoGHFlagship_07",
+    "tgef_01_LoGHFlagship_08",
+    "tgef_01_LoGHFlagship_09"
+  ],
+  "empire_battleships": [
+    "tgef_01_battleship_01",
+    "tgef_01_battleship_01_v2",
+    "tgef_01_battleship_01_v3",
+    "tgef_01_battleship_01_v4",
+    "tgef_01_battleship_01_v5",
+    "tgef_01_battleship_01_v6",
+    "tgef_01_battleship_01_v7",
+    "tgef_01_battleship_01_v8",
+    "tgef_01_battleship_02",
+    "tgef_01_battleship_03",
+    "tgef_01_battleship_03_v2",
+    "tgef_01_battleship_03_v3",
+    "tgef_01_battleship_03_v4",
+    "tgef_01_battleship_03_v5",
+    "tgef_01_battleship_03_v6",
+    "tgef_01_battleship_03_v7",
+    "tgef_01_battleship_03_v8",
+    "tgef_01_battleship_04",
+    "tgef_01_oldbattleship"
+  ],
+  "empire_cruisers": [
+    "tgef_01_cruiser_01",
+    "tgef_01_cruiser_01_v2",
+    "tgef_01_cruiser_01_v3",
+    "tgef_01_cruiser_01_v4",
+    "tgef_01_cruiser_01_v5",
+    "tgef_01_cruiser_01_v6",
+    "tgef_01_cruiser_01_v7",
+    "tgef_01_cruiser_01_v8",
+    "tgef_01_cruiser_02"
+  ],
+  "empire_destroyers": [
+    "tgef_01_destroyer_01",
+    "tgef_01_destroyer_01_v2",
+    "tgef_01_destroyer_01_v3",
+    "tgef_01_destroyer_01_v4",
+    "tgef_01_destroyer_01_v5",
+    "tgef_01_destroyer_01_v6",
+    "tgef_01_destroyer_01_v7",
+    "tgef_01_destroyer_01_v8",
+    "tgef_01_destroyer_02"
+  ],
+  "empire_corvettes": [
+    "tgef_01_corvette_01",
+    "tgef_01_corvette_02",
+    "tgef_01_fighter"
+  ],
+  "empire_carriers": [
+    "tgef_01_carrier",
+    "tgef_01_carrier_tb1",
+    "tgef_01_carrier_tb2",
+    "tgef_01_carrier_tb3",
+    "tgef_01_carrier_tb4",
+    "tgef_01_carrier_v2",
+    "tgef_01_carrier_v3",
+    "tgef_01_carrier_v4"
+  ],
+  "empire_transports": [
+    "tgef_01_colony",
+    "tgef_01_colony_hosp",
+    "tgef_01_colony_v2",
+    "tgef_01_colony_v3",
+    "tgef_01_colony_v4",
+    "tgef_01_transport",
+    "tgef_01_transport_hosp",
+    "tgef_01_transport_v2",
+    "tgef_01_transport_v3",
+    "tgef_01_transport_v4"
+  ],
+  "empire_engineering": [
+    "tgef_01_construction"
+  ],
+  "empire_others": [
+    "tgef_01_science"
+  ],
+  "alliance_flagships": [
+    "FPA_CommandShip_AbaiGeser",
+    "FPA_CommandShip_AirgetLamh",
+    "FPA_CommandShip_CuChulainn",
+    "FPA_CommandShip_Epimetheus",
+    "FPA_CommandShip_Flagship",
+    "FPA_CommandShip_Hector",
+    "FPA_CommandShip_Hyperion",
+    "FPA_CommandShip_Leonidas",
+    "FPA_CommandShip_Palamedes",
+    "FPA_CommandShip_Pergamon",
+    "FPA_CommandShip_Perun",
+    "FPA_CommandShip_Shiva",
+    "tfpa_01_LoGHFlagship_01",
+    "tfpa_01_LoGHFlagship_02",
+    "tfpa_01_LoGHFlagship_03",
+    "tfpa_01_LoGHFlagship_04",
+    "tfpa_01_LoGHFlagship_05",
+    "tfpa_01_LoGHFlagship_06",
+    "tfpa_01_LoGHFlagship_08",
+    "tfpa_01_LoGHFlagship_09"
+  ],
+  "alliance_battleships": [
+    "tfpa_01_battleship_01",
+    "tfpa_01_battleship_01_v2",
+    "tfpa_01_battleship_01_v3",
+    "tfpa_01_battleship_01_v4",
+    "tfpa_01_battleship_01_v5",
+    "tfpa_01_battleship_01_v6",
+    "tfpa_01_battleship_01_v7",
+    "tfpa_01_battleship_01_v8",
+    "tfpa_01_battleship_02",
+    "tfpa_01_oldbattleship"
+  ],
+  "alliance_cruisers": [
+    "tfpa_01_cruiser_01",
+    "tfpa_01_cruiser_01_v2",
+    "tfpa_01_cruiser_01_v3",
+    "tfpa_01_cruiser_01_v4",
+    "tfpa_01_cruiser_01_v5",
+    "tfpa_01_cruiser_01_v6",
+    "tfpa_01_cruiser_01_v7",
+    "tfpa_01_cruiser_01_v8",
+    "tfpa_01_cruiser_02"
+  ],
+  "alliance_destroyers": [
+    "tfpa_01_destroyer",
+    "tfpa_01_destroyer_v2",
+    "tfpa_01_destroyer_v3",
+    "tfpa_01_destroyer_v4",
+    "tfpa_01_destroyer_v5",
+    "tfpa_01_destroyer_v6",
+    "tfpa_01_destroyer_v7",
+    "tfpa_01_destroyer_v8"
+  ],
+  "alliance_corvettes": [
+    "tfpa_01_corvette",
+    "tfpa_01_fighter"
+  ],
+  "alliance_carriers": [
+    "tfpa_01_carrier",
+    "tfpa_01_carrier_v2",
+    "tfpa_01_carrier_v3",
+    "tfpa_01_carrier_v4"
+  ],
+  "alliance_transports": [
+    "tfpa_01_colony",
+    "tfpa_01_colony_hosp",
+    "tfpa_01_colony_v2",
+    "tfpa_01_colony_v3",
+    "tfpa_01_colony_v4",
+    "tfpa_01_transport",
+    "tfpa_01_transport_hosp",
+    "tfpa_01_transport_v2",
+    "tfpa_01_transport_v3",
+    "tfpa_01_transport_v4"
+  ],
+  "alliance_engineering": [
+    "tfpa_01_construction",
+    "tfpa_01_construction_v2",
+    "tfpa_01_construction_v3",
+    "tfpa_01_construction_v4"
+  ],
+  "alliance_others": [
+    "tfpa_01_science"
+  ]
+}

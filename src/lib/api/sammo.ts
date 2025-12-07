@@ -4610,6 +4610,72 @@ export class SammoAPI {
       }),
     });
   }
+
+  // ===============================
+  // 랭킹 API
+  // ===============================
+
+  /**
+   * 장수 랭킹 조회
+   */
+  static async GetGeneralRanking(params?: {
+    page?: number;
+    limit?: number;
+    sort?: string;
+    direction?: 'asc' | 'desc';
+    includeNpc?: boolean;
+  }): Promise<{
+    result: boolean;
+    data: any[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    return this.request('/api/ranking/generals', {
+      method: 'POST',
+      body: JSON.stringify(params || {}),
+    });
+  }
+
+  /**
+   * 국가 랭킹 조회
+   */
+  static async GetNationRanking(params?: {
+    page?: number;
+    limit?: number;
+    sort?: string;
+    direction?: 'asc' | 'desc';
+  }): Promise<{
+    result: boolean;
+    data: any[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    return this.request('/api/ranking/nations', {
+      method: 'POST',
+      body: JSON.stringify(params || {}),
+    });
+  }
+
+  /**
+   * 역대 통일 기록 조회
+   */
+  static async GetUnificationHistory(params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    result: boolean;
+    data: any[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    return this.request('/api/history/unifications', {
+      method: 'POST',
+      body: JSON.stringify(params || {}),
+    });
+  }
 }
 
 /** 군대 이동 응답 타입 */

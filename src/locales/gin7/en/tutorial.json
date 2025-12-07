@@ -1,0 +1,192 @@
+{
+  "tutorial": {
+    "common": {
+      "next": "Next",
+      "prev": "Previous",
+      "skip": "Skip Tutorial",
+      "complete": "Complete",
+      "stepOf": "{{current}} / {{total}}",
+      "estimatedTime": "Estimated time: {{minutes}} min"
+    },
+    "sequences": {
+      "basics": {
+        "name": "Basic Tutorial",
+        "description": "Learn the basic UI and controls of Gin7."
+      },
+      "mapNavigation": {
+        "name": "Galaxy Map Navigation",
+        "description": "Learn the detailed features of the galaxy map."
+      },
+      "fleetMovement": {
+        "name": "Fleet Movement",
+        "description": "Learn how to select and move fleets."
+      },
+      "combat": {
+        "name": "Combat Basics",
+        "description": "Learn the basic concepts and how to participate in combat."
+      },
+      "economy": {
+        "name": "Economy Basics",
+        "description": "Learn the basics of planet management and resource production."
+      }
+    },
+    "steps": {
+      "welcome": {
+        "title": "Welcome to Gin7!",
+        "description": "Welcome to the world of Legend of Galactic Heroes. In this tutorial, you'll learn the basic controls."
+      },
+      "topbarIntro": {
+        "title": "Top Bar Introduction",
+        "description": "The top bar shows your character info, notifications, and game time."
+      },
+      "cpDisplay": {
+        "title": "Command Points (CP)",
+        "description": "PCP (Personal Command Point) and MCP (Military Command Point) are the cost of actions. They regenerate over time."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Important events will be notified. Click to see details."
+      },
+      "sidemenuIntro": {
+        "title": "Side Menu",
+        "description": "Quickly access main features from the left side menu."
+      },
+      "mapMenu": {
+        "title": "Galaxy Map",
+        "description": "Check star systems and planets on the galaxy map and move fleets."
+      },
+      "mapZoom": {
+        "title": "Map Controls",
+        "description": "Use mouse wheel to zoom, drag to pan. Click a star system for details."
+      },
+      "minimapIntro": {
+        "title": "Minimap",
+        "description": "Use the minimap at bottom right to see your location and navigate quickly."
+      },
+      "fleetMenu": {
+        "title": "Fleet Management",
+        "description": "View and manage your fleets in the fleet menu."
+      },
+      "characterMenu": {
+        "title": "Character Info",
+        "description": "Check your stats, rank, and faction in the character menu."
+      },
+      "basicComplete": {
+        "title": "Basic Tutorial Complete!",
+        "description": "Congratulations! You've learned the basics. Explore the galaxy now. More tutorials are available in the help menu."
+      }
+    }
+  },
+  "tooltip": {
+    "categories": {
+      "stat": "Stat",
+      "command": "Command",
+      "term": "Term",
+      "unit": "Unit",
+      "faction": "Faction"
+    },
+    "viewMore": "View More"
+  },
+  "advisor": {
+    "types": {
+      "tip": "Tip",
+      "warning": "Warning",
+      "suggestion": "Suggestion",
+      "congratulation": "Congratulation"
+    },
+    "dismiss": "OK",
+    "dismissPermanently": "Don't show again",
+    "messages": {
+      "welcome": {
+        "title": "Welcome!",
+        "content": "Welcome to the world of Legend of Galactic Heroes. Complete the tutorial to learn the basics."
+      },
+      "firstMap": {
+        "title": "Galaxy Map Tip",
+        "content": "Use mouse wheel to zoom, drag to pan. Click a star system to see details."
+      },
+      "firstCombat": {
+        "title": "First Combat!",
+        "content": "Combat has started! Choose your formation and adjust energy allocation to gain advantage."
+      },
+      "combatLosing": {
+        "title": "Combat Disadvantage",
+        "content": "You're at a disadvantage. Consider retreating. Preserving your fleet is also a strategy."
+      },
+      "lowResources": {
+        "title": "Low Resources Warning",
+        "content": "Resources are low. Build production facilities or secure resources through trade."
+      },
+      "promotionAvailable": {
+        "title": "Promotion Available!",
+        "content": "You have enough experience. Apply for promotion in the personnel menu."
+      }
+    }
+  },
+  "help": {
+    "title": "Help Center",
+    "searchPlaceholder": "Search help...",
+    "noResults": "No results found for \"{{query}}\".",
+    "categories": {
+      "basics": "Basics",
+      "map": "Galaxy Map",
+      "fleet": "Fleet Management",
+      "combat": "Combat",
+      "economy": "Economy",
+      "politics": "Politics",
+      "advanced": "Advanced",
+      "faq": "FAQ"
+    },
+    "articlesCount": "{{count}} articles"
+  },
+  "glossary": {
+    "stats": {
+      "pcp": {
+        "term": "PCP",
+        "description": "Personal Command Point. Consumed for personal actions (movement, administration, diplomacy, etc.)."
+      },
+      "mcp": {
+        "term": "MCP",
+        "description": "Military Command Point. Consumed for military actions (combat orders, fleet command, etc.)."
+      },
+      "command": {
+        "term": "Command",
+        "description": "Ability to command fleets. Higher command allows efficient operation of larger fleets."
+      },
+      "combat": {
+        "term": "Combat",
+        "description": "Tactical judgment and combat performance ability."
+      },
+      "politics": {
+        "term": "Politics",
+        "description": "Political negotiation and diplomatic ability."
+      },
+      "intelligence": {
+        "term": "Intelligence",
+        "description": "Strategic thinking and intelligence analysis ability."
+      }
+    },
+    "factions": {
+      "empire": {
+        "term": "Galactic Empire",
+        "description": "An absolute monarchy ruled by the Goldenbaum Dynasty."
+      },
+      "alliance": {
+        "term": "Free Planets Alliance",
+        "description": "A republic that advocates democracy."
+      },
+      "phezzan": {
+        "term": "Phezzan",
+        "description": "A commercial nation maintaining neutrality between the two powers."
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
+

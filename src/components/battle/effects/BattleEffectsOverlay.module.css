@@ -1,0 +1,42 @@
+/* BattleEffectsOverlay.module.css - 전투 이펙트 오버레이 스타일 */
+
+.overlayContainer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 500;
+  overflow: hidden;
+}
+
+/* 스킬 컷인 레이어 */
+.skillCutInLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+/* 데미지 레이어 */
+.damageLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+}
+
+/* 상태 이상 레이어 */
+.statusLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+}
+
+/* 콤보 카운터 레이어 */
+.comboLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+

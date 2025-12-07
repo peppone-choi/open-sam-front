@@ -1,0 +1,5 @@
+newmtl fpa_destroyer_main_diffuse
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+map_Kd fpa_destroyer_main_diffuse.png
