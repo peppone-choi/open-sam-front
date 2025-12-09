@@ -21,9 +21,14 @@ export default function GameAppShell({
   bottomNav,
 }: GameAppShellProps) {
   const hasSideColumns = Boolean(leftColumn || rightColumn);
+  const hasBottomNav = Boolean(bottomNav);
 
   return (
-    <div className="min-h-screen bg-background-main text-foreground flex flex-col font-sans selection:bg-primary selection:text-white">
+    <div className={cn(
+      "min-h-screen bg-background-main text-foreground flex flex-col font-sans selection:bg-primary selection:text-white",
+      // 모바일에서 하단 네비게이션이 있을 때 컨텐츠가 가려지지 않도록 여백 추가
+      hasBottomNav && "pb-20 lg:pb-0"
+    )}>
       {/* Top Region: Header & SubHeader - Unsticky */}
       {(header || subHeader) && (
         <header className="w-full bg-background-main/80 border-b border-white/10 shadow-sm z-40">

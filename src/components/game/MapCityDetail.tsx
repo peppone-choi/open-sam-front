@@ -357,7 +357,7 @@ function MapCityDetailComponent({
         {city.state > 0 && (
           <div className="city_state">
             <img 
-              src={`${IMAGE_PATH}/event${city.state}.gif`}
+              src={`/sam_icon/event/event${city.state}.gif`}
               alt={`도시 상태 ${city.state}`}
             />
           </div>

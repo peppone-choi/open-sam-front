@@ -121,59 +121,66 @@ export default function TopBackBar({
   }
 
   return (
-    <nav 
-      className={`${styles.topBackBar} ${teleportZone ? styles.topBackBarTeleport : ''}`}
-      aria-label="페이지 네비게이션"
-    >
-      {/* 뒤로가기 버튼 */}
-      <button 
-        type="button" 
-        onClick={handleBack} 
-        className={styles.btn}
-        aria-label={type === 'close' ? '창 닫기' : '이전 페이지로 돌아가기'}
+    <div className={styles.pageWrapper}>
+      <nav 
+        className={`${styles.topBackBar} ${teleportZone ? styles.topBackBarTeleport : ''}`}
+        aria-label="페이지 네비게이션"
       >
-        {backButtonText}
-      </button>
-      
-      {/* 갱신 버튼 */}
-      {reloadable ? (
+        {/* 뒤로가기 버튼 */}
         <button 
           type="button" 
-          onClick={handleReload} 
+          onClick={handleBack} 
           className={styles.btn}
-          aria-label="페이지 새로고침"
+          aria-label={type === 'close' ? '창 닫기' : '이전 페이지로 돌아가기'}
         >
-          갱신
+          {backButtonText}
         </button>
-      ) : (
-        <div aria-hidden="true" />
-      )}
+        
+        {/* 갱신 버튼 */}
+        {reloadable ? (
+          <button 
+            type="button" 
+            onClick={handleReload} 
+            className={styles.btn}
+            aria-label="페이지 새로고침"
+          >
+            갱신
+          </button>
+        ) : (
+          <div aria-hidden="true" />
+        )}
+        
+        {/* 타이틀 */}
+        <h2 className={styles.title}>{title}</h2>
+        
+        {/* 슬롯/텔레포트 영역/검색 토글 */}
+        {teleportZone ? (
+          <div id={teleportZone} className={styles.teleportZone} />
+        ) : (
+          <>
+            <div aria-hidden="true">&nbsp;</div>
+            {searchable !== undefined && (
+              <button
+                type="button"
+                className={`${styles.btn} ${styles.btnToggle} ${isSearchOn ? styles.btnToggleOn : ''}`}
+                onClick={handleSearchToggle}
+                aria-pressed={isSearchOn}
+                aria-label={`검색 기능 ${isSearchOn ? '끄기' : '켜기'}`}
+              >
+                {isSearchOn ? '검색 켜짐' : '검색 꺼짐'}
+              </button>
+            )}
+          </>
+        )}
+      </nav>
       
-      {/* 타이틀 */}
-      <h2 className={styles.title}>{title}</h2>
-      
-      {/* 슬롯/텔레포트 영역/검색 토글 */}
-      {children ? (
-        children
-      ) : teleportZone ? (
-        <div id={teleportZone} className={styles.teleportZone} />
-      ) : (
-        <>
-          <div aria-hidden="true">&nbsp;</div>
-          {searchable !== undefined && (
-            <button
-              type="button"
-              className={`${styles.btn} ${styles.btnToggle} ${isSearchOn ? styles.btnToggleOn : ''}`}
-              onClick={handleSearchToggle}
-              aria-pressed={isSearchOn}
-              aria-label={`검색 기능 ${isSearchOn ? '끄기' : '켜기'}`}
-            >
-              {isSearchOn ? '검색 켜짐' : '검색 꺼짐'}
-            </button>
-          )}
-        </>
+      {/* 페이지 컨텐츠 */}
+      {children && (
+        <div className={styles.pageContent}>
+          {children}
+        </div>
       )}
-    </nav>
+    </div>
   );
 }
 

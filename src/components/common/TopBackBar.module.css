@@ -1,3 +1,19 @@
+/* 페이지 전체를 감싸는 래퍼 */
+.pageWrapper {
+    min-height: 100vh;
+    background: var(--bg-main, #0a0d14);
+    display: flex;
+    flex-direction: column;
+}
+
+.pageContent {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+}
+
 .topBackBar {
     display: flex;
     justify-content: space-between;
@@ -67,10 +83,9 @@
 .topBackBar {
     display: grid;
     grid-template-columns: 90px 90px 1fr 90px 90px;
-    max-width: 1000px;
     width: 100%;
-    margin: auto;
-    height: 32px;
+    min-height: 44px;
+    height: auto;
 }
 
 .topBackBarTeleport {
@@ -78,7 +93,7 @@
 }
 
 .teleportZone {
-    height: 32px;
+    min-height: 32px;
 }
 
 .btnToggle {
@@ -99,7 +114,10 @@
 /* 타이틀 중앙 정렬 */
 .title {
     text-align: center;
-    line-height: 32px;
+    line-height: 1.4;
     font-size: 18px;
     margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
