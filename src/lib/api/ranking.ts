@@ -1,4 +1,5 @@
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+// Next.js rewrites를 사용하여 CORS 없이 백엔드 API 호출
+const API_BASE = '';
 
 type FetchInit = RequestInit & { signal?: AbortSignal };
 

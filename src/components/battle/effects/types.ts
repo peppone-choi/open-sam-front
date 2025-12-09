@@ -92,3 +92,8 @@ export type EffectManagerAction =
   | { type: 'PROCESS_NEXT' }
   | { type: 'EFFECT_COMPLETE'; id: string };
 
+
+
+
+
+

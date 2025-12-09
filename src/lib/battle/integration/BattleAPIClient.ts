@@ -37,6 +37,21 @@ function getAuthToken(): string | null {
 }
 
 /**
+ * CSRF 토큰 가져오기
+ */
+function getCSRFToken(): string | null {
+  if (typeof document === 'undefined') return null;
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'XSRF-TOKEN') {
+      return decodeURIComponent(value);
+    }
+  }
+  return null;
+}
+
+/**
  * API 요청 헬퍼
  */
 async function apiRequest<T>(
@@ -44,12 +59,15 @@ async function apiRequest<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const token = getAuthToken();
+  const csrfToken = getCSRFToken();
   
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
+      ...(csrfToken && { 'X-XSRF-TOKEN': csrfToken }),
       ...options.headers,
     },
   });

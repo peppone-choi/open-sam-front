@@ -6,35 +6,36 @@ import { SammoAPI, type ChiefCenterPayload } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import ChiefReservedCommand from '@/components/game/ChiefReservedCommand';
 import ChiefTopItem from '@/components/game/ChiefTopItem';
-import { cn } from '@/lib/utils';
-
-// Sub-panels
-import ChiefDomesticPanel from './ChiefDomesticPanel';
-import ChiefPersonnelPanel from './ChiefPersonnelPanel';
-import ChiefDiplomacyPanel from './ChiefDiplomacyPanel';
 
 export default function ChiefPage() {
   const params = useParams();
   const serverID = params?.server as string;
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [chiefData, setChiefData] = useState<ChiefCenterPayload | null>(null);
   const [turnData, setTurnData] = useState<any | null>(null);
   const [viewTarget, setViewTarget] = useState<number | undefined>(undefined);
-  
-  const [activeTab, setActiveTab] = useState<'turn' | 'domestic' | 'personnel' | 'diplomacy'>('turn');
   const [lastReload, setLastReload] = useState(0);
 
   const loadAllData = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
+      
+      // 병렬로 두 API 호출
       const [centerRes, turnRes] = await Promise.all([
           SammoAPI.GetChiefCenter({ serverID }),
           SammoAPI.NationCommandGetReservedCommand({ serverID }),
       ]);
 
+      console.log('[ChiefPage] centerRes:', centerRes);
+      console.log('[ChiefPage] turnRes:', turnRes);
+
       if (centerRes.result) {
         setChiefData(centerRes.center || null);
+      } else {
+        console.warn('[ChiefPage] GetChiefCenter failed:', centerRes);
       }
       
       if (turnRes.result) {
@@ -44,13 +45,17 @@ export default function ChiefPage() {
               if (turnRes.officerLevel && turnRes.officerLevel >= 5) {
                   setViewTarget(turnRes.officerLevel);
               } else {
-                  setViewTarget(12); // Default to highest?
+                  setViewTarget(12); // Default to highest
               }
           }
+      } else {
+        console.warn('[ChiefPage] NationCommandGetReservedCommand failed:', turnRes);
+        setError('턴 데이터를 불러올 수 없습니다.');
       }
 
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('[ChiefPage] Error loading data:', err);
+      setError(err?.message || '데이터를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -199,35 +204,21 @@ export default function ChiefPage() {
                 </div>
             )}
 
-            {/* Tabs */}
-            <div className="flex border-b border-white/10 overflow-x-auto">
-              {[
-                { id: 'turn', label: '수뇌부 턴' },
-                { id: 'domestic', label: '내정 관리' },
-                { id: 'personnel', label: '인사 관리' },
-                { id: 'diplomacy', label: '외교/전략' },
-              ].map((tab) => (
-                <button 
-                  key={tab.id}
-                  className={cn(
-                    "px-6 py-3 text-sm font-bold transition-colors relative whitespace-nowrap",
-                    activeTab === tab.id 
-                      ? "text-white border-b-2 border-blue-500" 
-                      : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
-                  )}
-                  onClick={() => setActiveTab(tab.id as any)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Content */}
+            {/* 사령턴 (수뇌부 턴) 컨텐츠만 표시 */}
             <div className="bg-gray-900/30 rounded-xl border border-white/5 p-4 min-h-[400px]">
-              {activeTab === 'turn' && renderTurnTab()}
-              {activeTab === 'domestic' && <ChiefDomesticPanel serverID={serverID} policy={chiefData?.policy} finance={chiefData?.finance} warSettingCnt={chiefData?.warSettingCnt} onUpdate={handleReload} />}
-              {activeTab === 'personnel' && <ChiefPersonnelPanel serverID={serverID} chiefData={chiefData} onUpdate={handleReload} />}
-              {activeTab === 'diplomacy' && <ChiefDiplomacyPanel serverID={serverID} notices={chiefData?.notices} onUpdate={handleReload} />}
+              {error ? (
+                <div className="text-red-400 text-center py-8">
+                  <div className="text-xl mb-2">⚠️ {error}</div>
+                  <button 
+                    onClick={handleReload}
+                    className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded text-white text-sm"
+                  >
+                    다시 시도
+                  </button>
+                </div>
+              ) : (
+                renderTurnTab()
+              )}
             </div>
           </div>
         )}

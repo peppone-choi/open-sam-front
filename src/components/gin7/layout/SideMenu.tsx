@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   MapIcon,
   UserCircleIcon,
@@ -17,6 +17,8 @@ import {
   ShieldCheckIcon,
   CommandLineIcon,
 } from '@heroicons/react/24/outline';
+import { useGin7Store } from '@/stores/gin7Store';
+import { useGin7UserStore } from '@/stores/gin7UserStore';
 
 interface SideMenuProps {
   collapsed: boolean;
@@ -85,9 +87,62 @@ function MenuSection({ title, children, collapsed }: MenuSectionProps) {
   );
 }
 
+/**
+ * 메일 읽지 않은 수 조회 훅
+ * 
+ * 사용 예시:
+ * - 컴포넌트 마운트 시 자동으로 unread count 조회
+ * - 30초마다 자동 갱신 (폴링)
+ * - 에러 발생 시 0 반환 (UI 깨지지 않음)
+ * 
+ * 테스트 시나리오:
+ * 1. 로그인 후 SideMenu 렌더링 → unread count 표시 확인
+ * 2. 메일 읽음 처리 후 → 카운트 감소 확인 (다음 폴링에서)
+ * 3. 네트워크 오류 시 → 이전 값 유지, 콘솔 경고
+ */
+function useMailUnreadCount(): number {
+  const [unreadCount, setUnreadCount] = useState(0);
+  const sessionId = useGin7Store((state) => state.sessionId);
+  const character = useGin7UserStore((state) => state.character);
+
+  const fetchUnreadCount = useCallback(async () => {
+    if (!sessionId || !character?.id) return;
+    
+    try {
+      const response = await fetch(
+        `/api/gin7/intel/mailbox?sessionId=${encodeURIComponent(sessionId)}&characterId=${encodeURIComponent(character.id)}`
+      );
+      
+      if (!response.ok) {
+        console.warn('[SideMenu] Failed to fetch mail count:', response.status);
+        return;
+      }
+      
+      const data = await response.json();
+      const count = data.mailBox?.unreadCount ?? 0;
+      setUnreadCount(count);
+    } catch (error) {
+      // 네트워크 오류 등은 조용히 처리 (기존 값 유지)
+      console.warn('[SideMenu] Error fetching mail count:', error);
+    }
+  }, [sessionId, character?.id]);
+
+  useEffect(() => {
+    // 초기 로드
+    fetchUnreadCount();
+
+    // 30초마다 폴링 (너무 잦은 호출 방지)
+    const interval = setInterval(fetchUnreadCount, 30000);
+
+    return () => clearInterval(interval);
+  }, [fetchUnreadCount]);
+
+  return unreadCount;
+}
+
 export default function SideMenu({ collapsed, onToggle }: SideMenuProps) {
   const pathname = usePathname();
-  const [mailCount] = useState(3); // TODO: 실제 메일 카운트 연동
+  const mailCount = useMailUnreadCount();
 
   const isActive = (path: string) => pathname === path || pathname?.startsWith(path + '/');
 

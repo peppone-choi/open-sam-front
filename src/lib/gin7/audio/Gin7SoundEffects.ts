@@ -1186,6 +1186,96 @@ export class Gin7SoundEffects {
   }
 
   // ========================================
+  // 3D 오디오 지원 메서드 (Gin7AudioManager에서 사용)
+  // ========================================
+
+  /**
+   * 버퍼 직접 반환 (3D 오디오용)
+   * @param type - 효과음 타입
+   * @returns AudioBuffer 또는 undefined
+   */
+  getBuffer(type: Gin7SFXType): AudioBuffer | undefined {
+    return this.buffers.get(type);
+  }
+
+  /**
+   * SFX 설정 반환
+   * @param type - 효과음 타입
+   * @returns 설정 객체 또는 undefined
+   */
+  getConfig(type: Gin7SFXType): Gin7SFXConfig | undefined {
+    return GIN7_SFX_DEFAULTS[type];
+  }
+
+  /**
+   * 재생 가능 여부 확인 (쿨다운 + 동시재생 제한)
+   * @param type - 효과음 타입
+   * @returns 재생 가능 여부
+   */
+  canPlay(type: Gin7SFXType): boolean {
+    const config = GIN7_SFX_DEFAULTS[type];
+    if (!config) return false;
+
+    // 쿨다운 체크
+    const lastTime = this.lastPlayTime.get(type) || 0;
+    const now = Date.now();
+    if (now - lastTime < config.cooldown) {
+      return false;
+    }
+
+    // 동시 재생 제한 체크
+    const activeCount = this.activeCountByType.get(type) || 0;
+    if (activeCount >= config.maxInstances) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * 활성 사운드 등록 (3D 오디오용)
+   * 외부에서 생성한 AudioSource를 추적
+   * 
+   * @param type - 효과음 타입
+   * @param source - AudioBufferSourceNode
+   * @param gainNode - GainNode
+   * @returns 고유 ID
+   */
+  registerActiveSound(
+    type: Gin7SFXType,
+    source: AudioBufferSourceNode,
+    gainNode: GainNode
+  ): string {
+    const id = `${type}_${++this.soundIdCounter}`;
+    
+    this.activeSounds.set(id, {
+      id,
+      type,
+      source,
+      gainNode,
+      startTime: this.audioContext.currentTime,
+    });
+
+    // 쿨다운 및 카운트 업데이트
+    this.lastPlayTime.set(type, Date.now());
+    const activeCount = this.activeCountByType.get(type) || 0;
+    this.activeCountByType.set(type, activeCount + 1);
+
+    return id;
+  }
+
+  /**
+   * 활성 사운드 등록 해제
+   * @param type - 효과음 타입
+   * @param id - 사운드 ID
+   */
+  unregisterActiveSound(type: Gin7SFXType, id: string): void {
+    this.activeSounds.delete(id);
+    const count = this.activeCountByType.get(type) || 1;
+    this.activeCountByType.set(type, Math.max(0, count - 1));
+  }
+
+  // ========================================
   // 정리
   // ========================================
 
@@ -1202,6 +1292,11 @@ export class Gin7SoundEffects {
 }
 
 export default Gin7SoundEffects;
+
+
+
+
+
 
 
 

@@ -334,7 +334,25 @@ export class Gin7AudioManager {
   // ========================================
 
   /**
-   * 효과음 재생
+   * 효과음 재생 (3D 공간 오디오 지원)
+   * 
+   * 사용 예시:
+   * ```ts
+   * // 2D 사운드 (위치 없음)
+   * audioManager.playSFX('beam_fire');
+   * 
+   * // 3D 사운드 (위치 지정)
+   * audioManager.playSFX('explosion_large', { x: 100, y: 0, z: -50 });
+   * 
+   * // 3D + 옵션
+   * audioManager.playSFX('missile_launch', { x: 0, y: 10, z: 0 }, { volume: 0.8 });
+   * ```
+   * 
+   * 테스트 시나리오:
+   * 1. 좌측 위치(x: -100)에서 사운드 재생 → 좌측 스피커에서 더 크게 들림
+   * 2. 우측 위치(x: 100)에서 사운드 재생 → 우측 스피커에서 더 크게 들림
+   * 3. 먼 거리(z: -500)에서 사운드 재생 → 볼륨 감소 확인
+   * 4. position 없이 호출 → 기존 2D 사운드로 재생
    */
   playSFX(
     type: Gin7SFXType, 
@@ -343,10 +361,117 @@ export class Gin7AudioManager {
   ): string | null {
     if (!this.soundEffects) return null;
     
-    // TODO: position이 있으면 3D 오디오 처리
-    // 현재는 2D로만 재생
-    
-    return this.soundEffects.play(type, options);
+    // position이 없거나 3D 오디오 비활성화 시 기존 2D 재생
+    if (!position || !this.spatialEnabled || !this.audioContext || !this.sfxGain) {
+      return this.soundEffects.play(type, options);
+    }
+
+    // 3D 오디오 재생
+    return this.play3DSFX(type, position, options);
+  }
+
+  /**
+   * 3D 공간 오디오 재생 (PannerNode 사용)
+   * 
+   * @param type - 효과음 타입
+   * @param position - 3D 좌표 (x: 좌우, y: 상하, z: 앞뒤)
+   * @param options - 볼륨/피치 옵션
+   * @returns 사운드 ID 또는 null
+   */
+  private play3DSFX(
+    type: Gin7SFXType,
+    position: Position3D,
+    options?: { volume?: number; pitch?: number }
+  ): string | null {
+    if (!this.audioContext || !this.sfxGain || !this.soundEffects) return null;
+
+    try {
+      // SoundEffects에서 버퍼 가져오기
+      const buffer = this.soundEffects.getBuffer(type);
+      if (!buffer) {
+        console.warn(`[Gin7Audio] 3D SFX buffer not found: ${type}`);
+        return null;
+      }
+
+      // SFX 설정 가져오기
+      const config = this.soundEffects.getConfig(type);
+      if (!config) return null;
+
+      // 동시 재생 및 쿨다운 체크는 soundEffects에 위임
+      if (!this.soundEffects.canPlay(type)) return null;
+
+      // AudioBufferSourceNode 생성
+      const source = this.audioContext.createBufferSource();
+      source.buffer = buffer;
+
+      // 피치 조절
+      const pitchVariance = (Math.random() * 2 - 1) * config.pitchVariance;
+      source.playbackRate.value = (options?.pitch ?? config.pitch) + pitchVariance;
+
+      // GainNode 생성 (개별 볼륨)
+      const gainNode = this.audioContext.createGain();
+      gainNode.gain.value = (options?.volume ?? 1) * config.volume;
+
+      // PannerNode 생성 (3D 공간 오디오)
+      const panner = this.audioContext.createPanner();
+      
+      // HRTF 모델 사용 (더 자연스러운 3D 효과)
+      panner.panningModel = 'HRTF';
+      panner.distanceModel = 'inverse';
+      
+      // 거리 감쇠 설정
+      panner.refDistance = 50;       // 이 거리까지는 볼륨 100%
+      panner.maxDistance = 10000;    // 최대 거리
+      panner.rolloffFactor = 1;      // 감쇠 정도 (1: 기본)
+      
+      // 지향성 (무지향성으로 설정)
+      panner.coneInnerAngle = 360;
+      panner.coneOuterAngle = 360;
+      panner.coneOuterGain = 1;
+
+      // 위치 설정 (방어적 처리)
+      const safeX = isFinite(position.x) ? position.x : 0;
+      const safeY = isFinite(position.y) ? position.y : 0;
+      const safeZ = isFinite(position.z) ? position.z : 0;
+
+      if (panner.positionX) {
+        // 최신 API (AudioParam)
+        panner.positionX.setValueAtTime(safeX, this.audioContext.currentTime);
+        panner.positionY.setValueAtTime(safeY, this.audioContext.currentTime);
+        panner.positionZ.setValueAtTime(safeZ, this.audioContext.currentTime);
+      } else {
+        // 레거시 API
+        panner.setPosition(safeX, safeY, safeZ);
+      }
+
+      // 연결: Source -> Gain -> Panner -> SFX Gain -> Master
+      source.connect(gainNode);
+      gainNode.connect(panner);
+      panner.connect(this.sfxGain);
+
+      // 재생
+      source.start(0);
+
+      // ID 생성 및 추적
+      const id = this.soundEffects.registerActiveSound(type, source, gainNode);
+
+      // 완료 콜백
+      source.onended = () => {
+        this.soundEffects?.unregisterActiveSound(type, id);
+        try {
+          gainNode.disconnect();
+          panner.disconnect();
+        } catch {
+          // 이미 연결 해제된 경우 무시
+        }
+      };
+
+      return id;
+    } catch (error) {
+      console.warn('[Gin7Audio] 3D SFX play error:', error);
+      // 3D 실패 시 2D로 폴백
+      return this.soundEffects.play(type, options);
+    }
   }
 
   /**
@@ -704,6 +829,11 @@ export function disposeGin7Audio(): void {
 }
 
 export default Gin7AudioManager;
+
+
+
+
+
 
 
 

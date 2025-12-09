@@ -1,12 +1,15 @@
 .worldMap {
     width: 100%;
-    /* max-width: 1000px;  제거: 화면 너비에 맞춰 높이도 최대한 확보 */
+    height: 100%;
     margin: 0 auto; /* 중앙 정렬 */
     background: black;
     font-size: 14px;
     color: white;
     position: relative;
-    aspect-ratio: 740 / 500;
+    /* 맵 배경 이미지 비율에 맞춤 (1000 x 675) */
+    aspect-ratio: 1000 / 675;
+    max-height: 100%;
+    max-width: 100%;
 }
 
 .mapTitle {

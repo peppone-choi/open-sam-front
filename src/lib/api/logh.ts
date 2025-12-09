@@ -3,7 +3,8 @@ import {
   Fleet,
   FleetDetail, 
   UserProfile, 
-  CommandType 
+  CommandType,
+  CharacterCreationParams
 } from '@/types/logh';
 import {
   ChatMessage,
@@ -17,18 +18,33 @@ import {
 
 const API_BASE = '/api/logh';
 
+// CSRF 토큰 읽기
+const getCSRFToken = (): string | null => {
+  if (typeof document === 'undefined') return null;
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'XSRF-TOKEN') {
+      return decodeURIComponent(value);
+    }
+  }
+  return null;
+};
+
 // Helper for Auth Headers
 const getHeaders = () => {
   const token = process.env.NEXT_PUBLIC_API_TOKEN || '';
+  const csrfToken = getCSRFToken();
   return {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
+    'Authorization': `Bearer ${token}`,
+    ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
   };
 };
 
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const headers = { ...getHeaders(), ...options.headers };
-  const res = await fetch(url, { ...options, headers });
+  const res = await fetch(url, { ...options, headers, credentials: 'include' });
 
   const contentType = res.headers.get('content-type') || '';
   let payload: any = null;
@@ -397,5 +413,284 @@ export const loghApi = {
         { fleetId: 'f2', name: 'Imperial Fleet', faction: 'empire', totalShips: 8000, formation: 'spindle', tacticalPosition: { x: 8000, y: 5000, heading: 180 } }
       ]
     };
-  }
+  },
+
+  // ========================================
+  // Session & Entrance APIs (삼국지 구조와 유사)
+  // ========================================
+  
+  /**
+   * 게임 세션(서버) 목록 조회 - 삼국지의 GetServerStatus와 유사
+   */
+  getSessionList: async (): Promise<{
+    result: boolean;
+    notice?: string;
+    sessions: Array<{
+      sessionId: string;
+      name: string;
+      korName: string;
+      color: string;
+      exists: boolean;
+      enable: boolean;
+      status: 'preparing' | 'running' | 'paused' | 'finished' | 'united';
+      statusText: string;
+      scenarioName: string;
+      turn: number;
+      year: string;
+      currentPlayers: number;
+      maxPlayers: number;
+      allowNewPlayers: boolean;
+      createdAt: string;
+    }>;
+  }> => {
+    try {
+      const res = await fetchWithAuth(`${API_BASE}/sessions`);
+      return res;
+    } catch (e) {
+      console.warn('[LOGH] getSessionList failed, using mock data', e);
+      // Mock fallback
+      return {
+        result: true,
+        notice: '은하영웅전설 OpenSAM에 오신 것을 환영합니다!',
+        sessions: [
+          {
+            sessionId: 'logh_main',
+            name: 'logh_main',
+            korName: '은하의 서막',
+            color: '#FFD700',
+            exists: true,
+            enable: true,
+            status: 'running',
+            statusText: '진행중',
+            scenarioName: '아스탈트 회전',
+            turn: 42,
+            year: '우주력 796년',
+            currentPlayers: 24,
+            maxPlayers: 50,
+            allowNewPlayers: true,
+            createdAt: '2025-12-01',
+          },
+          {
+            sessionId: 'logh_iserlohn',
+            name: 'logh_iserlohn',
+            korName: '이제르론 공방전',
+            color: '#00CED1',
+            exists: true,
+            enable: true,
+            status: 'running',
+            statusText: '진행중',
+            scenarioName: '이제르론 요새 쟁탈',
+            turn: 128,
+            year: '우주력 799년',
+            currentPlayers: 38,
+            maxPlayers: 50,
+            allowNewPlayers: false,
+            createdAt: '2025-11-15',
+          },
+          {
+            sessionId: 'logh_ragnarok',
+            name: 'logh_ragnarok',
+            korName: '라그나로크',
+            color: '#FF4500',
+            exists: true,
+            enable: true,
+            status: 'preparing',
+            statusText: '모집중',
+            scenarioName: '라그나로크 작전',
+            turn: 0,
+            year: '우주력 800년',
+            currentPlayers: 12,
+            maxPlayers: 40,
+            allowNewPlayers: true,
+            createdAt: '2025-12-06',
+          },
+        ],
+      };
+    }
+  },
+
+  /**
+   * 특정 세션의 내 캐릭터 정보 조회 - 삼국지의 GeneralGetFrontInfo와 유사
+   */
+  getMyCharacterInfo: async (sessionId: string): Promise<{
+    success: boolean;
+    hasCharacter: boolean;
+    character?: {
+      no: number;
+      name: string;
+      faction: 'empire' | 'alliance';
+      rank: string;
+      fleetName?: string;
+      picture?: string;
+      imgsvr?: number;
+    };
+    faction?: {
+      name: string;
+      color: string;
+    };
+  }> => {
+    try {
+      const res = await fetchWithAuth(`${API_BASE}/sessions/${sessionId}/my-character`);
+      return res;
+    } catch (e) {
+      console.warn('[LOGH] getMyCharacterInfo failed', e);
+      return {
+        success: false,
+        hasCharacter: false,
+      };
+    }
+  },
+
+  /**
+   * 현재 사용자 정보 조회 - 삼국지의 GetUserInfo와 유사
+   */
+  getUserInfo: async (): Promise<{
+    result: boolean;
+    id: string;
+    username: string;
+    nickname: string;
+    grade: string;
+    picture?: string;
+    acl: string;
+    joinDate: string;
+  }> => {
+    try {
+      const res = await fetchWithAuth(`${API_BASE}/user/info`);
+      return res;
+    } catch (e) {
+      console.warn('[LOGH] getUserInfo failed, using mock', e);
+      // Fallback to sammo auth if available
+      return {
+        result: true,
+        id: 'user-1',
+        username: 'player1',
+        nickname: '우주사령관',
+        grade: '1',
+        acl: '-',
+        joinDate: '2025-01-01',
+      };
+    }
+  },
+
+  /**
+   * 캐릭터 생성
+   */
+  createCharacter: async (params: CharacterCreationParams): Promise<{
+    success: boolean;
+    message?: string;
+    character?: {
+      no: number;
+      name: string;
+      faction: 'empire' | 'alliance';
+      rank: string;
+    };
+  }> => {
+    try {
+      const res = await fetchWithAuth(`${API_BASE}/sessions/${params.sessionId}/characters`, {
+        method: 'POST',
+        body: JSON.stringify(params),
+      });
+      return res;
+    } catch (e: any) {
+      return {
+        success: false,
+        message: e.message || '캐릭터 생성에 실패했습니다.',
+      };
+    }
+  },
+
+  // ========================================
+  // Admin APIs (삼국지 어드민 구조와 유사)
+  // ========================================
+  
+  /**
+   * 관리자용 세션 상태 조회
+   */
+  adminGetSessionStatus: async (sessionId: string): Promise<{
+    result: boolean;
+    status?: {
+      uptime: number;
+      memory: { used: number; total: number };
+      connections: number;
+      lastTurnTime?: string;
+      nextTurnTime?: string;
+      empireCount: number;
+      allianceCount: number;
+    };
+  }> => {
+    try {
+      const res = await fetchWithAuth(`${API_BASE}/admin/sessions/${sessionId}/status`);
+      return res;
+    } catch (e) {
+      console.warn('[LOGH] adminGetSessionStatus failed', e);
+      return { result: false };
+    }
+  },
+
+  /**
+   * 관리자용 세션 설정 변경
+   */
+  adminUpdateSession: async (sessionId: string, updates: {
+    status?: 'preparing' | 'running' | 'paused' | 'finished';
+    allowNewPlayers?: boolean;
+    notice?: string;
+  }): Promise<{ result: boolean; message?: string }> => {
+    try {
+      const res = await fetchWithAuth(`${API_BASE}/admin/sessions/${sessionId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updates),
+      });
+      return res;
+    } catch (e: any) {
+      return { result: false, message: e.message };
+    }
+  },
+
+  /**
+   * 관리자용 턴 강제 진행
+   */
+  adminForceTurn: async (sessionId: string): Promise<{ result: boolean; message?: string }> => {
+    try {
+      const res = await fetchWithAuth(`${API_BASE}/admin/sessions/${sessionId}/force-turn`, {
+        method: 'POST',
+      });
+      return res;
+    } catch (e: any) {
+      return { result: false, message: e.message };
+    }
+  },
+
+  /**
+   * 관리자용 플레이어 목록 조회
+   */
+  adminGetPlayers: async (sessionId: string, params?: {
+    faction?: 'empire' | 'alliance';
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    result: boolean;
+    players: Array<{
+      no: number;
+      name: string;
+      faction: 'empire' | 'alliance';
+      rank: string;
+      userId: string;
+      lastLogin?: string;
+      isOnline: boolean;
+    }>;
+    total: number;
+  }> => {
+    try {
+      const query = new URLSearchParams();
+      if (params?.faction) query.set('faction', params.faction);
+      if (params?.page) query.set('page', String(params.page));
+      if (params?.limit) query.set('limit', String(params.limit));
+      
+      const res = await fetchWithAuth(`${API_BASE}/admin/sessions/${sessionId}/players?${query}`);
+      return res;
+    } catch (e) {
+      console.warn('[LOGH] adminGetPlayers failed', e);
+      return { result: false, players: [], total: 0 };
+    }
+  },
 };

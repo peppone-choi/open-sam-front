@@ -115,11 +115,16 @@ export function getCrewTypeDisplayName(
   fallbackName?: string | null
 ): string {
   if (fallbackName && fallbackName.trim().length > 0) {
+    // "병종 NaN" 같은 잘못된 fallback 이름 필터링
+    if (fallbackName.includes('NaN') || fallbackName === '병종 undefined') {
+      return '미편성';
+    }
     return fallbackName;
   }
 
-  if (crewtype === null || crewtype === undefined || Number.isNaN(crewtype)) {
-    return '병종';
+  // NaN, null, undefined, 유효하지 않은 값 체크
+  if (crewtype === null || crewtype === undefined || Number.isNaN(crewtype) || !Number.isFinite(crewtype)) {
+    return '미편성';
   }
 
   const mappedName = getUnitTypeName(crewtype);

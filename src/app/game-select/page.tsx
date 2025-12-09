@@ -53,10 +53,10 @@ export default function GameSelectPage() {
 
             {selectedGame === 'sangokushi' && (
               <Link
-                href="/sangokushi/game"
+                href="/entrance"
                 className="block w-full bg-yellow-500 text-gray-900 font-bold py-3 px-6 rounded-lg text-center hover:bg-yellow-400 transition"
               >
-                게임 시작 →
+                로비 입장 →
               </Link>
             )}
           </div>
@@ -94,10 +94,10 @@ export default function GameSelectPage() {
 
             {selectedGame === 'logh' && (
               <Link
-                href="/logh/game"
+                href="/logh/entrance"
                 className="block w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-lg text-center hover:bg-blue-400 transition"
               >
-                게임 시작 →
+                로비 입장 →
               </Link>
             )}
           </div>

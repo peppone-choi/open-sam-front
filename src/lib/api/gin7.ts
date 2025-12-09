@@ -27,7 +27,22 @@ function withSession(path: string, sessionId?: string) {
   return `${path}${separator}sessionId=${encodeURIComponent(resolved)}`;
 }
 
+// 쿠키에서 CSRF 토큰 읽기
+function getCSRFToken(): string | null {
+  if (typeof document === 'undefined') return null;
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'XSRF-TOKEN') {
+      return decodeURIComponent(value);
+    }
+  }
+  return null;
+}
+
 async function request<TResponse, TBody = unknown>(path: string, options?: RequestOptions<TBody>): Promise<TResponse> {
+  const csrfToken = getCSRFToken();
+  
   const init: RequestInit = {
     method: options?.method ?? 'GET',
     cache: 'no-store',
@@ -35,6 +50,7 @@ async function request<TResponse, TBody = unknown>(path: string, options?: Reque
     headers: {
       Accept: 'application/json',
       ...(options?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
       ...(options?.headers || {}),
     },
     body: options?.body ? JSON.stringify(options.body) : undefined,

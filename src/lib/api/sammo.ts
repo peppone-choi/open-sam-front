@@ -1,9 +1,8 @@
 import type { RawUnitDefinition } from '@/stores/unitStore';
 
-// 클라이언트 사이드에서는 환경 변수 또는 기본 백엔드 URL 사용
-// 서버 사이드에서는 rewrites를 사용하므로 상대 경로 가능
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
-  (typeof window !== 'undefined' ? 'http://localhost:8080' : '');
+// Next.js rewrites를 사용하여 /api/* 요청을 백엔드로 프록시
+// 상대 경로를 사용하면 CORS 문제 없이 API 호출 가능
+const API_BASE_URL = '';
 
 type NationPolicyResponse = {
   policy?: {
@@ -344,6 +343,7 @@ export interface GetMapResponse {
   success: boolean;
   result: boolean;
   cityList: number[][];
+  roadList?: [number, number][];  // 도시 간 도로 연결 [fromCity, toCity]
   nationList: Array<[number, string, string, number, string, string, string, string]>; // id, name, color, capital, flagImage, flagTextColor, flagBgColor, flagBorderColor
   myCity: number | null;
   myNation: number | null;
@@ -453,12 +453,26 @@ export class SammoAPI {
     }
   }
 
+  // 쿠키에서 CSRF 토큰 읽기
+  private static getCSRFToken(): string | null {
+    if (typeof document === 'undefined') return null;
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+      const [name, value] = cookie.trim().split('=');
+      if (name === 'XSRF-TOKEN') {
+        return decodeURIComponent(value);
+      }
+    }
+    return null;
+  }
+
   static async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     const token = this.getToken();
+    const csrfToken = this.getCSRFToken();
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -468,6 +482,11 @@ export class SammoAPI {
     // 토큰이 있으면 Authorization 헤더에 추가
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    // CSRF 토큰 추가 (state-changing 요청에 필요)
+    if (csrfToken) {
+      headers['X-XSRF-TOKEN'] = csrfToken;
     }
     
     try {

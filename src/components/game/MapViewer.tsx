@@ -5,6 +5,7 @@ import { type GetMapResponse } from '@/lib/api/sammo';
 import MapCityDetail from './MapCityDetail';
 import MovementLayer from './MovementLayer';
 import TerritoryOverlay from './TerritoryOverlay';
+import RoadNetwork from './RoadNetwork';
 import { TroopMovement, MovementFilterOptions } from '@/types/movement';
 import { useMapTransform } from '@/hooks/useMapTransform';
 import styles from './MapViewer.module.css';
@@ -66,6 +67,7 @@ function MapViewerComponent({
   const [hideCityName, setHideCityName] = useState(false);
   const [showMovementLayer, setShowMovementLayer] = useState(showMovements);
   const [showTerritory, setShowTerritory] = useState(false);
+  const [showRoads, setShowRoads] = useState(true);  // 도로 표시 여부
   const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
   const [activatedCity, setActivatedCity] = useState<{
     id: number;
@@ -421,7 +423,28 @@ function MapViewerComponent({
           {/* 배경 레이어들 (먼저 렌더링) */}
           <div className={styles.mapBglayer1} style={{ backgroundImage: `url(${backgroundImage})` }}></div>
           <div className={styles.mapBglayer2}></div>
-          <div className={styles.mapBgroad}></div>
+          
+          {/* 동적 도로 네트워크 (roadList가 있으면 동적, 없으면 정적 이미지) */}
+          {showRoads && mapData.roadList && mapData.roadList.length > 0 ? (
+            <RoadNetwork
+              cities={parsedCities.map(c => ({
+                id: c.id,
+                name: c.name,
+                x: c.x,
+                y: c.y,
+                nationID: c.nationID,
+                region: c.region,
+              }))}
+              roads={mapData.roadList}
+              nations={mapData.nationList?.map(n => ({
+                id: n[0],
+                color: n[2],
+              }))}
+              showNationColors={false}
+            />
+          ) : showRoads ? (
+            <div className={styles.mapBgroad}></div>
+          ) : null}
           
           {/* 세력 영역 오버레이 */}
           {showTerritory && mapData.nationList && (
@@ -584,6 +607,15 @@ function MapViewerComponent({
             }}
           >
             도시명: {hideCityName ? 'OFF' : 'ON'}
+          </button>
+          <button
+            type="button"
+            className={`btn btn-secondary btn-sm btn-minimum ${showRoads ? 'active' : ''}`}
+            onClick={() => {
+              setShowRoads(!showRoads);
+            }}
+          >
+            가도: {showRoads ? 'ON' : 'OFF'}
           </button>
           <button
             type="button"
