@@ -353,7 +353,9 @@ export default function NationStratFinanPage() {
   }
 
   const editable = nationData?.editable || false;
-  const nationsList = nationData?.nationsList || [];
+  const myNationID = nationData?.nationID || 0;
+  // 자기 국가는 외교 관계에서 제외
+  const nationsList = (nationData?.nationsList || []).filter((nation: any) => nation.nation !== myNationID);
   const gold = nationData?.gold || 0;
   const rice = nationData?.rice || 0;
   const income = nationData?.income || { gold: { war: 0, city: 0 }, rice: { wall: 0, city: 0 } };
