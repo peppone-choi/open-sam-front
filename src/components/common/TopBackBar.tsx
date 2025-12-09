@@ -120,68 +120,74 @@ export default function TopBackBar({
     onSearchableChange?.(newValue);
   }
 
-  return (
-    <div className={styles.pageWrapper}>
-      <nav 
-        className={`${styles.topBackBar} ${teleportZone ? styles.topBackBarTeleport : ''}`}
-        aria-label="페이지 네비게이션"
+  // children이 없으면 네비게이션만 렌더링 (pageWrapper 없이)
+  const navElement = (
+    <nav 
+      className={`${styles.topBackBar} ${teleportZone ? styles.topBackBarTeleport : ''}`}
+      aria-label="페이지 네비게이션"
+    >
+      {/* 뒤로가기 버튼 */}
+      <button 
+        type="button" 
+        onClick={handleBack} 
+        className={styles.btn}
+        aria-label={type === 'close' ? '창 닫기' : '이전 페이지로 돌아가기'}
       >
-        {/* 뒤로가기 버튼 */}
+        {backButtonText}
+      </button>
+      
+      {/* 갱신 버튼 */}
+      {reloadable ? (
         <button 
           type="button" 
-          onClick={handleBack} 
+          onClick={handleReload} 
           className={styles.btn}
-          aria-label={type === 'close' ? '창 닫기' : '이전 페이지로 돌아가기'}
+          aria-label="페이지 새로고침"
         >
-          {backButtonText}
+          갱신
         </button>
-        
-        {/* 갱신 버튼 */}
-        {reloadable ? (
-          <button 
-            type="button" 
-            onClick={handleReload} 
-            className={styles.btn}
-            aria-label="페이지 새로고침"
-          >
-            갱신
-          </button>
-        ) : (
-          <div aria-hidden="true" />
-        )}
-        
-        {/* 타이틀 */}
-        <h2 className={styles.title}>{title}</h2>
-        
-        {/* 슬롯/텔레포트 영역/검색 토글 */}
-        {teleportZone ? (
-          <div id={teleportZone} className={styles.teleportZone} />
-        ) : (
-          <>
-            <div aria-hidden="true">&nbsp;</div>
-            {searchable !== undefined && (
-              <button
-                type="button"
-                className={`${styles.btn} ${styles.btnToggle} ${isSearchOn ? styles.btnToggleOn : ''}`}
-                onClick={handleSearchToggle}
-                aria-pressed={isSearchOn}
-                aria-label={`검색 기능 ${isSearchOn ? '끄기' : '켜기'}`}
-              >
-                {isSearchOn ? '검색 켜짐' : '검색 꺼짐'}
-              </button>
-            )}
-          </>
-        )}
-      </nav>
+      ) : (
+        <div aria-hidden="true" />
+      )}
       
-      {/* 페이지 컨텐츠 */}
-      {children && (
+      {/* 타이틀 */}
+      <h2 className={styles.title}>{title}</h2>
+      
+      {/* 슬롯/텔레포트 영역/검색 토글 */}
+      {teleportZone ? (
+        <div id={teleportZone} className={styles.teleportZone} />
+      ) : (
+        <>
+          <div aria-hidden="true">&nbsp;</div>
+          {searchable !== undefined && (
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.btnToggle} ${isSearchOn ? styles.btnToggleOn : ''}`}
+              onClick={handleSearchToggle}
+              aria-pressed={isSearchOn}
+              aria-label={`검색 기능 ${isSearchOn ? '끄기' : '켜기'}`}
+            >
+              {isSearchOn ? '검색 켜짐' : '검색 꺼짐'}
+            </button>
+          )}
+        </>
+      )}
+    </nav>
+  );
+
+  // children이 있으면 pageWrapper로 감싸고, 없으면 nav만 반환
+  if (children) {
+    return (
+      <div className={styles.pageWrapper}>
+        {navElement}
         <div className={styles.pageContent}>
           {children}
         </div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
+
+  return navElement;
 }
 
 
