@@ -354,15 +354,32 @@ function MapCityDetailComponent({
             )}
           </div>
         </div>
-        {city.state > 0 && (
-          <div className="city_state">
-            <img 
-              src={`/sam_icon/event/event${city.state}.gif`}
-              alt={`도시 상태 ${city.state}`}
-            />
-          </div>
-        )}
       </a>
+      {/* 이벤트 아이콘 - 최상위 레벨에서 렌더링 (z-index 문제 해결) */}
+      {city.state > 0 && (
+        <div 
+          className="city_state"
+          style={{
+            position: 'absolute',
+            top: '-6px',
+            left: '-6px',
+            zIndex: 9999,
+            pointerEvents: 'none',
+          }}
+        >
+          <img 
+            src={`/sam_icon/event/event${city.state}.gif`}
+            alt={`도시 상태 ${city.state}`}
+            style={{
+              width: '18px',
+              height: '18px',
+              display: 'block',
+              imageRendering: 'pixelated',
+              filter: 'drop-shadow(0 0 3px rgba(0, 0, 0, 0.9))',
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
