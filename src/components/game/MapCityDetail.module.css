@@ -280,18 +280,21 @@
     z-index: 1 !important;
 }
 
-/* city_state - 이미지 사용 (PHP 원본과 동일) */
+/* city_state - 이벤트 아이콘 (맨 앞에 표시) */
 :global(.city_base .city_state) {
     position: absolute;
-    top: 5px;
-    left: 0;
-    z-index: 3;
+    top: -8px;
+    left: -4px;
+    z-index: 100 !important;
+    pointer-events: none;
 }
 
 :global(.city_base .city_state img) {
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
     display: block;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
 }
 
 /* 레벨별 city_base 크기 - 모든 레벨 동일하게 40x30 */
