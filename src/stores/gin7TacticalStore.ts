@@ -203,6 +203,7 @@ export const useGin7TacticalStore = create<Gin7TacticalState>()(
     
     handleBattleEnd: (event) => set({
       status: 'ENDED',
+      // Can add result data here if needed
     }),
     
     handleDamage: (event) => set((state) => ({
@@ -352,6 +353,8 @@ if (typeof window !== 'undefined') {
   globalWindow.__OPEN_SAM_STORES__ = globalWindow.__OPEN_SAM_STORES__ ?? {};
   globalWindow.__OPEN_SAM_STORES__.gin7Tactical = useGin7TacticalStore;
 }
+
+
 
 
 

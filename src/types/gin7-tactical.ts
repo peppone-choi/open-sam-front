@@ -60,12 +60,20 @@ export type ShipClass =
 // Unit State
 // ============================================================
 
+/**
+ * TacticalUnitState
+ * Note: shipCount represents UNIT count, not individual ships.
+ * 1 unit = 300 ships (SHIPS_PER_UNIT constant)
+ */
 export interface TacticalUnitState {
   id: string;
+  name?: string;  // Fleet/Unit name for display
   position: Vector3;
   rotation: Quaternion;
   velocity: Vector3;
-  angularVelocity: Vector3;
+  angularVelocity?: Vector3;
+  heading?: number;  // Rotation angle in radians
+  speed?: number;
   
   // HP & Shields
   hp: number;
@@ -77,35 +85,44 @@ export interface TacticalUnitState {
   maxShield: number;
   
   // Combat
-  armor: number;
+  armor?: number;
   morale: number;
   
   // Resources
-  fuel: number;
-  maxFuel: number;
-  ammo: number;
-  maxAmmo: number;
+  fuel?: number;
+  maxFuel?: number;
+  ammo?: number;
+  maxAmmo?: number;
   
-  // Ship info
+  // Ship info - shipCount is UNIT count (1 unit = 300 ships)
   shipClass: ShipClass;
-  shipCount: number;
+  shipCount: number;      // Unit count
+  maxShipCount?: number;  // Max unit count
+  totalShips?: number;    // Actual ships (shipCount * 300)
+  maxTotalShips?: number; // Max actual ships
   
   // Ownership
   factionId: string;
   commanderId: string;
-  fleetId: string;
+  commanderName?: string;
+  fleetId?: string;
   
   // Status
   isDestroyed: boolean;
-  isChaos: boolean;
+  isRetreating?: boolean;
+  isChaos?: boolean;
   
   // Energy Distribution
-  energyDistribution: EnergyDistribution;
+  energyDistribution?: EnergyDistribution;
   
   // Targeting
-  targetId?: string;
+  targetId: string | null;
   targetPosition?: Vector3;
+  formationType?: FormationType;
 }
+
+// 1 unit = 300 ships
+export const SHIPS_PER_UNIT = 300;
 
 // ============================================================
 // Battle Types
@@ -235,16 +252,17 @@ export interface SurrenderCommandData {
 
 export interface BattleStartEvent {
   battleId: string;
-  gridId: string;
+  gridId?: string;
   participants: BattleParticipant[];
   mapSize: { width: number; height: number; depth: number };
-  startTime: number;
+  startTime?: number;
+  countdown?: number;
 }
 
 export interface BattleUpdateEvent {
   battleId: string;
   tick: number;
-  timestamp: number;
+  timestamp: number | Date;
   units: TacticalUnitState[];
   projectiles: ProjectileState[];
   effects: EffectState[];
@@ -252,7 +270,14 @@ export interface BattleUpdateEvent {
 
 export interface BattleEndEvent {
   battleId: string;
-  result: BattleResult;
+  result?: BattleResult;
+  winner: string | null;
+  reason: string;
+  stats?: {
+    duration: number;
+    totalDamage: Record<string, number>;
+    unitsDestroyed: Record<string, number>;
+  };
 }
 
 export interface UnitDestroyedEvent {
@@ -353,6 +378,8 @@ export const FACTION_COLORS = {
 } as const;
 
 export type FactionId = keyof typeof FACTION_COLORS;
+
+
 
 
 

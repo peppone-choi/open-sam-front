@@ -158,7 +158,7 @@ function HistoryYearMonthContent() {
                 <div className="border-b border-white/5 bg-blue-500/10 px-6 py-3 text-lg font-semibold text-blue-300">
                   천하도 스냅샷
                 </div>
-                <div className="h-[520px] bg-gray-800/40">
+                <div className="min-h-[350px] sm:min-h-[500px] lg:min-h-[600px] bg-gray-800/40">
                   <MapViewer serverID={queryServerID} mapData={historyData.map} isFullWidth />
                 </div>
               </div>

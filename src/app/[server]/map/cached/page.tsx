@@ -83,7 +83,7 @@ export default function CachedMapPage() {
                   )}
                 </h2>
               </div>
-              <div className="relative min-h-[400px]">
+              <div className="relative min-h-[350px] sm:min-h-[500px] lg:min-h-[600px]">
                 <MapViewer
                   serverID={serverID}
                   mapData={mapData as any}

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback, memo } from 'react';
-import { type GetMapResponse } from '@/lib/api/sammo';
+import { SammoAPI, type GetMapResponse } from '@/lib/api/sammo';
 import MapCityDetail from './MapCityDetail';
 import MovementLayer from './MovementLayer';
 import TerritoryOverlay from './TerritoryOverlay';
@@ -69,6 +69,8 @@ function MapViewerComponent({
   const [showTerritory, setShowTerritory] = useState(false);
   const [showRoads, setShowRoads] = useState(true);  // 도로 표시 여부
   const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
+  const [fetchedRoadList, setFetchedRoadList] = useState<[number, number][] | null>(null);
+  const [roadListLoading, setRoadListLoading] = useState(false);
   const [activatedCity, setActivatedCity] = useState<{
     id: number;
     text: string;
@@ -118,6 +120,34 @@ function MapViewerComponent({
       window.removeEventListener('resize', updateMapBounds);
     };
   }, [updateMapBounds]);
+
+  // roadList가 없으면 별도로 가져오기 (히스토리 페이지 등에서 사용)
+  useEffect(() => {
+    const hasRoadList = mapData.roadList && mapData.roadList.length > 0;
+    if (!hasRoadList && !fetchedRoadList && !roadListLoading && serverID) {
+      setRoadListLoading(true);
+      SammoAPI.GlobalGetMap({ serverID, neutralView: 1 })
+        .then((result) => {
+          if (result.roadList && result.roadList.length > 0) {
+            setFetchedRoadList(result.roadList);
+          }
+        })
+        .catch((err) => {
+          console.warn('Failed to fetch roadList:', err);
+        })
+        .finally(() => {
+          setRoadListLoading(false);
+        });
+    }
+  }, [mapData.roadList, fetchedRoadList, roadListLoading, serverID]);
+
+  // 실제 사용할 roadList (props 우선, 없으면 fetch한 것 사용)
+  const effectiveRoadList = useMemo(() => {
+    if (mapData.roadList && mapData.roadList.length > 0) {
+      return mapData.roadList;
+    }
+    return fetchedRoadList || [];
+  }, [mapData.roadList, fetchedRoadList]);
 
   // 도시 데이터 파싱
   const parsedCities = useMemo(() => {
@@ -425,7 +455,7 @@ function MapViewerComponent({
           <div className={styles.mapBglayer2}></div>
           
           {/* 동적 도로 네트워크 (roadList가 있으면 동적, 없으면 정적 이미지) */}
-          {showRoads && mapData.roadList && mapData.roadList.length > 0 ? (
+          {showRoads && effectiveRoadList.length > 0 ? (
             <RoadNetwork
               cities={parsedCities.map(c => ({
                 id: c.id,
@@ -435,14 +465,14 @@ function MapViewerComponent({
                 nationID: c.nationID,
                 region: c.region,
               }))}
-              roads={mapData.roadList}
+              roads={effectiveRoadList}
               nations={mapData.nationList?.map(n => ({
                 id: n[0],
                 color: n[2],
               }))}
               showNationColors={false}
             />
-          ) : showRoads ? (
+          ) : showRoads && !roadListLoading ? (
             <div className={styles.mapBgroad}></div>
           ) : null}
           

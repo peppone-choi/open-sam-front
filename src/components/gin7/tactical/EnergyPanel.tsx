@@ -349,3 +349,5 @@ export default function EnergyPanel({ className = '', compact = false }: EnergyP
 
 
 
+
+

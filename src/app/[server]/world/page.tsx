@@ -233,7 +233,7 @@ export default function WorldPage() {
             {mapData && (
               <div className="overflow-hidden rounded-2xl border border-white/5 bg-gray-900/70 shadow-lg">
                 <div className="border-b border-white/10 bg-blue-500/10 px-6 py-3 text-lg font-bold text-blue-200">천하도</div>
-                <div className="relative h-[600px] bg-gray-800/30">
+                <div className="relative min-h-[350px] sm:min-h-[500px] lg:min-h-[600px] bg-gray-800/30">
                   <MapViewer serverID={serverID} mapData={mapData} isFullWidth />
                 </div>
               </div>

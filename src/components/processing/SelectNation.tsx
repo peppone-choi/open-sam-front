@@ -24,7 +24,7 @@ interface SelectNationProps {
 export default function SelectNation({
   value,
   nations,
-  searchable = true,
+  searchable = false,
   onChange
 }: SelectNationProps) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -116,4 +116,3 @@ export default function SelectNation({
     </div>
   );
 }
-

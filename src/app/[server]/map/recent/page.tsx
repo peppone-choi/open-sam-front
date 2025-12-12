@@ -151,12 +151,12 @@ export default function RecentMapPage() {
           </div>
           <div className="w-full p-2 sm:p-4">
             {showSkeleton && (
-              <div className="flex h-[420px] items-center justify-center text-gray-400">
+              <div className="flex min-h-[350px] sm:min-h-[500px] lg:min-h-[600px] items-center justify-center text-gray-400">
                 <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-white" />
               </div>
             )}
             {showMap && mapData && (
-              <div className="h-full min-h-[420px] rounded-2xl border border-white/10 bg-black/60 p-2">
+              <div className="h-full min-h-[350px] sm:min-h-[500px] lg:min-h-[600px] rounded-2xl border border-white/10 bg-black/60 p-2">
                 <MapViewer
                   serverID={serverID}
                   mapData={mapData}
@@ -166,7 +166,7 @@ export default function RecentMapPage() {
               </div>
             )}
             {!loading && !mapData && (
-              <div className="flex h-[420px] items-center justify-center text-gray-500">
+              <div className="flex min-h-[350px] sm:min-h-[500px] lg:min-h-[600px] items-center justify-center text-gray-500">
                 지도 데이터를 불러올 수 없습니다.
               </div>
             )}

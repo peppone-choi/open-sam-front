@@ -103,6 +103,7 @@ export default function DeclareWarCommandForm({
               value={selectedNationID}
               nations={nationsMap}
               onChange={setSelectedNationID}
+              searchable={false}
             />
           </div>
 
