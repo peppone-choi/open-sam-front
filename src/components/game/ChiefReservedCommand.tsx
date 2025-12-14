@@ -151,26 +151,26 @@ export default function ChiefReservedCommand({
     // 당기기/미루기 기능
     const pushCommand = useCallback(async (amount: number) => {
         try {
-            await SammoAPI.NationCommandPushCommand({ serverID, amount });
+            await SammoAPI.NationCommandPushCommand({ serverID, general_id: generalID, amount });
             showToast(`${amount > 0 ? '미루기' : '당기기'} 완료`, 'success');
             onReload?.();
         } catch (e: any) {
             console.error(e);
             showToast(e.message || '명령 이동에 실패했습니다.', 'error');
         }
-    }, [serverID, showToast, onReload]);
+    }, [serverID, generalID, showToast, onReload]);
     
     // 반복 기능
     const repeatCommand = useCallback(async (amount: number) => {
         try {
-            await SammoAPI.NationCommandRepeatCommand({ serverID, amount });
+            await SammoAPI.NationCommandRepeatCommand({ serverID, general_id: generalID, amount });
             showToast(`${amount}턴 반복 완료`, 'success');
             onReload?.();
         } catch (e: any) {
             console.error(e);
             showToast(e.message || '반복에 실패했습니다.', 'error');
         }
-    }, [serverID, showToast, onReload]);
+    }, [serverID, generalID, showToast, onReload]);
     
     // 에디트 모드 토글
     const toggleEditMode = useCallback(() => {
@@ -337,6 +337,7 @@ export default function ChiefReservedCommand({
         try {
             await SammoAPI.NationCommandReserveBulkCommand({
                 serverID,
+                general_id: generalID,
                 commands: [{ turnList, action: emptyAction.action, arg: emptyAction.arg }]
             });
             showToast('비우기 완료', 'success');
@@ -346,7 +347,7 @@ export default function ChiefReservedCommand({
             console.error(e);
             showToast(e.message || '비우기에 실패했습니다.', 'error');
         }
-    }, [selectedTurnIndices, serverID, clearSelection, showToast, onReload]);
+    }, [selectedTurnIndices, serverID, generalID, clearSelection, showToast, onReload]);
     
     // 지우고 당기기
     const eraseAndPull = useCallback(async () => {
@@ -401,6 +402,7 @@ export default function ChiefReservedCommand({
         try {
             await SammoAPI.NationCommandReserveBulkCommand({
                 serverID,
+                general_id: generalID,
                 commands
             });
             showToast('지우고 당기기 완료', 'success');
@@ -410,7 +412,7 @@ export default function ChiefReservedCommand({
             console.error(e);
             showToast(e.message || '지우고 당기기에 실패했습니다.', 'error');
         }
-    }, [selectedTurnIndices, viewMaxTurn, processedTurns, serverID, pushCommand, eraseSelectedTurns, clearSelection, showToast, onReload]);
+    }, [selectedTurnIndices, viewMaxTurn, processedTurns, serverID, generalID, pushCommand, eraseSelectedTurns, clearSelection, showToast, onReload]);
     
     // 뒤로 밀기
     const pushEmpty = useCallback(async () => {
@@ -459,6 +461,7 @@ export default function ChiefReservedCommand({
         try {
             await SammoAPI.NationCommandReserveBulkCommand({
                 serverID,
+                general_id: generalID,
                 commands
             });
             showToast('뒤로 밀기 완료', 'success');
@@ -468,7 +471,7 @@ export default function ChiefReservedCommand({
             console.error(e);
             showToast(e.message || '뒤로 밀기에 실패했습니다.', 'error');
         }
-    }, [selectedTurnIndices, viewMaxTurn, processedTurns, serverID, pushCommand, clearSelection, showToast, onReload]);
+    }, [selectedTurnIndices, viewMaxTurn, processedTurns, serverID, generalID, pushCommand, clearSelection, showToast, onReload]);
     
     // 선택한 패턴 반복하기
     const subRepeatCommand = useCallback(async () => {
@@ -547,6 +550,7 @@ export default function ChiefReservedCommand({
         try {
             await SammoAPI.NationCommandReserveBulkCommand({
                 serverID,
+                general_id: generalID,
                 commands
             });
             onReload?.();
@@ -554,7 +558,7 @@ export default function ChiefReservedCommand({
             console.error(e);
             showToast(e.message || '명령 예약에 실패했습니다.', 'error');
         }
-    }, [viewMaxTurn, serverID, showToast, onReload]);
+    }, [viewMaxTurn, serverID, generalID, showToast, onReload]);
     
     // 보관함 적용
     const applyStoredActions = useCallback(async (actions: StoredAction[]) => {
@@ -583,6 +587,7 @@ export default function ChiefReservedCommand({
         try {
             await SammoAPI.NationCommandReserveBulkCommand({
                 serverID,
+                general_id: generalID,
                 commands: [{ turnList, action: action.action, arg: action.arg || {} }]
             });
             showToast('적용 완료', 'success');
@@ -592,7 +597,7 @@ export default function ChiefReservedCommand({
             console.error(e);
             showToast(e.message || '적용에 실패했습니다.', 'error');
         }
-    }, [selectedTurnIndices, serverID, clearSelection, showToast, onReload]);
+    }, [selectedTurnIndices, serverID, generalID, clearSelection, showToast, onReload]);
     
     // 범위 선택 (홀수턴, 짝수턴, N턴 간격)
     const selectByStep = useCallback((offset: number, step: number) => {

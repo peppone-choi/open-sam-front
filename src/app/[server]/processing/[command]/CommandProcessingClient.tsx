@@ -636,6 +636,7 @@ export default function CommandProcessingClient({
     if (isChief) {
       result = await SammoAPI.NationCommandReserveCommand({
         serverID,
+        general_id: generalID,
         action: command,
         turnList,
         arg: args,

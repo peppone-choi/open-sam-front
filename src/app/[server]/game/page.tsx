@@ -389,7 +389,7 @@ export default function GamePage() {
           </span>
           <span className="text-gray-500">|</span>
           <span className="text-gray-400">
-            【 접속자 】 <span className="text-white font-medium">{frontInfo.nation?.onlineGen ?? 0}명</span>
+            【 접속자 】 <span className="text-white font-medium">{frontInfo.nation?.onlineGen || '-'}</span>
           </span>
         </div>
         {/* 빠른 스크롤 버튼 (데스크탑) */}

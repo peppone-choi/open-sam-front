@@ -263,7 +263,7 @@ export interface GetFrontInfoResponse {
     name: string;
     color: string;
     level: number;
-    onlineGen?: number; // 국가 내 접속자 수
+    onlineGen?: string; // 국가 내 접속 장수 목록 (쉼표 구분)
     notice?: { msg: string };
     [key: string]: any;
   } | null;
@@ -1873,6 +1873,35 @@ export class SammoAPI {
     });
   }
 
+  /**
+   * 장수 추방 (수뇌부 전용)
+   */
+  static async KickGeneral(params: {
+    serverID?: string;
+    session_id?: string;
+    destGeneralID: number;
+  }): Promise<{
+    result: boolean;
+    success?: boolean;
+    message?: string;
+    reason?: string;
+  }> {
+    const body: Record<string, any> = {
+      destGeneralID: params.destGeneralID,
+    };
+
+    if (params.session_id) {
+      body.session_id = params.session_id;
+    } else if (params.serverID) {
+      body.session_id = params.serverID;
+    }
+
+    return this.request('/api/game/officer/kick', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  }
+
   static async Vacation(params?: {
     session_id?: string;
   }): Promise<{
@@ -2499,7 +2528,16 @@ export class SammoAPI {
     month?: number;
     seed?: string;
     repeatCount?: number;
-    units: Array<{
+    attacker?: {
+      nation: any;
+      general: any;
+    };
+    defenders?: Array<{
+      nation: any;
+      general: any;
+    }>;
+    // Legacy format support
+    units?: Array<{
       id: string;
       x: number;
       y: number;
@@ -2509,7 +2547,22 @@ export class SammoAPI {
     }>;
   }): Promise<{
     result: boolean;
-    simulation: any;
+    simulation?: {
+      warcnt?: number;
+      phase?: number;
+      killed?: number;
+      dead?: number;
+      minKilled?: number;
+      maxKilled?: number;
+      minDead?: number;
+      maxDead?: number;
+      attackerRice?: number;
+      defenderRice?: number;
+      attackerSkills?: string[];
+      defenderSkills?: string[][];
+      battleLog?: string;
+      detailLog?: string;
+    };
     reason?: string;
   }> {
     return this.request('/api/battle/simulate', {

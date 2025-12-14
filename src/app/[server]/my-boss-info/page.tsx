@@ -43,6 +43,15 @@ interface OfficerData {
       npc: number;
     }>;
   }>;
+  ambassadors?: Array<{ no: number; name: string; officerLevel: number }>;
+  auditors?: Array<{ no: number; name: string; officerLevel: number }>;
+  candidateAmbassadors?: Array<{ no: number; name: string; officerLevel: number; selected: boolean }>;
+  candidateAuditors?: Array<{ no: number; name: string; officerLevel: number; selected: boolean }>;
+}
+
+interface CityAppointmentSelection {
+  cityId: number;
+  generalId: number;
 }
 
 const CITY_LEVELS = ["", "촌", "소", "중", "대", "도", "거", "요", "주", "기"];
@@ -77,6 +86,23 @@ export default function PersonnelPage() {
   const [generals, setGenerals] = useState<any[]>([]);
   const [chiefSelections, setChiefSelections] = useState<Record<number, number>>({});
   const [appointingLevels, setAppointingLevels] = useState<Record<number, boolean>>({});
+  
+  // 도시 관직 임명 상태
+  const [cityAppointments, setCityAppointments] = useState<Record<number, CityAppointmentSelection>>({
+    4: { cityId: 0, generalId: 0 },
+    3: { cityId: 0, generalId: 0 },
+    2: { cityId: 0, generalId: 0 },
+  });
+  const [appointingCityLevels, setAppointingCityLevels] = useState<Record<number, boolean>>({});
+  
+  // 추방 상태
+  const [kickTargetId, setKickTargetId] = useState<number>(0);
+  const [isKicking, setIsKicking] = useState(false);
+  
+  // 외교권자/조언자 상태
+  const [selectedAmbassadors, setSelectedAmbassadors] = useState<number[]>([]);
+  const [selectedAuditors, setSelectedAuditors] = useState<number[]>([]);
+  const [isSettingPermission, setIsSettingPermission] = useState(false);
 
   const loadAllData = useCallback(async () => {
     if (!serverID) {
@@ -110,6 +136,14 @@ export default function PersonnelPage() {
       }).catch(() => null);
 
       setOfficerData(officerResult?.result ? officerResult.officer : null);
+      
+      // 외교권자/조언자 선택 초기화
+      if (officerResult?.result && officerResult.officer) {
+        const ambassadorIds = (officerResult.officer.ambassadors || []).map((a: any) => a.no);
+        const auditorIds = (officerResult.officer.auditors || []).map((a: any) => a.no);
+        setSelectedAmbassadors(ambassadorIds);
+        setSelectedAuditors(auditorIds);
+      }
 
       const generalsResult = await SammoAPI.NationGetGenerals({ serverID }).catch(() => null);
       if (generalsResult?.result) {
@@ -190,6 +224,135 @@ export default function PersonnelPage() {
     [chiefSelections, cityConstMap?.officerTitles, generals, officerData?.nation.level, loadAllData, nationData?.level, serverID]
   );
 
+  // 도시 관직 임명 핸들러
+  const handleCityAppointmentChange = useCallback((level: number, field: 'cityId' | 'generalId', value: number) => {
+    setCityAppointments((prev) => ({
+      ...prev,
+      [level]: { ...prev[level], [field]: value },
+    }));
+  }, []);
+
+  const handleCityAppoint = useCallback(
+    async (level: number) => {
+      if (!serverID) return;
+
+      const { cityId, generalId } = cityAppointments[level] || {};
+      if (!cityId) {
+        showToast("도시를 선택해주세요.", "warning");
+        return;
+      }
+
+      const officerLevelText = formatOfficerLevelText(
+        level,
+        officerData?.nation.level ?? nationData?.level ?? 0,
+        cityConstMap?.officerTitles
+      );
+
+      const cityName = officerData?.cities.find((c) => c.city === cityId)?.name ?? `도시 ${cityId}`;
+
+      if (generalId) {
+        const target = generals.find((gen) => (gen.no ?? gen.id ?? gen.generalNo) === generalId);
+        const generalName = target?.name ?? "선택된 장수";
+        if (!window.confirm(`${generalName}을(를) ${cityName}의 ${officerLevelText}로 임명하시겠습니까?`)) {
+          return;
+        }
+      } else {
+        if (!window.confirm(`${cityName}의 ${officerLevelText} 직을 비우시겠습니까?`)) {
+          return;
+        }
+      }
+
+      setAppointingCityLevels((prev) => ({ ...prev, [level]: true }));
+      try {
+        const result = await SammoAPI.OfficerAppoint({
+          serverID,
+          officerLevel: level,
+          destGeneralID: generalId || 0,
+          destCityID: cityId,
+        });
+        if (!result?.result) {
+          showToast(result?.reason ?? "임명에 실패했습니다.", "error");
+          return;
+        }
+        showToast("임명에 성공했습니다.", "success");
+        await loadAllData();
+      } catch (err) {
+        console.error(err);
+        showToast("임명 요청 중 오류가 발생했습니다.", "error");
+      } finally {
+        setAppointingCityLevels((prev) => ({ ...prev, [level]: false }));
+      }
+    },
+    [cityAppointments, cityConstMap?.officerTitles, generals, loadAllData, nationData?.level, officerData?.cities, officerData?.nation.level, serverID, showToast]
+  );
+
+  // 추방 핸들러
+  const handleKick = useCallback(async () => {
+    if (!serverID || !kickTargetId) {
+      showToast("추방할 장수를 선택해주세요.", "warning");
+      return;
+    }
+
+    const target = generals.find((gen) => (gen.no ?? gen.id ?? gen.generalNo) === kickTargetId);
+    const generalName = target?.name ?? "선택된 장수";
+
+    if (!window.confirm(`정말 ${generalName}을(를) 추방하시겠습니까?\n추방된 장수는 재야가 되며, 금/쌀의 일부가 국고로 귀속됩니다.`)) {
+      return;
+    }
+
+    setIsKicking(true);
+    try {
+      const result = await SammoAPI.KickGeneral({
+        serverID,
+        destGeneralID: kickTargetId,
+      });
+      if (!result?.result) {
+        showToast(result?.reason ?? "추방에 실패했습니다.", "error");
+        return;
+      }
+      showToast(`${generalName}을(를) 추방했습니다.`, "success");
+      setKickTargetId(0);
+      await loadAllData();
+    } catch (err) {
+      console.error(err);
+      showToast("추방 요청 중 오류가 발생했습니다.", "error");
+    } finally {
+      setIsKicking(false);
+    }
+  }, [generals, kickTargetId, loadAllData, serverID, showToast]);
+
+  // 외교권자/조언자 임명 핸들러
+  const handleSetPermission = useCallback(async (type: 'ambassador' | 'auditor') => {
+    if (!serverID) return;
+
+    const selectedIds = type === 'ambassador' ? selectedAmbassadors : selectedAuditors;
+    const typeName = type === 'ambassador' ? '외교권자' : '조언자';
+
+    if (!window.confirm(`선택한 장수들을 ${typeName}로 임명하시겠습니까?`)) {
+      return;
+    }
+
+    setIsSettingPermission(true);
+    try {
+      const result = await SammoAPI.SetGeneralPermission({
+        session_id: serverID,
+        isAmbassador: type === 'ambassador',
+        genlist: selectedIds,
+      });
+      if (!result?.result) {
+        showToast(result?.reason ?? `${typeName} 임명에 실패했습니다.`, "error");
+        return;
+      }
+      showToast(`${typeName} 임명에 성공했습니다.`, "success");
+      await loadAllData();
+    } catch (err) {
+      console.error(err);
+      showToast(`${typeName} 임명 요청 중 오류가 발생했습니다.`, "error");
+    } finally {
+      setIsSettingPermission(false);
+    }
+  }, [loadAllData, selectedAmbassadors, selectedAuditors, serverID, showToast]);
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-6 lg:p-8 font-sans">
       <TopBackBar title="인 사 부" reloadable onReload={loadAllData} />
@@ -209,6 +372,20 @@ export default function PersonnelPage() {
             onChangeSelection={handleChiefSelectionChange}
             onAppoint={handleChiefAppoint}
             appointingLevels={appointingLevels}
+            cityAppointments={cityAppointments}
+            onChangeCityAppointment={handleCityAppointmentChange}
+            onCityAppoint={handleCityAppoint}
+            appointingCityLevels={appointingCityLevels}
+            kickTargetId={kickTargetId}
+            onKickTargetChange={setKickTargetId}
+            onKick={handleKick}
+            isKicking={isKicking}
+            selectedAmbassadors={selectedAmbassadors}
+            onAmbassadorsChange={setSelectedAmbassadors}
+            selectedAuditors={selectedAuditors}
+            onAuditorsChange={setSelectedAuditors}
+            onSetPermission={handleSetPermission}
+            isSettingPermission={isSettingPermission}
           />
         </div>
       )}
@@ -225,6 +402,14 @@ function PersonnelTables({
   onChangeSelection,
   onAppoint,
   appointingLevels,
+  cityAppointments,
+  onChangeCityAppointment,
+  onCityAppoint,
+  appointingCityLevels,
+  kickTargetId,
+  onKickTargetChange,
+  onKick,
+  isKicking,
 }: {
   officerData: OfficerData | null;
   officerTitles?: Record<string, Record<string, string>>;
@@ -234,6 +419,20 @@ function PersonnelTables({
   onChangeSelection: (level: number, generalId: number) => void;
   onAppoint: (level: number) => void | Promise<void>;
   appointingLevels: Record<number, boolean>;
+  cityAppointments: Record<number, CityAppointmentSelection>;
+  onChangeCityAppointment: (level: number, field: 'cityId' | 'generalId', value: number) => void;
+  onCityAppoint: (level: number) => void | Promise<void>;
+  appointingCityLevels: Record<number, boolean>;
+  kickTargetId: number;
+  onKickTargetChange: (id: number) => void;
+  onKick: () => void | Promise<void>;
+  isKicking: boolean;
+  selectedAmbassadors: number[];
+  onAmbassadorsChange: (ids: number[]) => void;
+  selectedAuditors: number[];
+  onAuditorsChange: (ids: number[]) => void;
+  onSetPermission: (type: 'ambassador' | 'auditor') => void | Promise<void>;
+  isSettingPermission: boolean;
 }) {
   const cityNameMap = useMemo(() => {
     const map = new Map<number, string>();
@@ -425,6 +624,180 @@ function PersonnelTables({
         </div>
       </div>
 
+      {/* 외교권자/조언자 임명 섹션 (군주 전용) */}
+      {officerData.meLevel === 12 && (
+        <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
+          <div className="py-3 px-6 text-center font-bold bg-purple-600/80 text-white">
+            외 교 권 자 임 명
+          </div>
+          <div className="p-4 space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* 외교권자 */}
+              <div className="flex-1 p-3 bg-black/20 rounded-lg border border-white/5">
+                <div className="text-sm font-bold text-purple-300 mb-2">외교권자 (최대 2명)</div>
+                <select
+                  multiple
+                  className="w-full h-32 bg-black/60 border border-white/10 rounded px-3 py-2 text-sm"
+                  value={selectedAmbassadors.map(String)}
+                  onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions, option => Number(option.value));
+                    if (selected.length <= 2) {
+                      onAmbassadorsChange(selected);
+                    }
+                  }}
+                >
+                  {(officerData.candidateAmbassadors || []).map((gen) => (
+                    <option 
+                      key={gen.no} 
+                      value={gen.no}
+                      style={{ color: gen.selected ? '#a855f7' : 'inherit' }}
+                    >
+                      {gen.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className={cn(
+                    "w-full mt-2 px-4 py-2 text-sm font-bold rounded transition-colors border border-white/10",
+                    isSettingPermission ? "bg-gray-700 text-gray-400" : "bg-purple-600 hover:bg-purple-500 text-white"
+                  )}
+                  onClick={() => onSetPermission('ambassador')}
+                  disabled={isSettingPermission}
+                >
+                  {isSettingPermission ? "처리 중" : "임명"}
+                </button>
+              </div>
+              
+              {/* 조언자 */}
+              <div className="flex-1 p-3 bg-black/20 rounded-lg border border-white/5">
+                <div className="text-sm font-bold text-purple-300 mb-2">조언자</div>
+                <select
+                  multiple
+                  className="w-full h-32 bg-black/60 border border-white/10 rounded px-3 py-2 text-sm"
+                  value={selectedAuditors.map(String)}
+                  onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions, option => Number(option.value));
+                    onAuditorsChange(selected);
+                  }}
+                >
+                  {(officerData.candidateAuditors || []).map((gen) => (
+                    <option 
+                      key={gen.no} 
+                      value={gen.no}
+                      style={{ color: gen.selected ? '#a855f7' : 'inherit' }}
+                    >
+                      {gen.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className={cn(
+                    "w-full mt-2 px-4 py-2 text-sm font-bold rounded transition-colors border border-white/10",
+                    isSettingPermission ? "bg-gray-700 text-gray-400" : "bg-purple-600 hover:bg-purple-500 text-white"
+                  )}
+                  onClick={() => onSetPermission('auditor')}
+                  disabled={isSettingPermission}
+                >
+                  {isSettingPermission ? "처리 중" : "임명"}
+                </button>
+              </div>
+            </div>
+            <div className="text-xs text-gray-500 text-center">
+              ※ <span className="text-purple-400">보라색</span>은 현재 임명된 장수입니다. 외교권자는 사관 24개월 이상, 조언자는 사관 12개월 이상이어야 합니다.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 도시 관직 임명 섹션 */}
+      {canAppointChief && (
+        <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
+          <div className="py-3 px-6 text-center font-bold bg-orange-600/80 text-white">
+            도 시 관 직 임 명
+          </div>
+          <div className="p-4 space-y-4">
+            {[4, 3, 2].map((level) => {
+              const officerTitle = getOfficerTitle(level);
+              const candidates = level === 4 ? candidateStrength : level === 3 ? candidateIntel : candidateAny;
+              const selection = cityAppointments[level] || { cityId: 0, generalId: 0 };
+              const isProcessing = appointingCityLevels[level];
+              
+              // 임명 가능한 도시 (officer_set에서 해당 레벨이 설정되지 않은 도시)
+              const availableCities = cities.filter((city) => {
+                const mask = 1 << level;
+                return ((city.officer_set || 0) & mask) === 0;
+              });
+
+              return (
+                <div key={level} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-black/20 rounded-lg border border-white/5">
+                  <div className="w-24 text-sm font-bold text-orange-300 flex-shrink-0">
+                    {officerTitle} 임명
+                  </div>
+                  <div className="flex flex-col sm:flex-row flex-1 gap-2">
+                    <select
+                      className="flex-1 bg-black/60 border border-white/10 rounded px-3 py-2 text-sm"
+                      value={selection.cityId}
+                      onChange={(e) => onChangeCityAppointment(level, 'cityId', Number(e.target.value))}
+                    >
+                      <option value={0}>도시 선택...</option>
+                      {sortedRegions.map((region) => (
+                        <optgroup key={region} label={`【 ${REGION_NAMES[region] || "기타"} 】`}>
+                          {(groupedCities[region] || [])
+                            .filter((city) => availableCities.some((ac) => ac.city === city.city))
+                            .map((city) => (
+                              <option key={city.city} value={city.city}>
+                                {city.name}
+                              </option>
+                            ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                    <select
+                      className="flex-1 bg-black/60 border border-white/10 rounded px-3 py-2 text-sm"
+                      value={selection.generalId}
+                      onChange={(e) => onChangeCityAppointment(level, 'generalId', Number(e.target.value))}
+                    >
+                      <option value={0}>____공석____</option>
+                      {candidates.map((gen) => {
+                        const isCurrentOfficer = gen.officer_level === level;
+                        const isOtherOfficer = gen.officer_level > 1;
+                        const genCityName = gen.city ? cityNameMap.get(gen.city) || `도시 ${gen.city}` : '';
+                        return (
+                          <option
+                            key={gen.no}
+                            value={gen.no}
+                            style={{ color: isCurrentOfficer ? '#ef4444' : isOtherOfficer ? '#f97316' : 'inherit' }}
+                          >
+                            {gen.name}
+                            {gen.city ? ` 【${genCityName}】` : ''} ({gen.leadership}/{gen.strength}/{gen.intel})
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <button
+                      type="button"
+                      className={cn(
+                        "px-4 py-2 text-sm font-bold rounded transition-colors border border-white/10 flex-shrink-0",
+                        isProcessing ? "bg-gray-700 text-gray-400" : "bg-orange-600 hover:bg-orange-500 text-white"
+                      )}
+                      onClick={() => onCityAppoint(level)}
+                      disabled={isProcessing || !selection.cityId}
+                    >
+                      {isProcessing ? "처리 중" : "임명"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+            <div className="text-xs text-gray-500 text-center mt-2">
+              ※ <span className="text-red-400">빨간색</span>은 현재 임명중인 장수, <span className="text-orange-400">노란색</span>은 다른 관직에 임명된 장수, 흰색은 일반 장수를 뜻합니다.
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
@@ -500,6 +873,56 @@ function PersonnelTables({
           <span className="text-orange-400">※ 노란색</span>은 변경 불가능, <span className="text-gray-400">회색</span>은 변경 가능 관직입니다.
         </div>
       </div>
+
+      {/* 추방 섹션 */}
+      {canAppointChief && (
+        <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
+          <div className="py-3 px-6 text-center font-bold bg-red-600/80 text-white">
+            추 방
+          </div>
+          <div className="p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-black/20 rounded-lg border border-white/5">
+              <div className="w-24 text-sm font-bold text-red-300 flex-shrink-0">
+                대상 장수
+              </div>
+              <div className="flex flex-col sm:flex-row flex-1 gap-2">
+                <select
+                  className="flex-1 bg-black/60 border border-white/10 rounded px-3 py-2 text-sm"
+                  value={kickTargetId}
+                  onChange={(e) => onKickTargetChange(Number(e.target.value))}
+                >
+                  <option value={0}>장수 선택...</option>
+                  {candidateAny
+                    .filter((gen) => gen.officer_level !== 12) // 군주는 추방 불가
+                    .map((gen) => {
+                      const genCityName = gen.city ? cityNameMap.get(gen.city) || `도시 ${gen.city}` : '';
+                      return (
+                        <option key={gen.no} value={gen.no}>
+                          {gen.name}
+                          {gen.city ? ` 【${genCityName}】` : ''} ({gen.leadership}/{gen.strength}/{gen.intel})
+                        </option>
+                      );
+                    })}
+                </select>
+                <button
+                  type="button"
+                  className={cn(
+                    "px-4 py-2 text-sm font-bold rounded transition-colors border border-white/10 flex-shrink-0",
+                    isKicking ? "bg-gray-700 text-gray-400" : "bg-red-600 hover:bg-red-500 text-white"
+                  )}
+                  onClick={onKick}
+                  disabled={isKicking || !kickTargetId}
+                >
+                  {isKicking ? "처리 중" : "추방"}
+                </button>
+              </div>
+            </div>
+            <div className="text-xs text-gray-500 text-center mt-3">
+              ※ 추방된 장수는 재야가 되며, 금/쌀의 일부가 국고로 귀속됩니다. 초반 3년간은 군주에게 부상이 증가합니다.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
