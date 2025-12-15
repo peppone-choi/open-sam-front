@@ -115,6 +115,8 @@ export default function MyPage() {
                   <InfoItem label="통솔" value={frontInfo.general.leadership || frontInfo.general.data?.leadership || 0} />
                   <InfoItem label="무력" value={frontInfo.general.strength || frontInfo.general.data?.strength || 0} />
                   <InfoItem label="지력" value={frontInfo.general.intel || frontInfo.general.data?.intel || 0} />
+                  <InfoItem label="정치" value={frontInfo.general.politics || frontInfo.general.data?.politics || 0} />
+                  <InfoItem label="매력" value={frontInfo.general.charm || frontInfo.general.data?.charm || 0} />
                 </>
               )}
               
