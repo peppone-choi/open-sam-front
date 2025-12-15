@@ -47,7 +47,7 @@ export default function GameSelectPage() {
               </div>
               <div className="flex items-center">
                 <span className="text-2xl mr-3">📊</span>
-                <span>능력치: 통솔, 무력, 지력, 정치</span>
+                <span>능력치: 통솔, 무력, 지력, 정치, 매력</span>
               </div>
             </div>
 

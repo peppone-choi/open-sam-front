@@ -436,7 +436,7 @@ export function calculateGeneralPowerScore(general: ApiGeneral): number {
  * 장수 스탯 요약 문자열 생성 (UI용)
  */
 export function getGeneralStatsSummary(general: ApiGeneral): string {
-  return `통:${general.leadership} 무:${general.strength} 지:${general.intel}`;
+  return `통:${general.leadership} 무:${general.strength} 지:${general.intel} 정:${general.politics} 매:${general.charm}`;
 }
 
 /**

@@ -525,7 +525,7 @@ function PersonnelTables({
                   return (
                     <option key={gen.no} value={gen.no}>
                       {gen.name}
-                      {gen.city ? ` 【${candidateCityName}】` : ""} ({gen.leadership}/{gen.strength}/{gen.intel})
+                      {gen.city ? ` 【${candidateCityName}】` : ""} ({gen.leadership}/{gen.strength}/{gen.intel}/{gen.politics}/{gen.charm})
                     </option>
                   );
                 })}
@@ -771,7 +771,7 @@ function PersonnelTables({
                             style={{ color: isCurrentOfficer ? '#ef4444' : isOtherOfficer ? '#f97316' : 'inherit' }}
                           >
                             {gen.name}
-                            {gen.city ? ` 【${genCityName}】` : ''} ({gen.leadership}/{gen.strength}/{gen.intel})
+                            {gen.city ? ` 【${genCityName}】` : ''} ({gen.leadership}/{gen.strength}/{gen.intel}/{gen.politics}/{gen.charm})
                           </option>
                         );
                       })}
@@ -899,7 +899,7 @@ function PersonnelTables({
                       return (
                         <option key={gen.no} value={gen.no}>
                           {gen.name}
-                          {gen.city ? ` 【${genCityName}】` : ''} ({gen.leadership}/{gen.strength}/{gen.intel})
+                          {gen.city ? ` 【${genCityName}】` : ''} ({gen.leadership}/{gen.strength}/{gen.intel}/{gen.politics}/{gen.charm})
                         </option>
                       );
                     })}
