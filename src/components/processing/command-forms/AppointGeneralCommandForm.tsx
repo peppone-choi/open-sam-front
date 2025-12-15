@@ -95,7 +95,7 @@ export default function AppointGeneralCommandForm({
 
     const cityName = citiesMap.get(gen.cityID || 0)?.name || '';
 
-    return `${name} [${cityName}${troopText}] (${gen.leadership}/${gen.strength}/${gen.intel}) <병${(gen.crew || 0).toLocaleString()}/훈${gen.train}/사${gen.atmos}>`;
+    return `${name} [${cityName}${troopText}] (${gen.leadership}/${gen.strength}/${gen.intel}/${gen.politics}/${gen.charm}) <병${(gen.crew || 0).toLocaleString()}/훈${gen.train}/사${gen.atmos}>`;
   };
 
   return (

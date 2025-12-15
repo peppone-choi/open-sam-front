@@ -85,7 +85,7 @@ export default function SelectGeneral({
 
       const title = textHelper 
         ? textHelper(gen)
-        : `${name} (${gen.leadership}/${gen.strength}/${gen.intel})`;
+        : `${name} (${gen.leadership}/${gen.strength}/${gen.intel}/${gen.politics}/${gen.charm})`;
 
       const option: SelectedGeneral = {
         value: gen.no,

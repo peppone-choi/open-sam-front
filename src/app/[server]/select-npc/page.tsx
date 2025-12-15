@@ -350,6 +350,9 @@ export default function SelectNPCPage() {
                               <span>지력 <span className="text-white font-mono">{npc.intel}</span></span>
                               <span>정치 <span className="text-white font-mono">{npc.politics}</span></span>
                            </div>
+                           <div className="flex justify-between">
+                              <span>매력 <span className="text-white font-mono">{npc.charm}</span></span>
+                           </div>
                         </div>
 
                         {npc.personal !== 'None' && (
