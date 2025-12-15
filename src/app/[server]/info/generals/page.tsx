@@ -137,8 +137,8 @@ function GeneralsInfoContent() {
                       <td className="py-3 px-4 text-center font-mono">{general.leadership || 0}</td>
                       <td className="py-3 px-4 text-center font-mono">{general.strength || 0}</td>
                       <td className="py-3 px-4 text-center font-mono">{general.intel || 0}</td>
-                      <td className="py-3 px-4 text-center font-mono">{general.experience || 0}</td>
-                      <td className="py-3 px-4 text-center font-mono">{general.dedlevel || 0}</td>
+                      <td className="py-3 px-4 text-center font-mono">{general.politics || 0}</td>
+                      <td className="py-3 px-4 text-center font-mono">{general.charm || 0}</td>
                       <td className="py-3 px-4 text-right font-mono text-blue-300">{general.crew?.toLocaleString() || 0}</td>
                       <td className="py-3 px-4 text-center text-gray-300">{getCrewTypeName(general.crewtype || 0)}</td>
                       <td className="py-3 px-4 text-center text-gray-300">

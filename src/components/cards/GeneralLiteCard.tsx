@@ -20,9 +20,13 @@ interface GeneralLiteCardProps {
     leadership?: number;
     strength?: number;
     intel?: number;
+    politics?: number;
+    charm?: number;
     lbonus?: number;
     sbonus?: number;
     ibonus?: number;
+    pbonus?: number;
+    cbonus?: number;
     gold?: number;
     rice?: number;
     personal?: string;
@@ -177,7 +181,7 @@ export default function GeneralLiteCard({
 
       {/* 능력치 + 정보 그리드 */}
       <div className="grid grid-cols-6 gap-px bg-white/5 text-xs">
-        {/* 능력치 행 */}
+        {/* 능력치 1행: 통솔/무력/지력 */}
         <div className="bg-gray-800/80 p-1.5 text-center text-white/60">통솔</div>
         <div className="bg-gray-900/80 p-1.5 text-center">
           <span style={{ color: injuryInfo[1] }}>
@@ -211,11 +215,21 @@ export default function GeneralLiteCard({
           })}
         </div>
 
-        {/* 자금/군량/성격 행 */}
-        <div className="bg-gray-800/80 p-1.5 text-center text-white/60">자금</div>
-        <div className="bg-gray-900/80 p-1.5 text-center">{(general.gold || 0).toLocaleString()}</div>
-        <div className="bg-gray-800/80 p-1.5 text-center text-white/60">군량</div>
-        <div className="bg-gray-900/80 p-1.5 text-center">{(general.rice || 0).toLocaleString()}</div>
+        {/* 능력치 2행: 정치/매력/성격 */}
+        <div className="bg-gray-800/80 p-1.5 text-center text-white/60">정치</div>
+        <div className="bg-gray-900/80 p-1.5 text-center">
+          {general.politics ?? 0}
+          {typeof general.pbonus === 'number' && general.pbonus > 0 && (
+            <span style={{ color: 'cyan' }}>+{general.pbonus}</span>
+          )}
+        </div>
+        <div className="bg-gray-800/80 p-1.5 text-center text-white/60">매력</div>
+        <div className="bg-gray-900/80 p-1.5 text-center">
+          {general.charm ?? 0}
+          {typeof general.cbonus === 'number' && general.cbonus > 0 && (
+            <span style={{ color: 'cyan' }}>+{general.cbonus}</span>
+          )}
+        </div>
         <div className="bg-gray-800/80 p-1.5 text-center text-white/60">성격</div>
         <div className="bg-gray-900/80 p-1.5 text-center">
           <Tooltip content={personalInfo.info}>
@@ -223,15 +237,11 @@ export default function GeneralLiteCard({
           </Tooltip>
         </div>
 
-        {/* Lv/연령/특기 행 */}
-        <div className="bg-gray-800/80 p-1.5 text-center text-white/60">Lv</div>
-        <div className="bg-gray-900/80 p-1.5 text-center font-semibold" style={{ color: colorSystem?.success || '#4CAF50' }}>
-          {general.explevel || 0}
-        </div>
-        <div className="bg-gray-800/80 p-1.5 text-center text-white/60">연령</div>
-        <div className="bg-gray-900/80 p-1.5 text-center" style={{ color: ageColor }}>
-          {age}세
-        </div>
+        {/* 자금/군량/특기 행 */}
+        <div className="bg-gray-800/80 p-1.5 text-center text-white/60">자금</div>
+        <div className="bg-gray-900/80 p-1.5 text-center">{(general.gold || 0).toLocaleString()}</div>
+        <div className="bg-gray-800/80 p-1.5 text-center text-white/60">군량</div>
+        <div className="bg-gray-900/80 p-1.5 text-center">{(general.rice || 0).toLocaleString()}</div>
         <div className="bg-gray-800/80 p-1.5 text-center text-white/60">특기</div>
         <div className="bg-gray-900/80 p-1.5 text-center">
           <Tooltip content={specialDomesticInfo.info}>
@@ -243,11 +253,21 @@ export default function GeneralLiteCard({
           </Tooltip>
         </div>
 
-        {/* 삭턴/벌점 행 */}
+        {/* Lv/연령/삭턴/벌점 행 */}
+        <div className="bg-gray-800/80 p-1.5 text-center text-white/60">Lv</div>
+        <div className="bg-gray-900/80 p-1.5 text-center font-semibold" style={{ color: colorSystem?.success || '#4CAF50' }}>
+          {general.explevel || 0}
+        </div>
+        <div className="bg-gray-800/80 p-1.5 text-center text-white/60">연령</div>
+        <div className="bg-gray-900/80 p-1.5 text-center" style={{ color: ageColor }}>
+          {age}세
+        </div>
         <div className="bg-gray-800/80 p-1.5 text-center text-white/60">삭턴</div>
-        <div className="bg-gray-900/80 p-1.5 text-center">{general.killturn || 0} 턴</div>
+        <div className="bg-gray-900/80 p-1.5 text-center">{general.killturn || 0}턴</div>
+
+        {/* 벌점 행 */}
         <div className="bg-gray-800/80 p-1.5 text-center text-white/60">벌점</div>
-        <div className="col-span-3 bg-gray-900/80 p-1.5 text-center">
+        <div className="col-span-5 bg-gray-900/80 p-1.5 text-center">
           {formatRefreshScore(general.refreshScoreTotal || 0)} {(general.refreshScoreTotal || 0).toLocaleString()}점
         </div>
       </div>

@@ -87,6 +87,8 @@ function NPCListContent() {
                     <th className="py-3 px-4 whitespace-nowrap text-center">통솔</th>
                     <th className="py-3 px-4 whitespace-nowrap text-center">무력</th>
                     <th className="py-3 px-4 whitespace-nowrap text-center">지력</th>
+                    <th className="py-3 px-4 whitespace-nowrap text-center">정치</th>
+                    <th className="py-3 px-4 whitespace-nowrap text-center">매력</th>
                     <th className="py-3 px-4 whitespace-nowrap text-center">성격</th>
                   </tr>
                 </thead>
@@ -98,12 +100,14 @@ function NPCListContent() {
                       <td className="py-3 px-4 text-center font-mono">{npc.leadership}</td>
                       <td className="py-3 px-4 text-center font-mono">{npc.strength}</td>
                       <td className="py-3 px-4 text-center font-mono">{npc.intel}</td>
+                      <td className="py-3 px-4 text-center font-mono">{npc.politics}</td>
+                      <td className="py-3 px-4 text-center font-mono">{npc.charm}</td>
                       <td className="py-3 px-4 text-center text-gray-400">{npc.character || '-'}</td>
                     </tr>
                   ))}
                   {npcList.length === 0 && (
                      <tr>
-                        <td colSpan={6} className="py-8 text-center text-gray-500">
+                        <td colSpan={8} className="py-8 text-center text-gray-500">
                            데이터가 없습니다.
                         </td>
                      </tr>
