@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Scene,
   OrthographicCamera,
@@ -49,6 +49,72 @@ interface CubeEntry {
 }
 
 /**
+ * Material 풀 - 색상별 MeshStandardMaterial 캐싱
+ * Three.js Material 생성은 비싸므로 동일 색상은 재사용
+ */
+class MaterialPool {
+  private cache: Map<number, MeshStandardMaterial> = new Map();
+  
+  get(color: number): MeshStandardMaterial {
+    let mat = this.cache.get(color);
+    if (!mat) {
+      mat = new MeshStandardMaterial({ color });
+      this.cache.set(color, mat);
+    }
+    return mat;
+  }
+  
+  dispose(): void {
+    this.cache.forEach(mat => mat.dispose());
+    this.cache.clear();
+  }
+  
+  get size(): number {
+    return this.cache.size;
+  }
+}
+
+/**
+ * Mesh 오브젝트 풀 - 생성/파괴 비용 절감
+ */
+class MeshPool {
+  private available: Mesh[] = [];
+  private geometry: BoxGeometry;
+  
+  constructor(geometry: BoxGeometry) {
+    this.geometry = geometry;
+  }
+  
+  acquire(material: MeshStandardMaterial): Mesh {
+    let mesh = this.available.pop();
+    if (!mesh) {
+      mesh = new Mesh(this.geometry, material);
+    } else {
+      mesh.material = material;
+      mesh.visible = true;
+    }
+    return mesh;
+  }
+  
+  release(mesh: Mesh, scene: Scene): void {
+    scene.remove(mesh);
+    mesh.visible = false;
+    mesh.scale.set(1, 1, 1);
+    mesh.position.set(0, 0, 0);
+    this.available.push(mesh);
+  }
+  
+  dispose(): void {
+    // Material은 MaterialPool에서 관리하므로 여기서 dispose하지 않음
+    this.available = [];
+  }
+  
+  get poolSize(): number {
+    return this.available.length;
+  }
+}
+
+/**
  * 실시간 전투용 three.js 전술맵
  * - 외부에서 전달된 BattleState 기반으로 큐브를 렌더
  * - 내 유닛(큐브 하나)만 조작 가능: 땅 클릭 → 이동, 적 큐브 클릭 → 공격 요청
@@ -72,6 +138,10 @@ export default function ThreeBattleMap({
 
   const cubeEntriesRef = useRef<CubeEntry[]>([]);
   const boxGeoRef = useRef<BoxGeometry | null>(null);
+  
+  // 성능 최적화: Material 및 Mesh 풀링
+  const materialPoolRef = useRef<MaterialPool | null>(null);
+  const meshPoolRef = useRef<MeshPool | null>(null);
 
   const [moveDialog, setMoveDialog] = useState<{ target: { x: number; y: number } } | null>(null);
 
@@ -126,12 +196,18 @@ export default function ThreeBattleMap({
 
     // 공유 BoxGeometry
     const boxGeo = new BoxGeometry(1, 1, 1);
+    
+    // 풀 초기화
+    const materialPool = new MaterialPool();
+    const meshPool = new MeshPool(boxGeo);
 
     sceneRef.current = scene;
     cameraRef.current = camera;
     rendererRef.current = renderer;
     groundMeshRef.current = groundMesh;
     boxGeoRef.current = boxGeo;
+    materialPoolRef.current = materialPool;
+    meshPoolRef.current = meshPool;
 
     const raycaster = new Raycaster();
     const mouse = new Vector2();
@@ -217,17 +293,18 @@ export default function ThreeBattleMap({
       window.removeEventListener('resize', handleResize);
       renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
 
-      // 큐브 정리 (geometry는 공유, material만 dispose)
+      // 큐브를 풀로 반환
       cubeEntriesRef.current.forEach(({ mesh }) => {
-        scene.remove(mesh);
-        if (mesh.material && 'dispose' in mesh.material) {
-          (mesh.material as MeshStandardMaterial).dispose();
-        }
+        meshPool.release(mesh, scene);
       });
       cubeEntriesRef.current = [];
 
       // 씬에서 제거
       scene.remove(grid, groundMesh, ambient, dirLight);
+      
+      // 풀 정리
+      materialPool.dispose();
+      meshPool.dispose();
       
       // Geometry/Material dispose
       groundGeo.dispose();
@@ -248,39 +325,42 @@ export default function ThreeBattleMap({
       rendererRef.current = null;
       groundMeshRef.current = null;
       boxGeoRef.current = null;
+      materialPoolRef.current = null;
+      meshPoolRef.current = null;
     };
   }, [width, height, mapWidth, mapHeight, myGeneralId, onMoveRequest, onAttackRequest]);
 
-  // units 변경 시 큐브 재구성
+  // units 변경 시 큐브 재구성 (풀링 사용)
   useEffect(() => {
     const scene = sceneRef.current;
     const boxGeo = boxGeoRef.current;
-    if (!scene || !boxGeo) return;
+    const materialPool = materialPoolRef.current;
+    const meshPool = meshPoolRef.current;
+    if (!scene || !boxGeo || !materialPool || !meshPool) return;
 
-    // 기존 큐브 제거
+    // 기존 큐브를 풀로 반환 (dispose 대신 재활용)
     cubeEntriesRef.current.forEach(({ mesh }) => {
-      scene.remove(mesh);
-      // material만 dispose (geometry는 공유)
-      if (mesh.material && 'dispose' in mesh.material) {
-        (mesh.material as MeshStandardMaterial).dispose();
-      }
+      meshPool.release(mesh, scene);
     });
     cubeEntriesRef.current = [];
 
-    // 새 큐브 생성
+    // 새 큐브 생성 (풀에서 가져오기)
     const gridSize = 20;
     const mapToThreeX = (x: number) => (x / mapWidth) * gridSize - gridSize / 2;
     const mapToThreeZ = (y: number) => (y / mapHeight) * gridSize - gridSize / 2;
 
     units.forEach((u) => {
-      // 중앙 큐브 (지휘관/부대 중심)
-      const mainMat = new MeshStandardMaterial({ color: u.color });
-      const mainMesh = new Mesh(boxGeo, mainMat);
+      // Material은 풀에서 가져오기 (같은 색상 재사용)
+      const mainMat = materialPool.get(u.color);
+      
+      // 중앙 큐브 (지휘관/부대 중심) - 풀에서 Mesh 가져오기
+      const mainMesh = meshPool.acquire(mainMat);
 
       const centerX = mapToThreeX(u.x);
       const centerZ = mapToThreeZ(u.y);
 
       mainMesh.position.set(centerX, 0.5, centerZ);
+      mainMesh.scale.set(1, 1, 1);
       scene.add(mainMesh);
       cubeEntriesRef.current.push({ mesh: mainMesh, unit: u });
 
@@ -291,8 +371,8 @@ export default function ThreeBattleMap({
       const radius = 0.7; // 중심에서 조금 떨어진 위치
 
       for (let i = 0; i < extraIcons; i += 1) {
-        const iconMat = new MeshStandardMaterial({ color: u.color });
-        const iconMesh = new Mesh(boxGeo, iconMat);
+        // 같은 색상 Material 재사용
+        const iconMesh = meshPool.acquire(mainMat);
         iconMesh.scale.set(0.5, 0.5, 0.5);
 
         const angle = (i / extraIcons) * Math.PI * 2;

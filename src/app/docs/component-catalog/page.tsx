@@ -4,7 +4,7 @@ import React from 'react';
 import { useTheme } from '@/components/providers/ThemeProvider';
 
 export default function ComponentCatalogPage() {
-  const { theme, toggleTheme } = useTheme();
+  const { mode, toggleMode, nationColor, setNationColor, colorSystem } = useTheme();
 
   return (
     <div className="min-h-screen bg-background-main text-foreground p-8 space-y-12">
@@ -12,13 +12,26 @@ export default function ComponentCatalogPage() {
         <h1 className="text-4xl font-bold mb-2">Gin7 Design System Catalog</h1>
         <p className="text-foreground-muted">Core components and tokens for the Legend of Galactic Heroes UI.</p>
         <div className="mt-4 flex items-center gap-4">
-          <span className="font-mono text-sm">Current Theme: <span className="font-bold uppercase text-accent">{theme}</span></span>
+          <span className="font-mono text-sm">Current Mode: <span className="font-bold uppercase text-accent">{mode}</span></span>
           <button 
-            onClick={toggleTheme}
+            onClick={toggleMode}
             className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded border border-white/20 text-sm font-mono"
           >
-            Toggle Faction Theme
+            Toggle Theme Mode
           </button>
+          <select
+            value={nationColor || '#6366f1'}
+            onChange={(e) => setNationColor(e.target.value)}
+            className="px-3 py-2 bg-white/10 border border-white/20 rounded text-sm font-mono"
+          >
+            <option value="#dc143c">진홍색</option>
+            <option value="#1e90ff">파랑색</option>
+            <option value="#32cd32">초록색</option>
+            <option value="#ffd700">금색</option>
+            <option value="#ba55d3">보라색</option>
+            <option value="#ff8c00">주황색</option>
+            <option value="#6366f1">인디고</option>
+          </select>
         </div>
       </header>
 
@@ -69,8 +82,8 @@ export default function ComponentCatalogPage() {
         <h2 className="text-2xl font-serif text-empire-gold">02. Typography</h2>
         <div className="space-y-6 border border-white/10 p-6 rounded bg-background-secondary/50">
           <div>
-            <p className="text-sm text-foreground-muted mb-1">Heading (Serif / Sans based on Theme)</p>
-            <div className={`text-4xl font-bold ${theme === 'empire' ? 'font-serif' : 'font-sans'}`}>
+            <p className="text-sm text-foreground-muted mb-1">Heading (Serif / Sans based on Mode)</p>
+            <div className={`text-4xl font-bold ${mode === 'dark' ? 'font-serif' : 'font-sans'}`}>
               The Galactic History
             </div>
           </div>
@@ -99,7 +112,14 @@ export default function ComponentCatalogPage() {
           <div className="bg-background-secondary border border-white/20 p-6 rounded shadow-lg backdrop-blur-sm">
             <h3 className="text-lg font-bold mb-2">Standard Panel</h3>
             <p className="text-sm text-foreground-muted mb-4">Used for main content areas.</p>
-            <button className={`px-4 py-2 rounded font-bold text-white transition-colors ${theme === 'empire' ? 'bg-empire-blue border border-empire-gold text-empire-gold hover:bg-empire-blue/80' : 'bg-alliance-red hover:bg-alliance-red/80'}`}>
+            <button 
+              className="px-4 py-2 rounded font-bold transition-colors"
+              style={{ 
+                backgroundColor: colorSystem.buttonBg,
+                color: colorSystem.buttonText,
+                borderColor: colorSystem.border
+              }}
+            >
               Primary Action
             </button>
           </div>

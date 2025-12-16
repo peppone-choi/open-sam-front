@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import type { BattleUnit } from './BattleMap';
 import {
   Application as PixiApplication,
@@ -20,6 +20,57 @@ interface IsoTacticalBattleMapProps {
   onCellClick?: (x: number, y: number) => void;
 }
 
+/**
+ * Graphics 오브젝트 풀 - Pixi Graphics 재사용
+ * 매 프레임마다 new Graphics() 대신 풀에서 가져옴
+ */
+class GraphicsPool {
+  private available: Graphics[] = [];
+  private inUse: Set<Graphics> = new Set();
+  
+  acquire(): Graphics {
+    let g = this.available.pop();
+    if (!g) {
+      g = new PixiGraphics();
+    }
+    this.inUse.add(g);
+    return g;
+  }
+  
+  release(g: Graphics): void {
+    if (!this.inUse.has(g)) return;
+    this.inUse.delete(g);
+    g.clear();
+    g.removeAllListeners();
+    this.available.push(g);
+  }
+  
+  releaseAll(container: Container): void {
+    // 컨테이너의 모든 자식을 풀로 반환
+    while (container.children.length > 0) {
+      const child = container.children[0];
+      container.removeChild(child);
+      if (child instanceof PixiGraphics) {
+        this.release(child);
+      }
+    }
+  }
+  
+  destroy(): void {
+    this.available.forEach(g => g.destroy());
+    this.inUse.forEach(g => g.destroy());
+    this.available = [];
+    this.inUse.clear();
+  }
+  
+  get stats() {
+    return {
+      available: this.available.length,
+      inUse: this.inUse.size,
+    };
+  }
+}
+
 export default function IsoTacticalBattleMap({
   width,
   height,
@@ -31,6 +82,7 @@ export default function IsoTacticalBattleMap({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const appRef = useRef<Application | null>(null);
   const unitsLayerRef = useRef<Container | null>(null);
+  const graphicsPoolRef = useRef<GraphicsPool | null>(null);
 
   // Pixi Application 초기화 (v8 패턴)
   useEffect(() => {
@@ -71,12 +123,22 @@ export default function IsoTacticalBattleMap({
       const unitsLayer: Container = new PixiContainer();
       pixiApp.stage.addChild(unitsLayer);
       unitsLayerRef.current = unitsLayer;
+      
+      // Graphics 풀 초기화
+      graphicsPoolRef.current = new GraphicsPool();
     };
 
     init();
 
     return () => {
       destroyed = true;
+      
+      // 풀 정리
+      if (graphicsPoolRef.current) {
+        graphicsPoolRef.current.destroy();
+        graphicsPoolRef.current = null;
+      }
+      
       if (app) {
         app.destroy(true);
         app = null;
@@ -89,31 +151,37 @@ export default function IsoTacticalBattleMap({
     };
   }, [width, height]);
 
-  // 유닛 반영
+  // 유닛 반영 (풀링 사용)
   useEffect(() => {
     const app = appRef.current;
     const unitsLayer = unitsLayerRef.current;
-    console.log('[IsoTacticalBattleMap] units effect', { count: units.length, hasApp: !!app, hasLayer: !!unitsLayer });
-    if (!app || !unitsLayer) return;
+    const pool = graphicsPoolRef.current;
+    if (!app || !unitsLayer || !pool) return;
 
     const W = app.screen.width;
     const H = app.screen.height;
     const cellW = W / width;
     const cellH = H / height;
 
-    // 일단 레이어를 비우고 다시 그린다 (간단하고 안전)
-    unitsLayer.removeChildren();
+    // 기존 Graphics를 풀로 반환 (destroy 대신 재활용)
+    pool.releaseAll(unitsLayer);
 
     units.forEach((unit) => {
-      const g = new PixiGraphics();
+      // 풀에서 Graphics 가져오기
+      const g = pool.acquire();
 
       const color = getUnitColor(unit);
+      const isSelected = selectedUnitId === unit.id;
+      
       // 네모 하나
       g.beginFill(color);
       g.drawRoundedRect(-10, -10, 20, 20, 4);
       g.endFill();
 
-      g.lineStyle(1, 0x000000, 0.8);
+      // 선택된 유닛 강조
+      const strokeColor = isSelected ? 0xffffff : 0x000000;
+      const strokeWidth = isSelected ? 2 : 1;
+      g.lineStyle(strokeWidth, strokeColor, 0.8);
       g.drawRoundedRect(-10, -10, 20, 20, 4);
 
       // 논리 좌표 (unit.x, unit.y)를 Pixi 좌표로 매핑
@@ -131,7 +199,7 @@ export default function IsoTacticalBattleMap({
 
       unitsLayer.addChild(g);
     });
-  }, [units, width, height, onUnitClick]);
+  }, [units, width, height, selectedUnitId, onUnitClick]);
 
   // 캔버스 클릭 → 셀 좌표 계산
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {

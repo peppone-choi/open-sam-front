@@ -55,8 +55,14 @@
 
 ## 2. 남은 작업 및 개선 사항
 - [ ] **테스트:** admin/battle Playwright 시나리오 추가, 실기기 통합·모바일 터치 회귀 검증 대기
-- [ ] **최적화:** 전투 맵 RAF 스로틀·소켓 정리 완료 → Sprite batching/텍스처 압축 잔여
-- [ ] **테마:** 국가별 색상 테마(ColorSystem) 미세 조정
+- [x] **최적화:** 전투 맵 RAF 스로틀·소켓 정리 완료, Sprite batching/텍스처 압축 완료
+  - `ThreeBattleMap.tsx`: Material/Mesh 풀링 시스템 도입 (메모리 재사용)
+  - `IsoTacticalBattleMap.tsx`: Graphics 오브젝트 풀링 적용
+  - `assetOptimizer.ts`: WebP 지원, DPR 적응형 이미지, ImageBitmap 최적화
+- [x] **테마:** 국가별 색상 테마(ColorSystem) 완료
+  - `colorSystem.ts`: `createColorSystem()` 함수로 국가색 기반 동적 테마 생성
+  - `ThemeProvider.tsx`: 국가색 연동, CSS 변수 자동 적용
+  - 밝은 색상(금색/노란색) 가독성 개선 - 자동 대비 조정
 
 ## 3. PHP 페이지 매핑 완료
 기존 `j_*`, `a_*`, `b_*` 등 모든 PHP 페이지의 기능이 Next.js 라우트 및 API로 매핑되었습니다.

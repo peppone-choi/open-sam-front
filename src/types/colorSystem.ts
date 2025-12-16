@@ -234,3 +234,133 @@ export function makeAccentColors(nationColor: string) {
     accentBright: adjustLightness(adjustSaturation(nationColor, 30), 10),
   };
 }
+
+/**
+ * 색상이 밝은지 판단 (밝은 배경에서 흰 글자 대신 어두운 글자 필요)
+ */
+export function isBrightColor(hex: string): boolean {
+  return calculateLuminance(hex) > 0.5;
+}
+
+/**
+ * 대비 색상 생성 (밝은 색상 → 어두운 텍스트, 어두운 색상 → 밝은 텍스트)
+ */
+export function getContrastColor(hex: string): string {
+  return isBrightColor(hex) ? '#1a1a2e' : '#f0f0f0';
+}
+
+/**
+ * 색상을 밝게 만들기 (amount: 0.0 ~ 1.0)
+ */
+export function lightenColor(hex: string, amount: number): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  
+  return rgbToHex(
+    rgb.r + (255 - rgb.r) * amount,
+    rgb.g + (255 - rgb.g) * amount,
+    rgb.b + (255 - rgb.b) * amount
+  );
+}
+
+/**
+ * 색상에 알파값 추가 (HEX → RGBA 문자열)
+ */
+export function addAlpha(hex: string, alpha: number): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+}
+
+/**
+ * 국가색 기반으로 완전한 ColorSystem 생성
+ * 다크 테마 기반 (어두운 배경 + 국가색 강조)
+ */
+export function createColorSystem(nationColor: string): ColorSystem {
+  const luminance = calculateLuminance(nationColor);
+  const isBright = luminance > 0.5;
+  
+  // 밝은 색상(금색, 노란색 등)은 어둡게 조정하여 가독성 확보
+  const adjustedAccent = isBright
+    ? darkenColor(nationColor, 0.15) // 살짝만 어둡게
+    : nationColor;
+  
+  // 버튼 텍스트: 밝은 국가색이면 어두운 글자, 어두운 국가색이면 밝은 글자
+  const buttonTextColor = getContrastColor(nationColor);
+  
+  // 텍스트용 국가색 (밝은 색상은 더 어둡게)
+  const textAccent = adjustColorForText(nationColor);
+  
+  const accentColors = makeAccentColors(nationColor);
+  
+  return {
+    // 배경 (다크 테마 고정)
+    pageBg: '#0a0a14',
+    
+    // 테두리
+    border: addAlpha(nationColor, 0.3),
+    borderLight: addAlpha(nationColor, 0.15),
+    
+    // 버튼/인터랙션 (국가색 기반)
+    buttonBg: addAlpha(nationColor, 0.6),
+    buttonHover: addAlpha(nationColor, 0.8),
+    buttonActive: nationColor,
+    buttonText: buttonTextColor,
+    activeBg: nationColor,
+    
+    // 글자색
+    text: textAccent,
+    textMuted: addAlpha(textAccent, 0.7),
+    textDim: addAlpha(textAccent, 0.4),
+    
+    // 강조색
+    accent: adjustedAccent,
+    accentBright: accentColors.accentBright,
+    success: accentColors.success,
+    warning: accentColors.warning,
+    error: accentColors.error,
+    info: accentColors.info,
+    special: accentColors.special,
+  };
+}
+
+/**
+ * ColorSystem을 CSS 변수로 변환
+ */
+export function colorSystemToCssVars(cs: ColorSystem): Record<string, string> {
+  return {
+    '--color-page-bg': cs.pageBg,
+    '--color-border': cs.border,
+    '--color-border-light': cs.borderLight,
+    '--color-button-bg': cs.buttonBg,
+    '--color-button-hover': cs.buttonHover,
+    '--color-button-active': cs.buttonActive,
+    '--color-button-text': cs.buttonText,
+    '--color-active-bg': cs.activeBg,
+    '--color-text': cs.text,
+    '--color-text-muted': cs.textMuted,
+    '--color-text-dim': cs.textDim,
+    '--color-accent': cs.accent,
+    '--color-accent-bright': cs.accentBright,
+    '--color-success': cs.success,
+    '--color-warning': cs.warning,
+    '--color-error': cs.error,
+    '--color-info': cs.info,
+    '--color-special': cs.special,
+  };
+}
+
+/**
+ * CSS 변수를 DOM에 적용
+ */
+export function applyCssVars(vars: Record<string, string>, element?: HTMLElement): void {
+  const target = element || document.documentElement;
+  Object.entries(vars).forEach(([key, value]) => {
+    target.style.setProperty(key, value);
+  });
+}
+
+/**
+ * 기본 ColorSystem (국가 미선택 시)
+ */
+export const DEFAULT_COLOR_SYSTEM: ColorSystem = createColorSystem('#6366f1'); // Indigo
