@@ -2456,6 +2456,8 @@ export class SammoAPI {
   static async GetHistory(params: {
     year?: number;
     month?: number;
+    serverID?: string;
+    session_id?: string;
   }): Promise<{
     result: boolean;
     history: any;

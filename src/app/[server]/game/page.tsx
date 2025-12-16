@@ -538,30 +538,30 @@ export default function GamePage() {
                          </h3>
                       </div>
                       <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-4">
-                          <div className="PublicRecord">
-                             <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> 장수 동향
-                             </div>
-                             <div className="space-y-1.5">
-                                {renderLogList(generalLogs, 10)}
-                             </div>
-                          </div>
-                          <div className="GeneralLog">
-                             <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 내 기록
-                             </div>
-                             <div className="space-y-1.5">
-                                {renderLogList(personalLogs, 10)}
-                             </div>
-                          </div>
-                          <div className="WorldHistory">
-                             <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> 중원 정세
-                             </div>
-                             <div className="space-y-1.5">
-                                {renderLogList(globalLogs, 5)}
-                             </div>
-                          </div>
+                         <div className="PublicRecord">
+                            <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
+                               <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> 장수 동향
+                            </div>
+                            <div className="space-y-1.5">
+                               {renderLogList(generalLogs, 15)}
+                            </div>
+                         </div>
+                         <div className="GeneralLog">
+                            <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
+                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 내 기록
+                            </div>
+                            <div className="space-y-1.5">
+                               {renderLogList(personalLogs, 15)}
+                            </div>
+                         </div>
+                         <div className="WorldHistory">
+                            <div className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center gap-2">
+                               <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> 중원 정세
+                            </div>
+                            <div className="space-y-1.5">
+                               {renderLogList(globalLogs, 15)}
+                            </div>
+                         </div>
                       </div>
                    </div>
                 </div>

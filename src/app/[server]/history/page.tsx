@@ -106,7 +106,12 @@ function HistoryPageContent() {
     try {
       setLoading(true);
       setError(null);
-      const result = await SammoAPI.GetHistory({ year: parsedYear, month: parsedMonth });
+      const result = await SammoAPI.GetHistory({ 
+        year: parsedYear, 
+        month: parsedMonth,
+        serverID: serverID,
+        session_id: serverID,
+      });
       if (result.result && result.history) {
         const history = result.history as HistoryPayload;
         setHistoryData(history);
