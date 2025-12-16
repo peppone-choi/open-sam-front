@@ -899,9 +899,9 @@ export default function BattleSimulatorPage() {
       }).catch(() => {});
 
       // 병종 데이터 로드
-      SammoAPI.GetConst({ session_id: serverID }).then((res) => {
-        if (res.result && res.gameUnitConst) {
-          const units = res.gameUnitConst;
+      SammoAPI.GlobalGetConst().then((res) => {
+        if (res.result && res.data?.gameUnitConst) {
+          const units = res.data.gameUnitConst;
           const loadedCrewTypes: CrewType[] = [];
           
           // units 객체를 순회하여 병종 목록 구성
