@@ -645,7 +645,7 @@ export default function CommandProcessingClient({
       result = await SammoAPI.CommandReserveCommand({
         serverID,
         general_id: generalID,
-        turn_idx: turnList.length > 0 ? turnList[0] : undefined,
+        turnList,
         action: command,
         arg: args,
         brief,

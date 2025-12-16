@@ -842,6 +842,7 @@ export class SammoAPI {
     session_id?: string;
     general_id?: number;
     turn_idx?: number;
+    turnList?: number[];
     action: string;
     arg?: any;
     brief?: string;
@@ -857,11 +858,17 @@ export class SammoAPI {
     
     const body: any = {
       general_id: params.general_id,
-      turn_idx: params.turn_idx,
       action: params.action,
       arg: params.arg || {},
       brief: params.brief,
     };
+
+    // turnList가 있으면 우선 사용, 없으면 turn_idx 사용
+    if (params.turnList && params.turnList.length > 0) {
+      body.turnList = params.turnList;
+    } else if (params.turn_idx !== undefined) {
+      body.turn_idx = params.turn_idx;
+    }
     
     console.log('[SammoAPI.CommandReserveCommand] params.arg:', JSON.stringify(params.arg));
     console.log('[SammoAPI.CommandReserveCommand] body:', JSON.stringify(body));
