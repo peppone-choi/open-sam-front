@@ -14,6 +14,7 @@ type AdminAction =
   | 'serverName'
   | 'scenario'
   | 'scenarioText'
+  | 'serverDescription'
   | 'serverCnt'
   | 'msg'
   | 'log'
@@ -32,6 +33,7 @@ interface AdminGameSettings {
   serverName?: string;
   scenario?: string;
   scenarioText?: string;
+  serverDescription?: string;
   serverCnt?: number;
   msg?: string;
   log?: string;
@@ -58,6 +60,7 @@ interface AdminUpdatePayload extends Record<string, string | number | boolean | 
   session_id: string;
   serverName?: string;
   scenario?: string;
+  serverDescription?: string;
   msg?: string;
   log?: string;
   starttime?: string;
@@ -82,6 +85,7 @@ export default function AdminGamePage() {
   const [serverName, setServerName] = useState('');
   const [scenario, setScenario] = useState('');
   const [scenarioText, setScenarioText] = useState('');
+  const [serverDescription, setServerDescription] = useState('');
   const [serverCnt, setServerCnt] = useState(1);
   const [msg, setMsg] = useState('');
   const [log, setLog] = useState('');
@@ -124,6 +128,7 @@ export default function AdminGamePage() {
         setServerName(data.serverName || '');
         setScenario(data.scenario || '');
         setScenarioText(data.scenarioText || '');
+        setServerDescription(data.serverDescription || '');
         setServerCnt(data.serverCnt || 1);
         setMsg(data.msg || '');
         setStarttime(data.starttime ? data.starttime.substring(0, 19) : '');
@@ -161,6 +166,9 @@ export default function AdminGamePage() {
           break;
         case 'scenarioText':
           payload.scenarioText = scenarioText.trim();
+          break;
+        case 'serverDescription':
+          payload.serverDescription = serverDescription.trim();
           break;
         case 'serverCnt':
           payload.serverCnt = serverCnt;
@@ -351,6 +359,7 @@ export default function AdminGamePage() {
             {[
               { label: '서버 이름', value: serverName, setter: setServerName, action: 'serverName', ph: '서버 표시 이름 (게임 화면 상단에 표시)' },
               { label: '시나리오 설명', value: scenarioText, setter: setScenarioText, action: 'scenarioText', ph: '시나리오 설명 (게임 화면 하단에 표시)' },
+              { label: '서버 설명', value: serverDescription, setter: setServerDescription, action: 'serverDescription', ph: '서버 설명 (로비 서버 안내에 표시)' },
               { label: '운영자 메시지', value: msg, setter: setMsg, action: 'msg', ph: '공지사항 등' },
             ].map((field) => (
               <div key={field.action} className="flex flex-col md:flex-row gap-2 md:items-center">

@@ -19,7 +19,7 @@ interface Server {
   status?: 'preparing' | 'running' | 'paused' | 'finished' | 'united'; // 새 상태 시스템
   statusText?: string; // 한글 상태 텍스트
   scenarioName?: string; // 시나리오 이름
-  scenarioText?: string; // 서버 설명 (동적)
+  serverDescription?: string; // 서버 설명 (로비 표시용)
   hasCharacter?: boolean; // 캐릭터 존재 여부
   characterName?: string; // 캐릭터 이름
   characterNation?: string; // 캐릭터 국가
@@ -67,7 +67,7 @@ export default function EntrancePage() {
           status: s.status || 'running',
           statusText: s.statusText || '운영중',
           scenarioName: s.scenarioName || '',
-          scenarioText: s.scenarioText || '', // 서버 설명 (동적)
+          serverDescription: s.serverDescription || '', // 서버 설명 (로비 표시용)
           hasCharacter: false,
           allow_npc_possess: s.allow_npc_possess || false,
         }));
@@ -408,7 +408,7 @@ export default function EntrancePage() {
                             {server.korName}
                           </span>
                           <span className="text-xs text-gray-400">
-                            {server.scenarioText || server.scenarioName || `${server.statusText || '운영중'}`}
+                            {server.serverDescription || server.scenarioName || `${server.statusText || '운영중'}`}
                           </span>
                        </div>
                     ))
