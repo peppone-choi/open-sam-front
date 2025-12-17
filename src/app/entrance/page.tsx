@@ -214,7 +214,18 @@ export default function EntrancePage() {
                     />
                     <button 
                       className="px-4 py-2 rounded-lg bg-primary/20 text-primary hover:bg-primary hover:text-white transition-all text-sm font-medium border border-primary/20"
-                       onClick={() => showToast('공지사항 변경 기능은 추후 구현 예정입니다.', 'info')}
+                       onClick={async () => {
+                         try {
+                           const result = await SammoAPI.AdminSetGlobalNotice({ notice });
+                           if (result.result) {
+                             showToast('공지사항이 저장되었습니다.', 'success');
+                           } else {
+                             showToast(result.reason || '공지사항 저장에 실패했습니다.', 'error');
+                           }
+                         } catch (error: any) {
+                           showToast(error.message || '공지사항 저장 중 오류가 발생했습니다.', 'error');
+                         }
+                       }}
                     >
                       저장
                     </button>

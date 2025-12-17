@@ -2942,6 +2942,22 @@ export class SammoAPI {
   }
 
   /**
+   * 전역 공지사항 설정 (관리자 전용)
+   */
+  static async AdminSetGlobalNotice(params: {
+    notice: string;
+  }): Promise<{
+    result: boolean;
+    message?: string;
+    reason?: string;
+  }> {
+    return this.request('/api/admin/set-global-notice', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
    * GameSession 관리용 관리자 API (구 Entity용)
    * 현재 어드민 UI에서는 sessions 컬렉션을 사용하므로
    * 이 메서드들은 더 이상 직접 사용하지 않습니다.
