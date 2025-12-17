@@ -417,7 +417,7 @@ function MapViewerComponent({
           {mapData.year}년 {mapData.month}월
         </span>
       </div>
-      {/* 맵 바디 */}
+      {/* 맵 컨테이너 */}
       <div 
         ref={mapBodyRef}
         className={styles.mapBody}
