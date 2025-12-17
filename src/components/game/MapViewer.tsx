@@ -7,7 +7,6 @@ import MovementLayer from './MovementLayer';
 import TerritoryOverlay from './TerritoryOverlay';
 import RoadNetwork from './RoadNetwork';
 import { TroopMovement, MovementFilterOptions } from '@/types/movement';
-import { useMapTransform } from '@/hooks/useMapTransform';
 import styles from './MapViewer.module.css';
 
 interface MapViewerProps {
@@ -88,22 +87,6 @@ function MapViewerComponent({
   const [tooltipSize, setTooltipSize] = useState({ width: 0, height: 0 });
   const mapBodyRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-
-  // 줌/팬 기능
-  const {
-    containerRef: zoomContainerRef,
-    contentRef: zoomContentRef,
-    transformStyle,
-    zoomIn,
-    zoomOut,
-    resetZoom,
-    isDragging,
-    zoomPercent,
-  } = useMapTransform({
-    minScale: 0.5,
-    maxScale: 4,
-    initialScale: 1,
-  });
 
   const updateMapBounds = useCallback(() => {
     if (!mapBodyRef.current) {
@@ -434,22 +417,13 @@ function MapViewerComponent({
           {mapData.year}년 {mapData.month}월
         </span>
       </div>
-      {/* 줌 컨테이너 */}
+      {/* 맵 바디 */}
       <div 
-        ref={(el) => {
-          // @ts-ignore - 두 ref를 모두 연결
-          zoomContainerRef.current = el;
-          // @ts-ignore
-          mapBodyRef.current = el;
-        }} 
-        className={`${styles.mapBody} ${isDragging ? styles.isDragging : ''}`}
+        ref={mapBodyRef}
+        className={styles.mapBody}
       >
-        {/* 줌/팬 적용 레이어 */}
-        <div 
-          ref={zoomContentRef}
-          className={styles.zoomableContent}
-          style={transformStyle}
-        >
+        {/* 맵 컨텐츠 레이어 */}
+        <div className={styles.zoomableContent}>
           {/* 배경 레이어들 (먼저 렌더링) */}
           <div className={styles.mapBglayer1} style={{ backgroundImage: `url(${backgroundImage})` }}></div>
           <div className={styles.mapBglayer2}></div>
@@ -589,42 +563,6 @@ function MapViewerComponent({
               onTrackOnMap={onTrackMovement}
             />
           )}
-        </div>
-
-        {/* 줌 컨트롤 (고정 위치) */}
-        <div className={styles.zoomControls}>
-          <button
-            type="button"
-            className={styles.zoomButton}
-            onClick={zoomIn}
-            title="확대 (마우스 휠 / 핀치)"
-            aria-label="확대"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className={styles.zoomIndicator}
-            onClick={resetZoom}
-            title="더블 클릭/탭으로 리셋"
-            aria-label={`현재 줌: ${zoomPercent}%`}
-          >
-            {zoomPercent}%
-          </button>
-          <button
-            type="button"
-            className={styles.zoomButton}
-            onClick={zoomOut}
-            title="축소 (마우스 휠 / 핀치)"
-            aria-label="축소"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </button>
         </div>
         
         {/* 버튼 스택 (가장 위) */}
