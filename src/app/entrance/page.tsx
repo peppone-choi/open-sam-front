@@ -19,6 +19,7 @@ interface Server {
   status?: 'preparing' | 'running' | 'paused' | 'finished' | 'united'; // 새 상태 시스템
   statusText?: string; // 한글 상태 텍스트
   scenarioName?: string; // 시나리오 이름
+  scenarioText?: string; // 서버 설명 (동적)
   hasCharacter?: boolean; // 캐릭터 존재 여부
   characterName?: string; // 캐릭터 이름
   characterNation?: string; // 캐릭터 국가
@@ -66,6 +67,7 @@ export default function EntrancePage() {
           status: s.status || 'running',
           statusText: s.statusText || '운영중',
           scenarioName: s.scenarioName || '',
+          scenarioText: s.scenarioText || '', // 서버 설명 (동적)
           hasCharacter: false,
           allow_npc_possess: s.allow_npc_possess || false,
         }));
@@ -389,27 +391,32 @@ export default function EntrancePage() {
               </div>
            </div>
 
-           {/* Server Info Grid */}
+           {/* Server Info Grid - 동적으로 서버 목록에서 가져옴 */}
            <div className="lg:col-span-2">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-secondary" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                 서버 안내
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                 {[
-                    { name: "체섭", desc: "메인서버입니다. 천하통일에 도전하여 왕조일람과 명예의전당에 올라봅시다! (주로 1턴=60분)", color: "text-blue-400" },
-                    { name: "퀘섭", desc: "마이너 서버 그룹1. 비교적 느린 시간으로 운영됩니다.", color: "text-green-400" },
-                    { name: "풰섭", desc: "마이너 서버 그룹1. 비교적 느린 시간으로 운영됩니다.", color: "text-green-400" },
-                    { name: "퉤섭", desc: "마이너 서버 그룹2. 비교적 빠른 시간으로 운영됩니다.", color: "text-yellow-400" },
-                    { name: "냐섭", desc: "마이너 서버 그룹3. 독특한 컨셉 위주로 운영됩니다.", color: "text-purple-400" },
-                    { name: "퍄섭", desc: "마이너 서버 그룹3. 독특한 컨셉 위주로 운영됩니다.", color: "text-purple-400" },
-                    { name: "훼섭", desc: "운영자 테스트 서버입니다. 기습적으로 열리고, 닫힐 수 있습니다.", color: "text-red-400" },
-                 ].map((item, idx) => (
-                    <div key={idx} className="p-3 rounded-lg bg-background-secondary/50 border border-white/5">
-                       <span className={cn("font-bold mr-2", item.color)}>{item.name}</span>
-                       <span className="text-xs text-gray-400">{item.desc}</span>
+                 {serverList.length > 0 ? (
+                    serverList.map((server) => (
+                       <div key={server.serverID} className="p-3 rounded-lg bg-background-secondary/50 border border-white/5">
+                          <span 
+                            className="font-bold mr-2" 
+                            style={{ color: server.color || '#888888' }}
+                          >
+                            {server.korName}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {server.scenarioText || server.scenarioName || `${server.statusText || '운영중'}`}
+                          </span>
+                       </div>
+                    ))
+                 ) : (
+                    <div className="col-span-2 p-3 rounded-lg bg-background-secondary/50 border border-white/5 text-center text-gray-400">
+                       서버 정보를 불러오는 중...
                     </div>
-                 ))}
+                 )}
               </div>
            </div>
 

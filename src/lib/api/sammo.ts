@@ -179,6 +179,8 @@ export interface GetFrontInfoResponse {
     isTournamentApplicationOpen: boolean;
     isBettingActive: boolean;
     isLocked: boolean;
+    /** 세션 상태: preparing, running, paused, finished, united */
+    sessionStatus?: 'preparing' | 'running' | 'paused' | 'finished' | 'united';
     tournamentType: null | 0 | 1 | 2 | 3;
     tournamentState: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
     tournamentTime: string;

@@ -94,7 +94,7 @@ export default function IconManagePage() {
 
   return (
     <div className={styles.container}>
-      <TopBackBar title="전용 아이콘 관리" />
+      <TopBackBar title="전용 아이콘 관리" backUrl="/entrance" />
       {loading ? (
         <div className="center" style={{ padding: '2rem' }}>로딩 중...</div>
       ) : (

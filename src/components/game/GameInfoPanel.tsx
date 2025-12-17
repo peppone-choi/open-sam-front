@@ -39,6 +39,21 @@ function GameInfoPanel({
   useEffect(() => {
     const calculateTimeLeft = () => {
       try {
+        // 세션 상태에 따른 표시
+        const sessionStatus = global.sessionStatus || 'running';
+        if (sessionStatus === 'preparing') {
+          setTimeUntilNextTurn('준비중');
+          return;
+        }
+        if (sessionStatus === 'paused') {
+          setTimeUntilNextTurn('일시정지');
+          return;
+        }
+        if (sessionStatus === 'finished' || sessionStatus === 'united') {
+          setTimeUntilNextTurn('종료');
+          return;
+        }
+
         const turnterm = global.turnterm || 60; // 분
         const lastExec = lastExecuted.getTime();
         const nextTurnTime = lastExec + (turnterm * 60 * 1000);
@@ -62,7 +77,7 @@ function GameInfoPanel({
     const interval = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(interval);
-  }, [lastExecuted, global.turnterm]);
+  }, [lastExecuted, global.turnterm, global.sessionStatus]);
 
   const formatTime = useMemo(() => (date: Date) => {
     const kstDate = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
