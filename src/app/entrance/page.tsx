@@ -403,7 +403,7 @@ export default function EntrancePage() {
                        <div key={server.serverID} className="p-3 rounded-lg bg-background-secondary/50 border border-white/5">
                           <span 
                             className="font-bold mr-2" 
-                            style={{ color: server.color || '#888888' }}
+                            style={{ color: (server.color && server.color !== '#000000') ? server.color : '#ffffff' }}
                           >
                             {server.korName}
                           </span>
