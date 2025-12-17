@@ -6,10 +6,12 @@ import { SammoAPI, type ChiefCenterPayload } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import ChiefReservedCommand from '@/components/game/ChiefReservedCommand';
 import ChiefTopItem from '@/components/game/ChiefTopItem';
+import { useGameSessionStore } from '@/stores/gameSessionStore';
 
 export default function ChiefPage() {
   const params = useParams();
   const serverID = params?.server as string;
+  const sessionGeneralID = useGameSessionStore((state) => state.generalID);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -125,7 +127,7 @@ export default function ChiefPage() {
                    <ChiefReservedCommand 
                      key={level}
                      serverID={serverID}
-                     generalID={0} // TODO: 세션에서 실제 generalID를 가져오도록 개선
+                     generalID={sessionGeneralID ?? 0}
                      colorSystem={{
                          pageBg: '#111',
                          text: '#eee',

@@ -624,10 +624,13 @@ export default function ChiefReservedCommand({
         const params = new URLSearchParams();
         params.set('turnList', turnListParam);
         params.set('is_chief', 'true');
+        if (typeof generalID === 'number') {
+            params.set('general_id', String(generalID));
+        }
 
         const encodedCommand = encodeURIComponent(cmd.value);
         router.push(`/${serverID}/processing/${encodedCommand}?${params.toString()}`);
-    }, [serverID, router, showToast]);
+    }, [serverID, generalID, router, showToast]);
 
     const handleCommandSelect = useCallback((cmd: CommandItem, indices?: number[]) => {
         const targetIndices =

@@ -159,6 +159,12 @@ export interface GetFrontInfoResponse {
     npcMode: 0 | 1 | 2;
     joinMode: 'onlyRandom' | 'full';
     startyear: number;
+    /** 초반 제한 기간 (기본값 3년) */
+    openingPartYear?: number;
+    /** 선전포고 가능 상대 년도 (startyear + warDeclareYear 부터 선포 가능) */
+    warDeclareYear?: number;
+    /** 출병 가능 상대 년도 (startyear + warDeployYear 부터 출병 가능) */
+    warDeployYear?: number;
     year: number;
     month: number;
     autorunUser: {
@@ -4357,19 +4363,23 @@ export class SammoAPI {
 
   /**
    * 국가 장수 로그 조회
+   * PHP API와 동일한 reqType 사용
    */
   static async NationGetGeneralLog(params: {
     generalID: number;
-    reqType: 'action' | 'battle' | 'history' | 'personal';
+    reqType: 'generalHistory' | 'generalAction' | 'battleResult' | 'battleDetail';
     reqTo?: number;
     serverID?: string;
     session_id?: string;
   }): Promise<{
     result: boolean;
-    logs?: Array<{
+    log?: Array<{
       id: number;
       text: string;
-      date: string;
+    }>;
+    logs?: Array<{  // 백엔드 호환
+      id: number;
+      text: string;
     }>;
     reason?: string;
   }> {

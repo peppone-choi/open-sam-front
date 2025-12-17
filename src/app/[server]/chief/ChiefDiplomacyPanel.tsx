@@ -8,11 +8,12 @@ import { useToast } from '@/contexts/ToastContext';
 
 interface ChiefDiplomacyPanelProps {
   serverID: string;
+  generalID?: number;
   notices?: ChiefNoticePayload;
   onUpdate: () => void;
 }
 
-export default function ChiefDiplomacyPanel({ serverID, notices, onUpdate }: ChiefDiplomacyPanelProps) {
+export default function ChiefDiplomacyPanel({ serverID, generalID, notices, onUpdate }: ChiefDiplomacyPanelProps) {
   const router = useRouter();
   const { showToast } = useToast();
   const [notice, setNotice] = useState('');
@@ -54,7 +55,12 @@ export default function ChiefDiplomacyPanel({ serverID, notices, onUpdate }: Chi
   };
 
   const handleCommand = (command: string) => {
-    router.push(`/${serverID}/processing/${command}?is_chief=true`);
+    const params = new URLSearchParams();
+    params.set('is_chief', 'true');
+    if (typeof generalID === 'number') {
+      params.set('general_id', String(generalID));
+    }
+    router.push(`/${serverID}/processing/${command}?${params.toString()}`);
   };
 
   return (

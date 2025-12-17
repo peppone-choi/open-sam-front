@@ -153,8 +153,17 @@ function GameInfoPanel({
 
         {/* 3. 상세 정보들 (작은 카드) */}
         <div className="col-span-1 flex flex-col justify-center items-center p-2 rounded bg-white/5">
-           <span className="text-xs text-foreground-muted">전쟁 개시</span>
-           <span className="font-medium" style={{ color: colorSystem?.warning || 'orange' }}>{(global.startyear ?? 184) + 3}年~</span>
+           <span className="text-xs text-foreground-muted">선포 가능</span>
+           <span className="font-medium" style={{ color: colorSystem?.warning || 'orange' }}>
+             {(global.startyear ?? 184) + (global.warDeclareYear ?? (global.openingPartYear ?? 3) - 2)}年~
+           </span>
+        </div>
+
+        <div className="col-span-1 flex flex-col justify-center items-center p-2 rounded bg-white/5">
+           <span className="text-xs text-foreground-muted">출병 가능</span>
+           <span className="font-medium" style={{ color: colorSystem?.error || 'red' }}>
+             {(global.startyear ?? 184) + (global.warDeployYear ?? global.openingPartYear ?? 3)}年~
+           </span>
         </div>
 
         <div className="col-span-1 flex flex-col justify-center items-center p-2 rounded bg-white/5">

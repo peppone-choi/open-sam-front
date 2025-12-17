@@ -21,6 +21,7 @@ import '@/styles/log.css';
 import { makeAccentColors } from '@/types/colorSystem';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/contexts/ToastContext';
+import { useGameSessionStore } from '@/stores/gameSessionStore';
 
 // --- Color Utilities ---
 function normalizeHexColor(hex?: string): string {
@@ -115,6 +116,22 @@ export default function GamePage() {
       setMapData(mapDataResponse);
       if (menuData?.success) setGlobalMenu(menuData.menu || []);
       if (constData?.result) setGameConst(constData.data.gameConst || constData.data.gameSettings);
+
+      // 전역 게임 세션 스토어 업데이트
+      useGameSessionStore.getState().setSession({
+        serverID,
+        generalID: frontInfoData.general?.no ?? null,
+        generalName: frontInfoData.general?.name ?? null,
+        nationID: frontInfoData.nation?.id ?? null,
+        nationName: frontInfoData.nation?.name ?? null,
+        officerLevel: frontInfoData.general?.officer_level ?? 0,
+        cityID: frontInfoData.general?.city ?? null,
+        cityName: frontInfoData.city?.name ?? null,
+        year: frontInfoData.global?.year ?? null,
+        month: frontInfoData.global?.month ?? null,
+        startYear: frontInfoData.global?.startyear ?? null,
+        turnTerm: frontInfoData.global?.turnterm ?? null,
+      });
 
       // 투표/설문조사 알림 체크
       if (frontInfoData.global?.lastVoteID) {

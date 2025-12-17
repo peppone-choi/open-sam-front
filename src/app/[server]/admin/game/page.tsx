@@ -22,6 +22,8 @@ type AdminAction =
   | 'maxgeneral'
   | 'maxnation'
   | 'startyear'
+  | 'warDeclareYear'
+  | 'warDeployYear'
   | 'allowNpcPossess'
   | 'turnterm'
   | 'status'
@@ -47,6 +49,9 @@ interface AdminGameSettings {
   allowNpcPossess?: boolean;
   turnterm?: number;
   status?: ServerStatus;
+  openingPartYear?: number;
+  warDeclareYear?: number;
+  warDeployYear?: number;
 }
 
 interface ScenarioTemplate {
@@ -67,6 +72,8 @@ interface AdminUpdatePayload extends Record<string, string | number | boolean | 
   maxgeneral?: number;
   maxnation?: number;
   startyear?: number;
+  warDeclareYear?: number;
+  warDeployYear?: number;
   allowNpcPossess?: boolean;
   turnterm?: number;
   status?: ServerStatus;
@@ -93,6 +100,8 @@ export default function AdminGamePage() {
   const [maxgeneral, setMaxgeneral] = useState(300);
   const [maxnation, setMaxnation] = useState(12);
   const [startyear, setStartyear] = useState(220);
+  const [warDeclareYear, setWarDeclareYear] = useState(1);
+  const [warDeployYear, setWarDeployYear] = useState(3);
   const [allowNpcPossess, setAllowNpcPossess] = useState(false);
   
   // 시나리오 목록
@@ -135,6 +144,8 @@ export default function AdminGamePage() {
         setMaxgeneral(data.maxgeneral || 300);
         setMaxnation(data.maxnation || 12);
         setStartyear(data.startyear || 220);
+        setWarDeclareYear(data.warDeclareYear ?? 1);
+        setWarDeployYear(data.warDeployYear ?? 3);
         setAllowNpcPossess(!!data.allowNpcPossess);
       }
     } catch (error) {
@@ -191,6 +202,12 @@ export default function AdminGamePage() {
         case 'startyear':
           payload.startyear = startyear;
           break;
+        case 'warDeclareYear':
+          payload.warDeclareYear = warDeclareYear;
+          break;
+        case 'warDeployYear':
+          payload.warDeployYear = warDeployYear;
+          break;
         case 'allowNpcPossess':
           payload.allowNpcPossess = allowNpcPossess;
           break;
@@ -232,7 +249,7 @@ export default function AdminGamePage() {
       console.error(error);
       showToast(error.message || '오류가 발생했습니다', 'error');
     }
-  }, [allowNpcPossess, loadSettings, log, maxgeneral, maxnation, msg, scenario, selectedScenarioId, serverID, serverName, settings.status, settings.turnterm, showToast, starttime, startyear]);
+  }, [allowNpcPossess, loadSettings, log, maxgeneral, maxnation, msg, scenario, scenarioText, serverCnt, serverDescription, selectedScenarioId, serverID, serverName, settings.status, settings.turnterm, showToast, starttime, startyear, warDeclareYear, warDeployYear]);
 
   const handleChangeStatus = useCallback((status: ServerStatusKey) => {
     const statusLabels: Record<ServerStatusKey, string> = {
@@ -356,31 +373,91 @@ export default function AdminGamePage() {
           <h2 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-2">📝 서버 기본 정보</h2>
           
           <div className="space-y-4">
-            {[
-              { label: '서버 이름', value: serverName, setter: setServerName, action: 'serverName', ph: '서버 표시 이름 (게임 화면 상단에 표시)' },
-              { label: '시나리오 설명', value: scenarioText, setter: setScenarioText, action: 'scenarioText', ph: '시나리오 설명 (게임 화면 하단에 표시)' },
-              { label: '서버 설명', value: serverDescription, setter: setServerDescription, action: 'serverDescription', ph: '서버 설명 (로비 서버 안내에 표시)' },
-              { label: '운영자 메시지', value: msg, setter: setMsg, action: 'msg', ph: '공지사항 등' },
-            ].map((field) => (
-              <div key={field.action} className="flex flex-col md:flex-row gap-2 md:items-center">
-                <label className="w-32 text-sm font-medium text-gray-400">{field.label}</label>
-                <div className="flex-1 flex gap-2">
-                  <input
-                    type="text"
-                    value={field.value}
-                    onChange={(e) => field.setter(e.target.value)}
-                    placeholder={field.ph}
-                    className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 transition-colors text-white"
-                  />
-                  <button 
-                    onClick={() => void handleSubmit(field.action as AdminAction)}
-                    className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
-                  >
-                    변경
-                  </button>
-                </div>
+            {/* 서버 이름 */}
+            <div className="flex flex-col md:flex-row gap-2 md:items-center">
+              <label className="w-32 text-sm font-medium text-gray-400">서버 이름</label>
+              <div className="flex-1 flex gap-2">
+                <input
+                  type="text"
+                  value={serverName}
+                  onChange={(e) => setServerName(e.target.value)}
+                  placeholder="서버 표시 이름 (게임 화면 상단에 표시)"
+                  className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 transition-colors text-white"
+                />
+                <button 
+                  onClick={() => void handleSubmit('serverName')}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
+                >
+                  변경
+                </button>
               </div>
-            ))}
+            </div>
+
+            {/* 시나리오 설명 */}
+            <div className="flex flex-col md:flex-row gap-2 md:items-center">
+              <label className="w-32 text-sm font-medium text-gray-400">시나리오 설명</label>
+              <div className="flex-1 flex gap-2">
+                <input
+                  type="text"
+                  value={scenarioText}
+                  onChange={(e) => setScenarioText(e.target.value)}
+                  placeholder="시나리오 설명 (게임 화면 하단에 표시)"
+                  className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 transition-colors text-white"
+                />
+                <button 
+                  onClick={() => void handleSubmit('scenarioText')}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
+                >
+                  변경
+                </button>
+              </div>
+            </div>
+
+            {/* 서버 설명 */}
+            <div className="flex flex-col md:flex-row gap-2 md:items-center">
+              <label className="w-32 text-sm font-medium text-gray-400">서버 설명</label>
+              <div className="flex-1 flex gap-2">
+                <input
+                  type="text"
+                  value={serverDescription}
+                  onChange={(e) => {
+                    console.log('서버 설명 onChange:', e.target.value);
+                    setServerDescription(e.target.value);
+                  }}
+                  placeholder="서버 설명 (로비 서버 안내에 표시)"
+                  className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 transition-colors text-white"
+                />
+                <button 
+                  onClick={() => {
+                    console.log('서버 설명 변경 클릭, 현재값:', serverDescription);
+                    void handleSubmit('serverDescription');
+                  }}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
+                >
+                  변경
+                </button>
+              </div>
+            </div>
+
+            {/* 운영자 메시지 */}
+            <div className="flex flex-col md:flex-row gap-2 md:items-center">
+              <label className="w-32 text-sm font-medium text-gray-400">운영자 메시지</label>
+              <div className="flex-1 flex gap-2">
+                <input
+                  type="text"
+                  value={msg}
+                  onChange={(e) => setMsg(e.target.value)}
+                  placeholder="공지사항 등"
+                  className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 transition-colors text-white"
+                />
+                <button 
+                  onClick={() => void handleSubmit('msg')}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
+                >
+                  변경
+                </button>
+              </div>
+            </div>
 
             {/* Special Field: Log */}
             <div className="flex flex-col md:flex-row gap-2 md:items-center">
@@ -485,6 +562,63 @@ export default function AdminGamePage() {
                   {settings.year || 220}년 {settings.month || 1}월
                 </div>
               </div>
+            </div>
+
+            {/* 전쟁 관련 년도 설정 */}
+            <div className="pt-4 border-t border-white/5">
+              <h3 className="text-sm font-bold text-orange-400 mb-3">⚔️ 전쟁 관련 년도 설정</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                <div className="flex flex-col md:flex-row gap-2 md:items-center">
+                  <label className="w-32 text-sm font-medium text-gray-400">선포 가능</label>
+                  <div className="flex-1 flex gap-2 items-center">
+                    <span className="text-gray-500 text-sm">+</span>
+                    <input
+                      type="number"
+                      value={warDeclareYear}
+                      min={0}
+                      onChange={(e) => setWarDeclareYear(Number(e.target.value))}
+                      className="w-20 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-right focus:outline-none focus:border-orange-500/50 transition-colors text-white"
+                    />
+                    <span className="text-gray-400 text-sm">년</span>
+                    <button 
+                      onClick={() => void handleSubmit('warDeclareYear')}
+                      className="px-3 py-2 bg-orange-600/30 hover:bg-orange-600/50 rounded-lg text-sm text-white transition-colors"
+                    >
+                      변경
+                    </button>
+                    <span className="text-xs text-gray-500">
+                      ({startyear + warDeclareYear}년~)
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-2 md:items-center">
+                  <label className="w-32 text-sm font-medium text-gray-400">출병 가능</label>
+                  <div className="flex-1 flex gap-2 items-center">
+                    <span className="text-gray-500 text-sm">+</span>
+                    <input
+                      type="number"
+                      value={warDeployYear}
+                      min={0}
+                      onChange={(e) => setWarDeployYear(Number(e.target.value))}
+                      className="w-20 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-right focus:outline-none focus:border-red-500/50 transition-colors text-white"
+                    />
+                    <span className="text-gray-400 text-sm">년</span>
+                    <button 
+                      onClick={() => void handleSubmit('warDeployYear')}
+                      className="px-3 py-2 bg-red-600/30 hover:bg-red-600/50 rounded-lg text-sm text-white transition-colors"
+                    >
+                      변경
+                    </button>
+                    <span className="text-xs text-gray-500">
+                      ({startyear + warDeployYear}년~)
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-gray-500">
+                시작 연도 기준 상대 년도입니다. 예: 선포 가능 +1년 = {startyear}+1 = {startyear + 1}년부터 선전포고 가능
+              </p>
             </div>
 
             {/* Turn Time */}

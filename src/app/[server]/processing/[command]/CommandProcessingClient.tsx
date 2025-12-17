@@ -36,6 +36,7 @@ import {
 } from '@/components/processing/command-forms';
 import HighRiskCommandConfirmModal from '@/components/processing/HighRiskCommandConfirmModal';
 import type { ProcGeneralItem, ProcNationItem } from '@/components/processing/SelectGeneral';
+import { useGameSessionStore } from '@/stores/gameSessionStore';
 
 // --- Type Definitions (Keep logic intact) ---
 type UnitStackItem = {
@@ -304,7 +305,10 @@ export default function CommandProcessingClient({
   );
   const router = useRouter();
   const { showToast } = useToast();
-  const generalID = generalIdParam;
+  
+  // URL 파라미터 우선, 없으면 전역 스토어에서 가져옴
+  const sessionGeneralID = useGameSessionStore((state) => state.generalID);
+  const generalID = generalIdParam ?? sessionGeneralID ?? undefined;
 
   useEffect(() => {
     loadCommandData();

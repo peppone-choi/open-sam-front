@@ -153,15 +153,9 @@ export default function BattleCenterPage() {
     }
   }, [serverID, showToast, targetGeneralID]);
 
-  // 장수 로그 로드
+  // 장수 로그 로드 (PHP API와 동일한 reqType 사용)
   const loadGeneralLogs = useCallback(async (generalID: number) => {
     const reqTypes = ['generalHistory', 'battleResult', 'battleDetail', 'generalAction'] as const;
-    const typeMap: Record<string, 'history' | 'battle' | 'action' | 'personal'> = {
-      generalHistory: 'history',
-      battleResult: 'battle',
-      battleDetail: 'battle',
-      generalAction: 'action',
-    };
 
     const logs: GeneralLogs = {
       generalHistory: [],
@@ -176,10 +170,11 @@ export default function BattleCenterPage() {
           try {
             const res = await SammoAPI.NationGetGeneralLog({
               generalID,
-              reqType: typeMap[reqType],
+              reqType,  // ✅ PHP와 동일하게 그대로 전송
               serverID,
             });
-            return { reqType, logs: res.logs || [] };
+            // PHP는 'log', 백엔드는 'logs' 반환 - 둘 다 지원
+            return { reqType, logs: res.log || res.logs || [] };
           } catch (e) {
             console.error(`Failed to load ${reqType}:`, e);
             return { reqType, logs: [] };
