@@ -80,35 +80,48 @@ const NATION_ACTION_TYPES = [
   { value: 'NPC몰수', label: 'NPC 몰수', description: 'NPC에게서 자원 몰수' },
 ];
 
+// ===== PHP 기본 우선순위 =====
+const DEFAULT_GENERAL_PRIORITY = [
+  'NPC사망대비', '귀환', '금쌀구매', '출병', '긴급내정', '전투준비', '전방워프',
+  'NPC헌납', '징병', '후방워프', '전쟁내정', '소집해제', '일반내정', '내정워프'
+];
+
+const DEFAULT_NATION_PRIORITY = [
+  '불가침제의', '선전포고', '천도', '유저장긴급포상', '부대전방발령', '유저장구출발령',
+  '유저장후방발령', '부대유저장후방발령', '유저장전방발령', '유저장포상', '부대구출발령',
+  '부대후방발령', 'NPC긴급포상', 'NPC구출발령', 'NPC후방발령', 'NPC포상', 'NPC전방발령',
+  '유저장내정발령', 'NPC내정발령', 'NPC몰수'
+];
+
 // ===== 프리셋 정의 =====
 const PRESETS = {
+  default: {
+    name: '📋 PHP 기본값',
+    description: 'PHP 버전과 동일한 기본 설정',
+    generalPriority: [...DEFAULT_GENERAL_PRIORITY],
+    nationPriority: [...DEFAULT_NATION_PRIORITY],
+    values: {},
+  },
   aggressive: {
     name: '🗡️ 공격적',
     description: '출병과 전투를 우선시합니다',
-    generalPriority: ['NPC사망대비', '귀환', '출병', '전투준비', '전방워프', '징병', '긴급내정', '일반내정'],
-    nationPriority: ['선전포고', '부대전방발령', 'NPC전방발령', '유저장전방발령', '부대구출발령', 'NPC긴급포상'],
+    generalPriority: ['NPC사망대비', '귀환', '출병', '전투준비', '전방워프', '징병', '긴급내정', '일반내정', '내정워프'],
+    nationPriority: ['선전포고', '부대전방발령', 'NPC전방발령', '유저장전방발령', '부대구출발령', 'NPC긴급포상', 'NPC포상', '불가침제의'],
     values: { minWarCrew: 1000, properWarTrainAtmos: 80, minNPCWarLeadership: 30 },
   },
   defensive: {
     name: '🛡️ 방어적',
     description: '내정과 도시 발전을 우선시합니다',
-    generalPriority: ['NPC사망대비', '귀환', '긴급내정', '전쟁내정', '일반내정', '징병', '출병', '후방워프'],
-    nationPriority: ['불가침제의', '부대후방발령', 'NPC후방발령', 'NPC내정발령', '유저장내정발령', '부대전방발령'],
+    generalPriority: ['NPC사망대비', '귀환', '긴급내정', '전쟁내정', '일반내정', '징병', '전투준비', '출병', '후방워프', '내정워프'],
+    nationPriority: ['불가침제의', '부대후방발령', 'NPC후방발령', 'NPC내정발령', '유저장내정발령', 'NPC포상', '부대전방발령'],
     values: { minWarCrew: 3000, properWarTrainAtmos: 95, minNPCWarLeadership: 60 },
   },
   economic: {
     name: '💰 경제 우선',
     description: '자원 확보와 내정에 집중합니다',
-    generalPriority: ['NPC사망대비', '금쌀구매', '긴급내정', '일반내정', '전쟁내정', '징병', '출병', 'NPC헌납'],
-    nationPriority: ['NPC내정발령', '유저장내정발령', '불가침제의', 'NPC포상', '유저장포상', '부대후방발령'],
+    generalPriority: ['NPC사망대비', '금쌀구매', '긴급내정', '일반내정', '전쟁내정', '징병', 'NPC헌납', '출병', '내정워프'],
+    nationPriority: ['NPC내정발령', '유저장내정발령', '불가침제의', 'NPC포상', '유저장포상', '부대후방발령', 'NPC후방발령'],
     values: { reqNationGold: 5000, reqNationRice: 5000, reqNPCDevelRice: 1000 },
-  },
-  balanced: {
-    name: '⚖️ 균형',
-    description: '공격과 방어, 내정을 균형있게 수행합니다',
-    generalPriority: ['NPC사망대비', '귀환', '금쌀구매', '출병', '긴급내정', '전투준비', '징병', '전쟁내정', '일반내정'],
-    nationPriority: ['불가침제의', '선전포고', '부대전방발령', '부대후방발령', 'NPC긴급포상', 'NPC내정발령'],
-    values: { minWarCrew: 2000, properWarTrainAtmos: 85, minNPCWarLeadership: 50 },
   },
 };
 
