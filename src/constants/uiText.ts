@@ -28,32 +28,6 @@ export const LAYOUT_TEXT = {
   },
 };
 
-type PointerGuideEntry = {
-  label: string;
-  action: string;
-};
-
-type PointerGuideMap = Record<'leftClick' | 'rightClick' | 'wheel', PointerGuideEntry>;
-
-const pointerGuide: PointerGuideMap = {
-  leftClick: { label: '좌클릭', action: '함대 선택' },
-  rightClick: { label: '우클릭', action: '이동 명령' },
-  wheel: { label: '스크롤 휠', action: '확대/축소' },
-};
-
-export const LOGH_TEXT = {
-  radarActive: '레이더 작동 중',
-  autoResolveConfirm: '함대 AI를 활성화할까요? 전투가 자동으로 처리됩니다.',
-  autoResolveSuccess: (winner?: string | null) => `전투가 종료되었습니다. 승자: ${winner ?? COMMON_TEXT.unknown}`,
-  autoResolveError: '자동 처리에 실패했습니다. 잠시 후 다시 시도해주세요.',
-  autoResolveIdleLabel: '⚡ 전투 자동 처리',
-  autoResolveActiveLabel: '🤖 AI 자동 조종 중',
-  shortcuts: ['F: 이동 명령', 'R: 공격 명령', 'Z: 척추 진형', 'X: 오목 진형'],
-  pointerGuide,
-  positionLabel: '좌표',
-  zoomPrefix: '확대율',
-};
-
 export const PORTRAIT_TEXT = {
   uploadFailed: '초상 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.',
   uploadErrorLog: '초상 업로드 오류',

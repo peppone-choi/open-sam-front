@@ -10,12 +10,9 @@ export type { Notification, NotificationType, UseNotificationsOptions } from './
 export { useSocket } from './useSocket';
 export { useBattleCutscene } from './useBattleCutscene';
 export { useBattleSocket } from './useBattleSocket';
-export { useCommandExecution } from './useCommandExecution';
 export { useSammoCommandExecution } from './useSammoCommandExecution';
 export { useSammoGameConst } from './useSammoGameConst';
-export { useShortcut } from './useShortcut';
 export { useUnitConst } from './useUnitConst';
-export { useGin7Telemetry } from './useGin7Telemetry';
 
 // 게임 하위 훅
 export * from './game/useCommandClipboard';
