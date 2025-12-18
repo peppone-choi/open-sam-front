@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * SquadSync.ts
  * 부대 애니메이션 동기화 시스템

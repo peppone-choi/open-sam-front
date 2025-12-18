@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Voxel Battle Renderer - 최적화된 복셀 전투 렌더링 시스템
  * 

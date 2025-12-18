@@ -19,8 +19,8 @@ import type {
   SpecialSkillEffect,
   SkillEffectType,
   SkillTarget,
-  VoxelCategory,
 } from '../types/BattleTypes';
+import type { VoxelCategory } from '../CrewTypeVoxelMapping';
 
 // ========================================
 // 상수 정의

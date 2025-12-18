@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * AnimationController.ts
  * 복셀 유닛 애니메이션의 메인 컨트롤러

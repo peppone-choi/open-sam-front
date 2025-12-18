@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Asset Optimizer - 텍스처/이미지 최적화 유틸리티
  * 

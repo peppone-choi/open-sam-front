@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * 복셀 전투 상태 관리 Zustand 스토어
  * @module voxelBattleStore

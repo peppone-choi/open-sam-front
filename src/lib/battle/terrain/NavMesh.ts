@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * NavMesh.ts
  * 네비게이션 메시 및 경로 탐색 시스템

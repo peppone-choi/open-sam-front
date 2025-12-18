@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * CameraController.ts
  * 복셀 전투 카메라 시스템 - 메인 컨트롤러

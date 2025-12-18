@@ -17,6 +17,8 @@ export type ProcGeneralItem = {
   leadership: number;
   strength: number;
   intel: number;
+  politics?: number;
+  charm?: number;
   cityID?: number;
   crew?: number;
   train?: number;

@@ -39,7 +39,6 @@ export { default as NationFlag } from './NationFlag';
 export { default as PartialReservedCommand } from './PartialReservedCommand';
 export { default as SammoBar } from './SammoBar';
 export { default as SimpleClock } from './SimpleClock';
-export { default as TacticalMapPanel } from './TacticalMapPanel';
 export { default as TileCanvas } from './TileCanvas';
 export { default as TroopMovementMarker } from './TroopMovementMarker';
 export { default as VersionModal } from './VersionModal';

@@ -2421,7 +2421,7 @@ export class SammoAPI {
     kingdomList?: any[];
   }> {
     // 현재 세션의 국가 목록 조회
-    const response = await this.request('/api/global/get-nation-list', {
+    const response: any = await this.request('/api/global/get-nation-list', {
       method: 'GET',
     });
     
@@ -4847,26 +4847,6 @@ export class SammoAPI {
   }
 
   /**
-   * 장수 상세 정보 조회 (관리자)
-   */
-  static async AdminGetGeneral(params: {
-    session_id: string;
-    generalID: number;
-  }): Promise<{
-    result: boolean;
-    general?: any;
-    reason?: string;
-  }> {
-    return this.request('/api/admin/general', {
-      method: 'POST',
-      body: JSON.stringify({
-        session_id: params.session_id,
-        generalID: params.generalID,
-      }),
-    });
-  }
-
-  /**
    * 장수 블럭 설정 (관리자)
    */
   static async AdminSetBlock(params: {
@@ -4971,23 +4951,73 @@ export class SammoAPI {
     });
   }
 
-  /**
-   * 외교 정보 조회 (관리자)
-   */
-  static async AdminGetDiplomacy(params: {
-    session_id: string;
-  }): Promise<{
-    result: boolean;
-    diplomacyList?: any[];
-    reason?: string;
-  }> {
-    return this.request('/api/admin/diplomacy', {
-      method: 'POST',
-      body: JSON.stringify({
-        session_id: params.session_id,
-      }),
-    });
-  }
+  // ============================================================
+  // 전술 전투 API
+  // ============================================================
+  static TacticalBattle = {
+    /** 전술 전투 목록 조회 */
+    getBattles: async (sessionId: string): Promise<{ success: boolean; data: any[]; message?: string }> => {
+      return SammoAPI.request(`/api/tactical/battles?sessionId=${sessionId}`);
+    },
+
+    /** 전술 전투 상세 조회 */
+    getBattle: async (battleId: string): Promise<{ success: boolean; data: any; message?: string }> => {
+      return SammoAPI.request(`/api/tactical/battle/${battleId}`);
+    },
+
+    /** 유닛 이동 */
+    moveUnit: async (battleId: string, unitId: string, x: number, y: number): Promise<{ success: boolean; message?: string }> => {
+      return SammoAPI.request(`/api/tactical/battle/${battleId}/move`, {
+        method: 'POST',
+        body: JSON.stringify({ unitId, x, y }),
+      });
+    },
+
+    /** 유닛 공격 */
+    attackUnit: async (battleId: string, unitId: string, targetUnitId: string): Promise<{ success: boolean; message?: string }> => {
+      return SammoAPI.request(`/api/tactical/battle/${battleId}/attack`, {
+        method: 'POST',
+        body: JSON.stringify({ unitId, targetUnitId }),
+      });
+    },
+
+    /** 유닛 대기 */
+    waitUnit: async (battleId: string, unitId: string): Promise<{ success: boolean; message?: string }> => {
+      return SammoAPI.request(`/api/tactical/battle/${battleId}/wait`, {
+        method: 'POST',
+        body: JSON.stringify({ unitId }),
+      });
+    },
+
+    /** 턴 종료 */
+    endTurn: async (battleId: string, side: 'attacker' | 'defender'): Promise<{ success: boolean; message?: string }> => {
+      return SammoAPI.request(`/api/tactical/battle/${battleId}/end-turn`, {
+        method: 'POST',
+        body: JSON.stringify({ side }),
+      });
+    },
+
+    /** AI 턴 실행 */
+    aiTurn: async (battleId: string): Promise<{ success: boolean; message?: string }> => {
+      return SammoAPI.request(`/api/tactical/battle/${battleId}/ai-turn`, {
+        method: 'POST',
+      });
+    },
+
+    /** 전체 시뮬레이션 */
+    simulate: async (battleId: string): Promise<{ success: boolean; data?: any; message?: string }> => {
+      return SammoAPI.request(`/api/tactical/battle/${battleId}/simulate`, {
+        method: 'POST',
+      });
+    },
+
+    /** 전투 시작 */
+    startBattle: async (battleId: string): Promise<{ success: boolean; message?: string }> => {
+      return SammoAPI.request(`/api/tactical/battle/${battleId}/start`, {
+        method: 'POST',
+      });
+    },
+  };
 }
 
 /** 군대 이동 응답 타입 */

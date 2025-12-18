@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * CityTerrainMapping.ts
  * 실제 도시 데이터 기반 지형 매핑

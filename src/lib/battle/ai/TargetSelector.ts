@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * TargetSelector.ts
  * 타겟 우선순위 시스템

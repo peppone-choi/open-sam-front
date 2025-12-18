@@ -7,8 +7,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { TopBackBar } from '@/components/common/TopBackBar';
-import { useAPI } from '@/hooks/useAPI';
+import TopBackBar from '@/components/common/TopBackBar';
+import { SammoAPI } from '@/lib/api/sammo';
 import styles from './page.module.css';
 
 interface BattleSummary {
@@ -36,7 +36,6 @@ interface BattleSummary {
 export default function TacticalBattleListPage() {
   const params = useParams();
   const router = useRouter();
-  const api = useAPI();
   
   const server = params.server as string;
   
@@ -47,16 +46,16 @@ export default function TacticalBattleListPage() {
   // 전투 목록 조회
   const fetchBattles = useCallback(async () => {
     try {
-      const response = await api.get(`/tactical/battles?sessionId=${server}`);
-      if (response.data?.success) {
-        setBattles(response.data.data || []);
+      const response = await SammoAPI.TacticalBattle.getBattles(server);
+      if (response?.success) {
+        setBattles(response.data || []);
       }
     } catch (err: any) {
       setError(err.message || '전투 목록을 불러오는데 실패했습니다');
     } finally {
       setLoading(false);
     }
-  }, [api, server]);
+  }, [server]);
   
   useEffect(() => {
     fetchBattles();

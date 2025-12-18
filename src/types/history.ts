@@ -21,6 +21,8 @@ export interface HistoryNationSnapshot {
   population: number;
   gold: number;
   rice: number;
+  power?: number;
+  gennum?: number;
 }
 
 export interface HistoryRawEntry {
@@ -30,6 +32,10 @@ export interface HistoryRawEntry {
   day?: number;
   type: string;
   message: string;
+  text?: string;
+  summary?: string;
+  title?: string;
+  timestamp?: string | number;
   actorId?: string;
   actorName?: string;
   targetId?: string;
@@ -37,9 +43,15 @@ export interface HistoryRawEntry {
 }
 
 export interface EntryTraitMeta {
-  id: string;
+  id?: string;
   name: string;
   description: string;
+  details?: string;
+  penalty?: string;
+  color?: string;
+  totalMin?: number;
+  totalMax?: number;
+  max?: number;
   statModifiers?: {
     leadership?: number;
     power?: number;

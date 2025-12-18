@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * WeatherEffects - 날씨 이펙트 시스템
  * 

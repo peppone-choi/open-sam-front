@@ -8,8 +8,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { TacticalBattleMap } from '@/components/tactical-battle';
-import { TopBackBar } from '@/components/common/TopBackBar';
-import { useAPI } from '@/hooks/useAPI';
+import TopBackBar from '@/components/common/TopBackBar';
+import { SammoAPI } from '@/lib/api/sammo';
 import styles from './page.module.css';
 
 interface Position {
@@ -20,7 +20,6 @@ interface Position {
 export default function TacticalBattlePage() {
   const params = useParams();
   const router = useRouter();
-  const api = useAPI();
   
   const server = params.server as string;
   const battleId = params.battleId as string;
@@ -33,9 +32,9 @@ export default function TacticalBattlePage() {
   // 전투 데이터 조회
   const fetchBattleData = useCallback(async () => {
     try {
-      const response = await api.get(`/tactical/battle/${battleId}`);
-      if (response.data?.success) {
-        setBattleData(response.data.data);
+      const response = await SammoAPI.TacticalBattle.getBattle(battleId);
+      if (response?.success) {
+        setBattleData(response.data);
         // TODO: 현재 유저의 국가를 기반으로 playerSide 결정
       }
     } catch (err: any) {
@@ -43,7 +42,7 @@ export default function TacticalBattlePage() {
     } finally {
       setLoading(false);
     }
-  }, [api, battleId]);
+  }, [battleId]);
   
   // 초기 로드
   useEffect(() => {
@@ -61,82 +60,75 @@ export default function TacticalBattlePage() {
   // 이동 처리
   const handleMove = useCallback(async (unitId: string, position: Position) => {
     try {
-      await api.post(`/tactical/battle/${battleId}/move`, {
-        unitId,
-        x: position.x,
-        y: position.y,
-      });
+      await SammoAPI.TacticalBattle.moveUnit(battleId, unitId, position.x, position.y);
       fetchBattleData();
     } catch (err: any) {
       console.error('이동 실패:', err);
     }
-  }, [api, battleId, fetchBattleData]);
+  }, [battleId, fetchBattleData]);
   
   // 공격 처리
   const handleAttack = useCallback(async (unitId: string, targetId: string) => {
     try {
-      await api.post(`/tactical/battle/${battleId}/attack`, {
-        unitId,
-        targetUnitId: targetId,
-      });
+      await SammoAPI.TacticalBattle.attackUnit(battleId, unitId, targetId);
       fetchBattleData();
     } catch (err: any) {
       console.error('공격 실패:', err);
     }
-  }, [api, battleId, fetchBattleData]);
+  }, [battleId, fetchBattleData]);
   
   // 대기 처리
   const handleWait = useCallback(async (unitId: string) => {
     try {
-      await api.post(`/tactical/battle/${battleId}/wait`, { unitId });
+      await SammoAPI.TacticalBattle.waitUnit(battleId, unitId);
       fetchBattleData();
     } catch (err: any) {
       console.error('대기 실패:', err);
     }
-  }, [api, battleId, fetchBattleData]);
+  }, [battleId, fetchBattleData]);
   
   // 턴 종료
   const handleEndTurn = useCallback(async (side: 'attacker' | 'defender') => {
     try {
-      await api.post(`/tactical/battle/${battleId}/end-turn`, { side });
+      await SammoAPI.TacticalBattle.endTurn(battleId, side);
       fetchBattleData();
     } catch (err: any) {
       console.error('턴 종료 실패:', err);
     }
-  }, [api, battleId, fetchBattleData]);
+  }, [battleId, fetchBattleData]);
   
   // AI 턴 실행
   const handleAITurn = useCallback(async () => {
     try {
-      await api.post(`/tactical/battle/${battleId}/ai-turn`);
+      await SammoAPI.TacticalBattle.aiTurn(battleId);
       fetchBattleData();
     } catch (err: any) {
       console.error('AI 턴 실패:', err);
     }
-  }, [api, battleId, fetchBattleData]);
+  }, [battleId, fetchBattleData]);
   
   // 전체 시뮬레이션
   const handleSimulate = useCallback(async () => {
     try {
       setLoading(true);
-      await api.post(`/tactical/battle/${battleId}/simulate`);
+      await SammoAPI.TacticalBattle.simulate(battleId);
       fetchBattleData();
     } catch (err: any) {
       console.error('시뮬레이션 실패:', err);
     } finally {
       setLoading(false);
     }
-  }, [api, battleId, fetchBattleData]);
+  }, [battleId, fetchBattleData]);
   
   // 전투 시작
   const handleStartBattle = useCallback(async () => {
     try {
-      await api.post(`/tactical/battle/${battleId}/start`);
+      await SammoAPI.TacticalBattle.startBattle(battleId);
       fetchBattleData();
     } catch (err: any) {
       console.error('전투 시작 실패:', err);
     }
-  }, [api, battleId, fetchBattleData]);
+  }, [battleId, fetchBattleData]);
   
   if (loading && !battleData) {
     return (

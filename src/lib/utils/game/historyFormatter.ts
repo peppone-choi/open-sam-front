@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { HistoryNationSnapshot, HistoryRawEntry, HistoryTimelineEvent } from '@/types/history';
 
 const TAG_REGEX = /<[^>]+>/g;

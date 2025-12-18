@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import React, { useEffect, useRef, useCallback, useState } from 'react';

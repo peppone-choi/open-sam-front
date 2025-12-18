@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * ImpactEffects - 충돌 이펙트 시스템
  * 

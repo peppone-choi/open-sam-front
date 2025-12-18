@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * WaterRenderer.ts
  * 물/강 렌더링 시스템

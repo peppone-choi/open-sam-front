@@ -62,6 +62,10 @@ export interface ApiGeneral {
   strength: number;
   /** 지력 (1~100) */
   intel: number;
+  /** 정치력 (1~100) */
+  politics?: number;
+  /** 매력 (1~100) */
+  charm?: number;
   /** 특기 ID */
   specialId?: number;
   /** 특기 이름 */

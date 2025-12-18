@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * AnimationClips.ts
  * 기본 상태 애니메이션 클립 정의

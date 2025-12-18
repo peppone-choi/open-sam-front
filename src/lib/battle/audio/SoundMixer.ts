@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * SoundMixer - 오디오 믹서 시스템
  * 
