@@ -2417,48 +2417,25 @@ export class SammoAPI {
     session_id?: string;
   }): Promise<{
     result: boolean;
-    kingdomList: any[];
+    nations?: Record<number, any>;
+    kingdomList?: any[];
   }> {
     // 현재 세션의 국가 목록 조회
     const response = await this.request('/api/global/get-nation-list', {
       method: 'GET',
     });
     
-    // nationList를 kingdomList로 변환
+    // nationList를 nations로 반환 (원본 형식 유지)
     if (response.result && response.nationList) {
-      const nationList = response.nationList;
-      const kingdomList = Object.values(nationList)
-        .filter((nation: any) => nation.nation !== 0) // 재야 제외
-        .map((nation: any) => {
-          // cities가 객체인 경우 배열로 변환
-          const citiesObj = nation.cities || {};
-          const citiesArray = Object.entries(citiesObj).map(([id, name]) => ({ id: Number(id), name }));
-          // generals 배열
-          const generalsArray = nation.generals || [];
-          // 국력 계산: stat.gen + stat.city*100 또는 장수수 + 도시수*100
-          const stat = nation.stat || {};
-          const power = nation.power || stat.gen || (generalsArray.length + citiesArray.length * 100);
-          
-          return {
-            ...nation, // 원본 데이터 먼저 스프레드
-            nation: nation.nation,
-            name: nation.name,
-            color: nation.color || '#808080',
-            power,
-            cities: citiesArray, // 변환된 배열로 덮어쓰기
-            generals: generalsArray,
-          };
-        })
-        .sort((a, b) => b.power - a.power); // 국력순 정렬
       return {
         result: true,
-        kingdomList
+        nations: response.nationList
       };
     }
     
     return {
       result: false,
-      kingdomList: []
+      nations: {}
     };
   }
   
