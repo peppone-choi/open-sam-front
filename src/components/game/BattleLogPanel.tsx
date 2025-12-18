@@ -317,16 +317,16 @@ export default function BattleLogPanel({ serverID, generalId }: Props) {
                 </div>
               );
             })}
+            {/* 새 로그 알림 뱃지 */}
+            {newLogCount > 0 && !autoScroll && (
+              <div 
+                className={styles.newLogBadge}
+                onClick={scrollToBottom}
+              >
+                ↑ 새 로그 {newLogCount}개
+              </div>
+            )}
           </div>
-          {/* 새 로그 알림 뱃지 */}
-          {newLogCount > 0 && !autoScroll && (
-            <div 
-              className={styles.newLogBadge}
-              onClick={scrollToBottom}
-            >
-              ↑ 새 로그 {newLogCount}개
-            </div>
-          )}
         )}
       </div>
       <div className={styles.footer}>

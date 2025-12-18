@@ -28,7 +28,15 @@ type AdminAction =
   | 'turnterm'
   | 'tacticalMaxTurns'
   | 'status'
-  | 'resetScenario';
+  | 'resetScenario'
+  // PHP game_env 추가 액션
+  | 'npcmode'
+  | 'extended_general'
+  | 'fiction'
+  | 'show_img_level'
+  | 'genius'
+  | 'block_general_create'
+  | 'develcost';
 
 type AdminActionValue = string | number | boolean | undefined;
 
@@ -56,6 +64,17 @@ interface AdminGameSettings {
   // 전술전투 설정
   tacticalMaxTurns?: number;
   tacticalTurnTimeLimit?: number;
+  // PHP game_env 추가 필드
+  npcmode?: number;            // NPC 모드 (0=일반, 1=빠른삭턴)
+  extended_general?: number;   // 확장 장수 (0=비활성, 1=활성)
+  fiction?: number;            // 픽션 모드 (0=정사, 1=픽션)
+  show_img_level?: number;     // 이미지 레벨 (0~3)
+  genius?: number;             // 천재 제한
+  block_general_create?: number; // 장수 생성 제한 (0=허용, 1=제한)
+  killturn?: number;           // 삭턴 (자동 계산)
+  develcost?: number;          // 내정/이동 비용
+  init_year?: number;          // 초기 년도
+  init_month?: number;         // 초기 월
 }
 
 interface ScenarioTemplate {
@@ -83,6 +102,14 @@ interface AdminUpdatePayload extends Record<string, string | number | boolean | 
   tacticalMaxTurns?: number;
   status?: ServerStatus;
   scenarioId?: string;
+  // PHP game_env 추가 필드
+  npcmode?: number;
+  extended_general?: number;
+  fiction?: number;
+  show_img_level?: number;
+  genius?: number;
+  block_general_create?: number;
+  develcost?: number;
 }
 
 export default function AdminGamePage() {
@@ -111,6 +138,15 @@ export default function AdminGamePage() {
   
   // 전술전투 설정
   const [tacticalMaxTurns, setTacticalMaxTurns] = useState(15);
+  
+  // PHP game_env 추가 필드
+  const [npcmode, setNpcmode] = useState(0);
+  const [extendedGeneral, setExtendedGeneral] = useState(0);
+  const [fiction, setFiction] = useState(0);
+  const [showImgLevel, setShowImgLevel] = useState(3);
+  const [genius, setGenius] = useState(100);
+  const [blockGeneralCreate, setBlockGeneralCreate] = useState(0);
+  const [develcost, setDevelcost] = useState(20);
   
   // 시나리오 목록
   const [scenarios, setScenarios] = useState<ScenarioTemplate[]>([]);
@@ -156,6 +192,14 @@ export default function AdminGamePage() {
         setWarDeployYear(data.warDeployYear ?? 3);
         setAllowNpcPossess(!!data.allowNpcPossess);
         setTacticalMaxTurns(data.tacticalMaxTurns ?? 15);
+        // PHP game_env 추가 필드
+        setNpcmode(data.npcmode ?? 0);
+        setExtendedGeneral(data.extended_general ?? 0);
+        setFiction(data.fiction ?? 0);
+        setShowImgLevel(data.show_img_level ?? 3);
+        setGenius(data.genius ?? 100);
+        setBlockGeneralCreate(data.block_general_create ?? 0);
+        setDevelcost(data.develcost ?? 20);
       }
     } catch (error) {
       console.error(error);
@@ -237,6 +281,28 @@ export default function AdminGamePage() {
           }
           payload.turnterm = settings.turnterm || 60;
           break;
+        // PHP game_env 추가 액션
+        case 'npcmode':
+          payload.npcmode = typeof value === 'number' ? value : npcmode;
+          break;
+        case 'extended_general':
+          payload.extended_general = typeof value === 'number' ? value : extendedGeneral;
+          break;
+        case 'fiction':
+          payload.fiction = typeof value === 'number' ? value : fiction;
+          break;
+        case 'show_img_level':
+          payload.show_img_level = typeof value === 'number' ? value : showImgLevel;
+          break;
+        case 'genius':
+          payload.genius = typeof value === 'number' ? value : genius;
+          break;
+        case 'block_general_create':
+          payload.block_general_create = typeof value === 'number' ? value : blockGeneralCreate;
+          break;
+        case 'develcost':
+          payload.develcost = typeof value === 'number' ? value : develcost;
+          break;
         default:
           break;
       }
@@ -261,7 +327,7 @@ export default function AdminGamePage() {
       console.error(error);
       showToast(error.message || '오류가 발생했습니다', 'error');
     }
-  }, [allowNpcPossess, loadSettings, log, maxgeneral, maxnation, msg, scenario, scenarioText, serverCnt, serverDescription, selectedScenarioId, serverID, serverName, settings.status, settings.turnterm, showToast, starttime, startyear, warDeclareYear, warDeployYear]);
+  }, [allowNpcPossess, loadSettings, log, maxgeneral, maxnation, msg, scenario, scenarioText, serverCnt, serverDescription, selectedScenarioId, serverID, serverName, settings.status, settings.turnterm, showToast, starttime, startyear, warDeclareYear, warDeployYear, npcmode, extendedGeneral, fiction, showImgLevel, genius, blockGeneralCreate, develcost, tacticalMaxTurns]);
 
   const handleChangeStatus = useCallback((status: ServerStatusKey) => {
     const statusLabels: Record<ServerStatusKey, string> = {
@@ -724,6 +790,190 @@ export default function AdminGamePage() {
               </button>
             </div>
 
+          </div>
+        </div>
+
+        {/* Advanced Game Settings (PHP game_env compatible) */}
+        <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-6 shadow-lg border-l-4 border-l-purple-500">
+          <h2 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-2">🔧 고급 게임 설정 (PHP 호환)</h2>
+          
+          <div className="space-y-4">
+            {/* NPC 모드 */}
+            <div className="flex flex-col md:flex-row gap-2 md:items-center">
+              <label className="w-40 text-sm font-medium text-gray-400">NPC 모드</label>
+              <div className="flex-1 flex gap-2">
+                <select
+                  value={npcmode}
+                  onChange={(e) => setNpcmode(Number(e.target.value))}
+                  className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-purple-500/50 transition-colors text-white"
+                >
+                  <option value={0} className="bg-gray-900">일반 (기본)</option>
+                  <option value={1} className="bg-gray-900">빠른 삭턴 (삭턴 1/3)</option>
+                </select>
+                <button 
+                  onClick={() => void handleSubmit('npcmode')}
+                  className="px-4 py-2 bg-purple-600/30 hover:bg-purple-600/50 rounded-lg text-sm text-white transition-colors"
+                >
+                  변경
+                </button>
+              </div>
+            </div>
+
+            {/* 확장 장수 */}
+            <div className="flex flex-col md:flex-row gap-2 md:items-center">
+              <label className="w-40 text-sm font-medium text-gray-400">확장 장수</label>
+              <div className="flex-1 flex gap-2">
+                <select
+                  value={extendedGeneral}
+                  onChange={(e) => setExtendedGeneral(Number(e.target.value))}
+                  className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-purple-500/50 transition-colors text-white"
+                >
+                  <option value={0} className="bg-gray-900">비활성화 (기본)</option>
+                  <option value={1} className="bg-gray-900">활성화 (추가 NPC 등장)</option>
+                </select>
+                <button 
+                  onClick={() => void handleSubmit('extended_general')}
+                  className="px-4 py-2 bg-purple-600/30 hover:bg-purple-600/50 rounded-lg text-sm text-white transition-colors"
+                >
+                  변경
+                </button>
+              </div>
+            </div>
+
+            {/* 픽션 모드 */}
+            <div className="flex flex-col md:flex-row gap-2 md:items-center">
+              <label className="w-40 text-sm font-medium text-gray-400">픽션 모드</label>
+              <div className="flex-1 flex gap-2">
+                <select
+                  value={fiction}
+                  onChange={(e) => setFiction(Number(e.target.value))}
+                  className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-purple-500/50 transition-colors text-white"
+                >
+                  <option value={0} className="bg-gray-900">정사 모드 (기본)</option>
+                  <option value={1} className="bg-gray-900">픽션 모드 (랜덤 요소 증가)</option>
+                </select>
+                <button 
+                  onClick={() => void handleSubmit('fiction')}
+                  className="px-4 py-2 bg-purple-600/30 hover:bg-purple-600/50 rounded-lg text-sm text-white transition-colors"
+                >
+                  변경
+                </button>
+              </div>
+            </div>
+
+            {/* 이미지 레벨 */}
+            <div className="flex flex-col md:flex-row gap-2 md:items-center">
+              <label className="w-40 text-sm font-medium text-gray-400">이미지 표시</label>
+              <div className="flex-1 flex gap-2">
+                <select
+                  value={showImgLevel}
+                  onChange={(e) => setShowImgLevel(Number(e.target.value))}
+                  className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-purple-500/50 transition-colors text-white"
+                >
+                  <option value={0} className="bg-gray-900">이미지 없음</option>
+                  <option value={1} className="bg-gray-900">기본 이미지만</option>
+                  <option value={2} className="bg-gray-900">서버 이미지</option>
+                  <option value={3} className="bg-gray-900">모든 이미지 (기본)</option>
+                </select>
+                <button 
+                  onClick={() => void handleSubmit('show_img_level')}
+                  className="px-4 py-2 bg-purple-600/30 hover:bg-purple-600/50 rounded-lg text-sm text-white transition-colors"
+                >
+                  변경
+                </button>
+              </div>
+            </div>
+
+            {/* 장수 생성 제한 */}
+            <div className="flex flex-col md:flex-row gap-2 md:items-center">
+              <label className="w-40 text-sm font-medium text-gray-400">장수 생성</label>
+              <div className="flex-1 flex gap-2">
+                <select
+                  value={blockGeneralCreate}
+                  onChange={(e) => setBlockGeneralCreate(Number(e.target.value))}
+                  className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-purple-500/50 transition-colors text-white"
+                >
+                  <option value={0} className="bg-gray-900">신규 생성 허용 (기본)</option>
+                  <option value={1} className="bg-gray-900">신규 생성 제한 (빙의만 가능)</option>
+                </select>
+                <button 
+                  onClick={() => void handleSubmit('block_general_create')}
+                  className="px-4 py-2 bg-purple-600/30 hover:bg-purple-600/50 rounded-lg text-sm text-white transition-colors"
+                >
+                  변경
+                </button>
+              </div>
+            </div>
+
+            {/* 숫자 입력 필드들 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 pt-4 border-t border-white/5">
+              {/* 천재 제한 */}
+              <div className="flex flex-col md:flex-row gap-2 md:items-center">
+                <label className="w-32 text-sm font-medium text-gray-400">천재 제한</label>
+                <div className="flex-1 flex gap-2">
+                  <input
+                    type="number"
+                    value={genius}
+                    min={0}
+                    onChange={(e) => setGenius(Number(e.target.value))}
+                    className="w-24 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-right focus:outline-none focus:border-purple-500/50 transition-colors text-white"
+                  />
+                  <button 
+                    onClick={() => void handleSubmit('genius')}
+                    className="px-4 py-2 bg-purple-600/30 hover:bg-purple-600/50 rounded-lg text-sm text-white transition-colors"
+                  >
+                    변경
+                  </button>
+                </div>
+              </div>
+
+              {/* 내정 비용 */}
+              <div className="flex flex-col md:flex-row gap-2 md:items-center">
+                <label className="w-32 text-sm font-medium text-gray-400">내정 비용</label>
+                <div className="flex-1 flex gap-2">
+                  <input
+                    type="number"
+                    value={develcost}
+                    min={1}
+                    onChange={(e) => setDevelcost(Number(e.target.value))}
+                    className="w-24 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-right focus:outline-none focus:border-purple-500/50 transition-colors text-white"
+                  />
+                  <button 
+                    onClick={() => void handleSubmit('develcost')}
+                    className="px-4 py-2 bg-purple-600/30 hover:bg-purple-600/50 rounded-lg text-sm text-white transition-colors"
+                  >
+                    변경
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* 정보 표시 */}
+            <div className="bg-black/20 rounded-lg p-4 mt-4">
+              <h4 className="text-sm font-bold text-purple-400 mb-2">📊 현재 설정 요약</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-400">삭턴:</span>
+                  <span className="ml-2 text-white font-mono">{settings.killturn ?? Math.floor(4800 / (settings.turnterm || 60))}턴</span>
+                </div>
+                <div>
+                  <span className="text-gray-400">초기 년월:</span>
+                  <span className="ml-2 text-white font-mono">{settings.init_year ?? settings.startyear}년 {settings.init_month ?? 1}월</span>
+                </div>
+                <div>
+                  <span className="text-gray-400">시즌:</span>
+                  <span className="ml-2 text-white font-mono">1</span>
+                </div>
+                <div>
+                  <span className="text-gray-400">내정 비용:</span>
+                  <span className="ml-2 text-white font-mono">{settings.develcost ?? develcost}</span>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-500 mt-2">
+              ⚠️ 이 설정들은 PHP 게임 엔진과 호환됩니다. 변경 시 게임 밸런스에 영향을 줄 수 있습니다.
+            </p>
           </div>
         </div>
       </div>

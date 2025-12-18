@@ -369,7 +369,7 @@ export default function CommandProcessingClient({
           }`;
         }
       }
-    } else if (['군량매매', 'che_군량매매'].includes(commandType)) {
+    } else if (['군량매매', 'che_군량매매', '군사매매', 'che_군사매매'].includes(commandType)) {
       const amountStr = args.amount?.toLocaleString() || '0';
       brief = `쌀 ${amountStr} ${args.buyRice ? '매입' : '매각'}`;
     } else if (
@@ -743,7 +743,7 @@ export default function CommandProcessingClient({
           onCancel={handleCancel}
         />
       );
-    } else if (commandType === '군량매매' || commandType === 'che_군량매매') {
+    } else if (['군량매매', 'che_군량매매', '군사매매', 'che_군사매매', 'tradeMilitary'].includes(commandType)) {
       Component = (
         <TradeRiceCommandForm
           commandName={commandName}
@@ -803,7 +803,7 @@ export default function CommandProcessingClient({
           onCancel={handleCancel}
         />
       );
-    } else if (['조공', 'che_조공', 'tribute'].includes(commandType)) {
+    } else if (['조공', 'che_조공', 'tribute', '헌납', 'che_헌납', 'donate'].includes(commandType)) {
       Component = (
         <TributeCommandForm
           commandName={commandName}
@@ -851,7 +851,7 @@ export default function CommandProcessingClient({
           onCancel={handleCancel}
         />
       );
-    } else if (['수련변환', 'che_수련변환', 'convertMastery'].includes(commandType)) {
+    } else if (['숙련전환', 'che_숙련전환', '수련변환', 'che_수련변환', 'convertMastery', 'convertExp'].includes(commandType)) {
       Component = (
         <ConvertMasteryCommandForm
           commandName={commandName}
@@ -863,7 +863,7 @@ export default function CommandProcessingClient({
           onCancel={handleCancel}
         />
       );
-    } else if (['장비거래', 'che_장비거래', 'tradeEquipment', '재정거래', 'che_재정거래'].includes(commandType)) {
+    } else if (['장비매매', 'che_장비매매', '장비거래', 'che_장비거래', 'tradeEquipment', '재정거래', 'che_재정거래'].includes(commandType)) {
       Component = (
         <TradeEquipmentCommandForm
           commandName={commandName}
