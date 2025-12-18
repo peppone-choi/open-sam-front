@@ -272,7 +272,7 @@ export default function GeneralBasicCard({
   colorSystem,
   itemInfo
 }: GeneralBasicCardProps) {
-  const [showStacks, setShowStacks] = useState(false);
+  // 스택 시스템 제거됨
   const normalizedTroopInfo = useMemo(() => {
     if (troopInfo && typeof troopInfo === 'object' && 'name' in troopInfo) {
       return troopInfo as { name: string; leader?: { city?: number; reservedCommand?: any[] } };
@@ -423,40 +423,13 @@ export default function GeneralBasicCard({
               </span>
             )}
             <div className="mt-2 flex flex-col gap-1.5 items-center">
-              {visibleStacks.length > 0 ? (
-                <div className="flex flex-wrap gap-1 justify-center">
-                  {visibleStacks.map((stack) => (
-                    <Badge key={stack.id} variant="outline" className="gap-1 font-normal">
-                      <TroopIconDisplay crewtype={stack.crewTypeId} size={14} />
-                      <span className="text-white/85">
-                        {resolveStackLabel(stack.crewTypeId, stack.crewTypeName, unitConst ?? undefined)}
-                      </span>
-                      <span className="text-white/65 font-semibold ml-1">{stack.troops.toLocaleString()}</span>
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <Tooltip content={crewtypeInfo.info}>
-                  <Badge variant="outline" className="gap-1.5 font-normal cursor-help">
-                    {crewtypeId ? <TroopIconDisplay crewtype={crewtypeId} size={16} /> : null}
-                    <span>{crewtypeLabel}</span>
-                  </Badge>
-                </Tooltip>
-              )}
-              {canToggleStacks ? (
-                <button 
-                  type="button" 
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/20 bg-white/10 text-white/85 text-xs cursor-pointer transition-colors hover:bg-white/20 hover:border-white/35 active:scale-95"
-                  onClick={handleStackToggle}
-                >
-                  <span className="text-white/75">
-                    {hasExtraStacks ? `외 ${extraStackCount}부대` : soldierSummary}
-                  </span>
-                  <span className="text-white/80">{showStacks ? '▴' : '▾'}</span>
-                </button>
-              ) : (
-                <span className="text-xs text-white/75">{soldierSummary}</span>
-              )}
+              <Tooltip content={crewtypeInfo.info}>
+                <Badge variant="outline" className="gap-1.5 font-normal cursor-help">
+                  {crewtypeId ? <TroopIconDisplay crewtype={crewtypeId} size={16} /> : null}
+                  <span>{crewtypeLabel}</span>
+                </Badge>
+              </Tooltip>
+              <span className="text-xs text-white/75">{soldierSummary}</span>
             </div>
           </div>
         </div>
