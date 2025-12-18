@@ -1,0 +1,366 @@
+/* ConflictProgressBar - 분쟁 진행 바 컴포넌트 스타일 */
+
+.container {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.cityInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.siegeIcon {
+  width: 24px;
+  height: 24px;
+  color: #ff6b6b;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+.cityName {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.defenderBadge {
+  font-size: 12px;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
+  border-radius: 4px;
+  color: #dfe6e9;
+}
+
+.hpSection {
+  margin-bottom: 16px;
+}
+
+.hpRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.hpLabel {
+  font-size: 11px;
+  color: #b2bec3;
+  min-width: 48px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hpBarContainer {
+  flex: 1;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.hpBar {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.5s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.hpBar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.hpBarCity {
+  background: linear-gradient(90deg, #00b894 0%, #00cec9 100%);
+}
+
+.hpBarWall {
+  background: linear-gradient(90deg, #6c5ce7 0%, #a29bfe 100%);
+}
+
+.hpBarGate {
+  background: linear-gradient(90deg, #fdcb6e 0%, #f39c12 100%);
+}
+
+.hpBarDanger {
+  background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.hpBarWarning {
+  background: linear-gradient(90deg, #f39c12 0%, #d35400 100%);
+}
+
+.hpValue {
+  font-size: 11px;
+  color: #fff;
+  min-width: 60px;
+  text-align: right;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.conflictSection {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.conflictHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.conflictTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffeaa7;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.conflictIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.totalDamage {
+  font-size: 11px;
+  color: #b2bec3;
+}
+
+.participantList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.participantRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.participantRank {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rank1 {
+  background: linear-gradient(135deg, #ffd700 0%, #ffb700 100%);
+  color: #1a1a2e;
+}
+
+.rank2 {
+  background: linear-gradient(135deg, #c0c0c0 0%, #a0a0a0 100%);
+  color: #1a1a2e;
+}
+
+.rank3 {
+  background: linear-gradient(135deg, #cd7f32 0%, #a0522d 100%);
+  color: #fff;
+}
+
+.rankOther {
+  background: rgba(255, 255, 255, 0.1);
+  color: #b2bec3;
+}
+
+.nationColor {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.nationName {
+  font-size: 12px;
+  color: #fff;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contributionBarContainer {
+  flex: 1;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  overflow: hidden;
+  min-width: 100px;
+}
+
+.contributionBar {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.3s ease-out;
+}
+
+.contributionPercent {
+  font-size: 11px;
+  color: #ffeaa7;
+  min-width: 40px;
+  text-align: right;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-weight: 600;
+}
+
+.estimatedWinner {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.winnerLabel {
+  font-size: 11px;
+  color: #b2bec3;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.winnerNation {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffeaa7;
+}
+
+.noConflict {
+  text-align: center;
+  padding: 20px;
+  color: #636e72;
+  font-size: 13px;
+}
+
+/* 컴팩트 모드 */
+.compact {
+  padding: 10px 12px;
+}
+
+.compact .header {
+  margin-bottom: 8px;
+}
+
+.compact .cityName {
+  font-size: 14px;
+}
+
+.compact .hpRow {
+  margin-bottom: 4px;
+}
+
+.compact .hpBarContainer {
+  height: 10px;
+}
+
+.compact .conflictSection {
+  padding: 8px;
+}
+
+/* 미니 모드 */
+.mini {
+  padding: 8px;
+  background: rgba(26, 26, 46, 0.9);
+}
+
+.mini .header {
+  margin-bottom: 6px;
+}
+
+.mini .cityName {
+  font-size: 12px;
+}
+
+.mini .hpSection {
+  margin-bottom: 8px;
+}
+
+.mini .hpRow {
+  margin-bottom: 2px;
+}
+
+.mini .hpLabel {
+  display: none;
+}
+
+.mini .hpBarContainer {
+  height: 6px;
+}
+
+.mini .hpValue {
+  font-size: 10px;
+  min-width: 48px;
+}
+
+.mini .conflictSection {
+  display: none;
+}
+
+/* 애니메이션 */
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px currentColor; }
+  50% { box-shadow: 0 0 15px currentColor; }
+}
+
+.underSiege {
+  animation: glow 2s ease-in-out infinite;
+  border-color: rgba(255, 107, 107, 0.3);
+}
+
+/* 반응형 */
+@media (max-width: 480px) {
+  .container {
+    padding: 12px;
+  }
+  
+  .cityName {
+    font-size: 14px;
+  }
+  
+  .hpLabel {
+    min-width: 36px;
+    font-size: 10px;
+  }
+  
+  .contributionBarContainer {
+    min-width: 60px;
+  }
+}
+

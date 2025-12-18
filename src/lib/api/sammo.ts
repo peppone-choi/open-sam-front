@@ -248,21 +248,7 @@ export interface GetFrontInfoResponse {
     refreshScore?: number;
     picture?: string;
     imgsvr?: number;
-    unitStacks?: {
-      totalTroops: number;
-      stackCount: number;
-      averageTrain?: number;
-      averageMorale?: number;
-      stacks: Array<{
-        id: string;
-        crewTypeId: number;
-        crewTypeName?: string;
-        troops: number;
-        train: number;
-        morale: number;
-        updatedAt?: string;
-      }>;
-    } | null;
+    // 스택 시스템 제거됨
     [key: string]: any;
   };
 
@@ -4833,6 +4819,193 @@ export class SammoAPI {
     return this.request('/api/history/unifications', {
       method: 'POST',
       body: JSON.stringify(params || {}),
+    });
+  }
+
+  // ============================================================
+  // 향상된 어드민 API
+  // ============================================================
+
+  /**
+   * 국가 통계 조회 (관리자)
+   */
+  static async AdminGetNationStats(params: {
+    session_id: string;
+    sortType?: number;
+  }): Promise<{
+    success: boolean;
+    stats?: any[];
+    message?: string;
+  }> {
+    const queryParams = new URLSearchParams({
+      session_id: params.session_id,
+      sort_type: String(params.sortType || 0),
+    });
+    return this.request(`/api/admin/nation/stats?${queryParams}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * 장수 목록 조회 (관리자)
+   */
+  static async AdminGetGenerals(params: {
+    session_id: string;
+    sortType?: string;
+  }): Promise<{
+    success: boolean;
+    generals?: any[];
+    total?: number;
+    message?: string;
+  }> {
+    const queryParams = new URLSearchParams({
+      session_id: params.session_id,
+    });
+    return this.request(`/api/admin/user/generals?${queryParams}`, {
+      method: 'GET',
+    });
+  }
+
+  /**
+   * 장수 상세 정보 조회 (관리자)
+   */
+  static async AdminGetGeneral(params: {
+    session_id: string;
+    generalID: number;
+  }): Promise<{
+    result: boolean;
+    general?: any;
+    reason?: string;
+  }> {
+    return this.request('/api/admin/general', {
+      method: 'POST',
+      body: JSON.stringify({
+        session_id: params.session_id,
+        generalID: params.generalID,
+      }),
+    });
+  }
+
+  /**
+   * 장수 블럭 설정 (관리자)
+   */
+  static async AdminSetBlock(params: {
+    session_id: string;
+    generalNo: number;
+    penaltyLevel: number;
+  }): Promise<{
+    success: boolean;
+    message?: string;
+  }> {
+    return this.request('/api/admin/user/set-block', {
+      method: 'POST',
+      body: JSON.stringify({
+        session_id: params.session_id,
+        generalNo: params.generalNo,
+        penaltyLevel: params.penaltyLevel,
+      }),
+    });
+  }
+
+  /**
+   * 장수 강제 사망 (관리자)
+   */
+  static async AdminForceDeath(params: {
+    session_id: string;
+    generalNo: number;
+  }): Promise<{
+    success: boolean;
+    message?: string;
+  }> {
+    return this.request('/api/admin/user/force-death', {
+      method: 'POST',
+      body: JSON.stringify({
+        session_id: params.session_id,
+        generalNo: params.generalNo,
+      }),
+    });
+  }
+
+  /**
+   * 장수에게 메시지 전송 (관리자)
+   */
+  static async AdminSendMessage(params: {
+    session_id: string;
+    generalNo: number;
+    text: string;
+  }): Promise<{
+    success: boolean;
+    message?: string;
+  }> {
+    return this.request('/api/admin/user/send-message', {
+      method: 'POST',
+      body: JSON.stringify({
+        session_id: params.session_id,
+        generalNo: params.generalNo,
+        text: params.text,
+      }),
+    });
+  }
+
+  /**
+   * 장수 국가 변경 (관리자)
+   */
+  static async AdminChangeNation(params: {
+    session_id: string;
+    generalNo: number;
+    nationId: number;
+  }): Promise<{
+    success: boolean;
+    message?: string;
+  }> {
+    return this.request('/api/admin/nation/change-general', {
+      method: 'POST',
+      body: JSON.stringify({
+        session_id: params.session_id,
+        generalNo: params.generalNo,
+        nationId: params.nationId,
+      }),
+    });
+  }
+
+  /**
+   * 숙련도 부여 (관리자)
+   */
+  static async AdminGrantSkill(params: {
+    session_id: string;
+    generalNo: number;
+    crewType: number;
+    amount: number;
+  }): Promise<{
+    success: boolean;
+    message?: string;
+  }> {
+    return this.request('/api/admin/user/grant-skill', {
+      method: 'POST',
+      body: JSON.stringify({
+        session_id: params.session_id,
+        generalNo: params.generalNo,
+        crewType: params.crewType,
+        amount: params.amount,
+      }),
+    });
+  }
+
+  /**
+   * 외교 정보 조회 (관리자)
+   */
+  static async AdminGetDiplomacy(params: {
+    session_id: string;
+  }): Promise<{
+    result: boolean;
+    diplomacyList?: any[];
+    reason?: string;
+  }> {
+    return this.request('/api/admin/diplomacy', {
+      method: 'POST',
+      body: JSON.stringify({
+        session_id: params.session_id,
+      }),
     });
   }
 }

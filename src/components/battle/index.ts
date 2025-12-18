@@ -115,5 +115,17 @@ export type {
   DamageFloaterManagerRef,
 } from './effects';
 
-
-
+// 분쟁 진행 바 (Conflict System)
+export { 
+  default as ConflictProgressBar,
+  ConflictProgressList,
+  useConflictProgress,
+  useAllConflicts,
+} from './ConflictProgressBar';
+export type {
+  ConflictProgressBarProps,
+  ConflictProgressListProps,
+  BattleProgress,
+  ConflictParticipant,
+  UseConflictProgressOptions,
+} from './ConflictProgressBar';

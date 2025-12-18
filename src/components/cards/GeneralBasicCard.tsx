@@ -82,23 +82,7 @@ interface GeneralBasicCardProps {
     refreshScore?: number;
     picture?: string;
     imgsvr?: number;
-    unitStacks?: {
-      totalTroops?: number;
-      stackCount?: number;
-      averageTrain?: number;
-      averageMorale?: number;
-      stacks: Array<{
-        id: string;
-        crewTypeId: number;
-        crewTypeName?: string;
-        unitSize?: number;
-        stackCount?: number;
-        troops: number;
-        train: number;
-        morale: number;
-        updatedAt?: string;
-      }>;
-    } | null;
+    // 스택 시스템 제거됨
     [key: string]: any;
   };
   nation?: {
@@ -398,36 +382,14 @@ export default function GeneralBasicCard({
     getSpecialInfo(general.specialWar, age, general.specage2, itemInfo?.specialWar),
     [general.specialWar, age, general.specage2, itemInfo?.specialWar]
   );
-  const unitStacks = general.unitStacks;
-  const totalStackTroops = unitStacks?.totalTroops;
-  const totalStackCount = unitStacks?.stackCount ?? unitStacks?.stacks?.length ?? 0;
-  const hasStackDetail = Boolean(unitStacks && unitStacks.stacks && unitStacks.stacks.length);
-  const visibleStacks = hasStackDetail ? unitStacks!.stacks.slice(0, 3) : [];
-  const hasExtraStacks = hasStackDetail && unitStacks!.stacks.length > visibleStacks.length;
+  // 스택 시스템 제거됨 - 직접 장수 데이터 사용
   const unitConst = useUnitConst();
-  // unitStacks의 첫 번째 스택에서 crewtype 정보를 우선적으로 사용
-  const primaryStackCrewTypeId = unitStacks?.stacks?.[0]?.crewTypeId;
-  const primaryStackName = unitStacks?.stacks?.[0]?.crewTypeName;
-  const effectiveCrewtype = primaryStackCrewTypeId && primaryStackCrewTypeId > 0
-    ? { id: primaryStackCrewTypeId, label: primaryStackName || `병종 ${primaryStackCrewTypeId}` }
-    : general.crewtype;
+  const effectiveCrewtype = general.crewtype;
   const crewtypeId = getCrewtypeId(effectiveCrewtype);
-  const crewtypeLabel = formatCrewtypeLabel(effectiveCrewtype, unitConst ?? undefined, primaryStackName);
-  const displayTrain = typeof unitStacks?.averageTrain === 'number'
-    ? unitStacks.averageTrain
-    : (general.train || 0);
-  const displayAtmos = typeof unitStacks?.averageMorale === 'number'
-    ? unitStacks.averageMorale
-    : (general.atmos || 50);
-  const soldierSummary = typeof totalStackTroops === 'number'
-    ? `${totalStackTroops.toLocaleString()}명${totalStackCount ? ` · ${totalStackCount.toLocaleString()}부대` : ''}`
-    : `${(general.crew || 0).toLocaleString()}명`;
-  const canToggleStacks = Boolean(hasStackDetail);
-  const extraStackCount = hasExtraStacks ? unitStacks!.stacks.length - visibleStacks.length : 0;
-  const handleStackToggle = () => {
-    if (!canToggleStacks) return;
-    setShowStacks((prev) => !prev);
-  };
+  const crewtypeLabel = formatCrewtypeLabel(effectiveCrewtype, unitConst ?? undefined);
+  const displayTrain = general.train || 0;
+  const displayAtmos = general.atmos || 50;
+  const soldierSummary = `${(general.crew || 0).toLocaleString()}명`;
 
   return (
     <div 
@@ -825,49 +787,7 @@ export default function GeneralBasicCard({
           </div>
         </div>
         
-        {hasStackDetail && showStacks && unitStacks && (
-          <div className="col-span-full m-0 bg-black/30 border-t border-white/10 p-3 animate-slideDown">
-            <div className="flex justify-between items-center mb-2 text-sm text-white/80 pb-1.5 border-b border-white/5">
-              <div>
-                총 <strong>{(unitStacks.totalTroops || 0).toLocaleString()}명</strong>
-                {totalStackCount ? (
-                  <span className="ml-1.5 text-gray-400">
-                    ({totalStackCount.toLocaleString()}부대)
-                  </span>
-                ) : null}
-              </div>
-              <div className="text-xs text-gray-400">
-                평균 훈련 {unitStacks.averageTrain ?? '-'} | 평균 사기 {unitStacks.averageMorale ?? '-'}
-              </div>
-            </div>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-2 max-h-[200px] overflow-y-auto pr-2">
-              {unitStacks.stacks.map((stack) => (
-                <div key={stack.id} className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 p-2.5 bg-white/5 rounded-lg border border-white/5 transition-all hover:bg-white/10 hover:border-white/10 hover:-translate-y-px">
-                  <div className="flex items-center gap-2 font-semibold text-white text-sm">
-                    <TroopIconDisplay crewtype={stack.crewTypeId} size={24} />
-                    <span>{resolveStackLabel(stack.crewTypeId, stack.crewTypeName, unitConst ?? undefined)}</span>
-                  </div>
-                  <div className="flex flex-col items-center min-w-[36px]">
-                    <span className="text-[0.6rem] text-white/40 uppercase mb-0.5">병력</span>
-                    <strong className="text-sm text-white/90 font-semibold">{stack.troops.toLocaleString()}</strong>
-                  </div>
-                  <div className="flex flex-col items-center min-w-[36px]">
-                    <span className="text-[0.6rem] text-white/40 uppercase mb-0.5">훈련</span>
-                    <strong className="text-sm text-white/90 font-semibold">{Math.round(stack.train).toLocaleString()}</strong>
-                  </div>
-                  <div className="flex flex-col items-center min-w-[36px]">
-                    <span className="text-[0.6rem] text-white/40 uppercase mb-0.5">사기</span>
-                    <strong className="text-sm text-white/90 font-semibold">{Math.round(stack.morale).toLocaleString()}</strong>
-                  </div>
-                  <div className="col-span-full mt-1.5 pt-1.5 border-t border-white/5 text-[0.7rem] text-white/40 flex justify-between">
-                    {stack.unitSize}명 × {stack.stackCount}스택
-                    {stack.updatedAt ? ` · ${new Date(stack.updatedAt).toLocaleString()}` : ''}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* 스택 시스템 제거됨 */}
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ export { default as NoAggressionProposalCommandForm } from './NoAggressionPropos
 export { default as PiJangPaJangCommandForm } from './PiJangPaJangCommandForm';
 export { default as RaiseArmyCommandForm } from './RaiseArmyCommandForm';
 export { default as RandomFoundNationCommandForm } from './RandomFoundNationCommandForm';
-export { default as ReassignUnitCommandForm } from './ReassignUnitCommandForm';
+// 스택 시스템 제거됨 - ReassignUnitCommandForm 삭제
 export { default as RecruitCommandForm } from './RecruitCommandForm';
 export { default as SimpleCommandForm } from './SimpleCommandForm';
 export { default as TradeEquipmentCommandForm } from './TradeEquipmentCommandForm';

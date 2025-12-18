@@ -26,6 +26,7 @@ type AdminAction =
   | 'warDeployYear'
   | 'allowNpcPossess'
   | 'turnterm'
+  | 'tacticalMaxTurns'
   | 'status'
   | 'resetScenario';
 
@@ -52,6 +53,9 @@ interface AdminGameSettings {
   openingPartYear?: number;
   warDeclareYear?: number;
   warDeployYear?: number;
+  // 전술전투 설정
+  tacticalMaxTurns?: number;
+  tacticalTurnTimeLimit?: number;
 }
 
 interface ScenarioTemplate {
@@ -76,6 +80,7 @@ interface AdminUpdatePayload extends Record<string, string | number | boolean | 
   warDeployYear?: number;
   allowNpcPossess?: boolean;
   turnterm?: number;
+  tacticalMaxTurns?: number;
   status?: ServerStatus;
   scenarioId?: string;
 }
@@ -103,6 +108,9 @@ export default function AdminGamePage() {
   const [warDeclareYear, setWarDeclareYear] = useState(1);
   const [warDeployYear, setWarDeployYear] = useState(3);
   const [allowNpcPossess, setAllowNpcPossess] = useState(false);
+  
+  // 전술전투 설정
+  const [tacticalMaxTurns, setTacticalMaxTurns] = useState(15);
   
   // 시나리오 목록
   const [scenarios, setScenarios] = useState<ScenarioTemplate[]>([]);
@@ -147,6 +155,7 @@ export default function AdminGamePage() {
         setWarDeclareYear(data.warDeclareYear ?? 1);
         setWarDeployYear(data.warDeployYear ?? 3);
         setAllowNpcPossess(!!data.allowNpcPossess);
+        setTacticalMaxTurns(data.tacticalMaxTurns ?? 15);
       }
     } catch (error) {
       console.error(error);
@@ -213,6 +222,9 @@ export default function AdminGamePage() {
           break;
         case 'turnterm':
           payload.turnterm = typeof value === 'number' ? value : Number(value ?? settings.turnterm ?? 60);
+          break;
+        case 'tacticalMaxTurns':
+          payload.tacticalMaxTurns = typeof value === 'number' ? value : tacticalMaxTurns;
           break;
         case 'status':
           payload.status = (value as ServerStatus) || settings.status || 'running';
@@ -644,6 +656,52 @@ export default function AdminGamePage() {
                     </button>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Tactical Battle Settings */}
+            <div className="pt-4 border-t border-white/5">
+              <h3 className="text-sm font-bold text-cyan-400 mb-3">⚔️ 전술전투 설정</h3>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col md:flex-row gap-2 md:items-center">
+                  <label className="w-40 text-sm font-medium text-gray-400">최대 전술턴 수</label>
+                  <div className="flex-1 flex gap-2 items-center">
+                    <input
+                      type="number"
+                      value={tacticalMaxTurns}
+                      min={5}
+                      max={50}
+                      onChange={(e) => setTacticalMaxTurns(Number(e.target.value))}
+                      className="w-24 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-right focus:outline-none focus:border-cyan-500/50 transition-colors text-white"
+                    />
+                    <span className="text-gray-400 text-sm">턴</span>
+                    <button 
+                      onClick={() => void handleSubmit('tacticalMaxTurns', tacticalMaxTurns)}
+                      className="px-3 py-2 bg-cyan-600/30 hover:bg-cyan-600/50 rounded-lg text-sm text-white transition-colors"
+                    >
+                      변경
+                    </button>
+                  </div>
+                </div>
+                <div className="bg-black/20 rounded-lg p-3 text-sm">
+                  <div className="flex justify-between text-gray-400 mb-1">
+                    <span>전략턴 시간:</span>
+                    <span className="text-white">{settings.turnterm || 5}분</span>
+                  </div>
+                  <div className="flex justify-between text-gray-400 mb-1">
+                    <span>최대 전술턴:</span>
+                    <span className="text-white">{settings.tacticalMaxTurns || tacticalMaxTurns}턴</span>
+                  </div>
+                  <div className="flex justify-between text-gray-400">
+                    <span>전술턴당 시간:</span>
+                    <span className="text-cyan-400 font-bold">
+                      {Math.max(10, Math.floor(((settings.turnterm || 5) * 60) / (settings.tacticalMaxTurns || tacticalMaxTurns)))}초
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  전술전투는 전략턴 시간 내에 완료되어야 합니다. 턴당 시간 = 전략턴(초) / 최대전술턴 (최소 10초)
+                </p>
               </div>
             </div>
 

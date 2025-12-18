@@ -1,0 +1,433 @@
+/* TacticalBattleMap.module.css */
+
+/* Container */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 12px;
+  color: #e8e8e8;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f0c040;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.turnInfo {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.attackerTurn {
+  color: #4dabf7;
+  font-weight: bold;
+}
+
+.defenderTurn {
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+.winner {
+  color: #ffd43b;
+  font-weight: bold;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Participants */
+.participants {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+}
+
+.participant {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  border-left: 4px solid;
+}
+
+.nationFlag {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.unitCount {
+  color: #aaa;
+  font-size: 0.85rem;
+}
+
+.vs {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #666;
+}
+
+/* Map Container */
+.mapContainer {
+  display: flex;
+  justify-content: center;
+  overflow: auto;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.map {
+  display: grid;
+  gap: 1px;
+  background: #333;
+  border: 2px solid #444;
+  border-radius: 4px;
+  max-width: 100%;
+}
+
+/* Cell */
+.cell {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #4a4a4a;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 14px;
+}
+
+.cell:hover {
+  background: #5a5a5a;
+  transform: scale(1.1);
+  z-index: 1;
+}
+
+/* Terrain Types */
+.castle {
+  background: linear-gradient(135deg, #3d3d3d 0%, #4a4a4a 100%);
+}
+
+.wall {
+  background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+}
+
+.gate {
+  background: linear-gradient(135deg, #6b4423 0%, #8b5a2b 100%);
+}
+
+.destroyed {
+  background: #333 !important;
+  opacity: 0.6;
+}
+
+.forest {
+  background: linear-gradient(135deg, #2d5a2d 0%, #3a6b3a 100%);
+}
+
+.mountain {
+  background: linear-gradient(135deg, #5a5a5a 0%, #6b6b6b 100%);
+}
+
+.water {
+  background: linear-gradient(135deg, #1a4a8a 0%, #2a5a9a 100%);
+  cursor: not-allowed;
+}
+
+/* Cell States */
+.selected {
+  box-shadow: 0 0 0 3px #ffd43b, inset 0 0 8px rgba(255, 212, 59, 0.5);
+  z-index: 2;
+}
+
+.highlighted {
+  background: rgba(77, 171, 247, 0.5) !important;
+  box-shadow: inset 0 0 6px rgba(77, 171, 247, 0.8);
+}
+
+.attackable {
+  background: rgba(255, 107, 107, 0.5) !important;
+  box-shadow: inset 0 0 6px rgba(255, 107, 107, 0.8);
+  animation: attackPulse 0.8s infinite;
+}
+
+@keyframes attackPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Terrain Emoji */
+.terrain {
+  position: absolute;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Unit */
+.unit {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  z-index: 1;
+}
+
+.attacker {
+  background: rgba(77, 171, 247, 0.8);
+  border: 2px solid #4dabf7;
+}
+
+.defender {
+  background: rgba(255, 107, 107, 0.8);
+  border: 2px solid #ff6b6b;
+}
+
+.unitEmoji {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.unitHpBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #51cf66, #94d82d);
+  border-radius: 0 0 2px 2px;
+  transition: width 0.3s ease;
+}
+
+/* Structure HP */
+.structureHp {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  right: 2px;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 2px;
+}
+
+.structureHpBar {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd43b, #fab005);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
+
+.selectedInfo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.selectedInfo strong {
+  color: #ffd43b;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.buttons button,
+.endTurnBtn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #3a3a5a;
+  color: #e8e8e8;
+}
+
+.buttons button:hover:not(:disabled),
+.endTurnBtn:hover {
+  background: #4a4a7a;
+  transform: translateY(-2px);
+}
+
+.buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.buttons button.active {
+  background: #4dabf7;
+  color: #1a1a2e;
+}
+
+.endTurnBtn {
+  margin-left: auto;
+  background: #ff922b;
+  color: #1a1a2e;
+}
+
+.endTurnBtn:hover {
+  background: #ffa94d;
+}
+
+.noSelection {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+/* Logs */
+.logs {
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.logs h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.logList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.logItem {
+  display: flex;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+.logTurn {
+  color: #888;
+  min-width: 50px;
+}
+
+.logAction {
+  color: #4dabf7;
+}
+
+.logDamage {
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+/* Scrollbar */
+.logs::-webkit-scrollbar,
+.mapContainer::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.logs::-webkit-scrollbar-track,
+.mapContainer::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.logs::-webkit-scrollbar-thumb,
+.mapContainer::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+.logs::-webkit-scrollbar-thumb:hover,
+.mapContainer::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 12px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .participants {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .cell {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+  
+  .unit {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .unitEmoji {
+    font-size: 10px;
+  }
+  
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .buttons {
+    justify-content: center;
+  }
+  
+  .endTurnBtn {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+

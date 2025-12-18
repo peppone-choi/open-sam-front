@@ -29,7 +29,6 @@ import {
   PiJangPaJangCommandForm,
   MovePopulationCommandForm,
   RaiseArmyCommandForm,
-  ReassignUnitCommandForm,
   SimpleCommandForm,
   NationTargetCommandForm,
   GeneralTargetCommandForm
@@ -38,24 +37,7 @@ import HighRiskCommandConfirmModal from '@/components/processing/HighRiskCommand
 import type { ProcGeneralItem, ProcNationItem } from '@/components/processing/SelectGeneral';
 import { useGameSessionStore } from '@/stores/gameSessionStore';
 
-// --- Type Definitions (Keep logic intact) ---
-type UnitStackItem = {
-  id: string;
-  crewTypeId: number;
-  crewTypeName?: string;
-  unitSize?: number;
-  stackCount?: number;
-  troops: number;
-  train: number;
-  morale: number;
-  updatedAt?: string;
-};
-
-type UnitStackGroup = {
-  totalTroops?: number;
-  stackCount?: number;
-  stacks: UnitStackItem[];
-} | null;
+// --- Type Definitions (스택 시스템 제거됨) ---
 
 type TradeItemInfo = {
   id: string;
@@ -107,9 +89,7 @@ interface CommandData {
   available건국?: boolean;
   nationTypes?: Record<string, { type: string; name: string; pros: string; cons: string }>;
   colors?: string[];
-  generalStacks?: UnitStackItem[];
-  cityStacks?: UnitStackGroup | UnitStackItem[];
-  unitStacks?: UnitStackGroup | UnitStackItem[];
+  // 스택 시스템 제거됨
   currentCityId?: number;
   currentCityName?: string;
   availableCities?: Array<{ id: number; name: string }>;
@@ -169,47 +149,7 @@ interface CommandData {
 }
 
 // --- Utility Functions ---
-function normalizeUnitStackGroup(
-  group: UnitStackGroup | UnitStackItem[] | null | undefined
-): UnitStackGroup {
-  if (!group) {
-    return null;
-  }
-  if (Array.isArray(group)) {
-    const totalTroops = group.reduce(
-      (sum, stack) => sum + (typeof stack?.troops === 'number' ? stack.troops : 0),
-      0
-    );
-    return {
-      stacks: group,
-      totalTroops,
-      stackCount: group.length,
-    };
-  }
-  if (typeof group === 'object' && Array.isArray(group.stacks)) {
-    const totalTroops =
-      typeof group.totalTroops === 'number'
-        ? group.totalTroops
-        : group.stacks.reduce(
-            (sum, stack) => sum + (typeof stack?.troops === 'number' ? stack.troops : 0),
-            0
-          );
-    const stackCount =
-      typeof group.stackCount === 'number' ? group.stackCount : group.stacks.length;
-    return {
-      stacks: group.stacks,
-      totalTroops,
-      stackCount,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      morale: group.averageMorale, // Optional: average morale for display
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      train: group.averageTrain
-    };
-  }
-  return null;
-}
+// 스택 시스템 제거됨
 
 function buildItemList(itemList?: CommandData['itemList']): TradeItemList {
   const result: TradeItemList = {};
@@ -717,20 +657,9 @@ export default function CommandProcessingClient({
 
     const commandName = commandData.name || command;
     const commandType = commandData.commandType || command;
-    const unitStacksGroup = normalizeUnitStackGroup(commandData.unitStacks);
-    const cityStacksGroup = normalizeUnitStackGroup(commandData.cityStacks);
+    // 스택 시스템 제거됨
     const tradeItemList = buildItemList(commandData.itemList);
     const tradeOwnItem = buildOwnItem(commandData.ownItem);
-    const generalStacksList = (commandData.generalStacks || []).map((stack) => ({
-      ...stack,
-      unitSize: typeof stack.unitSize === 'number' ? stack.unitSize : (stack as any).unitSize ?? 0,
-      stackCount: typeof stack.stackCount === 'number' ? stack.stackCount : 1,
-    }));
-    const cityStacksList = (cityStacksGroup?.stacks || []).map((stack) => ({
-      ...stack,
-      unitSize: typeof stack.unitSize === 'number' ? stack.unitSize : 0,
-      stackCount: typeof stack.stackCount === 'number' ? stack.stackCount : 1,
-    }));
 
     // Wrapper removed to avoid double TopBackBar and layout issues
     const FormWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -868,8 +797,8 @@ export default function CommandProcessingClient({
           crew={commandData.crew || 0}
           gold={commandData.gold || 0}
           rice={commandData.rice || 0}
-          unitStacks={unitStacksGroup}
-          cityStacks={cityStacksGroup}
+          unitStacks={null}
+          cityStacks={null}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
         />
@@ -1110,19 +1039,7 @@ export default function CommandProcessingClient({
           onCancel={handleCancel}
         />
       );
-    } else if (['부대재편성', 'che_부대재편성', 'reassignUnit', '주둔 재배치', 'REASSIGN_UNIT'].includes(commandType)) {
-      Component = (
-        <ReassignUnitCommandForm
-          commandName={commandName}
-          currentCityId={commandData.currentCityId}
-          currentCityName={commandData.currentCityName}
-          generalStacks={generalStacksList}
-          cityStacks={cityStacksList}
-          availableCities={commandData.availableCities || []}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-        />
-      );
+    // 스택 시스템 제거됨 - 부대재편성 커맨드 비활성화
     } else if (['부대탈퇴지시', 'che_부대탈퇴지시'].includes(commandType)) {
       Component = (
         <GeneralTargetCommandForm
