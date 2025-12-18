@@ -41,19 +41,7 @@ interface CityBasicCardProps {
       lastDamageAt?: string;
       lastRepairAt?: string;
     } | null;
-    garrison?: {
-      totalTroops: number;
-      stackCount: number;
-      stacks: Array<{
-        id: string;
-        crewTypeId: number;
-        crewTypeName?: string;
-        troops: number;
-        train: number;
-        morale: number;
-        updatedAt?: string;
-      }>;
-    };
+    // 스택 시스템 제거됨
   };
   cityConstMap?: {
     region?: Record<number | string, string | { id?: number; name?: string; label?: string }>;
@@ -63,7 +51,6 @@ interface CityBasicCardProps {
 }
 
 function CityBasicCard({ city, cityConstMap, colorSystem }: CityBasicCardProps) {
-  const [showGarrison, setShowGarrison] = useState(false);
   // 공백지(재야)는 흰색, 국가 소속은 국가 색상
   const nationColor = (city.nationInfo?.id && city.nationInfo.id > 0) 
     ? (city.nationInfo.color || '#808080')
@@ -77,17 +64,7 @@ function CityBasicCard({ city, cityConstMap, colorSystem }: CityBasicCardProps) 
   const nationTextColor = isBrightColor(nationColor) ? '#000000' : '#FFFFFF';
   
   const defense = city.defense;
-  const garrison = city.garrison;
-
-  const garrisonSummary = garrison
-    ? `${garrison.totalTroops.toLocaleString()}명 · ${garrison.stackCount}개 부대`
-    : null;
-
-  const handleToggleGarrison = () => setShowGarrison((prev) => !prev);
-
-  const getCrewTypeLabel = (stack: { crewTypeId: number; crewTypeName?: string }) => {
-    return getCrewTypeDisplayName(stack.crewTypeId, stack.crewTypeName);
-  };
+  // 스택 시스템 제거됨
   
   // 지역명 가져오기
   const regionData = cityConstMap?.region?.[city.region ?? 0];
@@ -132,19 +109,7 @@ function CityBasicCard({ city, cityConstMap, colorSystem }: CityBasicCardProps) 
               {city.name}
             </span>
           </div>
-          {garrisonSummary && (
-            <div className="mt-1.5 text-xs text-white/75 flex items-center gap-2 justify-center" style={{ color: cityTitleTextColor }}>
-              <span className="opacity-80">{garrisonSummary}</span>
-              <button
-                type="button"
-                className="bg-white/10 border border-white/20 text-[0.7rem] px-2 py-0.5 rounded-full cursor-pointer transition-all hover:bg-white/20 hover:border-white/35 active:scale-95"
-                style={{ color: cityTitleTextColor, borderColor: 'rgba(255,255,255,0.3)' }}
-                onClick={handleToggleGarrison}
-              >
-                {showGarrison ? '부대 닫기' : '부대 열기'}
-              </button>
-            </div>
-          )}
+          {/* 스택 시스템 제거됨 - 주둔군 표시 삭제 */}
         </div>
         <div
           className="p-3 text-lg font-bold flex items-center justify-center bg-white/5 drop-shadow-sm border-l border-white/10"
@@ -348,45 +313,7 @@ function CityBasicCard({ city, cityConstMap, colorSystem }: CityBasicCardProps) 
         </div>
       </div>
 
-      {garrison && showGarrison && (
-        <div className="mx-3 mb-3 bg-black/25 rounded-lg border border-white/10 overflow-hidden shadow-inner">
-          <div className="p-3 bg-white/5 border-b border-white/5 text-[0.95rem] font-bold text-white/90 flex justify-between items-center">
-            <span>주둔군</span>
-            <span style={{ fontSize: '0.8rem', fontWeight: 'normal', opacity: 0.8 }}>
-              총 {garrison.totalTroops.toLocaleString()}명
-            </span>
-          </div>
-          <div className="p-2">
-            {garrison.stacks.length > 0 ? (
-              <div className="flex flex-col gap-1">
-                <div className="grid grid-cols-[2fr_1fr_1fr_1fr] sm:grid-cols-[2fr_1fr_1fr_1fr] gap-3 text-xs text-white/50 font-semibold uppercase tracking-wide p-1.5 border-b border-white/5 mb-1">
-                  <span>병종</span>
-                  <span className="text-right">병력</span>
-                  <span className="text-right">훈련</span>
-                  <span className="text-right hidden sm:block">사기</span>
-                </div>
-                {garrison.stacks.map((stack) => (
-                  <div key={stack.id} className="grid grid-cols-[2fr_1fr_1fr_1fr] sm:grid-cols-[2fr_1fr_1fr_1fr] gap-3 text-sm p-2.5 rounded-md items-center transition-colors hover:bg-white/5">
-                    <span className="text-left font-semibold text-white">{getCrewTypeLabel(stack)}</span>
-                    <span className="text-right text-white/80">{stack.troops.toLocaleString()}</span>
-                    <span className="text-right text-white/80">{Math.round(stack.train).toLocaleString()}</span>
-                    <span className="text-right text-white/80 hidden sm:block">{Math.round(stack.morale).toLocaleString()}</span>
-                  </div>
-                ))}
-                {garrison.stackCount > garrison.stacks.length && (
-                  <div style={{ textAlign: 'center', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.5rem' }}>
-                    + {garrison.stackCount - garrison.stacks.length}개 부대 더 있음
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.5)', padding: '1rem' }}>
-                주둔 병력이 없습니다.
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* 스택 시스템 제거됨 - 주둔군 상세 패널 삭제 */}
     </div>
   );
 }
