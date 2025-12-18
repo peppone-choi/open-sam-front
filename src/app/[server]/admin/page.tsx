@@ -94,9 +94,11 @@ export default function AdminDashboardPage() {
   const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
     preparing: { label: '🔧 준비중', color: 'text-purple-400', bg: 'bg-purple-500/20' },
     running: { label: '✅ 운영중', color: 'text-green-400', bg: 'bg-green-500/20' },
-    paused: { label: '🔒 폐쇄', color: 'text-red-400', bg: 'bg-red-500/20' },
+    paused: { label: '🔒 일시정지', color: 'text-amber-400', bg: 'bg-amber-500/20' },
+    closed: { label: '⛔ 폐쇄', color: 'text-red-400', bg: 'bg-red-500/20' },
     finished: { label: '🏁 종료', color: 'text-gray-400', bg: 'bg-gray-500/20' },
     united: { label: '👑 천하통일', color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
+    unknown: { label: '❓ 알 수 없음', color: 'text-gray-400', bg: 'bg-gray-500/20' },
   };
 
   const quickStats: QuickStat[] = stats ? [
