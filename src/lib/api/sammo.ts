@@ -564,6 +564,9 @@ export class SammoAPI {
     });
   }
 
+  // 별칭 - 호환성 유지
+  static GetFrontInfo = SammoAPI.GeneralGetFrontInfo;
+
   static async GlobalGetMap(params: {
     serverID?: string;
     neutralView?: 0 | 1;
