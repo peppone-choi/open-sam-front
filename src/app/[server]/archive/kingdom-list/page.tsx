@@ -27,7 +27,8 @@ interface Kingdom {
   nation: number;
   name: string;
   color: string;
-  type?: string;
+  type?: string | { id?: string; name?: string };
+  typeInfo?: { name?: string; pros?: string; cons?: string };
   level?: number;
   power?: number;
   capital?: number;
@@ -111,8 +112,13 @@ function getContrastColor(hexColor: string) {
   return yiq >= 128 ? '#000000' : '#ffffff';
 }
 
-function getNationType(type?: string): { name: string; description: string } {
+function getNationType(type?: string | { id?: string; name?: string }): { name: string; description: string } {
   if (!type) return NATION_TYPES.neutral;
+  // type이 객체인 경우 (백엔드에서 {id, name} 형태로 올 수 있음)
+  if (typeof type === 'object') {
+    const typeId = type.id || '';
+    return NATION_TYPES[typeId] || { name: type.name || '중립', description: '' };
+  }
   return NATION_TYPES[type] || NATION_TYPES.neutral;
 }
 
@@ -144,7 +150,10 @@ function KingdomCard({ kingdom, rank }: { kingdom: Kingdom; rank: number }) {
   const textColor = getContrastColor(kingdom.color);
   const isTop3 = rank < 3;
   const nationLevel = kingdom.level ?? 0;
-  const nationType = getNationType(kingdom.type);
+  // typeInfo가 있으면 직접 사용, 없으면 type에서 추출
+  const nationType = kingdom.typeInfo 
+    ? { name: kingdom.typeInfo.name || '중립', description: `${kingdom.typeInfo.pros || ''}${kingdom.typeInfo.cons ? ' / ' + kingdom.typeInfo.cons : ''}` }
+    : getNationType(kingdom.type);
   
   // 장수 분류
   const chiefs: Record<number, General> = {};

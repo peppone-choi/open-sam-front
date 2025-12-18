@@ -1,18 +1,16 @@
-# Development Dockerfile with hot reload
-
+# 개발용 Dockerfile - 핫 리로드 지원
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies
+# 의존성 설치
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+RUN npm ci
 
-# Copy source
-COPY . .
+# 소스는 볼륨 마운트로 제공됨
+# Next.js가 파일 변경 감지
 
-# Expose port
 EXPOSE 3000
 
-# Start with hot reload
+# 개발 서버 실행
 CMD ["npm", "run", "dev"]
