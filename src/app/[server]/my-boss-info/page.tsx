@@ -75,19 +75,38 @@ const REGION_NAMES: Record<number, string> = {
 
 const CHIEF_STAT_MIN = 70;
 
+// 국가 작위 (nationLevels.name)
 const NATION_LEVEL_NAMES: Record<number, string> = {
-  0: '호족',
+  0: '방랑군',
   1: '호족',
-  2: '군벌',
+  2: '방백',
   3: '주자사',
   4: '주목',
-  5: '공',
-  6: '왕',
-  7: '황제',
+  5: '승상',
+  6: '공',
+  7: '왕',
+  8: '황제',
+};
+
+// 군주 명칭 (officerTitles["12"])
+const RULER_TITLE_NAMES: Record<number, string> = {
+  0: '두목',
+  1: '호족',
+  2: '방백',
+  3: '주자사',
+  4: '주목',
+  5: '승상',
+  6: '공',
+  7: '왕',
+  8: '황제',
 };
 
 function getNationLevelName(level: number): string {
   return NATION_LEVEL_NAMES[level] || `레벨 ${level}`;
+}
+
+function getRulerTitle(level: number): string {
+  return RULER_TITLE_NAMES[level] || '군주';
 }
 
 export default function PersonnelPage() {
@@ -618,8 +637,9 @@ function PersonnelTables({
           【 {nation.name} 】 중앙 관직
         </div>
         <div className="py-2 px-4 text-xs text-center bg-black/30 text-gray-400 border-b border-white/5">
-          현재 작위: <span className="text-yellow-400 font-bold">{getNationLevelName(nation.level)}</span> | 
-          임명 가능 관직: <span className="text-cyan-400">{getOfficerTitle(chiefMinLevel)} ~ 군주</span> (레벨 {chiefMinLevel}~12)
+          국가 작위: <span className="text-yellow-400 font-bold">{getNationLevelName(nation.level)}</span> | 
+          군주 칭호: <span className="text-purple-400 font-bold">{getRulerTitle(nation.level)}</span> | 
+          임명 가능 관직: <span className="text-cyan-400">{getOfficerTitle(chiefMinLevel)} ~ {getRulerTitle(nation.level)}</span> (레벨 {chiefMinLevel}~12)
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
