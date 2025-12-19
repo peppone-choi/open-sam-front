@@ -75,6 +75,21 @@ const REGION_NAMES: Record<number, string> = {
 
 const CHIEF_STAT_MIN = 70;
 
+const NATION_LEVEL_NAMES: Record<number, string> = {
+  0: '호족',
+  1: '호족',
+  2: '군벌',
+  3: '주자사',
+  4: '주목',
+  5: '공',
+  6: '왕',
+  7: '황제',
+};
+
+function getNationLevelName(level: number): string {
+  return NATION_LEVEL_NAMES[level] || `레벨 ${level}`;
+}
+
 export default function PersonnelPage() {
   const params = useParams();
   const serverID = params?.server as string;
@@ -601,6 +616,10 @@ function PersonnelTables({
           style={{ backgroundColor: displayColor, color: textColor }}
         >
           【 {nation.name} 】 중앙 관직
+        </div>
+        <div className="py-2 px-4 text-xs text-center bg-black/30 text-gray-400 border-b border-white/5">
+          현재 작위: <span className="text-yellow-400 font-bold">{getNationLevelName(nation.level)}</span> | 
+          임명 가능 관직: <span className="text-cyan-400">{getOfficerTitle(chiefMinLevel)} ~ 군주</span> (레벨 {chiefMinLevel}~12)
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
