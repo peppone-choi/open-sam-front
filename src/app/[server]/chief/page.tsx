@@ -187,8 +187,8 @@ export default function ChiefPage() {
             {chiefData && (
                 <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-6 shadow-lg">
                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <InfoCard title="국가" subtitle={`Lv. ${chiefData.nation?.level ?? 0}`} value={chiefData.nation?.name ?? '알 수 없음'} />
-                        <InfoCard title="제왕" subtitle={`관직 ${chiefData.chief?.officerLevel ?? 0}급`} value={chiefData.chief?.name ?? '알 수 없음'} />
+                        <InfoCard title="국가" subtitle={chiefData.nation?.levelName ?? `Lv. ${chiefData.nation?.level ?? 0}`} value={chiefData.nation?.name ?? '알 수 없음'} />
+                        <InfoCard title="제왕" subtitle={chiefData.chief?.officerTitle ?? `${chiefData.chief?.officerLevel ?? 0}급`} value={chiefData.chief?.name ?? '알 수 없음'} />
                         <div className="flex flex-col p-4 bg-black/20 rounded-lg border border-white/5">
                             <span className="text-xs text-gray-500 uppercase font-bold mb-1">권한 자원</span>
                             <div className="flex flex-wrap gap-4 text-sm">
