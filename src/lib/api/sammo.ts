@@ -936,7 +936,7 @@ export class SammoAPI {
     if (params?.serverID) query.append('session_id', params.serverID);
     if (params?.session_id) query.append('session_id', params.session_id);
 
-    return this.request(`/api/nation-command/get-reserved-command?${query.toString()}`, {
+    return this.request(`/api/nationcommand/get-reserved-command?${query.toString()}`, {
       method: 'GET',
     });
   }
@@ -971,7 +971,7 @@ export class SammoAPI {
       body.general_id = params.general_id;
     }
 
-    return this.request('/api/nation-command/reserve-command', {
+    return this.request('/api/nationcommand/reserve-command', {
       method: 'POST',
       body: JSON.stringify(body),
     });
@@ -1007,7 +1007,7 @@ export class SammoAPI {
       body.general_id = params.general_id;
     }
 
-    return this.request('/api/nation-command/reserve-bulk-command', {
+    return this.request('/api/nationcommand/reserve-bulk-command', {
       method: 'POST',
       body: JSON.stringify(body),
     });
@@ -1037,7 +1037,7 @@ export class SammoAPI {
       body.general_id = params.general_id;
     }
 
-    return this.request('/api/nation-command/push-command', {
+    return this.request('/api/nationcommand/push-command', {
       method: 'POST',
       body: JSON.stringify(body),
     });
@@ -1067,7 +1067,7 @@ export class SammoAPI {
       body.general_id = params.general_id;
     }
 
-    return this.request('/api/nation-command/repeat-command', {
+    return this.request('/api/nationcommand/repeat-command', {
       method: 'POST',
       body: JSON.stringify(body),
     });
