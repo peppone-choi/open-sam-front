@@ -45,7 +45,7 @@ const OFFICER_LEVELS = [
   { level: 1, name: '일반' },
   { level: 2, name: '종사' },
   { level: 3, name: '군사' },
-  { level: 4, name: '태수' },
+  { level: 4, name: '성주' },
   { level: 9, name: '지장 수뇌' },
   { level: 10, name: '무장 수뇌' },
   { level: 11, name: '참모' },

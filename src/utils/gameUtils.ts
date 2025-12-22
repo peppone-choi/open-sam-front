@@ -1,5 +1,8 @@
 // 게임 관련 유틸리티 함수들
 
+// 관직 관련 함수는 @/constants/officerTitles 또는 @/utils/formatOfficerLevelText에서 import
+// formatOfficerLevelText, getOfficerTitle, getNationLevelName 등
+
 /**
  * NPC 색상 반환
  */
@@ -25,55 +28,6 @@ export function isBrightColor(color: number | string | undefined): boolean {
   const b = parseInt(hex.substr(4, 2), 16);
   const brightness = (r * 299 + g * 587 + b * 114) / 1000;
   return brightness > 128;
-}
-
-/**
- * 관직 레벨 텍스트 포맷
- */
-export function formatOfficerLevelText(level: number, nationLevel: number): string {
-  if (nationLevel === 12) {
-    const levelMap: { [key: number]: string } = {
-      12: '황제',
-      11: '대신',
-      10: '장군',
-      9: '대도독',
-      8: '도독',
-      7: '태수',
-      6: '도위',
-      5: '종사',
-      4: '태수',
-      3: '군사',
-      2: '종사',
-      1: '평민'
-    };
-    return levelMap[level] || `레벨${level}`;
-  } else if (nationLevel === 10) {
-    const levelMap: { [key: number]: string } = {
-      10: '왕',
-      9: '대도독',
-      8: '도독',
-      7: '태수',
-      6: '도위',
-      5: '종사',
-      4: '태수',
-      3: '군사',
-      2: '종사',
-      1: '평민'
-    };
-    return levelMap[level] || `레벨${level}`;
-  } else {
-    const levelMap: { [key: number]: string } = {
-      8: '공',
-      7: '태수',
-      6: '도위',
-      5: '종사',
-      4: '태수',
-      3: '군사',
-      2: '종사',
-      1: '평민'
-    };
-    return levelMap[level] || `레벨${level}`;
-  }
 }
 
 /**

@@ -137,11 +137,11 @@ export const OfficerBadge = memo(function OfficerBadge({
     
     const levelColors: Record<number, string> = {
         12: '#ffd700', // 군주
-        11: '#ffd700', // 군주
-        10: '#c0c0c0', // 재상
-        9: '#cd7f32',  // 장관
-        8: '#4a90d9',  // 도독
-        7: '#4a90d9',  // 태수
+        11: '#ffd700', // 참모(문1)
+        10: '#c0c0c0', // 장군(무1)
+        9: '#cd7f32',  // 문2
+        8: '#4a90d9',  // 무3
+        7: '#4a90d9',  // 문3
     };
     
     const levelColor = officer.officerLevel ? levelColors[officer.officerLevel] || '#aaffff' : '#aaffff';

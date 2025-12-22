@@ -1,23 +1,32 @@
 /**
  * 관직명 포맷 함수
- * 백엔드에서 전달받은 officerTitles 데이터를 사용합니다.
+ * 백엔드와 동일한 로직을 사용합니다.
  * 
  * @param officerLevel - 관직 레벨 (0-12)
  * @param nationLevel - 국가 레벨 (0-8)
- * @param officerTitles - 백엔드에서 전달받은 관직명 맵 (선택)
+ * @param officerTitles - 백엔드에서 전달받은 관직명 맵 (선택, 있으면 우선 사용)
+ * @param nationType - 국가 타입 (bandits, taiping, taoism_religious 등)
  */
+import { getOfficerTitle as getTitle } from '@/constants/officerTitles';
+
 export function formatOfficerLevelText(
   officerLevel: number, 
   nationLevel?: number,
-  officerTitles?: Record<string | number, string | Record<string, string>>
+  officerTitles?: Record<string | number, string | Record<string, string>>,
+  nationType?: string
 ): string {
-  // 백엔드에서 officerTitles를 받은 경우
+  // 백엔드에서 officerTitles를 받은 경우 우선 사용
   if (officerTitles && officerTitles[String(officerLevel)]) {
     const levelMap = officerTitles[String(officerLevel)];
     
     // levelMap이 문자열인 경우 직접 반환
     if (typeof levelMap === 'string') {
       return levelMap;
+    }
+    
+    // nationType이 있고 해당 타입의 관직명이 있으면 반환
+    if (nationType && levelMap[nationType]) {
+      return levelMap[nationType];
     }
     
     // nationLevel이 있고 해당 레벨의 관직명이 있으면 반환
@@ -31,26 +40,9 @@ export function formatOfficerLevelText(
     }
   }
   
-  // 폴백: 하드코딩된 기본값
-  const fallbackMap: Record<number, string> = {
-    12: '군주',
-    11: '참모',
-    10: '제1장군',
-    9: '제1모사',
-    8: '제2장군',
-    7: '제2모사',
-    6: '제3장군',
-    5: '제3모사',
-    4: '태수',
-    3: '군사',
-    2: '종사',
-    1: '일반',
-    0: '재야',
-  };
-  
-  return fallbackMap[officerLevel] ?? '???';
+  // 프론트엔드 상수 사용 (백엔드와 동일한 로직)
+  return getTitle(officerLevel, nationLevel ?? 0, nationType);
 }
 
-
-
-
+// 백엔드와 동일한 함수명으로도 내보내기
+export { getOfficerTitle, getNationLevelName, getRulerTitle, isChief, isRuler, isCityOfficer, getChiefCount, getNationLevelInfo, NATION_LEVELS, OFFICER_TITLES, CITY_OFFICER_LEVELS, CHIEF_OFFICER_LEVELS } from '@/constants/officerTitles';

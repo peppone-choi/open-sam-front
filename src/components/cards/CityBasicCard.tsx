@@ -260,7 +260,7 @@ function CityBasicCard({ city, cityConstMap, colorSystem }: CityBasicCardProps) 
         {/* 관직 분리 */}
         <div className="flex flex-col bg-white/5 rounded-lg p-2.5 border border-white/5 transition-all hover:bg-white/10 hover:border-white/10 hover:-translate-y-px min-h-[72px]">
           <div className="text-xs text-white/60 mb-1 font-semibold flex justify-between items-center">
-            <span>태수</span>
+            <span>성주</span>
           </div>
           <div className="flex flex-col gap-0.5">
             <div className="text-base font-semibold text-white" style={{ color: getNPCColor(city.officerList[4]?.npc ?? 0) }}>

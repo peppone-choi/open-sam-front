@@ -7,7 +7,13 @@ import { SammoAPI } from "@/lib/api/sammo";
 import TopBackBar from "@/components/common/TopBackBar";
 import { isBrightColor } from "@/utils/isBrightColor";
 import { cn } from "@/lib/utils";
-import { formatOfficerLevelText } from "@/utils/formatOfficerLevelText";
+import { 
+  formatOfficerLevelText, 
+  getOfficerTitle, 
+  getNationLevelName as getNationLevelNameUtil, 
+  getRulerTitle as getRulerTitleUtil,
+  NATION_LEVELS 
+} from "@/utils/formatOfficerLevelText";
 import { useToast } from "@/contexts/ToastContext";
 
 interface OfficerData {
@@ -75,38 +81,13 @@ const REGION_NAMES: Record<number, string> = {
 
 const CHIEF_STAT_MIN = 70;
 
-// 국가 작위 (nationLevels.name)
-const NATION_LEVEL_NAMES: Record<number, string> = {
-  0: '유랑',
-  1: '정',
-  2: '현',
-  3: '군',
-  4: '주',
-  5: '주',
-  6: '공국',
-  7: '왕국',
-  8: '제국',
-};
-
-// 군주 명칭 (officerTitles["12"])
-const RULER_TITLE_NAMES: Record<number, string> = {
-  0: '거수',
-  1: '정후',
-  2: '현후',
-  3: '태수',
-  4: '자사',
-  5: '목',
-  6: '공',
-  7: '왕',
-  8: '황제',
-};
-
+// 국가 레벨명과 군주 명칭은 @/utils/formatOfficerLevelText에서 import
 function getNationLevelName(level: number): string {
-  return NATION_LEVEL_NAMES[level] || `레벨 ${level}`;
+  return getNationLevelNameUtil(level);
 }
 
 function getRulerTitle(level: number): string {
-  return RULER_TITLE_NAMES[level] || '군주';
+  return getRulerTitleUtil(level);
 }
 
 export default function PersonnelPage() {
@@ -860,7 +841,7 @@ function PersonnelTables({
                 <th className="py-3 px-4 whitespace-nowrap" colSpan={2}>
                   도시
                 </th>
-                <th className="py-3 px-4 whitespace-nowrap">태 수 (사관) 【현재도시】</th>
+                <th className="py-3 px-4 whitespace-nowrap">성 주 (사관) 【현재도시】</th>
                 <th className="py-3 px-4 whitespace-nowrap">군 사 (사관) 【현재도시】</th>
                 <th className="py-3 px-4 whitespace-nowrap">종 사 (사관) 【현재도시】</th>
               </tr>
