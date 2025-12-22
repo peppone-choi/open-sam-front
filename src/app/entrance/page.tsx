@@ -358,7 +358,7 @@ export default function EntrancePage() {
                                     onClick={() => router.push(`/${server.serverID}/select-npc`)}
                                     className="w-full py-2.5 rounded-xl bg-accent/10 text-accent font-semibold text-center text-xs border border-accent/20 hover:bg-accent hover:text-white transition-all"
                                  >
-                                    NPC로 플레이
+                                    NPC 빙의
                                  </button>
                               )}
                            </>

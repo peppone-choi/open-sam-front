@@ -780,7 +780,7 @@ export default function AdminGamePage() {
                   onChange={(e) => setAllowNpcPossess(e.target.checked)}
                   className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
                 />
-                <span className="text-sm font-medium text-white">오리지널 캐릭터 플레이 허용</span>
+                <span className="text-sm font-medium text-white">NPC 빙의 허용</span>
               </label>
               <button 
                 onClick={() => void handleSubmit('allowNpcPossess')}
