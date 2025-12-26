@@ -404,14 +404,32 @@ export default function ReplayPlayer({
 
         {/* 진행 슬라이더 */}
         <div className={styles.progressSection}>
-          <input
-            type="range"
-            className={styles.progressSlider}
-            min={0}
-            max={allActions.length - 1}
-            value={currentGlobalIndex}
-            onChange={(e) => seekTo(parseInt(e.target.value, 10))}
-          />
+          <div className={styles.sliderWrapper}>
+            <input
+              type="range"
+              className={styles.progressSlider}
+              min={0}
+              max={allActions.length - 1}
+              value={currentGlobalIndex}
+              onChange={(e) => seekTo(parseInt(e.target.value, 10))}
+            />
+            {/* Turn Markers */}
+            <div className={styles.turnMarkers}>
+              {data.turns.map((turn, idx) => {
+                let actionOffset = 0;
+                for (let i = 0; i < idx; i++) actionOffset += data.turns[i].actions.length;
+                const left = (actionOffset / allActions.length) * 100;
+                return (
+                  <div 
+                    key={idx} 
+                    className={styles.turnMarker} 
+                    style={{ left: `${left}%` }}
+                    title={`Turn ${turn.turnNumber}`}
+                  />
+                );
+              })}
+            </div>
+          </div>
           <span className={styles.progressText}>
             {currentGlobalIndex + 1} / {allActions.length}
           </span>

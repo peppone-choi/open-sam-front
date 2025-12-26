@@ -8,7 +8,21 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/contexts/ToastContext';
 
 // OTP Modal Component
-function OtpModal({ isOpen, onClose, onSubmit }: { isOpen: boolean; onClose: () => void; onSubmit: (code: string) => void }) {
+function OtpModal({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  message, 
+  error, 
+  isLoading 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onSubmit: (code: string) => void;
+  message?: string;
+  error?: string | null;
+  isLoading?: boolean;
+}) {
   const [code, setCode] = useState('');
 
   if (!isOpen) return null;
@@ -24,31 +38,47 @@ function OtpModal({ isOpen, onClose, onSubmit }: { isOpen: boolean; onClose: () 
         </div>
         
         <div className="mb-6 text-gray-300 text-sm leading-relaxed">
-          <p className="mb-2">인증 코드가 필요합니다.</p>
-          <p className="mb-2">카카오톡의 ‘나와의 채팅’란을 확인해 주세요.</p>
-          <p className="text-xs text-gray-500">(별도의 알림[소리, 진동, 숫자]이 발생하지 않습니다.)</p>
+          <p className="mb-2 font-bold text-primary">{message || '인증 코드가 발송되었습니다.'}</p>
+          <p className="mb-2">이메일 또는 카카오톡(나와의 채팅)을 확인해 주세요.</p>
+          <p className="text-xs text-gray-500">(별도의 알림[소리, 진동, 숫자]이 발생하지 않을 수 있습니다.)</p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center animate-in fade-in slide-in-from-top-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={(e) => { e.preventDefault(); onSubmit(code); }} className="space-y-4">
           <div>
             <label htmlFor="otp_code" className="block text-sm font-medium text-gray-400 mb-1">인증 코드</label>
             <input
-              type="number"
+              type="text"
               id="otp_code"
-              className="w-full px-4 py-3 rounded-lg bg-background-tertiary border border-white/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none text-white placeholder-gray-600 transition-all"
-              placeholder="인증 코드를 입력하세요"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              className="w-full px-4 py-3 rounded-lg bg-background-tertiary border border-white/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none text-white placeholder-gray-600 transition-all text-center text-2xl tracking-[0.5em] font-bold"
+              placeholder="000000"
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+              disabled={isLoading}
               autoFocus
             />
           </div>
           
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition-colors">
+            <button type="button" onClick={onClose} disabled={isLoading} className="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium transition-colors disabled:opacity-50">
               취소
             </button>
-            <button type="submit" className="flex-1 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold shadow-lg shadow-primary/20 transition-all">
-              제출
+            <button type="submit" disabled={isLoading || code.length < 6} className="flex-1 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold shadow-lg shadow-primary/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+              {isLoading && (
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              )}
+              {isLoading ? '확인 중...' : '인증 완료'}
             </button>
           </div>
         </form>
@@ -67,6 +97,7 @@ export default function LoginPage() {
   
   // OTP State
   const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpMessage, setOtpMessage] = useState('');
   const [pendingLogin, setPendingLogin] = useState<{username: string, password: string} | null>(null);
 
   // Dropdown State
@@ -147,6 +178,7 @@ export default function LoginPage() {
         if (result.reqOTP) {
           // OTP 필요 -> 모달 표시하고 현재 정보 저장
           setPendingLogin({ username: loginId, password: loginPw });
+          setOtpMessage(result.reason || result.message || '');
           setShowOtpModal(true);
           setLoading(false);
         } else {
@@ -154,6 +186,7 @@ export default function LoginPage() {
           if (result.token) {
             localStorage.setItem('token', result.token);
           }
+          setShowOtpModal(false);
           router.push('/entrance');
         }
       } else {
@@ -166,24 +199,42 @@ export default function LoginPage() {
     }
   }
 
-  const handleOtpSubmit = (code: string) => {
-    setShowOtpModal(false);
-    handleLogin(undefined, code);
+  const handleOtpSubmit = async (code: string) => {
+    // modal 내에서 isLoading이 표시되도록 handleLogin 호출
+    await handleLogin(undefined, code);
   };
 
   const { showToast } = useToast();
 
-  const handleKakaoLogin = () => {
-    // 카카오 로그인 로직 (환경변수 등 필요)
-    // 현재는 알림만 표시
-    showToast('카카오 로그인은 현재 설정 중입니다.', 'info');
-    // window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID}&redirect_uri=...&response_type=code`;
+  const handleKakaoLogin = async () => {
+    try {
+      const redirectUri = window.location.origin + '/oauth/kakao';
+      const result = await SammoAPI.GetKakaoAuthUrl(redirectUri);
+      if (result.success && result.authUrl) {
+        window.location.href = result.authUrl;
+      } else {
+        showToast('카카오 로그인 정보를 불러오는데 실패했습니다.', 'error');
+      }
+    } catch (error) {
+      console.error(error);
+      showToast('카카오 로그인 중 오류가 발생했습니다.', 'error');
+    }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-background-main relative overflow-hidden selection:bg-primary selection:text-white font-sans">
       {/* OTP Modal */}
-      <OtpModal isOpen={showOtpModal} onClose={() => setShowOtpModal(false)} onSubmit={handleOtpSubmit} />
+      <OtpModal 
+        isOpen={showOtpModal} 
+        onClose={() => {
+          setShowOtpModal(false);
+          setError(null);
+        }} 
+        onSubmit={handleOtpSubmit} 
+        message={otpMessage}
+        error={error}
+        isLoading={loading}
+      />
 
       {/* Background Effects */}
       <div className="absolute inset-0 bg-hero-pattern opacity-40 pointer-events-none" />
@@ -331,7 +382,7 @@ export default function LoginPage() {
                     
                     {showDropdown && (
                       <div className="absolute right-0 mt-2 w-48 rounded-lg bg-background-tertiary border border-white/10 shadow-xl z-50 py-1 animate-in fade-in zoom-in-95 duration-100 origin-top-right">
-                        <Link href="/user_info/password?action=reset" className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+                        <Link href="/auth/forgot-password" title="이메일 인증을 통한 비밀번호 초기화" className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
                           비밀번호 초기화
                         </Link>
                         <Link href="/register" className="block px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors">

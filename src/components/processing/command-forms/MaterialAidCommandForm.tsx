@@ -111,7 +111,7 @@ export default function MaterialAidCommandForm({
         <div className={styles.description}>
           타국에게 원조합니다.
           <br />
-          작위별로 금액 제한이 있습니다.
+          위상별로 금액 제한이 있습니다.
           <br />
           <ul className={styles.levelInfoList}>
             {Object.entries(levelInfo).map(([level, info]) => (

@@ -7,6 +7,10 @@ import TopBackBar from '@/components/common/TopBackBar';
 import { FilterPanel, FilterSelect, FilterInput } from '@/components/common/FilterPanel';
 import { useToast } from '@/contexts/ToastContext';
 import { cn } from '@/lib/utils';
+import { 
+  formatOfficerLevelText, 
+  getNationLevelName 
+} from '@/utils/formatOfficerLevelText';
 
 // =============================================================================
 // Types
@@ -42,20 +46,8 @@ interface Kingdom {
 }
 
 // =============================================================================
-// Constants - 작위, 직위, 성향
+// Constants - 성향 및 정렬
 // =============================================================================
-
-const NATION_LEVELS: Record<number, string> = {
-  0: '방랑군',
-  1: '호족',
-  2: '방백',
-  3: '주자사',
-  4: '주목',
-  5: '승상',
-  6: '공',
-  7: '왕',
-  8: '황제',
-};
 
 const NATION_TYPES: Record<string, { name: string; description: string }> = {
   neutral: { name: '중립', description: '' },
@@ -74,29 +66,12 @@ const NATION_TYPES: Record<string, { name: string; description: string }> = {
   virtue: { name: '덕가', description: '치안↑ 인구↑ 민심↑ / 쌀수입↓ 수성↓' },
 };
 
-// 직위 (officer_level별, 작위별)
-const OFFICER_TITLES: Record<number, Record<number | string, string>> = {
-  0: { default: '재야' },
-  1: { default: '일반' },
-  2: { default: '종사' },
-  3: { default: '군사' },
-  4: { default: '성주' },
-  5: { 1: '백장', 2: '주부', 3: '도위', 4: '영군', 5: '토역장군', 6: '안국장군', 7: '후장군', 8: '표기장군', default: '편장군' },
-  6: { 1: '정장', 2: '군사마', 3: '교위', 4: '호군', 5: '파로장군', 6: '중서령', 7: '전장군', 8: '거기장군', default: '잡호장군' },
-  7: { 1: '서좌', 2: '선봉장', 3: '비장군', 4: '진북장군', 5: '진서장군', 6: '우장군', 7: '상서령', 8: '사공', default: '상서령' },
-  8: { 1: '현승', 2: '아문장', 3: '편장군', 4: '진남장군', 5: '진동장군', 6: '좌장군', 7: '위장군', 8: '사도', default: '사방장군' },
-  9: { 1: '현위', 2: '부장군', 3: '도독', 4: '장사', 5: '군사중랑장', 6: '광록훈', 7: '어사대부', 8: '태위', default: '구경' },
-  10: { 0: '행동대장', 1: '도위', 2: '교위', 3: '중랑장', 4: '호위대장', 5: '상장군', 6: '대도독', 7: '대장군', 8: '대사마', default: '대장군' },
-  11: { 0: '부두목', 1: '참모', 2: '주부', 3: '치중', 4: '별가', 5: '녹상서사', 6: '공국상', 7: '상국', 8: '승상', default: '승상' },
-  12: { 0: '두목', 1: '호족', 2: '방백', 3: '주자사', 4: '주목', 5: '승상', 6: '공', 7: '왕', 8: '황제', default: '군주' },
-};
-
 const SORT_OPTIONS = [
   { value: 'power', label: '국력순' },
   { value: 'name', label: '이름순' },
   { value: 'cities', label: '도시 수' },
   { value: 'generals', label: '장수 수' },
-  { value: 'level', label: '작위순' },
+  { value: 'level', label: '위상순' },
 ];
 
 // =============================================================================
@@ -122,16 +97,6 @@ function getNationType(type?: string | { id?: string; name?: string }): { name: 
   return NATION_TYPES[type] || NATION_TYPES.neutral;
 }
 
-function getNationLevel(level?: number): string {
-  return NATION_LEVELS[level ?? 0] || NATION_LEVELS[0];
-}
-
-function getOfficerTitle(officerLevel: number, nationLevel: number): string {
-  const titles = OFFICER_TITLES[officerLevel];
-  if (!titles) return '일반';
-  return titles[nationLevel] || titles.default || '일반';
-}
-
 function formatGeneralName(name: string, npc: number): React.ReactNode {
   if (npc >= 2) {
     return <span className="text-gray-500">{name}</span>;
@@ -150,6 +115,8 @@ function KingdomCard({ kingdom, rank }: { kingdom: Kingdom; rank: number }) {
   const textColor = getContrastColor(kingdom.color);
   const isTop3 = rank < 3;
   const nationLevel = kingdom.level ?? 0;
+  const nationTypeRaw = typeof kingdom.type === 'string' ? kingdom.type : (kingdom.type?.id || 'neutral');
+
   // typeInfo가 있으면 직접 사용, 없으면 type에서 추출
   const nationType = kingdom.typeInfo 
     ? { name: kingdom.typeInfo.name || '중립', description: `${kingdom.typeInfo.pros || ''}${kingdom.typeInfo.cons ? ' / ' + kingdom.typeInfo.cons : ''}` }
@@ -201,8 +168,8 @@ function KingdomCard({ kingdom, rank }: { kingdom: Kingdom; rank: number }) {
         <div className="p-2 text-center text-yellow-400" title={nationType.description}>
           {nationType.name}
         </div>
-        <div className="bg-gray-800/50 p-2 text-center text-gray-400">작 위</div>
-        <div className="p-2 text-center text-white">{getNationLevel(nationLevel)}</div>
+        <div className="bg-gray-800/50 p-2 text-center text-gray-400">위 상</div>
+        <div className="p-2 text-center text-white">{getNationLevelName(nationLevel)}</div>
       </div>
       <div className="grid grid-cols-4 text-sm border-b border-white/5">
         <div className="bg-gray-800/50 p-2 text-center text-gray-400">국 력</div>
@@ -215,7 +182,7 @@ function KingdomCard({ kingdom, rank }: { kingdom: Kingdom; rank: number }) {
       <div className="grid grid-cols-4 text-xs border-b border-white/5">
         {[12, 11, 10, 9].map((level) => {
           const chief = chiefs[level];
-          const title = getOfficerTitle(level, nationLevel);
+          const title = formatOfficerLevelText(level, nationLevel, undefined, nationTypeRaw);
           return (
             <React.Fragment key={level}>
               <div className="bg-gray-800/50 p-1.5 text-center text-gray-400">{title}</div>
@@ -229,7 +196,7 @@ function KingdomCard({ kingdom, rank }: { kingdom: Kingdom; rank: number }) {
       <div className="grid grid-cols-4 text-xs border-b border-white/5">
         {[8, 7, 6, 5].map((level) => {
           const chief = chiefs[level];
-          const title = getOfficerTitle(level, nationLevel);
+          const title = formatOfficerLevelText(level, nationLevel, undefined, nationTypeRaw);
           return (
             <React.Fragment key={level}>
               <div className="bg-gray-800/50 p-1.5 text-center text-gray-400">{title}</div>
@@ -269,7 +236,7 @@ function KingdomCard({ kingdom, rank }: { kingdom: Kingdom; rank: number }) {
           ))
         ) : (
           <span className="text-yellow-400">
-            {chiefs[12]?.city ? `현재 위치: 도시${chiefs[12].city}` : '-'}
+            {chiefs[12]?.city ? `현재 위치: ${cities[chiefs[12].city] || '도시' + chiefs[12].city}` : '-'}
           </span>
         )}
         {cityCount === 0 && <span className="text-gray-500">없음</span>}
@@ -298,85 +265,77 @@ function WanderingSection({ kingdom }: { kingdom: Kingdom | null }) {
   const generalCount = kingdom.generals?.length || 0;
 
   return (
-    <div className="bg-gray-900/70 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden shadow-lg">
-      <div className="py-3 px-4 text-center font-bold text-lg bg-gray-700">
-        【 재 야 】
+    <div className="bg-slate-900/50 backdrop-blur-sm border border-white/5 rounded-xl p-4 md:p-6 shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-xl shadow-inner">
+            👣
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-white tracking-tight">재야 장수 일람</h2>
+            <p className="text-xs text-gray-500 font-medium">소속 국가가 없는 방랑객들</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 bg-black/20 rounded-lg px-4 py-2 border border-white/5">
+          <div className="text-center">
+            <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">인원</div>
+            <div className="text-lg font-mono text-white leading-none mt-1">{generalCount}</div>
+          </div>
+        </div>
       </div>
       
-      <div className="grid grid-cols-5 text-sm border-b border-white/5">
-        <div className="col-span-2 p-3"></div>
-        <div className="bg-gray-800/50 p-2 text-center text-gray-400">장 수</div>
-        <div className="p-2 text-center font-mono text-white">{generalCount}</div>
-        <div className="bg-gray-800/50 p-2 text-center text-gray-400">속 령</div>
-      </div>
-      <div className="grid grid-cols-5 text-sm border-b border-white/5">
-        <div className="col-span-4"></div>
-        <div className="p-2 text-center font-mono text-white">{cityCount}</div>
-      </div>
-
-      {/* 속령 일람 */}
-      <div className="p-2 text-xs border-b border-white/5">
-        <span className="text-gray-400">속령 일람 : </span>
-        {Object.entries(cities).map(([cityId, cityName], idx) => (
-          <span key={cityId} className="text-gray-300">
-            {cityName}
-            {idx < Object.keys(cities).length - 1 && ', '}
-          </span>
-        ))}
-        {cityCount === 0 && <span className="text-gray-500">없음</span>}
-      </div>
-
-      {/* 장수 일람 */}
-      <div className="p-2 text-xs">
-        <span className="text-gray-400">장수 일람 : </span>
-        {(kingdom.generals || []).map((general, idx) => (
-          <span key={general.no}>
+      <div className="flex flex-wrap gap-2">
+        {(kingdom.generals || []).map((general) => (
+          <div 
+            key={general.no}
+            className="px-3 py-1.5 rounded-lg bg-gray-800/40 border border-white/5 text-sm hover:bg-gray-800/70 transition-colors group cursor-default"
+          >
             {formatGeneralName(general.name, general.npc)}
-            {idx < (kingdom.generals?.length || 0) - 1 && ', '}
-          </span>
+          </div>
         ))}
-        {generalCount === 0 && <span className="text-gray-500">없음</span>}
+        {generalCount === 0 && (
+          <div className="w-full text-center py-8 text-gray-600 italic">
+            현재 활동 중인 재야 장수가 없습니다.
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// =============================================================================
-// Main Component
-// =============================================================================
-
 function KingdomListContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const serverID = params?.server as string;
   const { showToast } = useToast();
-
-  const sortBy = searchParams?.get('sort') || 'power';
-  const searchQuery = searchParams?.get('q') || '';
+  const serverID = params?.server as string;
 
   const [loading, setLoading] = useState(true);
   const [kingdomList, setKingdomList] = useState<Kingdom[]>([]);
   const [wandering, setWandering] = useState<Kingdom | null>(null);
+  const [sortBy, setSortBy] = useState(searchParams?.get('sort') || 'power');
+  const [searchQuery, setSearchQuery] = useState(searchParams?.get('q') || '');
   const [localSearch, setLocalSearch] = useState(searchQuery);
 
-  const updateParams = useCallback(
-    (updates: Record<string, string | undefined>) => {
-      const params = new URLSearchParams(searchParams?.toString() || '');
-      Object.entries(updates).forEach(([key, value]) => {
-        if (value === undefined || value === '' || (key === 'sort' && value === 'power')) {
-          params.delete(key);
-        } else {
-          params.set(key, value);
-        }
-      });
-      const queryString = params.toString();
-      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
-      router.push(newUrl, { scroll: false });
-    },
-    [router, pathname, searchParams]
-  );
+  const updateParams = useCallback((newParams: Record<string, string | undefined>) => {
+    const current = new URLSearchParams(Array.from(searchParams?.entries() || []));
+    
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value) {
+        current.set(key, value);
+      } else {
+        current.delete(key);
+      }
+    });
+
+    const search = current.toString();
+    const query = search ? `?${search}` : '';
+    router.replace(`${pathname}${query}`);
+    
+    if (newParams.sort) setSortBy(newParams.sort);
+    if (newParams.q !== undefined) setSearchQuery(newParams.q || '');
+  }, [searchParams, router, pathname]);
 
   useEffect(() => {
     loadKingdomList();
@@ -478,21 +437,30 @@ function KingdomListContent() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
           </div>
         ) : (
-          <div className="space-y-4">
-            {filteredKingdoms.map((kingdom, idx) => (
-              <KingdomCard key={kingdom.nation} kingdom={kingdom} rank={idx} />
-            ))}
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredKingdoms.map((kingdom, idx) => (
+                <KingdomCard key={kingdom.nation} kingdom={kingdom} rank={searchQuery ? -1 : idx} />
+              ))}
+            </div>
 
             {filteredKingdoms.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <div className="text-4xl mb-2">🚩</div>
-                {searchQuery ? '검색 결과가 없습니다.' : '활성화된 세력이 없습니다.'}
+              <div className="flex flex-col items-center justify-center py-20 bg-slate-900/30 rounded-2xl border border-dashed border-white/10">
+                <div className="text-4xl mb-4 text-slate-700">🔎</div>
+                <div className="text-slate-500 font-medium">검색 결과가 없습니다.</div>
+                <button 
+                  onClick={() => { setLocalSearch(''); updateParams({ q: undefined }); }}
+                  className="mt-4 text-sm text-blue-400 hover:text-blue-300"
+                >
+                  필터 초기화
+                </button>
               </div>
             )}
 
-            {/* 재야 섹션 */}
-            {wandering && !searchQuery && <WanderingSection kingdom={wandering} />}
-          </div>
+            <Suspense fallback={null}>
+              <WanderingSection kingdom={wandering} />
+            </Suspense>
+          </>
         )}
       </div>
     </div>
@@ -501,13 +469,7 @@ function KingdomListContent() {
 
 export default function KingdomListPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-950 flex justify-center items-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">로딩 중...</div>}>
       <KingdomListContent />
     </Suspense>
   );

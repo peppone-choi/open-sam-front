@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const { showToast } = useToast();
   const [formData, setFormData] = useState({
     username: '',
+    email: '',
     password: '',
     confirmPassword: '',
     nickname: '',
@@ -51,7 +52,7 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     
-    if (!formData.username || !formData.password || !formData.nickname) {
+    if (!formData.username || !formData.email || !formData.password || !formData.nickname) {
       setError('모든 필수 항목을 입력해주세요.');
       return;
     }
@@ -77,8 +78,9 @@ export default function RegisterPage() {
       
       const result = await SammoAPI.Register({
         username: formData.username,
+        email: formData.email,
         password: formData.password,
-        nickname: formData.nickname,
+        name: formData.nickname, // 백엔드에서는 name으로 받음
         secret_agree: agreeTerms1,
         secret_agree2: agreeTerms2,
         third_use: agreeThirdParty,
@@ -134,6 +136,28 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   placeholder="계정명을 입력하세요"
                   autoFocus
+                  className={cn(
+                    "flex h-12 w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm",
+                    "focus:border-primary focus:bg-black/30 focus:ring-1 focus:ring-primary outline-none transition-all",
+                    "text-white placeholder:text-white/20"
+                  )}
+                  required
+                />
+              </div>
+
+              {/* 이메일 */}
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-bold text-foreground-dim uppercase tracking-wider pl-1">
+                  이메일 <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  autoComplete="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="이메일 주소를 입력하세요"
                   className={cn(
                     "flex h-12 w-full rounded-lg border border-white/10 bg-black/20 px-4 py-2 text-sm",
                     "focus:border-primary focus:bg-black/30 focus:ring-1 focus:ring-primary outline-none transition-all",

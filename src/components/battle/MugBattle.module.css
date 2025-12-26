@@ -1,0 +1,227 @@
+:root {
+  --classic-bg: #c0c0c0;
+  --classic-border-light: #ffffff;
+  --classic-border-dark: #808080;
+  --classic-border-deeper: #404040;
+  --classic-blue: #000080;
+  --classic-text: #000000;
+  --classic-highlight: #ffffff;
+  --classic-shadow: #808080;
+}
+
+.mugContainer {
+  background-color: #008080; /* Teal background for that classic desktop feel */
+  display: grid;
+  grid-template-columns: 240px 1fr 240px;
+  grid-template-rows: 1fr 180px;
+  gap: 4px;
+  padding: 8px;
+  width: 100%;
+  height: 100vh;
+  font-family: 'Gulim', 'Dotum', sans-serif;
+  color: var(--classic-text);
+  overflow: hidden;
+}
+
+.window {
+  background-color: var(--classic-bg);
+  border: 2px solid;
+  border-top-color: var(--classic-border-light);
+  border-left-color: var(--classic-border-light);
+  border-bottom-color: var(--classic-border-deeper);
+  border-right-color: var(--classic-border-deeper);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.windowHeader {
+  background: var(--classic-blue);
+  color: white;
+  padding: 2px 4px;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.windowContent {
+  padding: 8px;
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid var(--classic-border-dark);
+  margin: 2px;
+  background-color: white; /* Indoor contents often white in Win98 apps */
+}
+
+/* Specific Panels */
+.leftPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rightPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.middlePanel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.bottomPanel {
+  grid-column: 1 / span 3;
+}
+
+/* Classic Widgets */
+.statBox {
+  border: 1px inset var(--classic-border-light);
+  background: #eee;
+  padding: 4px;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dotted #ccc;
+}
+
+.commandGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.classicButton {
+  background-color: var(--classic-bg);
+  border: 2px solid;
+  border-top-color: var(--classic-border-light);
+  border-left-color: var(--classic-border-light);
+  border-bottom-color: var(--classic-border-deeper);
+  border-right-color: var(--classic-border-deeper);
+  padding: 4px;
+  font-size: 11px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.classicButton:active {
+  border-top-color: var(--classic-border-deeper);
+  border-left-color: var(--classic-border-deeper);
+  border-bottom-color: var(--classic-border-light);
+  border-right-color: var(--classic-border-light);
+  padding: 5px 3px 3px 5px;
+}
+
+.classicButton.disabled {
+  color: var(--classic-border-dark);
+  cursor: default;
+}
+
+.logArea {
+  background-color: #000080;
+  color: #ffffff;
+  font-family: monospace;
+  padding: 4px;
+  height: 100%;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.mapViewport {
+  flex: 1;
+  background-color: #222;
+  position: relative;
+  border: 2px inset var(--classic-border-light);
+}
+
+.portrait {
+  width: 120px;
+  height: 150px;
+  border: 2px inset var(--classic-border-light);
+  margin: 0 auto 8px;
+  background-color: #333;
+}
+
+.statusLabel {
+  background: #808080;
+  color: white;
+  padding: 0 4px;
+  font-size: 11px;
+  margin-right: 4px;
+}
+
+/* Battle Animations */
+@keyframes shake {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(3px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(3px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(1px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+.shakeEffect {
+  animation: shake 0.5s;
+  animation-iteration-count: 1;
+}
+
+@keyframes flashRed {
+  0% { background-color: rgba(255, 0, 0, 0); }
+  50% { background-color: rgba(255, 0, 0, 0.4); }
+  100% { background-color: rgba(255, 0, 0, 0); }
+}
+
+.damageFlash {
+  animation: flashRed 0.3s ease-out;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-40px); opacity: 0; }
+}
+
+.damageNumber {
+  position: absolute;
+  color: #ff0;
+  font-weight: bold;
+  font-size: 20px;
+  text-shadow: 2px 2px 0 #000;
+  pointer-events: none;
+  z-index: 1000;
+  animation: floatUp 1s ease-out forwards;
+}
+
+.criticalText {
+  color: #f00;
+  font-size: 24px;
+  animation: shake 0.3s infinite;
+}
+
+@keyframes beam {
+  0% { width: 0; opacity: 1; }
+  50% { width: 100%; opacity: 1; }
+  100% { width: 100%; opacity: 0; }
+}
+
+.beamEffect {
+  position: absolute;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #4ff, #fff, #4ff, transparent);
+  box-shadow: 0 0 10px #4ff;
+  transform-origin: left center;
+  animation: beam 0.4s ease-out forwards;
+}

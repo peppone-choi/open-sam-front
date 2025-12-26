@@ -63,18 +63,33 @@ interface UseBattleSocketOptions {
 
 const BATTLE_LOG_LIMIT = 60;
 
+/**
+ * Linear interpolation helper
+ */
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
 export function useBattleSocket(options: UseBattleSocketOptions) {
   const { battleId, generalId, token } = options;
   const { socket, isConnected, onBattleEvent } = useSocket({ token, autoConnect: true });
   
   const [battleState, setBattleState] = useState<BattleState | null>(null);
+  const [interpolatedState, setInterpolatedState] = useState<BattleState | null>(null);
   const [isJoined, setIsJoined] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   
   const joinedRef = useRef(false);
-  const pendingStateRef = useRef<BattleState | null>(null);
+  const lastStateRef = useRef<BattleState | null>(null);
+  const nextStateRef = useRef<BattleState | null>(null);
+  const lastUpdateTimeRef = useRef<number>(Date.now());
   const animationFrameRef = useRef<number | null>(null);
+  const commandSeqRef = useRef<number>(0);
+
+  // TICK_RATE (ticks per second) - Server usually runs at 20 ticks
+  const TICK_RATE = 20;
+  const TICK_TIME = 1000 / TICK_RATE;
 
   const pushLog = useCallback((message: string) => {
     setLogs((prev) => {
@@ -86,18 +101,52 @@ export function useBattleSocket(options: UseBattleSocketOptions) {
     });
   }, []);
 
-  const scheduleBattleStateUpdate = useCallback(() => {
-    if (animationFrameRef.current !== null) {
-      return;
-    }
+  /**
+   * Interpolation Loop
+   */
+  const startInterpolation = useCallback(() => {
+    const update = () => {
+      const now = Date.now();
+      const elapsed = now - lastUpdateTimeRef.current;
+      const t = Math.min(1, elapsed / TICK_TIME);
 
-    animationFrameRef.current = requestAnimationFrame(() => {
-      animationFrameRef.current = null;
-      if (pendingStateRef.current) {
-        setBattleState(pendingStateRef.current);
-        pendingStateRef.current = null;
+      if (lastStateRef.current && nextStateRef.current) {
+        // Interpolate positions for all units
+        const interpolateUnits = (unitsA: BattleUnit[], unitsB: BattleUnit[]) => {
+          return unitsA.map(unitA => {
+            const unitB = unitsB.find(u => u.generalId === unitA.generalId);
+            if (!unitB) return unitA;
+
+            return {
+              ...unitB,
+              position: {
+                x: lerp(unitA.position.x, unitB.position.x, t),
+                y: lerp(unitA.position.y, unitB.position.y, t)
+              }
+            };
+          });
+        };
+
+        const nextState: BattleState = {
+          ...nextStateRef.current,
+          attackerUnits: interpolateUnits(lastStateRef.current.attackerUnits, nextStateRef.current.attackerUnits),
+          defenderUnits: interpolateUnits(lastStateRef.current.defenderUnits, nextStateRef.current.defenderUnits),
+        };
+
+        setInterpolatedState(nextState);
       }
-    });
+
+      animationFrameRef.current = requestAnimationFrame(update);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(update);
+  }, [TICK_TIME]);
+
+  const stopInterpolation = useCallback(() => {
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
   }, []);
 
   /**
@@ -119,6 +168,23 @@ export function useBattleSocket(options: UseBattleSocketOptions) {
   }, [socket, isConnected, battleId, generalId]);
 
   /**
+   * 전투 관전
+   */
+  const spectateBattle = useCallback(() => {
+    if (!socket || !isConnected || joinedRef.current) {
+      return;
+    }
+
+    console.log('[BattleSocket] 전투 관전 시작:', { battleId });
+    
+    socket.emit('battle:spectate', {
+      battleId
+    });
+    
+    joinedRef.current = true;
+  }, [socket, isConnected, battleId]);
+
+  /**
    * 전투 명령 전송
    */
   const sendCommand = useCallback((command: BattleCommand) => {
@@ -127,11 +193,15 @@ export function useBattleSocket(options: UseBattleSocketOptions) {
       return;
     }
 
-    console.log('[BattleSocket] 명령 전송:', command);
+    commandSeqRef.current += 1;
+    const seq = commandSeqRef.current;
+
+    console.log('[BattleSocket] 명령 전송:', { ...command, seq });
     
     socket.emit('battle:command', {
       battleId,
-      ...command
+      ...command,
+      seq
     });
   }, [socket, isConnected, isJoined, battleId]);
 
@@ -221,10 +291,25 @@ export function useBattleSocket(options: UseBattleSocketOptions) {
       pushLog(`전투에 참가했습니다: ${data.battleId}`);
     });
 
+    // 전투 관전 성공
+    const unsubSpectating = onBattleEvent('spectating', (data: any) => {
+      console.log('[BattleSocket] 전투 관전 성공:', data);
+      setIsJoined(false); // 관전자는 참가 상태가 아님
+      setBattleState(data);
+      pushLog(`전투 관전을 시작했습니다: ${data.battleId}`);
+    });
+
     // 실시간 상태 업데이트 (20 tick/s)
     const unsubState = onBattleEvent('state', (state: BattleState) => {
-      pendingStateRef.current = state;
-      scheduleBattleStateUpdate();
+      lastStateRef.current = nextStateRef.current || state;
+      nextStateRef.current = state;
+      lastUpdateTimeRef.current = Date.now();
+      
+      setBattleState(state);
+      
+      if (animationFrameRef.current === null) {
+        startInterpolation();
+      }
     });
 
     // 명령 확인
@@ -259,31 +344,37 @@ export function useBattleSocket(options: UseBattleSocketOptions) {
 
     return () => {
       unsubJoined();
+      unsubSpectating();
       unsubState();
       unsubCommandAck();
       unsubEnded();
       unsubError();
       unsubPlayerJoined();
       unsubPlayerLeft();
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-      pendingStateRef.current = null;
+      stopInterpolation();
+      lastStateRef.current = null;
+      nextStateRef.current = null;
     };
-  }, [socket, isConnected, onBattleEvent, pushLog, scheduleBattleStateUpdate]);
+  }, [socket, isConnected, onBattleEvent, pushLog, startInterpolation, stopInterpolation]);
 
-  // 자동 참가
+  // 자동 참가 또는 관전
   useEffect(() => {
-    if (isConnected && generalId && !joinedRef.current) {
-      // 약간의 딜레이 후 참가 (연결 안정화)
-      const timer = setTimeout(() => {
-        joinBattle();
-      }, 500);
-      
-      return () => clearTimeout(timer);
+    if (isConnected && !joinedRef.current) {
+      if (generalId) {
+        // 참가
+        const timer = setTimeout(() => {
+          joinBattle();
+        }, 500);
+        return () => clearTimeout(timer);
+      } else {
+        // 관전
+        const timer = setTimeout(() => {
+          spectateBattle();
+        }, 500);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isConnected, generalId, joinBattle]);
+  }, [isConnected, generalId, joinBattle, spectateBattle]);
 
   // cleanup
   useEffect(() => {
@@ -299,6 +390,7 @@ export function useBattleSocket(options: UseBattleSocketOptions) {
     isConnected,
     isJoined,
     battleState,
+    interpolatedState,
     error,
     logs,
     

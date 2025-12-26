@@ -289,7 +289,29 @@ export default function UserInfoPage() {
               </div>
               <div className="space-y-1">
                 <span className="text-xs text-foreground-dim uppercase tracking-wider">인증 방식</span>
-                <p className="text-white font-medium">{userData.oauth_type || '일반 로그인'}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-white font-medium">{userData.oauth_type || '일반 로그인'}</p>
+                  {(!userData.oauth_type || userData.oauth_type === 'NONE') && (
+                    <button 
+                      onClick={async () => {
+                        try {
+                          const redirectUri = window.location.origin + '/oauth/kakao';
+                          const result = await SammoAPI.GetKakaoAuthUrl(redirectUri);
+                          if (result.success && result.authUrl) {
+                            window.location.href = result.authUrl;
+                          } else {
+                            showToast('카카오 연결 정보를 불러오는데 실패했습니다.', 'error');
+                          }
+                        } catch (error) {
+                          showToast('카카오 연결 중 오류가 발생했습니다.', 'error');
+                        }
+                      }} 
+                      className="text-xs px-2 py-1 rounded bg-[#FEE500] text-black hover:bg-[#FDD835] transition-all font-bold"
+                    >
+                      카카오 연결
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="space-y-1">
                 <span className="text-xs text-foreground-dim uppercase tracking-wider">토큰 유효기간</span>

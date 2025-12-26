@@ -12,8 +12,8 @@ import React, { useState } from 'react';
 // ============================================================================
 
 interface BattleModeSwitchProps {
-  currentMode: '2d' | 'voxel';
-  onModeChange: (mode: '2d' | 'voxel') => void;
+  currentMode: '2d' | 'mug';
+  onModeChange: (mode: '2d' | 'mug') => void;
   disabled?: boolean;
   className?: string;
 }
@@ -32,8 +32,8 @@ export default function BattleModeSwitch({
 
   const handleClick = () => {
     if (disabled) return;
-    const newMode = currentMode === '2d' ? 'voxel' : '2d';
-    onModeChange(newMode);
+    const nextMode = currentMode === '2d' ? 'mug' : '2d';
+    onModeChange(nextMode);
   };
 
   return (
@@ -46,29 +46,27 @@ export default function BattleModeSwitch({
         className={`
           relative flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
           transition-all duration-200
-          ${disabled 
+          ${disabled
             ? 'opacity-50 cursor-not-allowed bg-gray-800 text-gray-500'
-            : currentMode === 'voxel'
-              ? 'bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white shadow-lg shadow-purple-900/30'
-              : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-white/10'
+            : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-white/10'
           }
         `}
       >
         {/* 아이콘 */}
         <span className="text-lg">
-          {currentMode === 'voxel' ? '🎮' : '📊'}
+          {currentMode === 'mug' ? '📜' : '📊'}
         </span>
 
         {/* 현재 모드 표시 */}
         <span className="hidden sm:inline">
-          {currentMode === 'voxel' ? '3D 복셀' : '2D 맵'}
+          {currentMode === 'mug' ? 'Mug 클래식' : '2D 맵'}
         </span>
 
         {/* 전환 아이콘 */}
-        <svg 
+        <svg
           className={`w-4 h-4 transition-transform duration-300 ${isHovered ? 'rotate-180' : ''}`}
-          fill="none" 
-          stroke="currentColor" 
+          fill="none"
+          stroke="currentColor"
           viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -79,11 +77,11 @@ export default function BattleModeSwitch({
       {isHovered && !disabled && (
         <div className="absolute top-full right-0 mt-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-white/10 whitespace-nowrap z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center gap-2">
-            <span>{currentMode === 'voxel' ? '📊' : '🎮'}</span>
+            <span>{currentMode === 'mug' ? '📊' : '📜'}</span>
             <span>
-              {currentMode === 'voxel' 
+              {currentMode === 'mug'
                 ? '2D 전투 맵으로 전환'
-                : '3D 복셀 전투로 전환'}
+                : 'Mug 클래식으로 전환'}
             </span>
           </div>
           {/* 화살표 */}
@@ -98,7 +96,7 @@ export default function BattleModeSwitch({
 // 인라인 스위치 변형 (토글 스타일)
 // ============================================================================
 
-interface BattleModeSwitchToggleProps extends BattleModeSwitchProps {}
+interface BattleModeSwitchToggleProps extends BattleModeSwitchProps { }
 
 export function BattleModeSwitchToggle({
   currentMode,
@@ -122,20 +120,21 @@ export function BattleModeSwitchToggle({
       >
         📊 2D
       </button>
-      
+
+
       <button
-        onClick={() => onModeChange('voxel')}
+        onClick={() => onModeChange('mug')}
         disabled={disabled}
         className={`
           px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200
-          ${currentMode === 'voxel'
-            ? 'bg-gradient-to-r from-purple-600 to-indigo-500 text-white shadow-sm'
+          ${currentMode === 'mug'
+            ? 'bg-yellow-600 text-white shadow-sm'
             : 'text-gray-400 hover:text-white'
           }
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         `}
       >
-        🎮 3D
+        📜 Mug
       </button>
     </div>
   );

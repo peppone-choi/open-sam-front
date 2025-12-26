@@ -618,7 +618,7 @@ function PersonnelTables({
           【 {nation.name} 】 중앙 관직
         </div>
         <div className="py-2 px-4 text-xs text-center bg-black/30 text-gray-400 border-b border-white/5">
-          국가 작위: <span className="text-yellow-400 font-bold">{getNationLevelName(nation.level)}</span> | 
+          국가 위상: <span className="text-yellow-400 font-bold">{getNationLevelName(nation.level)}</span> | 
           군주 칭호: <span className="text-purple-400 font-bold">{getRulerTitle(nation.level)}</span> | 
           임명 가능 관직: <span className="text-cyan-400">{getOfficerTitle(chiefMinLevel)} ~ {getRulerTitle(nation.level)}</span> (레벨 {chiefMinLevel}~12)
         </div>

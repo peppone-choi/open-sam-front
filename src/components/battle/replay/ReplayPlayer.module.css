@@ -372,6 +372,31 @@
   gap: 12px;
 }
 
+.sliderWrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.turnMarkers {
+  position: absolute;
+  left: 8px; /* half of slider thumb width approx */
+  right: 8px;
+  height: 100%;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.turnMarker {
+  position: absolute;
+  width: 2px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 1px;
+}
+
 .progressSlider {
   flex: 1;
   height: 6px;
@@ -380,6 +405,7 @@
   border-radius: 3px;
   cursor: pointer;
   outline: none;
+  z-index: 1;
 }
 
 .progressSlider::-webkit-slider-thumb {

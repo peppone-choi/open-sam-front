@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { SammoAPI, type GetMapResponse } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import MapViewer from '@/components/game/MapViewer';
+import PowerChart from '@/components/ranking/PowerChart';
 import InfoSummaryCard from '@/components/info/InfoSummaryCard';
 import { INFO_TEXT } from '@/constants/uiText';
 import { cn } from '@/lib/utils';
@@ -224,10 +225,22 @@ export default function WorldPage() {
                     { label: '최대 참전', value: `${summaryStats.maxConflictParticipants}국` },
                     { label: '불가침 쌍', value: `${summaryStats.nonAggressionPairs}쌍` },
                   ]}
-                  accent="violet"
+                   accent="violet"
                 />
               </div>
             )}
+
+            {/* 국력 시각화 차트 (New: Phase 24) */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <PowerChart 
+                title="국가별 종합 국력 순위" 
+                data={diplomacyData.nations.map(n => ({ name: n.name, value: n.power || 0, color: n.color }))} 
+              />
+              <PowerChart 
+                title="국가별 보유 장수 순위" 
+                data={diplomacyData.nations.map(n => ({ name: n.name, value: n.gennum || 0, color: n.color }))} 
+              />
+            </div>
 
             {/* 천하도 지도 */}
             {mapData && (

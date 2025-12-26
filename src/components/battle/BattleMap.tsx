@@ -284,7 +284,18 @@ export default function BattleMap({
             onTouchStart={(e) => handleUnitTouchStart(e, unit)}
             title={unit.name}
           >
-            <div className={styles.unitIcon}>{unit.type === 'attacker' ? '⚔' : '🛡'}</div>
+            <div className={styles.unitIcon}>
+              {(() => {
+                if (!unit.crewtype) return unit.type === 'attacker' ? '⚔' : '🛡';
+                const ct = unit.crewtype;
+                if (ct >= 1100 && ct < 1200) return '🤺'; // 보병
+                if (ct >= 1200 && ct < 1300) return '🏇'; // 기병
+                if (ct >= 1300 && ct < 1400) return '🏹'; // 궁병
+                if (ct >= 1400 && ct < 1500) return '🗼'; // 공성
+                if (ct >= 1500 && ct < 1600) return '✨'; // 특수
+                return unit.type === 'attacker' ? '⚔' : '🛡';
+              })()}
+            </div>
             {unit.crew !== undefined && (
               <div className={styles.unitCrew}>{Math.floor(unit.crew / 100)}K</div>
             )}

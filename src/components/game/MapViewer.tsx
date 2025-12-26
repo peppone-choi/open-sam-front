@@ -45,6 +45,11 @@ interface ParsedCity {
   x: number;
   y: number;
   clickable: number;
+  pop?: number;
+  agri?: number;
+  comm?: number;
+  def?: number;
+  wall?: number;
 }
 
 function MapViewerComponent({ 
@@ -68,6 +73,7 @@ function MapViewerComponent({
   const [showMovementLayer, setShowMovementLayer] = useState(showMovements);
   const [showTerritory, setShowTerritory] = useState(false);
   const [showRoads, setShowRoads] = useState(true);  // 도로 표시 여부
+  const [heatmapType, setHeatmapType] = useState<'none' | 'pop' | 'agri' | 'comm' | 'def' | 'wall'>('none');
   const [selectedCityId, setSelectedCityId] = useState<number | null>(null);
   const [fetchedRoadList, setFetchedRoadList] = useState<[number, number][] | null>(null);
   const [roadListLoading, setRoadListLoading] = useState(false);
@@ -147,9 +153,9 @@ function MapViewerComponent({
     // shownByGeneralList를 Set으로 변환 (빠른 조회)
     const shownByGeneralSet = new Set(mapData.shownByGeneralList || []);
     
-    // 도시 파싱 [city, level, state, nation, region, supply, name, x, y]
+    // 도시 파싱 [city, level, state, nation, region, supply, name, x, y, pop, agri, comm, def, wall]
     return mapData.cityList.map((cityData): ParsedCity => {
-      const [id, level, state, nationID, region, supply, name, x, y] = cityData;
+      const [id, level, state, nationID, region, supply, name, x, y, pop, agri, comm, def, wall] = cityData;
       const nation = nationID > 0 ? nationMap.get(nationID) : undefined;
 
       // clickable 비트 연산 계산
@@ -187,6 +193,7 @@ function MapViewerComponent({
         x: x !== undefined ? x : 0,
         y: y !== undefined ? y : 0,
         clickable,
+        pop, agri, comm, def, wall
       };
     });
   }, [mapData]);
@@ -470,6 +477,47 @@ function MapViewerComponent({
               myNationId={mapData.myNation}
             />
           )}
+
+          {/* Heatmap 레이어 */}
+          {heatmapType !== 'none' && (
+            <div className={styles.heatmapLayer}>
+              {parsedCities.map(city => {
+                const value = city[heatmapType] || 0;
+                // 최대값 추정 (나중에 실제 데이터에서 추출 가능)
+                const maxValues: Record<string, number> = { pop: 200000, agri: 2000, comm: 2000, def: 2000, wall: 2000 };
+                const ratio = Math.min(1, value / (maxValues[heatmapType] || 1000));
+                
+                // 파란색(낮음) -> 빨간색(높음) 그라데이션
+                const r = Math.floor(255 * ratio);
+                const b = Math.floor(255 * (1 - ratio));
+                const color = `rgba(${r}, 50, ${b}, 0.5)`;
+
+                const LEFT_OFFSET = 14;
+                const TOP_OFFSET = 20;
+                const left = ((city.x - LEFT_OFFSET) / 1000) * 100;
+                const top = ((city.y - TOP_OFFSET) / 675) * 100;
+
+                return (
+                  <div 
+                    key={`heat-${city.id}`}
+                    className={styles.heatNode}
+                    style={{
+                      position: 'absolute',
+                      left: `${left}%`,
+                      top: `${top}%`,
+                      width: '40px',
+                      height: '40px',
+                      transform: 'translate(-50%, -50%)',
+                      borderRadius: '50%',
+                      background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
+                      zIndex: 1
+                    }}
+                  />
+                );
+              })}
+            </div>
+          )}
+
           {/* 경로 표시 레이어 (도시 마커 아래에 렌더링) */}
           {highlightPath.length > 1 && (
             <svg 
@@ -595,6 +643,23 @@ function MapViewerComponent({
           >
             세력권: {showTerritory ? 'ON' : 'OFF'}
           </button>
+          <div className="flex gap-1 bg-black/40 p-1 rounded border border-white/10">
+            <span className="text-[10px] text-gray-400 self-center px-1">분석:</span>
+            {[
+              { id: 'none', label: 'OFF' },
+              { id: 'pop', label: '인구' },
+              { id: 'agri', label: '농업' },
+              { id: 'comm', label: '상업' },
+            ].map(t => (
+              <button
+                key={t.id}
+                className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${heatmapType === t.id ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-white/10'}`}
+                onClick={() => setHeatmapType(t.id as any)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
           {movements.length > 0 && (
             <button
               type="button"

@@ -1,9 +1,9 @@
 /**
- * 관직/작위 시스템 상수 및 유틸리티
+ * 관직/위상 시스템 상수 및 유틸리티
  * 백엔드 config/scenarios/sangokushi/data/constants.json과 동기화
  */
 
-// 국가 레벨 정보 (nationLevels)
+// 국가 레벨 정보 (nationLevels) - backend constants.json과 동기화
 export const NATION_LEVELS: Record<number, { level: number; name: string; chiefCount: number; minCities: number }> = {
   0: { level: 0, name: '유랑', chiefCount: 2, minCities: 0 },
   1: { level: 1, name: '정', chiefCount: 2, minCities: 1 },
@@ -19,6 +19,7 @@ export const NATION_LEVELS: Record<number, { level: number; name: string; chiefC
 // 관직 명칭 (officerTitles)
 // 레벨 0-4: 도시 관직 (국가 레벨 무관)
 // 레벨 5-12: 수뇌부 관직 (국가 레벨에 따라 다름)
+// backend constants.json 로직 완벽 반영
 export const OFFICER_TITLES: Record<number, Record<string, string>> = {
   0: { default: '재야' },
   1: { default: '일반' },
@@ -189,4 +190,3 @@ export const CHIEF_OFFICER_LEVELS = {
   COMMANDER2: 6, // 무3
   ADVISOR3: 5,   // 문4
 } as const;
-

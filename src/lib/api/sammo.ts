@@ -65,56 +65,56 @@ export interface ChiefTimelinePayload {
   month: number;
   turnTerm: number;
   maxChiefTurn: number;
- }
- 
- export interface NationStratFinanPayload {
-   year: number;
-   month: number;
-   nationID: number;
-   officerLevel: number;
-   editable: boolean;
-   nationsList: Array<{
-     nation: number;
-     name: string;
-     color: string;
-     cityCnt: number;
-     gennum: number;
-     power: number;
-     diplomacy: {
-       state: number;
-       term: number | null;
-     };
-   }>;
-   nationMsg: string;
-   scoutMsg: string;
-   gold: number;
-   rice: number;
-   policy: {
-     rate: number;
-     bill: number;
-     secretLimit: number;
-     blockWar: boolean;
-     blockScout: boolean;
-   };
-   warSettingCnt: {
-     remain: number;
-     inc: number;
-     max: number;
-   };
-   income: {
-     gold: {
-       city: number;
-       war: number;
-     };
-     rice: {
-       city: number;
-       wall: number;
-     };
-   };
-   outcome: number;
- }
- 
- export interface ChiefCenterPayload {
+}
+
+export interface NationStratFinanPayload {
+  year: number;
+  month: number;
+  nationID: number;
+  officerLevel: number;
+  editable: boolean;
+  nationsList: Array<{
+    nation: number;
+    name: string;
+    color: string;
+    cityCnt: number;
+    gennum: number;
+    power: number;
+    diplomacy: {
+      state: number;
+      term: number | null;
+    };
+  }>;
+  nationMsg: string;
+  scoutMsg: string;
+  gold: number;
+  rice: number;
+  policy: {
+    rate: number;
+    bill: number;
+    secretLimit: number;
+    blockWar: boolean;
+    blockScout: boolean;
+  };
+  warSettingCnt: {
+    remain: number;
+    inc: number;
+    max: number;
+  };
+  income: {
+    gold: {
+      city: number;
+      war: number;
+    };
+    rice: {
+      city: number;
+      wall: number;
+    };
+  };
+  outcome: number;
+}
+
+export interface ChiefCenterPayload {
   nation: {
     id: number;
     name: string;
@@ -327,7 +327,7 @@ export interface GetFrontInfoResponse {
     officerTitles?: Record<number | string, string>;
     nationLevels?: Record<number | string, string>;
   };
- }
+}
 
 
 export type CityInfo = NonNullable<GetFrontInfoResponse['city']>;
@@ -428,7 +428,7 @@ export class SammoAPI {
   private static getToken(): string | null {
     // 브라우저 환경에서만 실행
     if (typeof window === 'undefined') return null;
-    
+
     // 쿠키에서 토큰 찾기
     const cookies = document.cookie.split(';');
     for (const cookie of cookies) {
@@ -437,7 +437,7 @@ export class SammoAPI {
         return decodeURIComponent(value);
       }
     }
-    
+
     // localStorage에서 토큰 찾기
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('authToken');
@@ -467,22 +467,22 @@ export class SammoAPI {
     const url = `${this.baseURL}${endpoint}`;
     const token = this.getToken();
     const csrfToken = this.getCSRFToken();
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string> || {}),
     };
-    
+
     // 토큰이 있으면 Authorization 헤더에 추가
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    
+
     // CSRF 토큰 추가 (state-changing 요청에 필요)
     if (csrfToken) {
       headers['X-XSRF-TOKEN'] = csrfToken;
     }
-    
+
     try {
       console.log(`API Request: ${url}`, options);
       const response = await fetch(url, {
@@ -502,14 +502,14 @@ export class SammoAPI {
         } catch {
           errorData = { message: errorText || response.statusText };
         }
-        
+
         // 401 에러는 특별 처리 (인증 실패는 정상적인 경우일 수 있음)
         if (response.status === 401) {
           const error = new Error(errorData.message || errorData.reason || errorData.error || '인증이 필요합니다');
           (error as any).status = 401;
           throw error;
         }
-        
+
         // 다른 에러는 상세 메시지 포함
         const errorMessage = errorData.reason || errorData.message || errorData.error || this.getKoreanStatusText(response.status);
         const error = new Error(`요청 실패: ${errorMessage}`);
@@ -558,7 +558,7 @@ export class SammoAPI {
     if (params.lastGeneralRecordID) query.append('lastGeneralRecordID', String(params.lastGeneralRecordID));
     if (params.lastPersonalHistoryID) query.append('lastPersonalHistoryID', String(params.lastPersonalHistoryID));
     if (params.lastGlobalHistoryID) query.append('lastGlobalHistoryID', String(params.lastGlobalHistoryID));
-    
+
     return this.request<GetFrontInfoResponse>(`/api/general/get-front-info?${query.toString()}`, {
       method: 'GET',
     });
@@ -576,7 +576,7 @@ export class SammoAPI {
     if (params.serverID) query.append('serverID', params.serverID);
     if (params.neutralView !== undefined) query.append('neutralView', String(params.neutralView));
     if (params.showMe !== undefined) query.append('showMe', String(params.showMe));
-    
+
     return this.request<GetMapResponse>(`/api/global/get-map?${query.toString()}`, {
       method: 'GET',
     });
@@ -587,7 +587,7 @@ export class SammoAPI {
     username: string;
     password: string;
     otp?: string;
-  }): Promise<{
+    }): Promise<{
     result: boolean;
     reqOTP: boolean;
     reason: string;
@@ -598,19 +598,22 @@ export class SammoAPI {
   }> {
     try {
       const result = await this.request<{
+        result?: boolean;
+        reqOTP?: boolean;
         message: string;
-        token: string;
-        userId: string;
+        token?: string;
+        userId?: string;
+        reason?: string;
       }>('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify(params),
       });
-      
+
       // 백엔드 응답 형식에 맞게 변환
       return {
-        result: !!result.token,
-        reqOTP: false,
-        reason: result.message || '로그인 성공',
+        result: result.result !== undefined ? result.result : !!result.token,
+        reqOTP: !!result.reqOTP,
+        reason: result.reason || result.message || '로그인 성공',
         token: result.token,
         userId: result.userId,
         message: result.message,
@@ -643,8 +646,9 @@ export class SammoAPI {
 
   static async Register(params: {
     username: string;
+    email: string;
+    name: string;
     password: string;
-    nickname: string;
     secret_agree: boolean;
     secret_agree2: boolean;
     third_use: boolean;
@@ -662,7 +666,7 @@ export class SammoAPI {
       method: 'POST',
       body: JSON.stringify(params),
     });
-    
+
     return {
       result: !result.error && !!result.userId,
       reason: result.error || result.message,
@@ -736,7 +740,7 @@ export class SammoAPI {
     const query = new URLSearchParams();
     if (params?.serverID) query.append('serverID', params.serverID);
     if (params?.session_id) query.append('session_id', params.session_id);
-    
+
     return this.request(`/api/global/get-global-menu?${query.toString()}`, {
       method: 'GET',
     });
@@ -751,7 +755,7 @@ export class SammoAPI {
   }> {
     const query = new URLSearchParams();
     if (params?.session_id) query.append('session_id', params.session_id);
-    
+
     return this.request(`/api/global/get-nation-list?${query.toString()}`, {
       method: 'GET',
     });
@@ -781,7 +785,7 @@ export class SammoAPI {
       body: JSON.stringify(body),
     });
   }
-  
+
   static async GlobalGeneralList(params: {
 
     token?: string;
@@ -801,34 +805,34 @@ export class SammoAPI {
     session_id?: string;
     general_id?: number;
   }): Promise<{
-     success: boolean;
-     result: boolean;
-     turn: Array<{
-       action: string;
-       brief: string;
-       arg: any;
-     }>;
-     /** 다음 개인 턴 기준 시각 (ISO 문자열) */
-     turnTime: string;
-     /** 한 턴 길이 (분 단위) */
-     turnTerm: number;
-     /** 장수의 다음 turnTime 기준 in‑game 년/월 */
-     year: number;
-     month: number;
-     /** 세션 전체 관점의 현재 in‑game 년/월 (없으면 year/month와 동일) */
-     sessionYear?: number;
-     sessionMonth?: number;
-     /** 응답 생성 시 서버 시각 (ISO 문자열) */
-     date: string;
-     autorun_limit?: number | null;
-     reason?: string;
-   }> {
+    success: boolean;
+    result: boolean;
+    turn: Array<{
+      action: string;
+      brief: string;
+      arg: any;
+    }>;
+    /** 다음 개인 턴 기준 시각 (ISO 문자열) */
+    turnTime: string;
+    /** 한 턴 길이 (분 단위) */
+    turnTerm: number;
+    /** 장수의 다음 turnTime 기준 in‑game 년/월 */
+    year: number;
+    month: number;
+    /** 세션 전체 관점의 현재 in‑game 년/월 (없으면 year/month와 동일) */
+    sessionYear?: number;
+    sessionMonth?: number;
+    /** 응답 생성 시 서버 시각 (ISO 문자열) */
+    date: string;
+    autorun_limit?: number | null;
+    reason?: string;
+  }> {
 
     const query = new URLSearchParams();
     if (params?.serverID) query.append('session_id', params.serverID);
     if (params?.session_id) query.append('session_id', params.session_id);
     if (params?.general_id) query.append('general_id', String(params.general_id));
-    
+
     return this.request(`/api/command/get-reserved-command?${query.toString()}`, {
       method: 'GET',
     });
@@ -852,7 +856,7 @@ export class SammoAPI {
     const query = new URLSearchParams();
     if (params?.serverID) query.append('session_id', params.serverID);
     if (params?.session_id) query.append('session_id', params.session_id);
-    
+
     const body: any = {
       general_id: params.general_id,
       action: params.action,
@@ -866,7 +870,7 @@ export class SammoAPI {
     } else if (params.turn_idx !== undefined) {
       body.turn_idx = params.turn_idx;
     }
-    
+
     console.log('[SammoAPI.CommandReserveCommand] params.arg:', JSON.stringify(params.arg));
     console.log('[SammoAPI.CommandReserveCommand] body:', JSON.stringify(body));
 
@@ -1677,15 +1681,12 @@ export class SammoAPI {
   }
 
   static async DeleteMe(params: {
-    password: string;
-    globalSalt: string;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-  }> {
-    return this.request('/api/gateway/delete-me', {
+    password?: string;
+    globalSalt?: string;
+  }): Promise<any> {
+    return this.request('/api/auth/delete-account', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify(params)
     });
   }
 
@@ -1716,7 +1717,7 @@ export class SammoAPI {
   }): Promise<GetMapResponse> {
     return this.request('/api/game/map', {
       method: 'POST',
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         session_id: params.session_id,
         data: {
           year: params.year,
@@ -2132,7 +2133,7 @@ export class SammoAPI {
     if (params?.session_id) query.append('session_id', params.session_id);
     if (params?.general_id) query.append('general_id', String(params.general_id));
     if (params?.command) query.append('command', params.command);
-    
+
     return this.request(`/api/general/get-command-table?${query.toString()}`, {
       method: 'GET',
     });
@@ -2300,7 +2301,7 @@ export class SammoAPI {
   }> {
     const query = new URLSearchParams();
     if (sessionId) query.append('sessionId', sessionId);
-    
+
     return this.request(`/api/game/current-city?${query.toString()}`, {
       method: 'GET',
       credentials: 'include'
@@ -2420,11 +2421,12 @@ export class SammoAPI {
     nations?: Record<number, any>;
     kingdomList?: any[];
   }> {
-    // 현재 세션의 국가 목록 조회
-    const response: any = await this.request('/api/global/get-nation-list', {
+    // 현재 세션의 국가 목록 조회 (캐시 방지를 위해 timestamp 추가)
+    const sessionId = params?.session_id || '';
+    const response: any = await this.request(`/api/global/get-nation-list?session_id=${sessionId}&t=${Date.now()}`, {
       method: 'GET',
     });
-    
+
     // nationList를 nations로 반환 (원본 형식 유지)
     if (response.result && response.nationList) {
       return {
@@ -2432,13 +2434,13 @@ export class SammoAPI {
         nations: response.nationList
       };
     }
-    
+
     return {
       result: false,
       nations: {}
     };
   }
-  
+
   // 역대 통합 기록 조회 (명예의 전당용)
   static async GetArchivedKingdomList(params?: {
     session_id?: string;
@@ -2735,7 +2737,7 @@ export class SammoAPI {
     const query = new URLSearchParams();
     if (params?.serverID) query.append('serverID', params.serverID);
     if (params?.session_id) query.append('session_id', params.session_id);
-    
+
     return this.request(`/api/join/get-nations?${query.toString()}`, {
       method: 'POST',
       body: params ? JSON.stringify(params) : undefined,
@@ -2810,13 +2812,30 @@ export class SammoAPI {
   // OAuth API
   static async OAuthKakaoCallback(params: {
     code: string;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-  }> {
+    state?: string;
+  }): Promise<any> {
     return this.request('/api/oauth/kakao/callback', {
-      method: 'POST',
-      body: JSON.stringify(params),
+      method: 'GET',
+      params
+    });
+  }
+
+  static async GetKakaoAuthUrl(redirectUri?: string): Promise<{ success: boolean; authUrl: string; state: string }> {
+    const url = new URL('/api/oauth/kakao/authorize', window.location.origin);
+    if (redirectUri) {
+      // mode가 redirectUri에 쿼리로 붙어있을 경우를 대비
+      const rUrl = new URL(redirectUri, window.location.origin);
+      const mode = rUrl.searchParams.get('mode');
+      if (mode) {
+        url.searchParams.append('mode', mode);
+        rUrl.searchParams.delete('mode');
+        url.searchParams.append('redirect_uri', rUrl.toString());
+      } else {
+        url.searchParams.append('redirect_uri', redirectUri);
+      }
+    }
+    return this.request(url.pathname + url.search, {
+      method: 'GET',
     });
   }
 
@@ -2946,6 +2965,20 @@ export class SammoAPI {
     return this.request('/api/admin/game-info', {
       method: 'POST',
       body: JSON.stringify(params || {}),
+    });
+  }
+
+  static async AdminGetNationStats(params: {
+    session_id: string;
+    sortType?: number;
+  }): Promise<{
+    result: boolean;
+    success: boolean;
+    stats: any[];
+  }> {
+    return this.request('/api/admin/nation-stats', {
+      method: 'POST',
+      body: JSON.stringify(params),
     });
   }
 
@@ -3302,6 +3335,24 @@ export class SammoAPI {
     battle: any;
   }> {
     return this.request('/api/battle/detail', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  static async SubmitBattleAction(params: {
+    battleId: string;
+    generalId: number;
+    action: string;
+    target?: { x: number; y: number };
+    targetGeneralId?: number;
+    skillId?: string;
+  }): Promise<{
+    success: boolean;
+    result?: any;
+    message?: string;
+  }> {
+    return this.request(`/api/battle/${params.battleId}/action`, {
       method: 'POST',
       body: JSON.stringify(params),
     });
@@ -4166,886 +4217,8 @@ export class SammoAPI {
       body.session_id = params.serverID;
     }
     return this.request('/api/inherit-action/check-owner', {
-      method: 'PUT',
-      body: JSON.stringify(body),
-    });
-  }
-
-  /**
-   * 스탯 리셋
-   */
-  static async InheritResetStat(params: {
-    leadership?: number;
-    strength?: number;
-    intel?: number;
-    politics?: number;
-    charm?: number;
-    serverID?: string;
-    session_id?: string;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-    remainPoint?: number;
-  }> {
-    const body: Record<string, any> = {};
-    if (params.leadership !== undefined) body.leadership = params.leadership;
-    if (params.strength !== undefined) body.strength = params.strength;
-    if (params.intel !== undefined) body.intel = params.intel;
-    if (params.politics !== undefined) body.politics = params.politics;
-    if (params.charm !== undefined) body.charm = params.charm;
-    if (params.session_id) {
-      body.session_id = params.session_id;
-    } else if (params.serverID) {
-      body.session_id = params.serverID;
-    }
-    return this.request('/api/inherit-action/reset-stat', {
-      method: 'PUT',
-      body: JSON.stringify(body),
-    });
-  }
-
-  // ============================================================
-  // Message API (누락된 함수들)
-  // ============================================================
-
-  /**
-   * 메시지 삭제
-   */
-  static async DeleteMessage(params: {
-    msgID: number;
-    serverID?: string;
-    session_id?: string;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-  }> {
-    const body: Record<string, any> = {
-      msgID: params.msgID,
-    };
-    if (params.session_id) {
-      body.session_id = params.session_id;
-    } else if (params.serverID) {
-      body.session_id = params.serverID;
-    }
-    return this.request('/api/message/delete-message', {
-      method: 'PATCH',
-      body: JSON.stringify(body),
-    });
-  }
-
-  /**
-   * 메시지 응답 결정 (외교 제의 등)
-   */
-  static async DecideMessageResponse(params: {
-    msgID: number;
-    response: boolean;
-    serverID?: string;
-    session_id?: string;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-  }> {
-    const body: Record<string, any> = {
-      msgID: params.msgID,
-      response: params.response,
-    };
-    if (params.session_id) {
-      body.session_id = params.session_id;
-    } else if (params.serverID) {
-      body.session_id = params.serverID;
-    }
-    return this.request('/api/message/decide-message-response', {
       method: 'POST',
       body: JSON.stringify(body),
     });
   }
-
-  /**
-   * 이전 메시지 조회
-   */
-  static async GetOldMessage(params: {
-    to: number;
-    type: 'private' | 'diplomacy' | 'nation' | 'all';
-    serverID?: string;
-    session_id?: string;
-  }): Promise<{
-    result: boolean;
-    messages?: Array<{
-      msgID: number;
-      from: number;
-      fromName: string;
-      to: number;
-      toName: string;
-      text: string;
-      date: string;
-      msgType: string;
-      isRead: boolean;
-    }>;
-    reason?: string;
-  }> {
-    const query = new URLSearchParams();
-    query.append('to', String(params.to));
-    query.append('type', params.type);
-    if (params.session_id) {
-      query.append('session_id', params.session_id);
-    } else if (params.serverID) {
-      query.append('session_id', params.serverID);
-    }
-    return this.request(`/api/message/get-old-message?${query.toString()}`, {
-      method: 'GET',
-    });
-  }
-
-  /**
-   * 최근 메시지 읽음 처리
-   */
-  static async ReadLatestMessage(params: {
-    type: 'diplomacy' | 'private';
-    msgID: number;
-    serverID?: string;
-    session_id?: string;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-  }> {
-    const body: Record<string, any> = {
-      type: params.type,
-      msgID: params.msgID,
-    };
-    if (params.session_id) {
-      body.session_id = params.session_id;
-    } else if (params.serverID) {
-      body.session_id = params.serverID;
-    }
-    return this.request('/api/message/read-latest-message', {
-      method: 'PATCH',
-      body: JSON.stringify(body),
-    });
-  }
-
-  // ============================================================
-  // Nation API (누락된 함수들)
-  // ============================================================
-
-  /**
-   * 국가 장수 로그 조회
-   * PHP API와 동일한 reqType 사용
-   */
-  static async NationGetGeneralLog(params: {
-    generalID: number;
-    reqType: 'generalHistory' | 'generalAction' | 'battleResult' | 'battleDetail';
-    reqTo?: number;
-    serverID?: string;
-    session_id?: string;
-  }): Promise<{
-    result: boolean;
-    log?: Array<{
-      id: number;
-      text: string;
-    }>;
-    logs?: Array<{  // 백엔드 호환
-      id: number;
-      text: string;
-    }>;
-    reason?: string;
-  }> {
-    const query = new URLSearchParams();
-    query.append('generalID', String(params.generalID));
-    query.append('reqType', params.reqType);
-    if (params.reqTo) query.append('reqTo', String(params.reqTo));
-    if (params.session_id) {
-      query.append('session_id', params.session_id);
-    } else if (params.serverID) {
-      query.append('session_id', params.serverID);
-    }
-    return this.request(`/api/nation/get-general-log?${query.toString()}`, {
-      method: 'GET',
-    });
-  }
-
-  // ============================================================
-  // Troop API (누락된 함수들)
-  // ============================================================
-
-  /**
-   * 부대명 변경
-   */
-  static async TroopSetTroopName(params: {
-    troopID: number;
-    troopName: string;
-    serverID?: string;
-    session_id?: string;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-  }> {
-    const body: Record<string, any> = {
-      troopID: params.troopID,
-      troopName: params.troopName,
-    };
-    if (params.session_id) {
-      body.session_id = params.session_id;
-    } else if (params.serverID) {
-      body.session_id = params.serverID;
-    }
-    return this.request('/api/troop/set-troop-name', {
-      method: 'PATCH',
-      body: JSON.stringify(body),
-    });
-  }
-
-  /**
-   * 부대에서 강퇴
-   */
-  static async TroopKickFromTroop(params: {
-    troopID: number;
-    generalID: number;
-    serverID?: string;
-    session_id?: string;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-  }> {
-    const body: Record<string, any> = {
-      troopID: params.troopID,
-      generalID: params.generalID,
-    };
-    if (params.session_id) {
-      body.session_id = params.session_id;
-    } else if (params.serverID) {
-      body.session_id = params.serverID;
-    }
-    return this.request('/api/troop/kick-from-troop', {
-      method: 'PATCH',
-      body: JSON.stringify(body),
-    });
-  }
-
-  // ============================================================
-  // Vote API (누락된 함수들)
-  // ============================================================
-
-  /**
-   * 투표 코멘트 추가
-   */
-  static async VoteAddComment(params: {
-    voteID: number;
-    text: string;
-    serverID?: string;
-    session_id?: string;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-    commentID?: number;
-  }> {
-    const body: Record<string, any> = {
-      voteID: params.voteID,
-      text: params.text,
-    };
-    if (params.session_id) {
-      body.session_id = params.session_id;
-    } else if (params.serverID) {
-      body.session_id = params.serverID;
-    }
-    return this.request('/api/vote/add-comment', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
-  }
-
-  /**
-   * 투표 상세 조회
-   */
-  static async VoteGetVoteDetail(params: {
-    voteID: number;
-    serverID?: string;
-    session_id?: string;
-  }): Promise<{
-    result: boolean;
-    vote?: {
-      voteID: number;
-      title: string;
-      options: Array<{
-        optionID: number;
-        text: string;
-        count: number;
-      }>;
-      multipleOptions?: number;
-      endDate?: string;
-      isEnded: boolean;
-      mySelection?: number[];
-      comments?: Array<{
-        commentID: number;
-        generalID: number;
-        generalName: string;
-        text: string;
-        date: string;
-      }>;
-    };
-    reason?: string;
-  }> {
-    const query = new URLSearchParams();
-    query.append('voteID', String(params.voteID));
-    if (params.session_id) {
-      query.append('session_id', params.session_id);
-    } else if (params.serverID) {
-      query.append('session_id', params.serverID);
-    }
-    return this.request(`/api/vote/get-vote-detail?${query.toString()}`, {
-      method: 'GET',
-    });
-  }
-
-  /**
-   * 새 투표 생성
-   */
-  static async VoteNewVote(params: {
-    title: string;
-    options: string[];
-    multipleOptions?: number;
-    endDate?: string;
-    keepOldVote?: boolean;
-    serverID?: string;
-    session_id?: string;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-    voteID?: number;
-  }> {
-    const body: Record<string, any> = {
-      title: params.title,
-      options: params.options,
-    };
-    if (params.multipleOptions !== undefined) body.multipleOptions = params.multipleOptions;
-    if (params.endDate) body.endDate = params.endDate;
-    if (params.keepOldVote !== undefined) body.keepOldVote = params.keepOldVote;
-    if (params.session_id) {
-      body.session_id = params.session_id;
-    } else if (params.serverID) {
-      body.session_id = params.serverID;
-    }
-    return this.request('/api/vote/new-vote', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
-  }
-
-  // ============================================================
-  // Admin Root API (SammoRootAPI.ts 대응)
-  // ============================================================
-
-  /**
-   * 이메일 주소 차단 (관리자)
-   * Vue SammoRootAPI.Admin.BanEmailAddress 대응
-   */
-  static async AdminBanEmailAddress(params: {
-    email: string;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-  }> {
-    return this.request('/api/admin/ban-email-address', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    });
-  }
-
-  /**
-   * 사용자 차단 (관리자)
-   */
-  static async AdminBanUser(params: {
-    userID: number | string;
-    reason?: string;
-    duration?: number; // 차단 기간 (일), 0이면 영구
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-  }> {
-    return this.request('/api/admin/ban-user', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    });
-  }
-
-  /**
-   * 사용자 차단 해제 (관리자)
-   */
-  static async AdminUnbanUser(params: {
-    userID: number | string;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-  }> {
-    return this.request('/api/admin/unban-user', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    });
-  }
-
-  /**
-   * 서버 공지 설정 (관리자)
-   */
-  static async AdminSetNotice(params: {
-    message: string;
-    serverID?: string;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-  }> {
-    return this.request('/api/admin/set-notice', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    });
-  }
-
-  /**
-   * 게임 리셋 (관리자)
-   */
-  static async AdminResetGame(params: {
-    serverID: string;
-    scenarioId?: string;
-    confirm?: boolean;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-  }> {
-    return this.request('/api/admin/reset-game', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    });
-  }
-
-  /**
-   * 장수 수정 (관리자)
-   */
-  static async AdminUpdateGeneral(params: {
-    generalID: number;
-    updates: Record<string, any>;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-    general?: any;
-  }> {
-    return this.request('/api/admin/update-general', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    });
-  }
-
-  /**
-   * 국가 수정 (관리자)
-   */
-  static async AdminUpdateNation(params: {
-    nationID: number;
-    updates: Record<string, any>;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-    nation?: any;
-  }> {
-    return this.request('/api/admin/update-nation', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    });
-  }
-
-  /**
-   * 도시 수정 (관리자)
-   */
-  static async AdminUpdateCity(params: {
-    cityID: number;
-    updates: Record<string, any>;
-  }): Promise<{
-    result: boolean;
-    reason?: string;
-    city?: any;
-  }> {
-    return this.request('/api/admin/update-city', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    });
-  }
-
-  /**
-   * 게임 로그 조회 (관리자)
-   */
-  static async AdminGetLogs(params?: {
-    type?: 'error' | 'action' | 'battle' | 'system';
-    limit?: number;
-    offset?: number;
-    from?: string;
-    to?: string;
-  }): Promise<{
-    result: boolean;
-    logs?: any[];
-    total?: number;
-  }> {
-    return this.request('/api/admin/logs', {
-      method: 'POST',
-      body: JSON.stringify(params || {}),
-    });
-  }
-
-  /**
-   * 서버 상태 조회 (관리자)
-   */
-  static async AdminGetServerStatus(): Promise<{
-    result: boolean;
-    status?: {
-      uptime: number;
-      memory: {
-        used: number;
-        total: number;
-      };
-      connections: number;
-      lastTurnTime?: string;
-      nextTurnTime?: string;
-      isLocked: boolean;
-      version: string;
-    };
-  }> {
-    return this.request('/api/admin/server-status', {
-      method: 'GET',
-    });
-  }
-
-  // ============================================================
-  // 군대 이동 시각화 API
-  // ============================================================
-
-  /**
-   * 군대 이동 정보 조회
-   * 지도에 표시할 예약된/진행 중인 군대 이동 목록
-   */
-  static async GetTroopMovements(params: {
-    serverID?: string;
-    session_id?: string;
-    includeEnemy?: boolean;
-  }): Promise<{
-    result: boolean;
-    movements?: TroopMovementResponse[];
-    count?: number;
-    reason?: string;
-  }> {
-    return this.request('/api/game/troop-movements', {
-      method: 'POST',
-      body: JSON.stringify({
-        session_id: params.session_id || params.serverID,
-        includeEnemy: params.includeEnemy ?? true,
-      }),
-    });
-  }
-
-  // ===============================
-  // 랭킹 API
-  // ===============================
-
-  /**
-   * 장수 랭킹 조회
-   */
-  static async GetGeneralRanking(params?: {
-    page?: number;
-    limit?: number;
-    sort?: string;
-    direction?: 'asc' | 'desc';
-    includeNpc?: boolean;
-  }): Promise<{
-    result: boolean;
-    data: any[];
-    total: number;
-    page: number;
-    limit: number;
-  }> {
-    return this.request('/api/ranking/generals', {
-      method: 'POST',
-      body: JSON.stringify(params || {}),
-    });
-  }
-
-  /**
-   * 국가 랭킹 조회
-   */
-  static async GetNationRanking(params?: {
-    page?: number;
-    limit?: number;
-    sort?: string;
-    direction?: 'asc' | 'desc';
-  }): Promise<{
-    result: boolean;
-    data: any[];
-    total: number;
-    page: number;
-    limit: number;
-  }> {
-    return this.request('/api/ranking/nations', {
-      method: 'POST',
-      body: JSON.stringify(params || {}),
-    });
-  }
-
-  /**
-   * 역대 통일 기록 조회
-   */
-  static async GetUnificationHistory(params?: {
-    page?: number;
-    limit?: number;
-  }): Promise<{
-    result: boolean;
-    data: any[];
-    total: number;
-    page: number;
-    limit: number;
-  }> {
-    return this.request('/api/history/unifications', {
-      method: 'POST',
-      body: JSON.stringify(params || {}),
-    });
-  }
-
-  // ============================================================
-  // 향상된 어드민 API
-  // ============================================================
-
-  /**
-   * 국가 통계 조회 (관리자)
-   */
-  static async AdminGetNationStats(params: {
-    session_id: string;
-    sortType?: number;
-  }): Promise<{
-    success: boolean;
-    stats?: any[];
-    message?: string;
-  }> {
-    const queryParams = new URLSearchParams({
-      session_id: params.session_id,
-      sort_type: String(params.sortType || 0),
-    });
-    return this.request(`/api/admin/nation/stats?${queryParams}`, {
-      method: 'GET',
-    });
-  }
-
-  /**
-   * 장수 목록 조회 (관리자)
-   */
-  static async AdminGetGenerals(params: {
-    session_id: string;
-    sortType?: string;
-  }): Promise<{
-    success: boolean;
-    generals?: any[];
-    total?: number;
-    message?: string;
-  }> {
-    const queryParams = new URLSearchParams({
-      session_id: params.session_id,
-    });
-    return this.request(`/api/admin/user/generals?${queryParams}`, {
-      method: 'GET',
-    });
-  }
-
-  /**
-   * 장수 블럭 설정 (관리자)
-   */
-  static async AdminSetBlock(params: {
-    session_id: string;
-    generalNo: number;
-    penaltyLevel: number;
-  }): Promise<{
-    success: boolean;
-    message?: string;
-  }> {
-    return this.request('/api/admin/user/set-block', {
-      method: 'POST',
-      body: JSON.stringify({
-        session_id: params.session_id,
-        generalNo: params.generalNo,
-        penaltyLevel: params.penaltyLevel,
-      }),
-    });
-  }
-
-  /**
-   * 장수 강제 사망 (관리자)
-   */
-  static async AdminForceDeath(params: {
-    session_id: string;
-    generalNo: number;
-  }): Promise<{
-    success: boolean;
-    message?: string;
-  }> {
-    return this.request('/api/admin/user/force-death', {
-      method: 'POST',
-      body: JSON.stringify({
-        session_id: params.session_id,
-        generalNo: params.generalNo,
-      }),
-    });
-  }
-
-  /**
-   * 장수에게 메시지 전송 (관리자)
-   */
-  static async AdminSendMessage(params: {
-    session_id: string;
-    generalNo: number;
-    text: string;
-  }): Promise<{
-    success: boolean;
-    message?: string;
-  }> {
-    return this.request('/api/admin/user/send-message', {
-      method: 'POST',
-      body: JSON.stringify({
-        session_id: params.session_id,
-        generalNo: params.generalNo,
-        text: params.text,
-      }),
-    });
-  }
-
-  /**
-   * 장수 국가 변경 (관리자)
-   */
-  static async AdminChangeNation(params: {
-    session_id: string;
-    generalNo: number;
-    nationId: number;
-  }): Promise<{
-    success: boolean;
-    message?: string;
-  }> {
-    return this.request('/api/admin/nation/change-general', {
-      method: 'POST',
-      body: JSON.stringify({
-        session_id: params.session_id,
-        generalNo: params.generalNo,
-        nationId: params.nationId,
-      }),
-    });
-  }
-
-  /**
-   * 숙련도 부여 (관리자)
-   */
-  static async AdminGrantSkill(params: {
-    session_id: string;
-    generalNo: number;
-    crewType: number;
-    amount: number;
-  }): Promise<{
-    success: boolean;
-    message?: string;
-  }> {
-    return this.request('/api/admin/user/grant-skill', {
-      method: 'POST',
-      body: JSON.stringify({
-        session_id: params.session_id,
-        generalNo: params.generalNo,
-        crewType: params.crewType,
-        amount: params.amount,
-      }),
-    });
-  }
-
-  // ============================================================
-  // 전술 전투 API
-  // ============================================================
-  static TacticalBattle = {
-    /** 전술 전투 목록 조회 */
-    getBattles: async (sessionId: string): Promise<{ success: boolean; data: any[]; message?: string }> => {
-      return SammoAPI.request(`/api/tactical/battles?sessionId=${sessionId}`);
-    },
-
-    /** 전술 전투 상세 조회 */
-    getBattle: async (battleId: string): Promise<{ success: boolean; data: any; message?: string }> => {
-      return SammoAPI.request(`/api/tactical/battle/${battleId}`);
-    },
-
-    /** 유닛 이동 */
-    moveUnit: async (battleId: string, unitId: string, x: number, y: number): Promise<{ success: boolean; message?: string }> => {
-      return SammoAPI.request(`/api/tactical/battle/${battleId}/move`, {
-        method: 'POST',
-        body: JSON.stringify({ unitId, x, y }),
-      });
-    },
-
-    /** 유닛 공격 */
-    attackUnit: async (battleId: string, unitId: string, targetUnitId: string): Promise<{ success: boolean; message?: string }> => {
-      return SammoAPI.request(`/api/tactical/battle/${battleId}/attack`, {
-        method: 'POST',
-        body: JSON.stringify({ unitId, targetUnitId }),
-      });
-    },
-
-    /** 유닛 대기 */
-    waitUnit: async (battleId: string, unitId: string): Promise<{ success: boolean; message?: string }> => {
-      return SammoAPI.request(`/api/tactical/battle/${battleId}/wait`, {
-        method: 'POST',
-        body: JSON.stringify({ unitId }),
-      });
-    },
-
-    /** 턴 종료 */
-    endTurn: async (battleId: string, side: 'attacker' | 'defender'): Promise<{ success: boolean; message?: string }> => {
-      return SammoAPI.request(`/api/tactical/battle/${battleId}/end-turn`, {
-        method: 'POST',
-        body: JSON.stringify({ side }),
-      });
-    },
-
-    /** AI 턴 실행 */
-    aiTurn: async (battleId: string): Promise<{ success: boolean; message?: string }> => {
-      return SammoAPI.request(`/api/tactical/battle/${battleId}/ai-turn`, {
-        method: 'POST',
-      });
-    },
-
-    /** 전체 시뮬레이션 */
-    simulate: async (battleId: string): Promise<{ success: boolean; data?: any; message?: string }> => {
-      return SammoAPI.request(`/api/tactical/battle/${battleId}/simulate`, {
-        method: 'POST',
-      });
-    },
-
-    /** 전투 시작 */
-    startBattle: async (battleId: string): Promise<{ success: boolean; message?: string }> => {
-      return SammoAPI.request(`/api/tactical/battle/${battleId}/start`, {
-        method: 'POST',
-      });
-    },
-  };
-}
-
-/** 군대 이동 응답 타입 */
-export interface TroopMovementResponse {
-  id: string;
-  generalId: number;
-  generalName: string;
-  generalIcon?: string;
-  nationId: number;
-  nationName: string;
-  nationColor: string;
-  troops: number;
-  crewType?: number;
-  crewTypeName?: string;
-  fromCityId: number;
-  fromCityName: string;
-  fromX: number;
-  fromY: number;
-  toCityId: number;
-  toCityName: string;
-  toX: number;
-  toY: number;
-  status: 'scheduled' | 'marching' | 'arriving' | 'completed';
-  type: 'normal' | 'deploy' | 'forceMarch' | 'retreat' | 'supply';
-  scheduledTurn?: number;
-  startTurn?: number;
-  arrivalTurn?: number;
-  progress?: number;
-  isEnemy?: boolean;
-  isVisible?: boolean;
 }

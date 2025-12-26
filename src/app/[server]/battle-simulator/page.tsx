@@ -7,6 +7,7 @@ import { SammoAPI } from '@/lib/api/sammo';
 import TopBackBar from '@/components/common/TopBackBar';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/contexts/ToastContext';
+import { convertLog } from '@/utils/convertLog';
 
 // ============ 상수 정의 ============
 
@@ -19,11 +20,11 @@ const NATION_TYPES = [
 ];
 
 const NATION_LEVELS = [
-  { level: 0, name: '군벌' },
+  { level: 0, name: '방랑군' },
   { level: 1, name: '호족' },
-  { level: 2, name: '주목' },
-  { level: 3, name: '자사' },
-  { level: 4, name: '목' },
+  { level: 2, name: '군벌' },
+  { level: 3, name: '주자사' },
+  { level: 4, name: '주목' },
   { level: 5, name: '공' },
   { level: 6, name: '왕' },
   { level: 7, name: '황제' },
@@ -334,7 +335,7 @@ function NationSettingCard({
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-gray-400">국가 규모</label>
+            <label className="text-xs text-gray-400">국가 위상</label>
             <select
               className="w-full bg-black/40 border border-white/10 rounded px-2 py-1.5 text-sm"
               value={nation.level}
@@ -1053,6 +1054,13 @@ export default function BattleSimulatorPage() {
       });
 
       if (response.result && response.simulation) {
+        const battleLog = Array.isArray(response.simulation.battleLog) 
+          ? response.simulation.battleLog.join('<br>') 
+          : response.simulation.battleLog;
+        const detailLog = Array.isArray(response.simulation.detailLog)
+          ? response.simulation.detailLog.join('<br>')
+          : response.simulation.detailLog;
+
         setResult({
           datetime: `${year}년 ${month}월`,
           warcnt: response.simulation.warcnt || 1,
@@ -1067,8 +1075,8 @@ export default function BattleSimulatorPage() {
           defenderRice: response.simulation.defenderRice || 0,
           attackerSkills: response.simulation.attackerSkills || [],
           defenderSkills: response.simulation.defenderSkills || [],
-          battleLog: response.simulation.battleLog || '',
-          detailLog: response.simulation.detailLog || '',
+          battleLog: battleLog || '',
+          detailLog: detailLog || '',
         });
         showToast('시뮬레이션 완료', 'success');
       } else {
@@ -1337,14 +1345,14 @@ export default function BattleSimulatorPage() {
                 <div className="py-2 px-4 font-bold text-white bg-orange-600/80">마지막 전투 로그</div>
                 <div
                   className="p-4 text-sm whitespace-pre-wrap max-h-96 overflow-y-auto custom-scrollbar"
-                  dangerouslySetInnerHTML={{ __html: result.battleLog || '로그 없음' }}
+                  dangerouslySetInnerHTML={{ __html: convertLog(result.battleLog) || '로그 없음' }}
                 />
               </div>
               <div className="bg-gray-900/50 backdrop-blur-sm border border-white/5 rounded-xl overflow-hidden shadow-lg">
                 <div className="py-2 px-4 font-bold text-white bg-teal-600/80">마지막 전투 상세 로그</div>
                 <div
                   className="p-4 text-sm whitespace-pre-wrap max-h-96 overflow-y-auto custom-scrollbar"
-                  dangerouslySetInnerHTML={{ __html: result.detailLog || '상세 로그 없음' }}
+                  dangerouslySetInnerHTML={{ __html: convertLog(result.detailLog) || '상세 로그 없음' }}
                 />
               </div>
             </div>
